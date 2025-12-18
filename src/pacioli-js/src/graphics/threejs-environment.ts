@@ -46,7 +46,7 @@ export class ThreeJsEnvironment {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.Camera;
-  private readonly body: THREE.Object3D<THREE.Event>;
+  private readonly body: THREE.Object3D<THREE.Object3DEventMap>;
   private readonly controls: OrbitControls;
 
   // Dynamic Three.js elements

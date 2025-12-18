@@ -61,6 +61,46 @@ export abstract class PacioliWebComponent
    */
   private callbacks: (() => void)[] = [];
 
+  set definition(value: string) {
+    this.setStringAttribute("definition", value);
+  }
+
+  get definition(): string {
+    return this.getStringAttribute("definition");
+  }
+
+  set width(value: number) {
+    this.setNumberAttribute("width", value);
+  }
+
+  get width(): number {
+    return this.getNumberAttribute("width", 0);
+  }
+
+  set height(value: number) {
+    this.setNumberAttribute("height", value);
+  }
+
+  get height(): number {
+    return this.getNumberAttribute("height", 0);
+  }
+
+  get margin(): string {
+    return this.getStringAttribute("margin");
+  }
+
+  set margin(value: string) {
+    this.setStringAttribute("margin", value);
+  }
+
+  set decimals(value: number) {
+    this.setNumberAttribute("decimals", value);
+  }
+
+  get decimals(): number {
+    return this.getNumberAttribute("decimals", 0);
+  }
+
   /**
    * Web component life-cycle event.
    */
@@ -167,17 +207,18 @@ export abstract class PacioliWebComponent
    * Implementation of the ErrorOutput api.
    */
   displayError(message: string) {
-    console.log(message);
+    const root = this.errorRoot();
+    const content = this.errorContentParent();
 
-    // Delay displaying the errors for errors during DOM building (e.g. in
-    // attributeChangedCallback) to increase the probability that the
-    // error output pane exists.
-    setTimeout(() => {
-      this.errorRoot().hidden = false;
+    if (root) {
+      root.hidden = false;
+    }
 
-      const content = this.errorContentParent();
+    if (content) {
       content.innerText = message + "\n\n" + content.innerText;
-    }, 1);
+    } else {
+      console.log(message);
+    }
   }
 
   /**
@@ -198,5 +239,55 @@ export abstract class PacioliWebComponent
 
   private closeErrorOutputButton(): HTMLElement {
     return this.rootElement().querySelector(".close-button")!;
+  }
+
+  /**
+   * Helper to reflect a numeric attribute to a property
+   *
+   * @param attribute
+   * @param value
+   */
+  protected setNumberAttribute(attribute: string, value: number | undefined) {
+    if (value === undefined) {
+      this.removeAttribute(attribute);
+    } else {
+      this.setAttribute(attribute, Number(value).toString());
+    }
+  }
+
+  protected getNumberAttribute(
+    attribute: string,
+    defaultValue: number = 0
+  ): number {
+    const att = this.getAttribute(attribute);
+    return Number(att === null ? defaultValue : att);
+  }
+
+  protected setStringAttribute(attribute: string, value: string | undefined) {
+    if (value === undefined) {
+      this.removeAttribute(attribute);
+    } else {
+      this.setAttribute(attribute, value);
+    }
+  }
+
+  protected getStringAttribute(
+    attribute: string,
+    defaultValue: string = ""
+  ): string {
+    const att = this.getAttribute(attribute);
+    return att === null ? defaultValue : att;
+  }
+
+  protected setBooleAttribute(attribute: string, value: boolean | undefined) {
+    if (Boolean(value)) {
+      this.setAttribute(attribute, "");
+    } else {
+      this.removeAttribute(attribute);
+    }
+  }
+
+  protected getBooleAttribute(attribute: string): boolean {
+    return this.hasAttribute(attribute);
   }
 }

@@ -20,21 +20,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
 import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { dataUnit } from "../../charts/chart-utils";
 import { optionsFromAttributes } from "../utils";
-import { parseUnit } from "../../api";
+import { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the pie chart component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label"],
+  strings: ["unit", "caption", "label"],
   booleans: [],
-  numbers: ["width", "height", "radius", "labelOffset", "decimals"],
+  numbers: ["width", "height", "decimals", "radius", "labelOffset"],
 };
 
 /**
@@ -49,10 +47,38 @@ const STYLES = `
  */
 export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
   /**
+   * Label
+   */
+  get label(): string {
+    return this.getStringAttribute("label", "");
+  }
+
+  set label(value: string | undefined) {
+    this.setStringAttribute("label", value);
+  }
+
+  /**
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  unit?: SIUnit;
+  get unit(): String {
+    return this.getStringAttribute("unit");
+  }
+
+  set unit(value: string | undefined) {
+    this.setStringAttribute("unit", value);
+  }
+
+  /**
+   * Radius of the pie chart circle
+   */
+  get radius(): number {
+    return this.getNumberAttribute("radius", 0);
+  }
+
+  set radius(value: number) {
+    this.setNumberAttribute("radius", value);
+  }
 
   /**
    * The pie chart
@@ -60,9 +86,20 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
   chart?: PieChart;
 
   /**
+   * The Pacioli value displayed in the chart.
+   */
+  data?: PacioliValue;
+
+  /**
    * Web component field.
    */
-  static observedAttributes = ["unit"];
+  static observedAttributes = [
+    "definition",
+    "decimals",
+    "unit",
+    "radius",
+    "margin",
+  ];
 
   constructor() {
     super();
@@ -72,13 +109,16 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      switch (name) {
-        case "unit": {
-          this.unit = parseUnit(newValue);
-          break;
-        }
+      // Reload the data if the definition changes. The initial load is done in
+      // parametersChanged.
+      if (name === "definition" && this.data !== undefined) {
+        this.data = this.fetchData();
+      }
+
+      if (this.contentParent() && this.data) {
+        this.drawChart(this.data);
       }
     } catch (err: any) {
       this.displayError(err);
@@ -90,34 +130,25 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     try {
-      // Compute the data using the new parameter values
-      const data = this.fetchData();
+      this.data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the chartOptions call below.
-      if (this.unit === undefined) {
-        this.unit = dataUnit(data);
-      }
-
-      // Refresh the chart
-      this.clearContent();
-      this.chart = new PieChart(data, PacioliContext.si(), this.chartOptions());
-      this.chart.draw(this.contentParent());
+      this.drawChart(this.data);
     } catch (err: any) {
       this.displayError(err);
     }
   }
 
-  /**
-   * Creates an options for the chart from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
-   */
-  chartOptions(): Partial<PieChartOptions> {
-    return {
-      unit: this.unit || UOM.ONE,
-      ...optionsFromAttributes<PieChartOptions>(this, SUPPORTED_ATTRIBUTES),
-    };
+  drawChart(data: PacioliValue): void {
+    this.clearContent();
+    this.clearErrors();
+
+    this.chart = new PieChart(
+      data,
+      PacioliContext.si(),
+      optionsFromAttributes<PieChartOptions>(this, SUPPORTED_ATTRIBUTES)
+    );
+
+    this.chart.draw(this.contentParent());
   }
 }
 

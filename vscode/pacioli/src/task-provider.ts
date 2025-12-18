@@ -157,10 +157,10 @@ function shellCommand(
     case "compile": {
       switch (task.target) {
         case "mvm": {
-          return `java -jar ${jarFile} compile \${file} -target mvm -debug -lib ${libDir}`;
+          return `java -jar ${jarFile} compile \${file} -target mvm -lib ${libDir}`;
         }
         case "javascript": {
-          return `java -jar ${jarFile} compile \${file} -target javascript -debug -lib ${libDir}`;
+          return `java -jar ${jarFile} compile \${file} -target javascript -lib ${libDir}`;
         }
         default: {
           return undefined;
@@ -168,7 +168,7 @@ function shellCommand(
       }
     }
     case "types": {
-      return `java -jar ${jarFile} types \${file} -debug -lib ${libDir}`;
+      return `java -jar ${jarFile} types \${file} -lib ${libDir}`;
     }
     default: {
       return undefined;

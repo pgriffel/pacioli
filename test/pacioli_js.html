@@ -23,7 +23,7 @@
     <p>
         Test of the pacioli-value web component
     <p>
-        <pacioli-value script="web_components" definition="wordcloud">
+        <pacioli-value definition="web_components:wordcloud">
         </pacioli-value>
 
 
@@ -31,27 +31,27 @@
     <p>
         Test of the pacioli-table web component
     <p>
-        <pacioli-table script="web_components" definition="test_columns">
+        <pacioli-table definition="web_components:test_columns">
         </pacioli-table>
 
     <table>
         <tr>
             <td>Earth surface area:</td>
             <td>
-                <pacioli-value script="web_components" definition="earth_surface_area"></pacioli-value>
+                <pacioli-value definition="web_components:earth_surface_area"></pacioli-value>
             </td>
         </tr>
         <tr>
             <td>Earth land area:</td>
             <td>
-                <pacioli-value script="web_components" definition="earth_land_area">
+                <pacioli-value definition="web_components:earth_land_area">
                 </pacioli-value>
             </td>
         </tr>
         <tr>
             <td>Earth land to surface area fraction:</td>
             <td>
-                <pacioli-value script="web_components" definition="earth_land_area_fraction">
+                <pacioli-value definition="web_components:earth_land_area_fraction">
                 </pacioli-value>
             </td>
         </tr>
@@ -59,28 +59,47 @@
 
 
     <h2>Pie Chart</h2>
+
     <p>
-        Test of the pacioli-pie-chart web component
+        Test of the pacioli-pie-chart web component with (coord, number) tuples
     <p>
-        <pacioli-pie-chart script="web_components" definition="get_population" unit="giga:people" labelOffset="500">
+        <pacioli-pie-chart caption="Population per continent" definition="web_components:get_population_with_coords"
+            unit="giga:people" labelOffset="500">
+        </pacioli-pie-chart>
+
+    <p>
+        Test of the pacioli-pie-chart web component with (label, number) tuples
+    <p>
+        <pacioli-pie-chart caption="Population per continent" definition="web_components:population_pairs"
+            unit="giga:people" labelOffset="500">
+        </pacioli-pie-chart>
+
+    <p>
+        Test of the pacioli-pie-chart web component with vector value
+    <p>
+        <pacioli-pie-chart caption="Population per continent" definition="web_components:get_population"
+            unit="giga:people" labelOffset="500">
         </pacioli-pie-chart>
 
 
 
-
-
     <h2>Bar Chart</h2>
-    <p>
-        Test of the pacioli-bar-chart web component
 
-    <p>
-        <pacioli-bar-chart script="web_components" definition="land_area" label="Bart chart test" unit="mega:metre^2"
-            Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+    <p>with vec
+        <pacioli-bar-chart class="foo barrr chart" caption="Area per continent" margin="0 0 0 50"
+            definition="web_components:land_area" ylabel="Area" unit="mega:metre^2" Aymin="-100000" Aymax="100000"
+            decimals="5" padding="0.1"></pacioli-bar-chart>
+
+    <p> with tuples
+        <pacioli-bar-chart class="barrr" caption="Population per continent"
+            definition="web_components:get_population_with_coords" xlabel="Continent" ylabel="Population"
+            unit="mega:people" Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
 
 
-    <p>
-        <pacioli-bar-chart script="web_components" definition="test_data_metre" label="Bart chart test" unit="metre"
-            width="1200" height="200" Aymin="-100000" , Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+    <p> with list
+        <pacioli-bar-chart class="baz" definition="web_components:test_data_metre" ylabel="Bart chart test" unit="metre"
+            width="1200" height="200" Aymin="-100000" Aymax="100000" decimals="5" padding="0.1"></pacioli-bar-chart>
+
 
         Issues:
     <ul>
@@ -90,16 +109,32 @@
     </ul>
 
 
+
+    <h2>Dynamic Bar Chart</h2>
+
+    <p>
+        Test of the pacioli-bar-chart web component
+
+    <p>
+        <button onclick="addChart()">Add chart</button>
+
+    <div id="slot">
+
+    </div>
+
+
     <h2>Line Chart</h2>
     <p>
         Test of the pacioli-line-chart web component
 
     <p>
-    <div class="example">
+    <div class="exampl">
 
-        <pacioli-line-chart unit="kilo:metre" height="200" script="web_components" definition="test_data_metre"
-            smoothkkk label="some value" width="1200"></pacioli-line-chart>
+        <pacioli-line-chart class="line" unit="kilo:metre" height="200" definition="web_components:test_data_metre"
+            smooth background="red" label="some value" width="1200"></pacioli-line-chart>
     </div>
+    <input type="checkbox" id="smooth" name="smooth" onclick="onSmooth(this)">
+    <input type="number" id="yupper" name="yupper" onchange="onUpper(this)">
 
     Issues:
     <ul>
@@ -118,8 +153,8 @@
     <p>
     <div class="example">
 
-        <pacioli-histogram id="dice" unit="1" script="web_components" definition="dice" NObins="100" NOlower="0"
-            NOupper="25" label="dice test" decimals="5" , gap="1.0" heuristic="d3">
+        <pacioli-histogram id="dice" unit="1" definition="web_components:dice" NObins="100" NOlower="0" NOupper="25"
+            label="dice test" decimals="5" gap="1.0" heuristic="d3">
             <parameter label="throws">10000</parameter>
             <parameter label="dice">3</parameter>
         </pacioli-histogram>
@@ -131,8 +166,8 @@
 
     <div class="example">
 
-        <pacioli-histogram id="dice1" unit="1" script="web_components" definition="randomNatVec" lower="0" upper="50"
-            options="random_vec_histogram_options" nbins="10" label="n test" decimals="2" , gap="1.0"
+        <pacioli-histogram id="dice1" unit="1" definition="web_components:randomNatVec" lower="0" upper="50"
+            options="web_components:random_vec_histogram_options" nbins="10" label="n test" decimals="2" gap="1.0"
             heuristic="seaborn">
             <parameter label="n">100</parameter>
         </pacioli-histogram>
@@ -142,8 +177,8 @@
 
     </div>
 
-    <pacioli-bar-chart id="dice1b" unit="1" script="web_components" definition="myRandomCount" NObins="10" NOlower="0"
-        NOupper="1" label="n test" decimals="2" , gap="1.0">
+    <pacioli-bar-chart id="dice1b" unit="1" definition="web_components:myRandomCount" NObins="10" NOlower="0"
+        NOupper="1" label="n test" decimals="2" gap="1.0">
         <parameter label="n">100</parameter>
     </pacioli-bar-chart>
 
@@ -158,8 +193,13 @@
     <h2>Scatter Plot</h2>
     <p>
         Test of the pacioli-scatter-plot web component
-    <p>
-        <pacioli-scatter-plot xunit="kilo:gram" yunit="kilo:gram" script="web_components" definition="scattered">
+    <p> Tuple of vectors
+        <pacioli-scatter-plot definition="web_components:scattered">
+            <parameter>100</parameter>
+        </pacioli-scatter-plot>
+
+    <p> Tuple of lists
+        <pacioli-scatter-plot xunit="kilo:gram" yunit="kilo:gram" definition="web_components:scattered_lists">
             <parameter>100</parameter>
         </pacioli-scatter-plot>
 
@@ -170,7 +210,7 @@
         My nice scene!
 
     <div class="example">
-        <pacioli-scene id="scene_cubes3" script="web_components" definition="scene3" kind="scene" perspective grid axis>
+        <pacioli-scene id="scene_cubes3" definition="web_components:scene3" kind="scene" perspective grid axis>
             <parameter label="a" unit="metre">5</parameter>
             <parameter label="b" unit="metre">5</parameter>
             <parameter label="c" unit="metre">5</parameter>
@@ -185,7 +225,7 @@
         An experiment with the Mesh and Path datastructures
 
     <div class="example">
-        <pacioli-scene id="scene_cubes2" script="web_components" definition="scene2" kind="scene" perspective>
+        <pacioli-scene id="scene_cubes2" definition="web_components:scene2" kind="scene" perspective>
         </pacioli-scene>
         <pacioli-controls for="scene_cubes2"></pacioli-controls>
     </div>
@@ -196,7 +236,7 @@
         An icosahedron
 
     <div class="example">
-        <pacioli-scene id="scene_cubes4" script="web_components" definition="scene4" kind="scene" perspective
+        <pacioli-scene id="scene_cubes4" definition="web_components:scene4" kind="scene" perspective
             background="#222222" labelColor="#eeeeee">
             <parameter label="arrows" type="boole">false</parameter>
             <parameter label="planes" type="boole">false</parameter>
@@ -215,8 +255,8 @@
         An experiment with the CubeMesh datastructure and animation.
 
     <div class="example">
-        <pacioli-scene id="scene_cubes1" script="web_components" definition="scene1" kind="stateful-animation"
-            perspective background="#222222" ambientIntensity="0.1" width="1280" height="720" labelColor="#eeeeee">
+        <pacioli-scene id="scene_cubes1" definition="web_components:scene1" kind="stateful-animation" perspective
+            background="#222222" ambientIntensity="0.1" width="1280" height="720" labelColor="#eeeeee">
             <parameter label="cubes">100</parameter>
             <parameter label="terms">2</parameter>
             <parameter label="speedup">1</parameter>
@@ -231,7 +271,7 @@
         Just some weird example to test graphics of vectors.
 
     <div class="example">
-        <pacioli-scene id="scene_weird" script="web_components" definition="the_scene" kind="animation" perspective axis
+        <pacioli-scene id="scene_weird" definition="web_components:the_scene" kind="animation" perspective axis
             width="500">
             <parameter label="n" unit="1">50</parameter>
             <parameter label="k" unit="1">5</parameter>
@@ -248,13 +288,70 @@
     <p>
 
     <div class="example">
-        <pacioli-wordcloud id="wc" script="web_components" definition="word_count" width="1200" height="1000">
+        <pacioli-wordcloud id="wc" definition="web_components:word_count" width="1200" height="1000">
             <parameter label="treshold">1</parameter>
         </pacioli-wordcloud>
         <pacioli-inputs for="wc"></pacioli-inputs>
     </div>
 
 
+    <h2>Labels</h2>
+    <p>
+        Test of labels
+    <p>
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="labels_scene" definition="web_components:labels_scene" perspective
+            grid axis unit="metre">
+        </pacioli-scene>
+        <pacioli-controls for="labels_scene"></pacioli-controls>
+    </div>
+
+    <h2>Empty Charts</h2>
+    <p>
+        Test of charts with empty input
+
+    <p>
+        Empty wordcloud
+    <div class="example">
+        <pacioli-wordcloud caption="Wordcloud" id="empty_wc" definition="web_components:some_empty_list">
+        </pacioli-wordcloud>
+    </div>
+
+    <p>
+        Empty bar chart
+    <div class="example">
+        <pacioli-bar-chart caption="My bar chart" id="empty_wc" definition="web_components:some_empty_list">
+        </pacioli-bar-chart>
+    </div>
+
+    <p>
+        Empty pie chart
+    <div class="example">
+        <pacioli-pie-chart caption="My pie chart" id="empty_wc" definition="web_components:some_empty_list">
+        </pacioli-pie-chart>
+    </div>
+
+    <p>
+        Empty line chart
+    <div class="example">
+        <pacioli-line-chart caption="My line chart" id="empty_wc" definition="web_components:some_empty_list">
+        </pacioli-line-chart>
+    </div>
+
+    <p>
+        Empty scatterplot
+    <div class="example">
+        <pacioli-scatter-plot caption="My scatter plot" id="empty_wc" definition="web_components:some_empty_list">
+        </pacioli-scatter-plot>
+    </div>
+
+    <p>
+        Empty histogram
+    <div class="example">
+        <pacioli-histogram caption="My histogram" id="empty_wc" definition="web_components:some_empty_list">
+        </pacioli-histogram>
+    </div>
 
     <h2>Todo</h2>
     <ul>
@@ -267,6 +364,41 @@
     </ul>
 
 </body>
+
+<script>
+
+    function addChart() {
+
+        const slot = document.getElementById("slot")
+
+        const newChart = document.createElement("pacioli-bar-chart")
+
+        slot.appendChild(newChart)
+
+        newChart.definition = "web_components:land_area"
+
+        newChart.unit = "giga:metre * mega:metre";
+
+        newChart.decimals = 7
+
+        newChart.ylabel = "Area"
+
+    }
+
+    function onSmooth(checkbox) {
+        const lineCharts = document.getElementsByTagName("pacioli-line-chart")
+
+        lineCharts[0].smooth = checkbox.checked
+    }
+
+    function onUpper(input) {
+        const lineCharts = document.getElementsByTagName("pacioli-line-chart")
+
+        lineCharts[0].yupper = input.value
+    }
+
+    // TODO: test options attribute. The options attribute passes options from a Pacioli script to a chart!?
+</script>
 
 
 </html>

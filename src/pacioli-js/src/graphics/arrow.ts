@@ -52,7 +52,7 @@ export function arrowName(arrow: PacioliArrow): string {
 }
 
 export function addArrow(
-  body: THREE.Object3D<THREE.Event>,
+  body: THREE.Object3D<THREE.Object3DEventMap>,
   arrow: PacioliArrow,
   options: {
     labelColor: string;
@@ -74,7 +74,7 @@ export function addArrow(
 }
 
 export function updateArrow(
-  body: THREE.Object3D<THREE.Event>,
+  body: THREE.Object3D<THREE.Object3DEventMap>,
   pacioliArrow: PacioliArrow,
   options: {
     unitX: SIUnit;

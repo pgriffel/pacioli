@@ -20,129 +20,87 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { UOM, SIBase } from "uom-ts";
-import { PacioliContext } from "../context";
-import { getNumber, getCOONumbers } from "../values/numbers";
 import * as d3 from "d3";
-import { PacioliValue } from "../boxing";
-import { PacioliMatrix } from "../values/matrix";
 
-export interface DefaultChartOptions {
-  width?: number;
-  height?: number;
-  margin?: { left: number; top: number; right: number; bottom: number };
+export type Margin = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
+export function stringifyMargin(margin: {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}): string {
+  return [margin.left, margin.top, margin.right, margin.bottom].join(" ");
 }
 
-export function dataUnit(data: PacioliValue): UOM<SIBase> {
-  switch (data.kind) {
-    case "list":
-      const items = data as any as PacioliValue[];
-      var content = items[0];
-      if (content.kind === "matrix") {
-        return content.shape.unitAt(0, 0);
-      } else {
-        throw "exptected a list of numbers but got a list of " + data.kind;
-      }
-    case "matrix":
-      return data.shape.unitAt(0, 0);
-    default:
-      throw "exptected a vector or a list of numbers but got a " + data.kind;
-  }
-}
+export const ZERO_MARGIN = {
+  left: 0,
+  top: 0,
+  right: 0,
+  bottom: 0,
+};
 
-// computeChartData
-export function transformData(
-  context: PacioliContext,
-  data: PacioliValue,
-  unit: UOM<SIBase>,
-  includeZeros: boolean,
-  convert: boolean
-): {
-  values: number[];
-  labels: string[];
-  max: number;
-  min: number;
-  label: string;
+export function parseMargin(text: string | undefined): {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
 } {
-  var values = [];
-  var labels = [];
-  var min;
-  var max;
-  let label = "";
+  try {
+    if (text === undefined) {
+      return ZERO_MARGIN;
+    }
 
-  switch (data.kind) {
-    case "list":
-      const items = data as any as PacioliValue[];
-      var content = items[0];
-      if (content.kind === "matrix") {
-        var factor = convert
-          ? context.unitContext
-              .conversionFactor(content.shape.multiplier, unit)
-              .toNumber()
-          : 1;
-        for (var i = 0; i < items.length; i++) {
-          var value =
-            getNumber((items[i] as PacioliMatrix).numbers, 0, 0) * factor;
-          if (includeZeros || value !== 0) {
-            values.push(value);
-            labels.push(i.toString());
-            if (max === undefined || max < value) max = value;
-            if (min === undefined || value < min) min = value;
-          }
-        }
-      } else {
-        throw "exptected a list of numbers but got a list of " + content.kind;
-      }
-      break;
-    case "matrix":
-      var numbers = data.numbers;
-      var shape = data.shape;
+    const nums = text.split(" ").map(Number);
+    const n = nums.length;
 
-      label = shape.rowName();
+    if (n === 0) {
+      return ZERO_MARGIN;
+    }
 
-      if (false) {
-        var nums = getCOONumbers(numbers);
-        var rows = nums[0];
-        // var columns = nums[1]
-        var vals = nums[2];
-        for (var i = 0; i < rows.length; i++) {
-          var factor = context.unitContext
-            .conversionFactor(shape.unitAt(rows[i], 0), unit)
-            .toNumber();
-          var value = vals[i] * factor;
-          values.push(value);
-          labels.push(shape.rowCoordinates(rows[i]).shortText());
-          if (max === undefined || max < value) max = value;
-          if (min === undefined || value < min) min = value;
-        }
-      } else {
-        for (var i = 0; i < numbers.length; i++) {
-          var factor = convert
-            ? context.unitContext
-                .conversionFactor(shape.unitAt(i, 0), unit)
-                .toNumber()
-            : 1;
-          var value = getNumber(numbers, i, 0) * factor;
-          if (includeZeros || value !== 0) {
-            values.push(value);
-            labels.push(shape.rowCoordinates(i).shortText());
-            if (max === undefined || max < value) max = value;
-            if (min === undefined || value < min) min = value;
-          }
-        }
-      }
-      break;
-    default:
-      throw "exptected a vector or a list of numbers but got a " + data.kind;
+    return {
+      left: nums[0 % n],
+      top: nums[1 % n],
+      right: nums[2 % n],
+      bottom: nums[3 % n],
+    };
+  } catch (err) {
+    return ZERO_MARGIN;
   }
+}
 
+export function combineMargins(
+  x: { left: number; top: number; right: number; bottom: number } | undefined,
+  y: { left: number; top: number; right: number; bottom: number } | undefined
+) {
   return {
-    values: values,
-    labels: labels,
-    max: max || 0,
-    min: min || 0,
-    label,
+    left: (x?.left || 0) + (y?.left || 0),
+    top: (x?.top || 0) + (y?.top || 0),
+    right: (x?.right || 0) + (y?.right || 0),
+    bottom: (x?.bottom || 0) + (y?.bottom || 0),
   };
+}
+
+/**
+ * Options shared by all charts.
+ */
+export interface DefaultChartOptions {
+  width: number;
+  height: number;
+  margin?: string;
+  caption?: string;
+  xlabel?: string;
+  ylabel?: string;
+
+  /**
+   * Number of decimals used for numbers. Default is 2.
+   */
+  decimals?: number;
 }
 
 export function displayChartError(
@@ -226,5 +184,51 @@ export class ToolTip {
     const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, any> =
       d3.select("div." + this.id);
     tt.style("display", "none");
+  }
+}
+
+/**
+ * Appends the message as text in the middle of the chart.
+ *
+ * @param svg The parent to attach the text to
+ * @param message The message text
+ * @param options The chart options
+ */
+export function appendEmptyChartMessage(
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  message: string,
+  options: DefaultChartOptions
+) {
+  svg
+    .append("text")
+    .attr("x", options.width / 2)
+    .attr("y", options.height / 2)
+    .style("text-anchor", "middle")
+    .text(message);
+}
+
+/**
+ * Appends the caption as text in the top middle of the chart.
+ *
+ * If no caption is provided the caption from the options is used.
+ *
+ * @param svg
+ * @param options
+ * @param caption
+ */
+export function appendChartCaption(
+  svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
+  options: DefaultChartOptions,
+  caption?: string
+) {
+  const text = caption || options.caption;
+
+  if (text) {
+    svg
+      .append("text")
+      .attr("x", options.width / 2)
+      .attr("y", 16)
+      .style("text-anchor", "middle")
+      .text(text);
   }
 }

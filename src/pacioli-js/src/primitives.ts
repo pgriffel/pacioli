@@ -1418,6 +1418,9 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
           out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
             mat.storage
           }`;
+        }
+        if (typeof arg === "object" && arg.kind === "coordinates") {
+          out += arg.position;
         } else {
           out += arg;
         }

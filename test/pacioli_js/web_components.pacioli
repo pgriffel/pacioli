@@ -23,6 +23,12 @@ import geometry;
 import graphics;
 
 # ------------------------------------------------------------------------------
+# Empty list for empty charts
+# ------------------------------------------------------------------------------
+
+define some_empty_list = [];
+
+# ------------------------------------------------------------------------------
 # General
 # ------------------------------------------------------------------------------
 
@@ -99,7 +105,7 @@ define dice(n, k) =
 # ------------------------------------------------------------------------------
 
 define test_data_dimless =
-    sines(ceiling(random() * 500), ceiling(random() * 100));
+    sines(ceiling(random() * 200), ceiling(random() * 25));
 
 define test_data_metre = [5000 * x * |metre| | x <- test_data_dimless];
 
@@ -122,8 +128,8 @@ defindex Continent = {
     Asia,
     Europe,
     Oceania,
-    North_America,
-    South_America,
+    "North America",
+    "South America",
     Antarctica
 };
 
@@ -138,8 +144,8 @@ define earth_land_area_fraction =
 defmatrix land_area :: kilo:metre^2 * Continent! = {
     Asia -> 44614000,
     Africa -> 30365000,
-    North_America -> 24230000,
-    South_America -> 17814000,
+    "North America" -> 24230000,
+    "South America" -> 17814000,
     Antarctica -> 14200000, 
     Europe -> 10000000,
     Oceania -> 8510926
@@ -148,8 +154,8 @@ defmatrix land_area :: kilo:metre^2 * Continent! = {
 defmatrix population :: people * Continent! = {
     Asia -> 4694576167,
     Africa -> 1393676444,
-    North_America -> 595783465,
-    South_America -> 434254119 ,
+    "North America" -> 595783465,
+    "South America" -> 434254119 ,
     Antarctica -> 0,
     Europe -> 745173774 ,
     Oceania -> 44491724
@@ -169,6 +175,19 @@ define test_columns() =
 
 defconv c1 :: mega:metre/kilo:metre;
 defconv c2 :: mega:people/people;
+
+define get_population_with_coords() = 
+    [ tuple(r, get(population, r, _)) | r <- row_domain(population)];
+
+define population_pairs = [
+    tuple("Asia", 4694576167 * |people|),
+    tuple("Africa" , 1393676444 * |people|),
+    tuple("North America" , 595783465 * |people|),
+    tuple("South America" , 434254119 * |people|),
+    tuple("Antarctica" , 0 * |people|),
+    tuple("Europe" , 745173774 * |people|),
+    tuple("Oceania" , 44491724 * |people|)
+];
 
 # ------------------------------------------------------------------------------
 # Cubes I - My nice scene!
@@ -524,3 +543,38 @@ define wordcloud_text =
     All such investigations must start from this, that the very nature of the curved
     surface is given by means of the expression of any linear element in the form
     sqrt(E dp^2 + 2F dp dq + G dq^2).";
+ 
+# ------------------------------------------------------------------------------
+# Labels
+# ------------------------------------------------------------------------------
+
+define labels_scene() =
+    let
+       color_wheel = ["Red", "Yellow", "Green", "Cyan", "Blue", "Purple"]
+    in
+        begin
+            scene := empty_scene("labels scene");
+
+            scene := add_labels([default_label("Default label", vector3d(5*|metre|, 5*|metre|, 0.5*|metre|))], scene);
+
+            scene := add_arrows([with_arrow_label("Arrow label", origin_arrow(vector3d(5*|metre|, 0*|metre|, 0*|metre|)))], scene);
+
+            scene := add_labels(colored_labels(color_wheel), scene);
+
+            return scene;
+        end
+    end;
+
+define colored_labels(colors) = 
+    let 
+        n = list_size(colors),
+        angle = 2 * pi * |radian| / n,
+        scale = 2
+    in
+        [ make_label(
+            format("%s label", color),
+            vector3d(10 * cos(i*angle) * |metre|, 10 * sin(i*angle) * |metre|, |metre|),
+            make_color(color),
+            "Brush Script MT",
+            scale) | i <- naturals(n), color := nth(mod(i, n), colors)]
+    end;

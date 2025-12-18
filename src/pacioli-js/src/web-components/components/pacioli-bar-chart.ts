@@ -20,21 +20,19 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
 import { PacioliContext } from "../../context";
 import { BarChart, BarChartOptions } from "../../charts/d3-bar-chart";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
-import { dataUnit } from "../../charts/chart-utils";
-import { parseUnit } from "../../api";
+import { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the bar chart component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label"],
+  strings: ["caption", "xlabel", "ylabel", "unit", "margin"],
   booleans: [],
-  numbers: ["width", "height", "ymin", "ymax", "decimals", "padding"],
+  numbers: ["width", "height", "decimals", "ylower", "yupper", "padding"],
 };
 
 /**
@@ -43,6 +41,9 @@ const SUPPORTED_ATTRIBUTES = {
 const STYLES = ` 
   .bar {
     fill: steelblue;
+  }
+  .bar:hover {
+    fill: brown;
   }`;
 
 /**
@@ -50,10 +51,71 @@ const STYLES = `
  */
 export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
   /**
+   * Label of the x-axis
+   */
+  get xlabel(): string {
+    return this.getStringAttribute("xlabel", "");
+  }
+
+  set xlabel(value: string | undefined) {
+    this.setStringAttribute("xlabel", value);
+  }
+
+  /**
+   * Label of the y-axis
+   */
+  get ylabel(): string {
+    return this.getStringAttribute("ylabel", "");
+  }
+
+  set ylabel(value: string | undefined) {
+    this.setStringAttribute("ylabel", value);
+  }
+
+  /**
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  unit?: SIUnit;
+  get unit(): String {
+    return this.getStringAttribute("unit");
+  }
+
+  set unit(value: string | undefined) {
+    this.setStringAttribute("unit", value);
+  }
+
+  /**
+   * Lower bound of the y-axis
+   */
+  get ylower(): number {
+    return this.getNumberAttribute("ylower", 0);
+  }
+
+  set ylower(value: number) {
+    this.setNumberAttribute("ylower", value);
+  }
+
+  /**
+   * Upper bound of the y-axis
+   */
+  get yupper(): number {
+    return this.getNumberAttribute("yupper", 1);
+  }
+
+  set yupper(value: number) {
+    this.setNumberAttribute("yupper", value);
+  }
+
+  /**
+   * ?
+   */
+  get padding(): number {
+    return this.getNumberAttribute("padding", 1);
+  }
+
+  set padding(value: number) {
+    this.setNumberAttribute("padding", value);
+  }
 
   /**
    * The bar chart
@@ -61,9 +123,24 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
   chart?: BarChart;
 
   /**
+   * The Pacioli value displayed in the chart.
+   */
+  data?: PacioliValue;
+
+  /**
    * Web component field.
    */
-  static observedAttributes = ["unit"];
+  static observedAttributes = [
+    "definition",
+    "decimals",
+    "xlabel",
+    "ylabel",
+    "unit",
+    "margin",
+    "ylower",
+    "yupper",
+    "padding",
+  ];
 
   constructor() {
     super();
@@ -73,13 +150,16 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      switch (name) {
-        case "unit": {
-          this.unit = parseUnit(newValue);
-          break;
-        }
+      // Reload the data if the definition changes. The initial load is done in
+      // parametersChanged.
+      if (name === "definition" && this.data !== undefined) {
+        this.data = this.fetchData();
+      }
+
+      if (this.contentParent() && this.data) {
+        this.drawChart(this.data);
       }
     } catch (err: any) {
       this.displayError(err);
@@ -91,34 +171,25 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     try {
-      // Compute the data using the new parameter values
-      const data = this.fetchData();
+      this.data = this.fetchData();
 
-      // If no unit is known, then derive it from the data. Set it before it
-      // is used in the chartOptions call below.
-      if (this.unit === undefined) {
-        this.unit = dataUnit(data);
-      }
-
-      // Refresh the chart
-      this.clearContent();
-      this.chart = new BarChart(data, PacioliContext.si(), this.chartOptions());
-      this.chart.draw(this.contentParent());
+      this.drawChart(this.data);
     } catch (err: any) {
       this.displayError(err);
     }
   }
 
-  /**
-   * Creates an options for the chart from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
-   */
-  chartOptions(): Partial<BarChartOptions> {
-    return {
-      unit: this.unit || UOM.ONE,
-      ...optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
-    };
+  private drawChart(data: PacioliValue) {
+    this.clearContent();
+    this.clearErrors();
+
+    this.chart = new BarChart(
+      data,
+      PacioliContext.si(),
+      optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES)
+    );
+
+    this.chart.draw(this.contentParent());
   }
 }
 

@@ -347,9 +347,12 @@ export function subs(type: PacioliType, bindings: Binding): PacioliType {
         subs(type.to, bindings)
       );
     }
-
-    default: {
-      throw new Error("hhuh");
+    case "index": {
+      return type; // Is this okay?
     }
+
+    // default: {
+    //   throw new Error(`Kind ${type.kind} unexpected when solving type`);
+    // }
   }
 }

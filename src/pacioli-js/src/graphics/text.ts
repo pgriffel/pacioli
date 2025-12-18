@@ -39,7 +39,7 @@ export type PacioliLabel = [
 ];
 
 export function addLabel(
-  body: THREE.Object3D<THREE.Event>,
+  body: THREE.Object3D<THREE.Object3DEventMap>,
   pacioliLabel: PacioliLabel,
   options: {
     labelColor: string;

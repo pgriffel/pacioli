@@ -154,6 +154,14 @@ export function parseUnit(
   ).unit;
 }
 
+export function stringifyUnit(unit: SIUnit): string {
+  return unit.fold(
+    (base, power) => (power === 1 ? base.name : `${base.name}^${power}`),
+    (x, y) => x + "*" + y,
+    ""
+  );
+}
+
 export function parseDimNum(
   input: string,
   context: PacioliContext = defaultContext

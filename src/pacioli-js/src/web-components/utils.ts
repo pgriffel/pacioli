@@ -76,13 +76,28 @@ export function computeWebComponentValue(
   attribute: string = "definition"
 ): PacioliValue {
   // Get the element's 'script' and 'definition' attributes
-  const script = element.getAttribute("script");
-  const definition = element.getAttribute(attribute);
+  let script = null;
+  let definition = null;
+
+  const attValue = element.getAttribute(attribute);
+
+  if (attValue !== null) {
+    const parts = attValue.split(":");
+
+    if (parts.length === 2) {
+      script = parts[0];
+      definition = parts[1];
+    } else {
+      throw Error(
+        `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`
+      );
+    }
+  }
 
   // Check that they exist
   if (script === null || definition === null) {
     throw new Error(
-      `definition not found.\n\n Please give a 'script' attribute with a valid Pacioli filename, and a 'definition' attribute with a valid value or function name.`
+      `definition not found.\n\n Please give a 'definition' attribute of the form 'script:definition' with a valid value or function name.`
     );
   }
 
@@ -117,11 +132,10 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
 
   if (children.length === values.length) {
   } else {
-    const script = element.getAttribute("script");
     const definition = element.getAttribute("definition");
 
     throw Error(
-      `invalid number of arugments for definition '${definition}' from script '${script}'. Expected ${children.length}, but got ${values.length}.`
+      `invalid number of arugments for definition '${definition}'. Expected ${children.length}, but got ${values.length}.`
     );
   }
 
@@ -315,6 +329,17 @@ export function optionsFromAttributes<Options>(
     numbers: string[];
   }
 ): Partial<Options> {
+  const SYSTEM_ATTRIBUTES = ["id", "definition"];
+  element.getAttributeNames().forEach((attribute) => {
+    if (
+      !SYSTEM_ATTRIBUTES.includes(attribute) &&
+      !supportedAttributes.strings.includes(attribute) &&
+      !supportedAttributes.booleans.includes(attribute) &&
+      !supportedAttributes.numbers.includes(attribute)
+    )
+      console.warn(`Skipping unknown attribute ${attribute}`);
+  });
+
   return {
     ...optionalStringAttributes(element, supportedAttributes.strings),
     ...optionalBooleanAttributes(element, supportedAttributes.booleans),

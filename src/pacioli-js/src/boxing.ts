@@ -23,7 +23,14 @@
 import { SIUnit, UOM } from "uom-ts";
 import { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
-import { NOTHING, RawList, RawMatrix, RawTuple, RawValue } from "./value";
+import {
+  NOTHING,
+  RawCoordinates,
+  RawList,
+  RawMatrix,
+  RawTuple,
+  RawValue,
+} from "./value";
 import { PacioliBoole, pacioliFalse, pacioliTrue } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { PacioliMatrix } from "./values/matrix";
@@ -147,14 +154,20 @@ export function boxRawValue(
         }' for type ${typeof value} with value ${value} `
       );
     }
-    // TODO: "coordinates"
-    default: {
-      throw new Error(
-        `Unxpected kind '${
-          type.kind
-        }' for type ${typeof value} with value ${value} `
-      );
+    case "index": {
+      const coord = value as RawCoordinates;
+      const dim = matrixDimensionFromIndex(type, context);
+      return PacioliCoordinates.fromIndex(dim.indexSets, coord.position);
     }
+    // // TODO: "coordinates"
+    // default: {
+    //   console.log("boxing", value);
+    //   throw new Error(
+    //     `Unxpected kind '${
+    //       type.kind
+    //     }' for type ${typeof value} with value ${value} `
+    //   );
+    // }
   }
 }
 
