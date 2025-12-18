@@ -74,7 +74,7 @@ const SUPPORTED_ATTRIBUTES = {
  *
  * define foo(shape, mass) = ...
  *
- * <pacioli-scene script="bar" function="foo" kind="scene">
+ * <pacioli-scene definition="bar:foo" kind="scene">
  *       <parameter label="shape" type="string">sphere</parameter>
  *       <parameter label="mass" unit="gram">10</parameter>
  * </pacioli-scene>
