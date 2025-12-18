@@ -23,7 +23,9 @@
 import {
   appendChartCaption,
   appendEmptyChartMessage,
+  combineMargins,
   DefaultChartOptions,
+  parseMargin,
   ToolTip,
 } from "./chart-utils";
 import { DimNum, SIUnit } from "uom-ts";
@@ -32,9 +34,10 @@ import { PacioliContext } from "../context";
 import { displayChartError } from "./chart-utils";
 import { BandChartData, bandChartData } from "./chart-data";
 import * as d3 from "d3";
+import { parseUnit } from "../api";
 
 export interface HistogramOptions extends DefaultChartOptions {
-  unit?: SIUnit;
+  unit?: string;
   convert: boolean;
   label?: string;
   bins?: number;
@@ -60,10 +63,11 @@ export interface HistogramOptions extends DefaultChartOptions {
   tooltipOffset: { dx: number; dy: number };
 }
 
+const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
+
 const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
   width: 640,
   height: 360,
-  margin: { left: 48, top: 32, right: 16, bottom: 64 },
   label: "",
   zeros: false,
   convert: true,
@@ -105,18 +109,25 @@ export class Histogram {
 
   public draw(parent: HTMLElement) {
     try {
-      // Transform the data to a usable format
-      // const unit = this.options.unit || dataUnit(this.data);
+      // Get the data in the asked unit of measurement
+      const unit =
+        this.options.unit && this.options.unit !== ""
+          ? parseUnit(this.options.unit)
+          : undefined;
 
       const data = bandChartData(
         this.context,
         this.data,
         this.options.zeros,
-        this.options.unit
+        unit
       );
 
       // Determine the drawing dimensions
-      var margin = this.options.margin;
+      var margin = combineMargins(
+        DEFAULT_CHART_MARGIN,
+        parseMargin(this.options.margin)
+      );
+
       var width = this.options.width - margin.left - margin.right;
       var height = this.options.height - margin.top - margin.bottom;
 
@@ -179,6 +190,8 @@ export class Histogram {
 
         appendHistogram(
           group,
+          width,
+          height,
           data,
           lower,
           upper,
@@ -247,6 +260,8 @@ function histogramTooltip(
 
 function appendHistogram(
   group: d3.Selection<SVGGElement, unknown, null, undefined>,
+  width: number,
+  height: number,
   data: BandChartData,
   lower: number,
   upper: number,
@@ -254,11 +269,6 @@ function appendHistogram(
   unit: SIUnit,
   options: HistogramOptions
 ) {
-  // Determine the drawing dimensions
-  var margin = options.margin;
-  var width = options.width - margin.left - margin.right;
-  var height = options.height - margin.top - margin.bottom;
-
   const dataRange = upper - lower;
 
   const binWidth = dataRange / nrBins;

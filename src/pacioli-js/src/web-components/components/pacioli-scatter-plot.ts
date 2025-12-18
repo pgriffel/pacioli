@@ -20,18 +20,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
 import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
-import { parseUnit } from "../../api";
 
 /**
  * Attribues supported by the scatter plot component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["label", "caption"],
+  strings: ["label", "caption", "xunit", "yunit"],
   booleans: ["trendline"],
   numbers: ["width", "height", "xlower", "ylower", "radius", "decimals"],
 };
@@ -66,16 +64,26 @@ const STYLES = `
  */
 export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
   /**
-   * The unit of measurement in the x direction. Is derived from the data if no
-   * unit attribute is given.
+   * Unit of the domain values
    */
-  xunit?: SIUnit;
+  get xunit(): string {
+    return this.getStringAttribute("xunit", "");
+  }
+
+  set xunit(value: string | undefined) {
+    this.setStringAttribute("xunit", value);
+  }
 
   /**
-   * The unit of measurement in the y direction. Is derived from the data if no
-   * unit attribute is given.
+   * Unit of the range values
    */
-  yunit?: SIUnit;
+  get yunit(): string {
+    return this.getStringAttribute("yunit", "");
+  }
+
+  set yunit(value: string | undefined) {
+    this.setStringAttribute("yunit", value);
+  }
 
   /**
    * The scatter plot
@@ -85,7 +93,7 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = ["unit"];
+  static observedAttributes = ["definition", "xunit", "yunit"];
 
   constructor() {
     super();
@@ -95,17 +103,14 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
+  attributeChangedCallback(
+    _name: string,
+    _oldValue: string,
+    _newValue: string
+  ) {
     try {
-      switch (name) {
-        case "xunit": {
-          this.xunit = parseUnit(newValue);
-          break;
-        }
-        case "yunit": {
-          this.yunit = parseUnit(newValue);
-          break;
-        }
+      if (this.contentParent()) {
+        this.drawChart();
       }
     } catch (err: any) {
       this.displayError(err);
@@ -117,33 +122,26 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     try {
-      // Compute the data using the new parameter values
-      const data = this.fetchData();
-
-      // Refresh the chart
-      this.clearContent();
-      this.chart = new ScatterPlot(
-        data,
-        PacioliContext.si(),
-        this.chartOptions()
-      );
-      this.chart.draw(this.contentParent());
+      this.drawChart();
     } catch (err: any) {
       this.displayError(err);
     }
   }
 
-  /**
-   * Creates an options for the chart from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
-   */
-  chartOptions(): Partial<ScatterPlotOptions> {
-    return {
-      xunit: this.xunit,
-      yunit: this.yunit,
-      ...optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
-    };
+  drawChart(): void {
+    // Refresh the chart
+    this.clearContent();
+    this.clearErrors();
+
+    // Compute the data using the new parameter values
+    const data = this.fetchData();
+
+    this.chart = new ScatterPlot(
+      data,
+      PacioliContext.si(),
+      optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES)
+    );
+    this.chart.draw(this.contentParent());
   }
 }
 

@@ -27,16 +27,19 @@ import { PacioliContext } from "../context";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
+  combineMargins,
   DefaultChartOptions,
   displayChartError,
+  parseMargin,
   ToolTip,
 } from "./chart-utils";
 import { BandChartData, bandChartData } from "./chart-data";
-import { DimNum, SIUnit } from "uom-ts";
+import { DimNum } from "uom-ts";
+import { parseUnit } from "../api";
 
 export interface PieChartOptions extends DefaultChartOptions {
   radius?: number;
-  unit?: SIUnit;
+  unit?: string;
   convert?: boolean;
   label?: string;
   labelOffset?: number;
@@ -63,15 +66,16 @@ export interface PieChartOptions extends DefaultChartOptions {
   tooltipOffset: { dx: number; dy: number };
 }
 
+const DEFAULT_CHART_MARGIN = {
+  left: 8,
+  top: 8,
+  right: 8,
+  bottom: 8,
+};
+
 const DEFAULT_PIE_CHART_OPTIONS = {
   width: 640,
   height: 360,
-  margin: {
-    left: 8,
-    top: 8,
-    right: 8,
-    bottom: 8,
-  },
   radius: 128,
   label: "",
   labelOffset: 0.5,
@@ -125,11 +129,16 @@ export class PieChart {
 
   public draw(parent: HTMLElement) {
     try {
+      const unit =
+        this.options.unit && this.options.unit !== ""
+          ? parseUnit(this.options.unit)
+          : undefined;
+
       const input = bandChartData(
         this.context,
         this.data,
         this.options.zeros,
-        this.options.unit
+        unit
       );
 
       // Make the parent node empty
@@ -137,20 +146,30 @@ export class PieChart {
         parent.removeChild(parent.firstChild);
       }
 
-      const width = this.options.width;
-      const height = this.options.height;
+      var margin = combineMargins(
+        DEFAULT_CHART_MARGIN,
+        parseMargin(this.options.margin)
+      );
+
+      var width = this.options.width - margin.left - margin.right;
+      var height = this.options.height - margin.top - margin.bottom;
 
       const svg = d3
         .select(parent)
         .append("svg")
         .attr("class", "pacioli chart pie-chart")
-        .attr("width", width)
-        .attr("height", height);
+        .attr("width", this.options.width)
+        .attr("height", this.options.height);
 
       if (input !== null) {
-        const group = svg.append("g");
+        const group = svg
+          .append("g")
+          .attr(
+            "transform",
+            "translate(" + margin.left + "," + margin.top + ")"
+          );
 
-        appendPieChart(group, input, this.options);
+        appendPieChart(group, input, width, height, this.options);
       } else {
         appendEmptyChartMessage(svg, "No data", this.options);
       }
@@ -170,15 +189,10 @@ export class PieChart {
 function appendPieChart(
   group: d3.Selection<SVGGElement, unknown, null, undefined>,
   data: BandChartData,
+  width: number,
+  height: number,
   options: PieChartOptions
 ) {
-  const width = options.width;
-  const height = options.height;
-  //var radius = Math.min(width, height) / 2
-  // const radius = this.options.radius;
-
-  // group.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
-
   group.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
 
   const size = Math.min(width, height);

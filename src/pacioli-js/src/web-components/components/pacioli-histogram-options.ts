@@ -167,17 +167,17 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
     const histogram = this.histogramElement();
 
     if (histogram) {
-      const nrBins = histogram.nrBins();
-      if (nrBins !== undefined) {
-        nrBinsInput.value = nrBins.toString();
+      const nrBins = histogram.getAttribute("nrBins");
+      if (nrBins !== null) {
+        nrBinsInput.value = nrBins;
       }
-      const lower = histogram.lower();
-      if (lower !== undefined) {
-        lowerBoundInput.value = lower.toString();
+      const lower = histogram.getAttribute("lower");
+      if (lower !== null) {
+        lowerBoundInput.value = lower;
       }
-      const upper = histogram.upper();
-      if (upper !== undefined) {
-        upperBoundInput.value = upper.toString();
+      const upper = histogram.getAttribute("upper");
+      if (upper !== null) {
+        upperBoundInput.value = upper;
       }
     }
   }

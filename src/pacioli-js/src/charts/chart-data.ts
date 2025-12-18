@@ -381,7 +381,7 @@ export function bandChartDataFromList(
 
     return {
       entries: values,
-      unit: content.getUnit(0, 0),
+      unit: conv(content).getUnit(0, 0),
       max: max || 0,
       min: min || 0,
       label: "", // TODO? Is this used?
@@ -410,7 +410,7 @@ export function bandChartDataFromList(
 
     return {
       entries: values,
-      unit: (content[1] as PacioliMatrix).getUnit(0, 0),
+      unit: conv(content[1] as PacioliMatrix).getUnit(0, 0),
       max: max || 0,
       min: min || 0,
       label: "", // TODO? Is this used?

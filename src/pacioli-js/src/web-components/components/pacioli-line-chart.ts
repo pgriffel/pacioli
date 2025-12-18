@@ -20,26 +20,25 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
 import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
-import { parseUnit } from "../../api";
+import { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the histogram component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["caption", "label", "xlabel"],
+  strings: ["caption", "margin", "label", "xlabel", "unit", "xunit", "yunit"],
   booleans: ["smooth", "rotate"],
   numbers: [
     "width",
     "height",
     "decimals",
     "norm",
-    "ymin",
-    "ymax",
+    "ylower",
+    "yupper",
     "xticks",
     "yticks",
   ],
@@ -88,19 +87,70 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  unit?: SIUnit;
+  get unit(): String {
+    return this.getStringAttribute("unit");
+  }
+
+  set unit(value: string | undefined) {
+    this.setStringAttribute("unit", value);
+  }
 
   /**
    * The unit of measurement in the x direction. Is derived from the data if no
    * unit attribute is given.
    */
-  xunit?: SIUnit;
+  get xunit(): String {
+    return this.getStringAttribute("xunit");
+  }
+
+  set xunit(value: string | undefined) {
+    this.setStringAttribute("xunit", value);
+  }
 
   /**
    * The unit of measurement in the y direction. Is derived from the data if no
    * unit attribute is given.
    */
-  yunit?: SIUnit;
+  get yunit(): String {
+    return this.getStringAttribute("yunit");
+  }
+
+  set yunit(value: string | undefined) {
+    this.setStringAttribute("yunit", value);
+  }
+
+  /**
+   * Lower bound for the range
+   */
+  get ylower(): number {
+    return this.getNumberAttribute("ylower", 0);
+  }
+
+  set ylower(value: number) {
+    this.setNumberAttribute("ylower", value);
+  }
+
+  /**
+   * Upper bound for the range
+   */
+  get yupper(): number {
+    return this.getNumberAttribute("yupper", 1);
+  }
+
+  set yupper(value: number) {
+    this.setNumberAttribute("yupper", value);
+  }
+
+  /**
+   * Is the line interpolated to get a smooth result?
+   */
+  get smooth(): boolean {
+    return this.getBooleAttribute("smooth");
+  }
+
+  set smooth(value: boolean) {
+    this.setBooleAttribute("smooth", value);
+  }
 
   /**
    * The line chart
@@ -108,9 +158,21 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   chart?: LineChart;
 
   /**
+   * The Pacioli value displayed in the chart.
+   */
+  data?: PacioliValue;
+  /**
    * Web component field.
    */
-  static observedAttributes = ["unit", "xunit", "yunit"];
+  static observedAttributes = [
+    "definition",
+    "unit",
+    "xunit",
+    "yunit",
+    "smooth",
+    "ylower",
+    "yupper",
+  ];
 
   constructor() {
     super();
@@ -120,21 +182,16 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string, newValue: string) {
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      switch (name) {
-        case "unit": {
-          this.unit = parseUnit(newValue);
-          break;
-        }
-        case "xunit": {
-          this.xunit = parseUnit(newValue);
-          break;
-        }
-        case "yunit": {
-          this.yunit = parseUnit(newValue);
-          break;
-        }
+      // Reload the data if the definition changes. The initial load is done in
+      // parametersChanged.
+      if (name === "definition" && this.data !== undefined) {
+        this.data = this.fetchData();
+      }
+
+      if (this.contentParent() && this.data) {
+        this.drawChart(this.data);
       }
     } catch (err: any) {
       this.displayError(err);
@@ -146,32 +203,25 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     try {
-      // Compute the data using the new parameter values
-      const data = this.fetchData();
+      this.data = this.fetchData();
 
-      // Refresh the chart
-      this.clearContent();
-      this.chart = new LineChart(
-        data,
-        PacioliContext.si(),
-        this.chartOptions()
-      );
-      this.chart.draw(this.contentParent());
+      this.drawChart(this.data);
     } catch (err: any) {
       this.displayError(err);
     }
   }
 
-  /**
-   * Creates an options for the chart from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
-   */
-  chartOptions(): Partial<LineChartOptions> {
-    return {
-      yunit: this.unit, // TODO
-      ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
-    };
+  private drawChart(data: PacioliValue) {
+    this.clearContent();
+    this.clearErrors();
+
+    this.chart = new LineChart(
+      data,
+      PacioliContext.si(),
+      optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES)
+    );
+
+    this.chart.draw(this.contentParent());
   }
 }
 

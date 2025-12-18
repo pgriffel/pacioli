@@ -22,11 +22,85 @@
 
 import * as d3 from "d3";
 
+export type Margin = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
+export function stringifyMargin(margin: {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+}): string {
+  return [margin.left, margin.top, margin.right, margin.bottom].join(" ");
+}
+
+export const ZERO_MARGIN = {
+  left: 0,
+  top: 0,
+  right: 0,
+  bottom: 0,
+};
+
+export function parseMargin(text: string | undefined): {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+} {
+  try {
+    if (text === undefined) {
+      return ZERO_MARGIN;
+    }
+
+    const nums = text.split(" ").map(Number);
+    const n = nums.length;
+
+    if (n === 0) {
+      return ZERO_MARGIN;
+    }
+
+    return {
+      left: nums[0 % n],
+      top: nums[1 % n],
+      right: nums[2 % n],
+      bottom: nums[3 % n],
+    };
+  } catch (err) {
+    return ZERO_MARGIN;
+  }
+}
+
+export function combineMargins(
+  x: { left: number; top: number; right: number; bottom: number } | undefined,
+  y: { left: number; top: number; right: number; bottom: number } | undefined
+) {
+  return {
+    left: (x?.left || 0) + (y?.left || 0),
+    top: (x?.top || 0) + (y?.top || 0),
+    right: (x?.right || 0) + (y?.right || 0),
+    bottom: (x?.bottom || 0) + (y?.bottom || 0),
+  };
+}
+
+/**
+ * Options shared by all charts.
+ */
 export interface DefaultChartOptions {
   width: number;
   height: number;
-  margin: { left: number; top: number; right: number; bottom: number };
+  margin?: string;
   caption?: string;
+  xlabel?: string;
+  ylabel?: string;
+
+  /**
+   * Number of decimals used for numbers. Default is 2.
+   */
+  decimals?: number;
 }
 
 export function displayChartError(
@@ -125,32 +199,6 @@ export function appendEmptyChartMessage(
   message: string,
   options: DefaultChartOptions
 ) {
-  var m = options.margin;
-  var w = options.width - m.left - m.right;
-  var h = options.height - m.top - m.bottom;
-
-  // // Add an outline. Double the stroke width because halve
-  // // of it is clipped.
-  // svg
-  //   .append("rect")
-  //   .attr("x", 0)
-  //   .attr("y", 0)
-  //   .attr("width", options.width)
-  //   .attr("height", options.height)
-  //   .attr("fill", "none")
-  //   .attr("stroke", "#f0f0f0")
-  //   .attr("stroke-width", "2px");
-
-  // Add a rectangle where the chart would go
-  svg
-    .append("rect")
-    .attr("x", options.margin.left)
-    .attr("y", options.margin.top)
-    .attr("width", w)
-    .attr("height", h)
-    .attr("fill", "#fafafa");
-
-  // Add the message in the middle of the rectangle
   svg
     .append("text")
     .attr("x", options.width / 2)

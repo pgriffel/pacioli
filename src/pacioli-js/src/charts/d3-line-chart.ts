@@ -25,27 +25,31 @@ import { PacioliValue } from "../boxing";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
+  combineMargins,
   DefaultChartOptions,
   displayChartError,
+  parseMargin,
   ToolTip,
 } from "./chart-utils";
 import { LinearChartData, linearChartData } from "./chart-data";
 import { PacioliContext } from "./../context";
-import { DimNum, SIUnit } from "uom-ts";
+import { DimNum } from "uom-ts";
+import { parseUnit } from "../api";
 
 /**
  * Options for the Pacioli line chart
  */
 export interface LineChartOptions extends DefaultChartOptions {
   decimals?: number;
-  xunit?: SIUnit;
-  yunit?: SIUnit;
+  unit?: string;
+  xunit?: string;
+  yunit?: string;
   convert?: boolean;
   xlabel: string;
   ylabel: string;
   norm?: number;
-  ymin?: number;
-  ymax?: number;
+  ylower?: number;
+  yupper?: number;
   xticks?: number;
   yticks?: number;
   rotate?: boolean;
@@ -56,6 +60,8 @@ export interface LineChartOptions extends DefaultChartOptions {
   tooltipOffset: { dx: number; dy: number };
 }
 
+const DEFAULT_CHART_MARGIN = { left: 64, top: 32, right: 16, bottom: 40 };
+
 /**
  * Default options for the Pacioli line chart.
  */
@@ -63,11 +69,8 @@ const DEFAULT_LINE_CHART_OPTIONS = {
   width: 640,
   height: 360,
   decimals: 2,
-  margin: { left: 64, top: 32, right: 16, bottom: 40 },
   xlabel: "x",
   ylabel: "y",
-  // xticks: 5,
-  // yticks: 5,
   rotate: false,
   smooth: false,
   zeros: true,
@@ -101,12 +104,27 @@ export class LineChart {
 
   public draw(parent: HTMLElement) {
     try {
+      const unit =
+        this.options.unit && this.options.unit !== ""
+          ? parseUnit(this.options.unit)
+          : undefined;
+
+      const xunit =
+        this.options.xunit && this.options.xunit !== ""
+          ? parseUnit(this.options.xunit)
+          : undefined;
+
+      const yunit =
+        this.options.yunit && this.options.yunit !== ""
+          ? parseUnit(this.options.yunit)
+          : undefined;
+
       // Transform the data to a usable format
       var data = linearChartData(
         this.context,
         this.data,
-        this.options.convert ? this.options.xunit : undefined,
-        this.options.convert ? this.options.yunit : undefined
+        xunit || unit,
+        yunit || unit
       );
 
       // Make the parent node empty
@@ -115,7 +133,11 @@ export class LineChart {
       }
 
       // Define dimensions of graph
-      var m = this.options.margin;
+      var m = combineMargins(
+        DEFAULT_CHART_MARGIN,
+        parseMargin(this.options.margin)
+      );
+
       var w = this.options.width - m.left - m.right;
       var h = this.options.height - m.top - m.bottom;
 
@@ -206,13 +228,12 @@ function appendLineChart(
   h: number,
   options: LineChartOptions
 ) {
-  var yMin = options.ymin !== undefined ? options.ymin : data.yLower;
-  var yMax = options.ymax !== undefined ? options.ymax : data.yUpper;
+  var yMin = options.ylower !== undefined ? options.ylower : data.yLower;
+  var yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
   var xMin = data.xLower;
   var xMax = data.xUpper;
 
   // Determine data ranges
-  // const xScale = d3.scaleBand(data.labels, [0, w]);
   const xScale = d3.scaleLinear([xMin, xMax], [0, w]);
   const yScale = d3.scaleLinear([yMin, yMax], [h, 0]);
 
@@ -273,7 +294,7 @@ function appendLineChart(
     .attr("x", -16)
     .attr("y", -16)
     .style("text-anchor", "begin")
-    .text((_) => options.ylabel + " [" + data.xUnit.toText() + "]");
+    .text((_) => options.ylabel + " [" + data.yUnit.toText() + "]");
 
   // Add a norm line if requested
   const norm = options.norm;

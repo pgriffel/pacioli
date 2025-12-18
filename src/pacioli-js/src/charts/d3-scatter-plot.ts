@@ -26,20 +26,22 @@ import { PacioliValue } from "../boxing";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
+  combineMargins,
   displayChartError,
+  parseMargin,
 } from "./chart-utils";
 import { LinearChartData, linearChartData } from "./chart-data";
 import { PacioliContext } from "./../context";
 import { PacioliCoordinates } from "../values/coordinates";
-import { SIUnit } from "uom-ts";
 import { DefaultChartOptions, ToolTip } from "./chart-utils";
+import { parseUnit } from "../api";
 
 /**
  * Options for Pacioli's ScatterPlot.
  */
 export interface ScatterPlotOptions extends DefaultChartOptions {
-  xunit?: SIUnit;
-  yunit?: SIUnit;
+  xunit?: string;
+  yunit?: string;
   convert?: boolean;
   xlower?: number;
   xupper?: number;
@@ -67,13 +69,14 @@ export interface ScatterPlotOptions extends DefaultChartOptions {
   tooltipOffset: { dx: number; dy: number };
 }
 
+const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 24, bottom: 48 };
+
 /**
  * Default options for the ScatterPlot
  */
 const DEFAULT_SCATTER_PLOT_OPTIONS = {
   width: 640,
   height: 360,
-  margin: { left: 48, top: 32, right: 24, bottom: 48 },
   xlabel: "x",
   ylabel: "y",
   radius: 5,
@@ -117,12 +120,20 @@ export class ScatterPlot {
       var data = linearChartData(
         this.context,
         this.data,
-        this.options.convert ? this.options.xunit : undefined,
-        this.options.convert ? this.options.yunit : undefined
+        this.options.convert && this.options.xunit
+          ? parseUnit(this.options.xunit)
+          : undefined,
+        this.options.convert && this.options.yunit
+          ? parseUnit(this.options.yunit)
+          : undefined
+      );
+
+      var margin = combineMargins(
+        DEFAULT_CHART_MARGIN,
+        parseMargin(this.options.margin)
       );
 
       // Determine the drawing dimensions
-      const margin = this.options.margin;
       const width = this.options.width - margin.left - margin.right;
       const height = this.options.height - margin.top - margin.bottom;
 
@@ -255,7 +266,6 @@ function appendScatterPlot(
     .append("text")
     .attr("x", width)
     .attr("y", 32)
-    // .attr("dy", ".71em")
     .style("text-anchor", "end")
     .text(labelX + " [" + unitX.toText() + "] (n=" + values.length + ")");
 
@@ -272,7 +282,6 @@ function appendScatterPlot(
     .append("text")
     .attr("x", -16)
     .attr("y", -16)
-    // .attr("dy", "-.71em")
     //.style("text-anchor", "centers")
     .text(labelY + " [" + unitY.toText() + "]");
 

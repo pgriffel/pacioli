@@ -21,17 +21,21 @@
  */
 
 import * as d3 from "d3";
-import { DimNum, SIUnit } from "uom-ts";
+import { DimNum } from "uom-ts";
 import { PacioliValue } from "../boxing";
 import { PacioliContext } from "../context";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
+  combineMargins,
   DefaultChartOptions,
   displayChartError,
+  Margin,
+  parseMargin,
 } from "./chart-utils";
 import { BandChartData, bandChartData } from "./chart-data";
 import { ToolTip } from "./chart-utils";
+import { parseUnit } from "../api";
 
 /**
  * Options for Pacioli's BarChart.
@@ -42,32 +46,20 @@ export interface BarChartOptions extends DefaultChartOptions {
    * converts the chart values to this unit. An error is thrown if
    * the unit conversion fails.
    */
-  unit?: SIUnit;
+  unit?: string;
 
-  /**
-   * Should the input be converted? Undocumented feature.
-   */
+  //Should the input be converted? Undocumented feature.
   convert?: boolean;
 
   /**
    * Start of the y-axis. Defaults to the minimum data value.
    */
-  ymin?: number;
+  lower?: number;
 
   /**
    * End of the y-axis. Defaults to the maximum data value.
    */
-  ymax?: number;
-
-  /**
-   * Label for the chart itself. Displayed above the chart.
-   */
-  label?: string;
-
-  /**
-   * Number of decimals used for numbers. Default is 2.
-   */
-  decimals?: number;
+  upper?: number;
 
   /**
    * Distance between the bars. See d3 band.
@@ -104,10 +96,11 @@ export interface BarChartOptions extends DefaultChartOptions {
   zeros: boolean;
 }
 
+const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
+
 const DEFAULT_BAR_CHART_OPTIONS = {
   width: 640,
   height: 360,
-  margin: { left: 48, top: 32, right: 16, bottom: 64 },
   label: "",
   zeros: true,
   convert: true,
@@ -123,11 +116,9 @@ function barChartClickHandler(
   label: string,
   options: BarChartOptions
 ) {
-  alert(
-    `${options.label}: value for ${label} is ${number.toFixed(
-      options.decimals
-    )}`
-  );
+  const header = options.caption === undefined ? "Bar chart" : options.caption;
+
+  alert(`${header}\n\n Value for ${label} is ${number.toText()}`);
 }
 
 function barChartTooltip(
@@ -175,12 +166,17 @@ export class BarChart {
    */
   public draw(parent: HTMLElement): void {
     try {
+      const unit =
+        this.options.unit && this.options.unit !== ""
+          ? parseUnit(this.options.unit)
+          : undefined;
+
       // Transform the data to a usable format
       var input = bandChartData(
         this.context,
         this.data,
         this.options.zeros,
-        this.options.unit
+        unit
       );
 
       // Make the parent node empty
@@ -193,29 +189,23 @@ export class BarChart {
         .select(parent)
         .append("svg")
         .attr("width", this.options.width)
-        .attr("height", this.options.height)
-        .attr("class", "pacioli chart bar-chart");
+        .attr("height", this.options.height);
+      // .attr("class", "pacioli chart bar-chart");
 
       if (input !== null) {
-        // Create a margin object following the D3 convention
-        var margin = {
-          left: 0 * 40 + this.options.margin.left,
-          top: 0 * 20 + this.options.margin.top,
-          right: 0 * 10 + this.options.margin.right,
-          bottom: 0 * 50 + this.options.margin.bottom,
-        };
-
-        var width = this.options.width - margin.left - margin.right;
-        var height = this.options.height - margin.top - margin.bottom;
-
-        // Add an inner group according to the margins
         var inner = svg.append("g");
+
+        var margin = combineMargins(
+          DEFAULT_CHART_MARGIN,
+          parseMargin(this.options.margin)
+        );
+
         inner.attr(
           "transform",
           "translate(" + margin.left + "," + margin.top + ")"
         );
 
-        appendBarChart(inner, input, width, height, this.options);
+        appendBarChart(inner, input, margin, this.options);
       } else {
         appendEmptyChartMessage(svg, "No data", this.options);
       }
@@ -225,7 +215,7 @@ export class BarChart {
     } catch (err) {
       displayChartError(
         parent,
-        "While drawing bar chart '" + this.options.label + "':",
+        "While drawing bar chart '" + this.options.caption + "':",
         err
       );
     }
@@ -245,22 +235,24 @@ export class BarChart {
 function appendBarChart(
   inner: d3.Selection<SVGGElement, unknown, null, undefined>,
   data: BandChartData,
-  width: number,
-  height: number,
+  margin: Margin,
   options: BarChartOptions
 ): void {
+  var width = options.width - margin.left - margin.right;
+  var height = options.height - margin.top - margin.bottom;
+
   // Determine the min and max data values. Cannot be undefined because data is not empty.
   // TODO: why do data.min and data.max not work? Bars get shifted.
   var yMin = Math.min(
     0,
-    options.ymin ||
+    options.lower ||
       (d3.min(data.entries, function (d) {
         return d.value;
       }) as number)
   );
   var yMax = Math.max(
     0,
-    options.ymax ||
+    options.upper ||
       (d3.max(data.entries, function (d) {
         return d.value;
       }) as number)
@@ -268,7 +260,11 @@ function appendBarChart(
 
   // Create the x and y scales
   var x = d3.scaleBand();
-  x.rangeRound([0, width])
+
+  // TODO: Without rangeRound we get artifacts (the bars get ugly) if the number of bars gets large. But with
+  // rangeRound gaps appear on the left and the right side of the bars. Can we round ourselves below?
+  // x.rangeRound([0, width])
+  x.range([0, width])
     .padding(options.padding)
     .domain(
       data.entries.map(function (d) {
@@ -286,18 +282,33 @@ function appendBarChart(
   yAxis.ticks(5);
 
   // Add the x axis to the inner group
-  inner
+  const xAxisElt = inner
     .append("g")
-    .attr("class", "x axis")
+    // .attr("class", "x axis")
     .attr("transform", "translate(0," + height + ")")
+    .attr("shape-rendering", "crispEdges");
+
+  const rotation = 0;
+
+  xAxisElt
+    .append("g")
     .call(xAxis)
     .selectAll("text")
-    .style("text-anchor", "end")
-    .attr("dx", "-.8em")
-    .attr("dy", ".15em")
+    // do this if rotation != 0?
+    // .style("text-anchor", "end")
     .attr("transform", function (_) {
-      return "rotate(-65)";
+      return `rotate(${rotation})`;
     });
+
+  const xlabel =
+    options.xlabel === undefined ? data.label || "" : options.xlabel;
+
+  inner
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", height + margin.bottom)
+    .style("text-anchor", "middle")
+    .text(xlabel);
 
   // Add the y axis to the inner group
   const yAxisElt = inner.append("g").attr("class", "y axis");
@@ -358,7 +369,6 @@ function appendBarChart(
     .append("text")
     .attr("x", -16)
     .attr("y", -16)
-    // .attr("dx", "0.5em")
     .style("text-anchor", "start")
-    .text(options.label + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
+    .text(options.ylabel + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
 }

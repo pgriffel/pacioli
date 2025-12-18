@@ -21,25 +21,31 @@
  */
 
 import * as d3 from "d3";
-import { DefaultChartOptions, displayChartError } from "./chart-utils";
+import {
+  combineMargins,
+  DefaultChartOptions,
+  displayChartError,
+  parseMargin,
+} from "./chart-utils";
 import cloud from "d3-cloud";
 
 export interface WordCloudOptions extends DefaultChartOptions {
   onclick?: (data: any) => void;
 }
 
+const DEFAULT_CHART_MARGIN = { left: 40, top: 20, right: 20, bottom: 50 };
+
 export class WordCloud {
   options: {
     width: number;
     height: number;
-    margin: { left: number; top: number; right: number; bottom: number };
+    margin?: string;
     onclick: (data: any) => void;
   };
 
   readonly defaultOptions = {
     width: 640,
     height: 360,
-    margin: { left: 40, top: 20, right: 20, bottom: 50 },
     onclick: (data: any) => {
       alert("Todo: word cloud click " + data);
     },
@@ -67,7 +73,11 @@ export class WordCloud {
       });
 
       // Determine the drawing dimensions
-      var margin = this.options.margin;
+      var margin = combineMargins(
+        DEFAULT_CHART_MARGIN,
+        parseMargin(this.options.margin)
+      );
+
       var width = this.options.width - margin.left - margin.right;
       var height = this.options.height - margin.top - margin.bottom;
 
