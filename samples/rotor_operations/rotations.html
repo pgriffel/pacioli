@@ -7,7 +7,7 @@
 
     <title>Rotations</title>
 
-    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="../pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
@@ -23,7 +23,7 @@
         Rotation with rotating composed rotor of rotor1, rotor2
 
     <div class="example">
-        <pacioli-scene id="scene_rotation_composition" script="rotations" definition="scene_rotor_composition"
+        <pacioli-scene id="scene_rotation_composition" definition="rotations:scene_rotor_composition"
             kind="stateful-animation" perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
@@ -46,8 +46,8 @@
         with the rotated object.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation_nesting1" script="rotations" definition="scene_rotor_nesting"
-            kind="stateful-animation" perspective grid axis>
+        <pacioli-scene id="scene_rotation_nesting1" definition="rotations:scene_rotor_nesting" kind="stateful-animation"
+            perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -69,8 +69,8 @@
         with the rotated object.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation_nesting2" script="rotations" definition="scene_rotor_nesting"
-            kind="stateful-animation" perspective grid axis>
+        <pacioli-scene id="scene_rotation_nesting2" definition="rotations:scene_rotor_nesting" kind="stateful-animation"
+            perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -92,8 +92,8 @@
         with the rotated object.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation_nesting3" script="rotations" definition="scene_rotor_nesting"
-            kind="stateful-animation" perspective grid axis>
+        <pacioli-scene id="scene_rotation_nesting3" definition="rotations:scene_rotor_nesting" kind="stateful-animation"
+            perspective grid axis>
             <parameter label="Rotor 1 (mv1)" type="string">e1 + 5e2</parameter>
             <parameter label="Rotor 1 (mv2)" type="string">e1 + 6e2</parameter>
             <parameter label="Rotor 2 (mv1)" type="string">e2 + 20e3</parameter>
@@ -112,8 +112,7 @@
         Reflection Doran fig 2.7 but Leo's formulas for right division, projection and rejection on pp155-157.
 
     <div class="example">
-        <pacioli-scene id="scene_reflection" script="rotations" definition="scene_reflection" kind="scene" perspective
-            grid axis>
+        <pacioli-scene id="scene_reflection" definition="rotations:scene_reflection" kind="scene" perspective grid axis>
             <parameter label="nx" unit="metre">0</parameter>
             <parameter label="ny" unit="metre">5</parameter>
             <parameter label="nz" unit="metre">0</parameter>
@@ -130,8 +129,7 @@
         Rotation fig 7.2 on p170 in Leo using two reflections.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation" script="rotations" definition="scene_rotation" kind="scene" perspective grid
-            axis>
+        <pacioli-scene id="scene_rotation" definition="rotations:scene_rotation" kind="scene" perspective grid axis>
             <parameter label="ax" unit="metre">0</parameter>
             <parameter label="ay" unit="metre">5</parameter>
             <parameter label="az" unit="metre">0</parameter>
@@ -152,8 +150,8 @@
         Rotation fig 7.2 on p170 in Leo using the rotor formula 7.3.
 
     <div class="example">
-        <pacioli-scene id="scene_rotation_rotor" script="rotations" definition="scene_rotation_rotor" kind="scene"
-            perspective grid axis>
+        <pacioli-scene id="scene_rotation_rotor" definition="rotations:scene_rotation_rotor" kind="scene" perspective
+            grid axis>
             <parameter label="ax" unit="metre">0</parameter>
             <parameter label="ay" unit="metre">5</parameter>
             <parameter label="az" unit="metre">0</parameter>

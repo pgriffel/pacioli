@@ -7,7 +7,7 @@
 
     <title>Surfaces</title>
 
-    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="../pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
@@ -150,7 +150,7 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="plane_scene" script="surfaces" definition="plane_scene" kind="scene"
+        <pacioli-scene width="900" height="600" id="plane_scene" definition="surfaces:plane_scene" kind="scene"
             perspective axis>
             <parameter label="a" unit="metre">1</parameter>
             <parameter label="b" unit="1">-0.5</parameter>
@@ -269,8 +269,8 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="cosine_scene" script="surfaces" definition="cosine_scene"
-            kind="scene" perspective axis>
+        <pacioli-scene width="900" height="600" id="cosine_scene" definition="surfaces:cosine_scene" kind="scene"
+            perspective axis>
             <parameter label="a" unit="metre">1</parameter>
             <parameter label="c" unit="radian/metre">1</parameter>
             <parameter label="n" unit="1">30</parameter>
@@ -387,7 +387,7 @@
 
 
     <div class="example">
-        <pacioli-scene width="900" height="600" id="paraboloid_scene" script="surfaces" definition="paraboloid_scene"
+        <pacioli-scene width="900" height="600" id="paraboloid_scene" definition="surfaces:paraboloid_scene"
             kind="scene" perspective grid axis unitZ="metre^2">
             <parameter label="a" unit="1">0.3</parameter>
             <parameter label="n" unit="1">30</parameter>
@@ -528,8 +528,8 @@
 
 
     <div class="example">
-        <pacioli-scene width="900" height="600" id="saddle_scene" script="surfaces" definition="saddle_scene"
-            kind="scene" perspective axis unitZ="metre^2">
+        <pacioli-scene width="900" height="600" id="saddle_scene" definition="surfaces:saddle_scene" kind="scene"
+            perspective axis unitZ="metre^2">
             <parameter label="a" unit="1">0.1</parameter>
             <parameter label="b" unit="1">-0.2</parameter>
             <parameter label="n" unit="1">30</parameter>
@@ -671,8 +671,8 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="moebius_scene" script="surfaces" definition="moebius_scene"
-            kind="scene" perspective>
+        <pacioli-scene width="900" height="600" id="moebius_scene" definition="surfaces:moebius_scene" kind="scene"
+            perspective>
             <parameter label="a" unit="1">10</parameter>
             <parameter label="c" unit="metre">1</parameter>
             <parameter label="n" unit="1">30</parameter>
@@ -783,8 +783,8 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="ellipsoid_scene" script="surfaces" definition="ellipsoid_scene"
-            kind="scene" perspective axis background="#222222" labelcolor="#eeeeee">
+        <pacioli-scene width="900" height="600" id="ellipsoid_scene" definition="surfaces:ellipsoid_scene" kind="scene"
+            perspective axis background="#222222" labelcolor="#eeeeee">
             <parameter label="x size" unit="metre">5</parameter>
             <parameter label="y size" unit="metre">5</parameter>
             <parameter label="z size" unit="metre">5</parameter>
@@ -904,7 +904,7 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="torus_scene" script="surfaces" definition="torus_scene" kind="scene"
+        <pacioli-scene width="900" height="600" id="torus_scene" definition="surfaces:torus_scene" kind="scene"
             perspective axis background="#222222" labelcolor="#eeeeee">
             <parameter label="major" unit="metre">4</parameter>
             <parameter label="minor" unit="metre">3</parameter>
@@ -1023,7 +1023,7 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="cone_scene" script="surfaces" definition="cone_scene" kind="scene"
+        <pacioli-scene width="900" height="600" id="cone_scene" definition="surfaces:cone_scene" kind="scene"
             perspective grid axis background="#222222" labelcolor="#eeeeee">
             <parameter label="h" unit="metre">5</parameter>
             <parameter label="r" unit="metre">5</parameter>
@@ -1162,8 +1162,8 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="alternative_sphere_scene" script="surfaces"
-            definition="alternative_sphere_scene" kind="scene" perspective axis background="#222222"
+        <pacioli-scene width="900" height="600" id="alternative_sphere_scene"
+            definition="surfaces:alternative_sphere_scene" kind="scene" perspective axis background="#222222"
             labelcolor="#eeeeee">
             <parameter label="a" unit="metre">5</parameter>
             <parameter label="b" unit="metre">5</parameter>
@@ -1302,8 +1302,8 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="alternative_cone_scene" script="surfaces"
-            definition="alternative_cone_scene" kind="scene" perspective axis background="#222222" labelcolor="#eeeeee">
+        <pacioli-scene width="900" height="600" id="alternative_cone_scene" definition="surfaces:alternative_cone_scene"
+            kind="scene" perspective axis background="#222222" labelcolor="#eeeeee">
             <parameter label="a" unit="metre">5</parameter>
             <parameter label="b" unit="metre">5</parameter>
             <parameter label="c" unit="metre">5</parameter>
@@ -1443,8 +1443,8 @@
 
     <p>
     <div class="example">
-        <pacioli-scene width="900" height="600" id="flower_scene" script="surfaces" definition="flower_scene"
-            kind="scene" perspective axis background="#222222" labelcolor="#eeeeee">
+        <pacioli-scene width="900" height="600" id="flower_scene" definition="surfaces:flower_scene" kind="scene"
+            perspective axis background="#222222" labelcolor="#eeeeee">
             <parameter label="a" unit="metre">5</parameter>
             <parameter label="b" unit="1">4</parameter>
             <parameter label="c" unit="1">1</parameter>

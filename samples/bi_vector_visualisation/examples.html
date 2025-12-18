@@ -7,7 +7,7 @@
 
     <title>Bi Vector Visualisations</title>
 
-    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="../pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
@@ -23,7 +23,7 @@
         Experiment with rendering a bi-vector plane.
 
     <div class="example">
-        <pacioli-scene id="scene_bivector1" script="bi_vector" definition="scene1" kind="scene" perspective grid axis>
+        <pacioli-scene id="scene_bivector1" definition="bi_vector:scene1" kind="scene" perspective grid axis>
             <parameter label="x" unit="metre">2</parameter>
             <parameter label="y" unit="metre">1</parameter>
             <parameter label="z" unit="metre">0</parameter>
@@ -43,7 +43,7 @@
         bi-vector 3e<sub>12</sub> + 4e<sub>13</sub> + 2e<sub>23</sub>. Leo p.34.
 
     <div class="example">
-        <pacioli-scene id="scene_bivector2" script="bi_vector" definition="scene2" kind="scene" perspective grid axis>
+        <pacioli-scene id="scene_bivector2" definition="bi_vector:scene2" kind="scene" perspective grid axis>
             <parameter label="wireframe" type="boole">false</parameter>
         </pacioli-scene>
         <pacioli-inputs for="scene_bivector2"></pacioli-inputs>
@@ -56,8 +56,7 @@
         Leo p58. Give i=0,1,...24 as parameter
 
     <div class="example">
-        <pacioli-scene id="scene_outer" script="outer_cos_sin" definition="the_scene" kind="scene" perspective grid
-            axis>
+        <pacioli-scene id="scene_outer" definition="outer_cos_sin:the_scene" kind="scene" perspective grid axis>
             <parameter label="i" unit="1">24</parameter>
         </pacioli-scene>
         <pacioli-inputs for="scene_outer"></pacioli-inputs>

@@ -7,7 +7,7 @@
 
     <title>Surfaces</title>
 
-    <script type="text/javascript" src="../pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="../pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
@@ -19,16 +19,18 @@
     <div id="console"></div>
 
     <h1>Quadratic and paraboloid examples</h1>
- <p>
-    These examples render two-dimensional surfaces.
-</p>
-<p>
-    First we express a class of quadratic forms that can be used to render either a paraboloid or a saddle surface.
-</p>
-<p>
-    Next, for comparison, we show the parametrically defined paraboloid function.
-</p>
-    In both cases we observe that the <math><mi>z</mi></math> axis has a metre squared as its unit.
+    <p>
+        These examples render two-dimensional surfaces.
+    </p>
+    <p>
+        First we express a class of quadratic forms that can be used to render either a paraboloid or a saddle surface.
+    </p>
+    <p>
+        Next, for comparison, we show the parametrically defined paraboloid function.
+    </p>
+    In both cases we observe that the <math>
+        <mi>z</mi>
+    </math> axis has a metre squared as its unit.
 
     <p>
         A surface is described parametrically with a function
@@ -78,102 +80,107 @@
         We consider the class of quadratic forms that is expressed as:
 
     </p>
-        <math >
-            <mi>z</mi>
-            <mo>=</mo>
-            <mrow>
-                <mo>(</mo>
-                    <mtable>
-                        <mtr>
-                            <mi>x</mi>
-                            <mi>y</mi>
-                        </mtr>
-                    </mtable>
-                <mo>)</mo>
-            </mrow>
-            <mrow>
-              <mo>(</mo>
-              <mtable>
-                <mtr>
-                  <mtd>
-                    <msub>
-                        <mi>A</mi>
-                        <msub>
-                            <mi>x</mi>  
-                        </msub>
-                        <msub>
-                            <mi>x</mi>  
-                        </msub>                         
-                    </msub>
-                  </mtd>
-                  <mtd>
-                    <msub>
-                        <mi>A</mi>
-                        <msub>
-                            <mi>x</mi>  
-                        </msub>
-                        <msub>
-                            <mi>y</mi>  
-                        </msub>                         
-                    </msub>
-                  </mtd>
-                </mtr>
-                <mtr>
-                  <mtd>
-                    <msub>
-                        <mi>A</mi>
-                        <msub>
-                            <mi>y</mi>  
-                        </msub>
-                        <msub>
-                            <mi>x</mi>  
-                        </msub>                         
-                    </msub>
-                  </mtd>
-                  <mtd>
-                    <msub>
-                        <mi>A</mi>
-                        <msub>
-                            <mi>y</mi>  
-                        </msub>
-                        <msub>
-                            <mi>y</mi>  
-                        </msub>                         
-                    </msub>
-                  </mtd>
-                </mtr>
-              </mtable>
-              <mo>)</mo>
-            </mrow>
-            <mrow>
-                <mo>(</mo>
-                    <mtable>
-                        <mtr>
-                            <mi>x</mi>
-                        </mtr>
-                        <mtr>
-                            <mi>y</mi>
-                        </mtr>
-                    </mtable>
-                <mo>)</mo>
-            </mrow>
-          </math>
-
-<p>
-    <mrow>
-        <mo>(</mo>
+    <math>
+        <mi>z</mi>
+        <mo>=</mo>
+        <mrow>
+            <mo>(</mo>
             <mtable>
                 <mtr>
                     <mi>x</mi>
                     <mi>y</mi>
                 </mtr>
             </mtable>
-        <mo>)</mo>
-    </mrow> in this case is computed as the "normal" transpose operator (as opposed to the reciprocal or dimensional inverse).
-</p>
-<p>
-We let the variables <math><mi>x</mi></math> and <math><mi>y</mi></math> be parametrically defined as follows:
-</p>
+            <mo>)</mo>
+        </mrow>
+        <mrow>
+            <mo>(</mo>
+            <mtable>
+                <mtr>
+                    <mtd>
+                        <msub>
+                            <mi>A</mi>
+                            <msub>
+                                <mi>x</mi>
+                            </msub>
+                            <msub>
+                                <mi>x</mi>
+                            </msub>
+                        </msub>
+                    </mtd>
+                    <mtd>
+                        <msub>
+                            <mi>A</mi>
+                            <msub>
+                                <mi>x</mi>
+                            </msub>
+                            <msub>
+                                <mi>y</mi>
+                            </msub>
+                        </msub>
+                    </mtd>
+                </mtr>
+                <mtr>
+                    <mtd>
+                        <msub>
+                            <mi>A</mi>
+                            <msub>
+                                <mi>y</mi>
+                            </msub>
+                            <msub>
+                                <mi>x</mi>
+                            </msub>
+                        </msub>
+                    </mtd>
+                    <mtd>
+                        <msub>
+                            <mi>A</mi>
+                            <msub>
+                                <mi>y</mi>
+                            </msub>
+                            <msub>
+                                <mi>y</mi>
+                            </msub>
+                        </msub>
+                    </mtd>
+                </mtr>
+            </mtable>
+            <mo>)</mo>
+        </mrow>
+        <mrow>
+            <mo>(</mo>
+            <mtable>
+                <mtr>
+                    <mi>x</mi>
+                </mtr>
+                <mtr>
+                    <mi>y</mi>
+                </mtr>
+            </mtable>
+            <mo>)</mo>
+        </mrow>
+    </math>
+
+    <p>
+        <mrow>
+            <mo>(</mo>
+            <mtable>
+                <mtr>
+                    <mi>x</mi>
+                    <mi>y</mi>
+                </mtr>
+            </mtable>
+            <mo>)</mo>
+        </mrow> in this case is computed as the "normal" transpose operator (as opposed to the reciprocal or dimensional
+        inverse).
+    </p>
+    <p>
+        We let the variables <math>
+            <mi>x</mi>
+        </math> and <math>
+            <mi>y</mi>
+        </math> be parametrically defined as follows:
+    </p>
 
     <p>
     <ul>
@@ -221,15 +228,21 @@ We let the variables <math><mi>x</mi></math> and <math><mi>y</mi></math> be para
     </math>
 
     <p>
-        As the quadratic form has both <math><mi>x</mi></math> and <math><mi>y</mi></math> squared, 
-        <math><mi>z</mi></math>'s unit is metre squared. 
-     
+        As the quadratic form has both <math>
+            <mi>x</mi>
+        </math> and <math>
+            <mi>y</mi>
+        </math> squared,
+        <math>
+            <mi>z</mi>
+        </math>'s unit is metre squared.
+
     <p>
 
 
     <div class="example">
-        <pacioli-scene width="900" height="600" id="paraboloid_scene2" script="quadratic_surfaces"
-            definition="paraboloid_scene2" kind="scene" perspective grid axis unitZ="metre^2">
+        <pacioli-scene width="900" height="600" id="paraboloid_scene2" definition="quadratic_surfaces:paraboloid_scene2"
+            kind="scene" perspective grid axis unitZ="metre^2">
             <parameter label="a" unit="1">0.3</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
@@ -350,8 +363,8 @@ We let the variables <math><mi>x</mi></math> and <math><mi>y</mi></math> be para
 
 
     <div class="example">
-        <pacioli-scene width="900" height="600" id="paraboloid_scene" script="quadratic_surfaces"
-            definition="paraboloid_scene" kind="scene" perspective grid axis unitZ="metre^2">
+        <pacioli-scene width="900" height="600" id="paraboloid_scene" definition="quadratic_surfaces:paraboloid_scene"
+            kind="scene" perspective grid axis unitZ="metre^2">
             <parameter label="a" unit="1">0.3</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
