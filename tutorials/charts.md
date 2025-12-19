@@ -2,7 +2,7 @@
 title: Pacioli Charts
 ---
 
-<script type="text/javascript" src="/javascript/pacioli-0.5.0.bundle.js"></script>
+<script type="text/javascript" src="/bin/pacioli-0.5.1.bundle.js"></script>
 <script type="text/javascript" src="charts.js"></script>
 
 # Charts
@@ -25,7 +25,7 @@ Create a file `charts.html` and add the following HTML.
             <meta charset="utf-8">
             <title>Charts Tutorial</title>
 
-            <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+            <script type="text/javascript" src="pacioli-0.5.1.bundle.js"></script>
             <script type="text/javascript" src="charts.js"></script>
         </head>
 
@@ -46,18 +46,16 @@ Pacioli bundle in the HTML page.
 <div style="display:flex; gap: 32pt">
 
 <pacioli-bar-chart
-    script="charts"
-    definition="population"
+    definition="charts:population"
     unit="giga:person"
-    label="Population"
-    ymax=5
+    ylabel="Population"
+    yupper=5
     width=256
     height=384>
 </pacioli-bar-chart>
 
 <pacioli-pie-chart
-      script="charts"
-      definition="population"
+      definition="charts:population"
       unit="mega:person"
       width=256>
 </pacioli-pie-chart>
@@ -85,8 +83,7 @@ Add the following HTML code to the body to create a bar chart for the population
     <div style="display:flex; gap: 32pt">
 
     <pacioli-bar-chart
-        script="series"
-        definition="population"
+        definition="series:population"
         unit="giga:person"
         label="Population"
         ymax=5
@@ -95,8 +92,7 @@ Add the following HTML code to the body to create a bar chart for the population
     </pacioli-bar-chart>
 
     <pacioli-pie-chart
-        script="series"
-        definition="population"
+        definition="series:population"
         unit="mega:person"
         width=256>
     </pacioli-pie-chart>
@@ -107,10 +103,7 @@ The two web-components create the charts. The div places the charts side-by-side
 
 ## Adding a Histogram
 
-<pacioli-histogram
-    script="charts"
-    definition="random_numbers">
-</pacioli-histogram>
+<pacioli-histogram definition="charts:random_numbers"></pacioli-histogram>
 
 A histogram expects a list of numbers as input. Add the following code to file charts.pacioli
 
@@ -120,8 +113,7 @@ A histogram expects a list of numbers as input. Add the following code to file c
 The code creates a list of random numbers. Add the following to the page body
 
     <pacioli-histogram
-      script="series"
-      definition="random_numbers">
+      definition="series:random_numbers">
     </pacioli-histogram>
 
 This creates the histogram.
@@ -137,14 +129,11 @@ The line chart also expect a list of numbers
 
     define random_numbers = [random() | x <- naturals(1000)];
 
-<pacioli-line-chart
-    script="charts"
-    definition="wave">
+<pacioli-line-chart definition="charts:wave">
 </pacioli-line-chart>
 
     <pacioli-line-chart
-        script="series"
-        definition="wave">
+        definition="series:wave">
     </pacioli-line-chart>
 
 ## Adding Chart Parameters
@@ -153,8 +142,7 @@ Instead of a value definition we can also provide a function definition. The par
 
 <pacioli-line-chart
     id="sine_wave_chart"
-    script="charts"
-    definition="sine_wave"
+    definition="charts:sine_wave"
     ymax=1
     ymin="-1">
 <parameter label="amplitude" unit="metre">0.1</parameter>
@@ -182,8 +170,7 @@ Add the following element to the HTML page.
 
     <pacioli-line-chart
         id="sine_wave_chart"
-        script="charts"
-        definition="sine_wave"
+        definition="charts:sine_wave"
         ymax=1
         ymin="-1">
         <parameter label="amplitude" unit="metre">0.1</parameter>

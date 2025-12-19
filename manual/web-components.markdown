@@ -26,7 +26,7 @@ the pacioli-scene element:
 
 ## Preliminaries
 
-    <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+    <script type="text/javascript" src="pacioli-0.5.1.bundle.js"></script>
     <script type="text/javascript" src="my_math_lib.js"></script>
 
 ## Obtaining values
@@ -45,7 +45,7 @@ Say we have a file my_math_lib.pacioli with a definition of function `pythagoras
 
 After compiling the code to javascript the following HTML fragment
 
-    <pacioli-value script="my_math_lib" value="pythagoras">
+    <pacioli-value definition="my_math_lib:pythagoras">
         <parameter label="parameter a" unit="metre">3</parameter>
         <parameter label="parameter b" unit="metre">4</parameter>
     </pacioli-value>

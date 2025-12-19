@@ -9,11 +9,8 @@
 
     <title>BoM</title>
 
-    <script
-      type="text/javascript"
-      src="/javascript/pacioli-0.5.0.bundle.js"
-    ></script>
-    <script type="text/javascript" src="/javascript/viz-standalone.js"></script>
+    <script type="text/javascript" src="/bin/pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="/bin/viz-standalone.js"></script>
     <script type="text/javascript" src="bom.js"></script>
   </head>
 
@@ -32,13 +29,12 @@
 
     <h3>In dollar</h3>
 
-    <pacioli-value script="bom" definition="cost_breakdown"></pacioli-value>
+    <pacioli-value definition="bom:cost_breakdown"></pacioli-value>
 
     <h3>In percentages</h3>
 
     <pacioli-value
-      script="bom"
-      definition="cost_breakdown_in_percentages"
+      definition="bom:cost_breakdown_in_percentages"
     ></pacioli-value>
 
     <script>

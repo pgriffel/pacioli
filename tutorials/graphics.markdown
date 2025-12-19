@@ -4,7 +4,7 @@ title: 3D Graphics
 
 <script
     type="text/javascript"
-    src="/javascript/pacioli-0.5.0.bundle.js">
+    src="/bin/pacioli-0.5.1.bundle.js">
 </script>
 <script
     type="text/javascript" 
@@ -19,8 +19,7 @@ The [graphics](doc/graphics.html) library allows 3D programming thanks to the [t
 display. It can be added to a web page.
 
 <pacioli-scene
-    script="graphics"
-    definition="my_scene"
+    definition="graphics:my_scene"
     width="600"
     axis grid>
 </pacioli-scene>
@@ -47,14 +46,13 @@ Web components are the easiest way to work with 3D graphics. Create a file foo.h
             <meta charset="utf-8">
             <title>Graphics Tutorial</title>
 
-            <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+            <script type="text/javascript" src="pacioli-0.5.1.bundle.js"></script>
             <script type="text/javascript" src="foo.js"></script>
         </head>
 
         <body>
             <pacioli-scene
-                script="foo"
-                definition="my_scene"
+                definition="foo:my_scene"
                 axis grid>
             </pacioli-scene>
         </body>
