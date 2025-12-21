@@ -20,7 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { computeWebComponentValue, setParameterNodes } from "./utils";
+import {
+  computeWebComponentValue,
+  addParametersObserver,
+  setParameterNodes,
+} from "./utils";
 import { PacioliValue } from "../boxing";
 import {
   Callable,
@@ -120,6 +124,9 @@ export abstract class PacioliWebComponent
     // We need the children so we can get the parameter values.
     setTimeout(() => {
       this.parametersChanged();
+
+      // Add an observer that calls 'parametersChanged' when a parameter child node changes.
+      addParametersObserver(this);
     }, 1); // On FireFox 0 is sufficient. Chrome requires > 0.
   }
 

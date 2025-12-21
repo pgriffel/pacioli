@@ -20,10 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import { PacioliValue } from "../../boxing";
 import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromScript } from "../utils";
 
 /**
  * Attribues supported by the scatter plot component
@@ -31,7 +32,18 @@ import { optionsFromAttributes } from "../utils";
 const SUPPORTED_ATTRIBUTES = {
   strings: ["label", "caption", "xunit", "yunit"],
   booleans: ["trendline"],
-  numbers: ["width", "height", "xlower", "ylower", "radius", "decimals"],
+  numbers: [
+    "width",
+    "height",
+    "xlower",
+    "xupper",
+    "ylower",
+    "yupper",
+    "xticks",
+    "yticks",
+    "radius",
+    "decimals",
+  ],
 };
 
 /**
@@ -86,14 +98,73 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Lower bound for the domain
+   */
+  get xlower(): number {
+    return this.getNumberAttribute("xlower", 0);
+  }
+
+  set xlower(value: number) {
+    this.setNumberAttribute("xlower", value);
+  }
+
+  /**
+   * Upper bound for the domain
+   */
+  get xupper(): number {
+    return this.getNumberAttribute("xupper", 1);
+  }
+
+  set xupper(value: number) {
+    this.setNumberAttribute("xupper", value);
+  }
+
+  /**
+   * Lower bound for the range
+   */
+  get ylower(): number {
+    return this.getNumberAttribute("ylower", 0);
+  }
+
+  set ylower(value: number) {
+    this.setNumberAttribute("ylower", value);
+  }
+
+  /**
+   * Upper bound for the range
+   */
+  get yupper(): number {
+    return this.getNumberAttribute("yupper", 1);
+  }
+
+  set yupper(value: number) {
+    this.setNumberAttribute("yupper", value);
+  }
+
+  /**
    * The scatter plot
    */
   chart?: ScatterPlot;
 
   /**
+   * The Pacioli value displayed in the chart.
+   */
+  data?: PacioliValue;
+
+  /**
    * Web component field.
    */
-  static observedAttributes = ["definition", "xunit", "yunit"];
+  static observedAttributes = [
+    "definition",
+    "xunit",
+    "yunit",
+    "xlower",
+    "xupper",
+    "ylower",
+    "yupper",
+    "xticks",
+    "yticks",
+  ];
 
   constructor() {
     super();
@@ -103,14 +174,16 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(
-    _name: string,
-    _oldValue: string,
-    _newValue: string
-  ) {
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      if (this.contentParent()) {
-        this.drawChart();
+      // Reload the data if the definition changes. The initial load is done in
+      // parametersChanged.
+      if (name === "definition" && this.data !== undefined) {
+        this.data = this.fetchData();
+      }
+
+      if (this.contentParent() && this.data) {
+        this.drawChart(this.data);
       }
     } catch (err: any) {
       this.displayError(err);
@@ -122,25 +195,24 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     try {
-      this.drawChart();
+      this.data = this.fetchData();
+
+      this.drawChart(this.data);
     } catch (err: any) {
       this.displayError(err);
     }
   }
 
-  drawChart(): void {
-    // Refresh the chart
+  drawChart(data: PacioliValue): void {
     this.clearContent();
     this.clearErrors();
 
-    // Compute the data using the new parameter values
-    const data = this.fetchData();
+    const options = {
+      ...optionsFromScript<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
 
-    this.chart = new ScatterPlot(
-      data,
-      PacioliContext.si(),
-      optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES)
-    );
+    this.chart = new ScatterPlot(data, PacioliContext.si(), options);
     this.chart.draw(this.contentParent());
   }
 }

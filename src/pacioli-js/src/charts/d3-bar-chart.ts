@@ -54,12 +54,12 @@ export interface BarChartOptions extends DefaultChartOptions {
   /**
    * Start of the y-axis. Defaults to the minimum data value.
    */
-  lower?: number;
+  ylower?: number;
 
   /**
    * End of the y-axis. Defaults to the maximum data value.
    */
-  upper?: number;
+  yupper?: number;
 
   /**
    * Distance between the bars. See d3 band.
@@ -245,14 +245,14 @@ function appendBarChart(
   // TODO: why do data.min and data.max not work? Bars get shifted.
   var yMin = Math.min(
     0,
-    options.lower ||
+    options.ylower ||
       (d3.min(data.entries, function (d) {
         return d.value;
       }) as number)
   );
   var yMax = Math.max(
     0,
-    options.upper ||
+    options.yupper ||
       (d3.max(data.entries, function (d) {
         return d.value;
       }) as number)

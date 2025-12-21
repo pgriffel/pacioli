@@ -23,7 +23,7 @@
 import { PacioliContext } from "../../context";
 import { BarChart, BarChartOptions } from "../../charts/d3-bar-chart";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { PacioliValue } from "../../boxing";
 
 /**
@@ -183,11 +183,12 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
     this.clearContent();
     this.clearErrors();
 
-    this.chart = new BarChart(
-      data,
-      PacioliContext.si(),
-      optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES)
-    );
+    const options = {
+      ...optionsFromScript<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    this.chart = new BarChart(data, PacioliContext.si(), options);
 
     this.chart.draw(this.contentParent());
   }

@@ -23,7 +23,7 @@
 import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { PacioliValue } from "../../boxing";
 
 /**
@@ -215,11 +215,12 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
     this.clearContent();
     this.clearErrors();
 
-    this.chart = new LineChart(
-      data,
-      PacioliContext.si(),
-      optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES)
-    );
+    const options = {
+      ...optionsFromScript<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    this.chart = new LineChart(data, PacioliContext.si(), options);
 
     this.chart.draw(this.contentParent());
   }
