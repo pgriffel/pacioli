@@ -145,6 +145,25 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
 }
 
 /**
+ * Adds a MutationObserver to an element. The observer triggers 'parametersChanged' when
+ * a parameter child node changes.
+ *
+ * @param element The HTML element
+ * @returns the new MutationObserver
+ */
+export function addParametersObserver(
+  element: PacioliWebComponent
+): MutationObserver {
+  const observer = new MutationObserver(() => {
+    element.parametersChanged();
+  });
+
+  observer.observe(element, { childList: true, subtree: true });
+
+  return observer;
+}
+
+/**
  * Turns the raw parameter attribues from a PacioliWebComponent parameter child node
  * into a PacioliParameter object.
  *
