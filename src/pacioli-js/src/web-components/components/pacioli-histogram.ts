@@ -30,9 +30,21 @@ import { PacioliValue } from "../../boxing";
  * Attribues supported by the histogram component
  */
 const SUPPORTED_ATTRIBUTES = {
-  strings: ["unit", "margin", "caption", "label", "heuristic"],
+  strings: ["unit", "margin", "caption", "xlabel", "ylabel", "heuristic"],
   booleans: [],
-  numbers: ["width", "height", "bins", "lower", "upper", "decimals", "gap"],
+  numbers: [
+    "width",
+    "height",
+    "bins",
+    "lower",
+    "upper",
+    "decimals",
+    "gap",
+    "ylower",
+    "yupper",
+    "xticks",
+    "yticks",
+  ],
 };
 
 /**
@@ -140,6 +152,17 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Upper bound for the range
+   */
+  get yupper(): number {
+    return this.getNumberAttribute("yupper", 1);
+  }
+
+  set yupper(value: number) {
+    this.setNumberAttribute("yupper", value);
+  }
+
+  /**
    * The histogram
    */
   chart?: Histogram;
@@ -158,6 +181,8 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
     "bins",
     "lower",
     "upper",
+    "ylower",
+    "yupper",
     "heuristic",
     "gap",
   ];

@@ -39,10 +39,15 @@ import { parseUnit } from "../api";
 export interface HistogramOptions extends DefaultChartOptions {
   unit?: string;
   convert: boolean;
-  label?: string;
+  xlabel?: string;
+  ylabel?: string;
   bins?: number;
   lower?: number;
   upper?: number;
+  ylower?: number;
+  yupper?: number;
+  xticks?: number;
+  yticks?: number;
   zeros: boolean;
   decimals?: number;
   gap: number;
@@ -68,7 +73,7 @@ const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
 const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
   width: 640,
   height: 360,
-  label: "",
+  ylabel: "Frequency",
   zeros: false,
   convert: true,
   decimals: 2,
@@ -208,7 +213,7 @@ export class Histogram {
     } catch (err) {
       displayChartError(
         parent,
-        "While drawing histogram '" + this.options.label + "':",
+        "While drawing histogram '" + this.options.caption + "':",
         err
       );
     }
@@ -288,7 +293,11 @@ function appendHistogram(
   const maxFrequency = d3.max(binArray, function (d) {
     return d.length;
   }) as number;
-  var range = d3.scaleLinear().domain([0, maxFrequency]).range([height, 0]);
+
+  var yMin = options.ylower || 0;
+  var yMax = options.yupper || maxFrequency;
+
+  var range = d3.scaleLinear().domain([yMin, yMax]).range([height, 0]);
 
   // Create the axes
 
@@ -298,13 +307,17 @@ function appendHistogram(
     .attr("transform", "translate(0," + height + ")")
     .attr("class", "x axis");
 
-  xAxisElt.append("g").call(d3.axisBottom(domain));
+  const xAxis = d3.axisBottom(domain);
+  if (options.xticks) {
+    xAxis.ticks(options.xticks);
+  }
+  xAxisElt.append("g").call(xAxis);
 
-  const label = options.label || data.label;
+  const label = options.xlabel || data.label;
   xAxisElt
     .append("text")
     .attr("x", width)
-    .attr("y", 24)
+    .attr("y", 32)
     // .attr("dy", ".71em")
     .style("text-anchor", "end")
     .text(label + " [" + unit.toText() + "]");
@@ -327,7 +340,11 @@ function appendHistogram(
     .attr("transform", "translate(0," + "0" + ")")
     .attr("class", "y axis");
 
-  yAxisElt.append("g").call(d3.axisLeft(range));
+  const yAxis = d3.axisLeft(range);
+  if (options.yticks) {
+    yAxis.ticks(options.yticks);
+  }
+  yAxisElt.append("g").call(yAxis);
 
   yAxisElt
     .append("text")
@@ -335,7 +352,7 @@ function appendHistogram(
     .attr("y", -16)
     // .attr("dy", "-.71em")
     .style("text-anchor", "left")
-    .text("Frequency");
+    .text(options.ylabel || "");
 
   // Create a tooltip with a unique css class name for the histogram charts.
   const tooltip = new ToolTip("pacioli tooltip histogram");

@@ -23,7 +23,7 @@
 import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { PacioliValue } from "../../boxing";
 
 /**
@@ -142,11 +142,12 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
     this.clearContent();
     this.clearErrors();
 
-    this.chart = new PieChart(
-      data,
-      PacioliContext.si(),
-      optionsFromAttributes<PieChartOptions>(this, SUPPORTED_ATTRIBUTES)
-    );
+    const options = {
+      ...optionsFromScript<PieChartOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<PieChartOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    this.chart = new PieChart(data, PacioliContext.si(), options);
 
     this.chart.draw(this.contentParent());
   }
