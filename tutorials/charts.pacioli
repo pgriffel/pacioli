@@ -12,23 +12,36 @@ defmatrix population :: person*Continent! = {
   Oceania -> 38304000
 };
 
-define example_wave =
-  let n = 1000 in
-      [sin(i/n*6*pi*|radian|) | i <- naturals(n)]
-  end;
+define pie_chart_options = [
+    tuple("caption", "My Pie Chart"),
+    tuple("label", "Continent")
+    ];
 
-define random_numbers =
-    [expt(random(), 3) | x <- naturals(1000)];
-
-defunit sample "smpl";
+define random_squares =
+    [expt(random(), 2) | x <- naturals(1000)];
 
 declare sine_wave :: for_unit a:
-    (a, radian/second, radian, 1/second, second) -> List(a);
+    (a, 1/second, second, second, 1) -> List(Tuple(second, a));
 
-define sine_wave(amplitude, frequency, phase, sampling_rate, nr_seconds) =
+define sine_wave(amplitude, frequency, start_time, end_time, nr_samples) =
     let
-        nr_samples = nr_seconds * sampling_rate,
-        angle = frequency / sampling_rate
+        w = frequency * 2*pi*|radian|,
+        dt = (end_time - start_time) / nr_samples
     in
-        [amplitude * sin(i * angle + phase) | i <- naturals(nr_samples)]
+        [tuple(t, amplitude * sin(w * t)) | i <- naturals(nr_samples), t := start_time + i * dt]
     end;
+
+define example_wave =
+  sine_wave(0.2, 1/|second|, 0*|second|, 8*|second|, 100);
+
+
+define random_avg(k) =
+    sum[random() | _ <- naturals(k)] / k;
+
+define random_avg_pairs(k, n) =
+    [tuple(random_avg(k), random_avg(k)) | _ <- naturals(n)];
+
+define random_avg_pairs_1(n) = random_avg_pairs(1, n);
+define random_avg_pairs_10(n) = random_avg_pairs(10, n);
+define random_avg_pairs_100(n) = random_avg_pairs(100, n);
+define random_avg_pairs_1000(n) = random_avg_pairs(1000, n);
