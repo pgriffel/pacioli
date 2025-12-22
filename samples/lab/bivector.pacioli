@@ -1,7 +1,7 @@
 import geometry;
 import geometric_algebra;
 import graphics;
-include generated/generated_algebra; #physics uses Geom3
+import geometric_algebra/ga3; #physics uses Geom3
 
 # we introduce a bivector as a (2,0) tensor, in Geom3
 # Open: how the antisymmetry must be included, we assume not needed in the deftype

@@ -5,7 +5,7 @@
 import graphics;
 import geometry;
 import geometric_algebra;
-include ga_3d;
+import geometric_algebra/ga3;
 
 # ------------------------------------------------------------------------------
 #

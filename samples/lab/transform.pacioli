@@ -1,7 +1,10 @@
 import geometry;
 import geometric_algebra;
 import graphics;
-include generated/generated_algebra; #physics uses Geom3
+import geometric_algebra/ga3; 
+
+set_nr_decimals(0 * |decimals|);
+print_cayley_tables();
 
 define x = parse_mv_unit("e1", |metre|);
 define y = parse_mv_unit("e2", |metre|);

@@ -350,7 +350,7 @@ declare table :: for_index I: for_unit a,b:
 
 define table(terms_a, terms_b, f, name) =
     let
-        width = 6,
+        width = 10,
         blades_a = [term_base_blade(t) | t <- terms_a],
         blades_b = [term_base_blade(t) | t <- terms_b],
         weight_x = 1 * unit(term_weight(nth(0, terms_a))),

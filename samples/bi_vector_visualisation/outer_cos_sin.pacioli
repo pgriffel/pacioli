@@ -1,7 +1,7 @@
 import geometry;
 import geometric_algebra;
 import graphics;
-include ga_3d;
+import geometric_algebra/ga3;
 
 # ------------------------------------------------------------------------------
 # The scene
