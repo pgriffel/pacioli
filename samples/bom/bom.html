@@ -1,27 +1,27 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1"
-    />
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
     <title>BoM</title>
 
-    <script type="text/javascript" src="/bin/pacioli-0.5.1.bundle.js"></script>
-    <script type="text/javascript" src="/bin/viz-standalone.js"></script>
+    <script type="text/javascript" src="../../js/pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="../../js/viz-standalone.js"></script>
     <script type="text/javascript" src="bom.js"></script>
-  </head>
+</head>
 
-  <body>
+<body>
     <h2>Bill of Material</h2>
 
     <div id="bom"></div>
 
+
     <h2>Exploded Bill of Material</h2>
 
     <div id="exploded"></div>
+
 
     <h2>Cost Breakdown</h2>
 
@@ -33,38 +33,43 @@
 
     <h3>In percentages</h3>
 
-    <pacioli-value
-      definition="bom:cost_breakdown_in_percentages"
-    ></pacioli-value>
+    <pacioli-value definition="bom:cost_breakdown_in_percentages"></pacioli-value>
+
 
     <script>
-      function asDot(matrix) {
-        let out = "digraph{ nodesep=0.5; ranksep=1; rankdir=BT;";
 
-        for (const entry of matrix.keyValueList().values) {
-          if (entry.value.magnitude.gte(0.000001)) {
-            out += `${entry.row} -> ${
-              entry.column
-            } [label="${entry.value.toFixed(3)}"];`;
-          }
+        function valueString(dimNum) {
+            // Unit symbol string can contain " (e.g. inch)
+            return dimNum.toFixed(3).replace("\"", "\\\"");
         }
 
-        out += "}";
+        function asDot(matrix) {
 
-        return out;
-      }
+            let out = "digraph{ nodesep=0.5; ranksep=1; rankdir=BT;"
 
-      Viz.instance().then(function (viz) {
-        const bomElt = document.getElementById("bom");
-        const explodedElt = document.getElementById("exploded");
+            for (const entry of matrix.keyValueList().values) {
+                if (entry.value.magnitude.gte(0.000001)) {
+                    out += `${entry.row} -> ${entry.column} [label="${valueString(entry.value)}"];`
+                }
+            }
 
-        bomElt.appendChild(
-          viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM")))
-        );
-        explodedElt.appendChild(
-          viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM_closure")))
-        );
-      });
+            out += "}"
+
+            return out
+        }
+
+        Viz.instance().then(function (viz) {
+
+            const bomElt = document.getElementById("bom");
+            const explodedElt = document.getElementById("exploded");
+
+            bomElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM"))));
+            explodedElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM_closure"))));
+        });
+
     </script>
-  </body>
+
+</body>
+
+
 </html>

@@ -171,8 +171,7 @@ define segment_mesh(curvea, curveb) =
     let 
         n = list_size(curvea)
     in
-        with_mesh_material(
-            "Normal",
+        with_mesh_material("Normal",
             default_mesh(
                 [vertex(v, SEGMENT_VERTEX_COLOR) | v <- append(curvea, curveb)],
                 [ f | 

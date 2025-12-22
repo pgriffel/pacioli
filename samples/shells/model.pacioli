@@ -131,15 +131,13 @@ define absolute_aperture_coords(path, unit) =
 
       coords := [tuple(x,y)];
 
-      while path != [] do
-          (angle, distance) := head(path);
+      for (angle, distance) <- path do
 
           direction := direction + angle;
           x := x + distance * sin(direction);
           y := y + distance * cos(direction);
           
           coords := cons(tuple(x, y), coords);
-          path := tail(path);
       end
 
       return coords;

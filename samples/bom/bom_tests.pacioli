@@ -11,21 +11,21 @@ define bom_suites = [
 ];
 
 defmatrix expected_trade_bom :: Product!trade_unit per Product!trade_unit = {
-  Apples, CrateOfApples ->      10.0,
   Butter, Pastry ->              0.36,
   Flour, Pastry ->               0.55,
   Pastry, ApplePie ->            0.40,
   Apples, ApplePie ->            0.75,
   Sugar, ApplePie ->             0.225,
   Butter, ApplePie ->            0.115,
-  ApplePie, PieceOfPie ->        0.12
+  ApplePie, PieceOfPie ->        0.125,
+  CrateOfApples, Apples ->       0.05
 };
 
 defmatrix expected_product_cost :: dollar / Product!trade_unit = {
-    Pastry          ->  0.44,
-    ApplePie        ->  1.226,
-    PieceOfPie      ->  0.14712,
-    CrateOfApples   -> 14.0
+    Pastry        -> 1.16,
+    Apples        -> 5.0,
+    ApplePie      -> 4.5565,
+    PieceOfPie    -> 0.5695625
 };
 
 define bom_suite = test_suite("Bill of Material", [
