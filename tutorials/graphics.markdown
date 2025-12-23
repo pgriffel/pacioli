@@ -4,7 +4,7 @@ title: 3D Graphics
 
 <script
     type="text/javascript"
-    src="/bin/pacioli-0.5.1.bundle.js">
+    src="/js/pacioli-0.5.1.bundle.js">
 </script>
 <script
     type="text/javascript" 
