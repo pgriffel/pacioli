@@ -15,7 +15,7 @@ defmatrix population :: person*Continent! = {
 define pie_chart_options = [
     tuple("caption", "My Pie Chart"),
     tuple("label", "Continent")
-    ];
+];
 
 define random_squares =
     [expt(random(), 2) | x <- naturals(1000)];
@@ -40,8 +40,3 @@ define random_avg(k) =
 
 define random_avg_pairs(k, n) =
     [tuple(random_avg(k), random_avg(k)) | _ <- naturals(n)];
-
-define random_avg_pairs_1(n) = random_avg_pairs(1, n);
-define random_avg_pairs_10(n) = random_avg_pairs(10, n);
-define random_avg_pairs_100(n) = random_avg_pairs(100, n);
-define random_avg_pairs_1000(n) = random_avg_pairs(1000, n);

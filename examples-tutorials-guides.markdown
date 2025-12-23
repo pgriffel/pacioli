@@ -41,8 +41,8 @@ Various examples that demonstrate different use cases. See the samples directory
 - [Working with matrices II - Curiosity](/tutorials/curiosity) \
   Gives some details on Pacioli's type system. It is about the power consumption of Nasa's curiosity rover and involves vectors with non-uniform units of measurement.
 
-- [Working with charts and tables](/tutorials/charts)\
-  Explains how to add charts and tables to a web page with web components.
+- [Working with charts](/tutorials/charts)\
+  Explains how to add charts to a web page with web components.
 
 - [Working with 3D graphics](/tutorials/graphics)\
   Creating 3D scenes and animations with web components.

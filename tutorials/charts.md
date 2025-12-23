@@ -2,12 +2,12 @@
 title: Pacioli Charts
 ---
 
-<script type="text/javascript" src="/bin/pacioli-0.5.1.bundle.js"></script>
+<script type="text/javascript" src="/js/pacioli-0.5.1.bundle.js"></script>
 <script type="text/javascript" src="charts.js"></script>
 
 # Charts
 
-Explains how to add charts to a web page.
+This tutorial explains how Pacioli values can be displayed in charts on a web page.
 
 A chart displays a value or a function. When a function is displayed,
 `parameter` elements are used to pass parameters to the function.
@@ -52,9 +52,12 @@ A band scale chart has a discrete domain.
 
 The input can be
 
-- A vector
 - A list of (string, number) pairs
+- A vector
 - A list of numbers
+
+For a vector the domain is its index set. For a list of numbers the domain is the
+set `{"1", "2", "3", ..., n}` with `n` the size of the list.
 
 The bar chart and the pie chart are examples of band scale charts.
 
@@ -68,7 +71,7 @@ The bar chart and the pie chart are examples of band scale charts.
     ylabel="Population"
     yupper=5
     width=256
-    height=384>
+    height=304>
 </pacioli-bar-chart>
 
 <pacioli-pie-chart
@@ -137,7 +140,7 @@ The options is a list of (string, string) pairs. For example
     define pie_chart_options = [
         tuple("caption", "My Pie Chart"),
         tuple("label", "Continent")
-        ];
+    ];
 
 Add an options attribute that refers to this value with `options="charts:pie_chart_options"`.
 
@@ -153,11 +156,14 @@ The input can be
 - A vector
 - A list of numbers
 
+For a vector and for a list of numbers the domain is the set `{1, 2, 3, ..., n}`,
+where `n` is the size of the vector or list.
+
 Examples are the line chart, the histogram and the scatterplot.
 
 ### Adding a Line Chart
 
-As setup for the line chart we define function `sine_wave` to calculate a sine wave.
+As setup for the line chart we define function `sine_wave`.
 
     declare sine_wave :: for_unit a:
         (a, 1/second, second, second, 1) -> List(Tuple(second, a));
@@ -282,7 +288,7 @@ The code creates a list of random numbers. Add the following to the page body
 
 This creates the histogram.
 
-Add
+For another example add the following setup
 
     define random_avg(k) =
         sum[random() | _ <- naturals(k)] / k;
@@ -293,16 +299,36 @@ Add
 <pacioli-histogram 
     id="random_pairs"
     caption="Random average pairs"
+    width="400"
+    height="400"
     definition="charts:random_avg_pairs"
     bins=25
     yupper=100
     xticks=3
     yticks=5>
-<parameter label="k">10</parameter>
+<parameter label="k">5</parameter>
 <parameter label="n">500</parameter>
 </pacioli-histogram>
 
 <pacioli-inputs for="random_pairs"></pacioli-inputs>
+
+The HTML is
+
+    <pacioli-histogram
+        id="random_pairs"
+        caption="Random average pairs"
+        width="400"
+        height="400"
+        definition="charts:random_avg_pairs"
+        bins=25
+        yupper=100
+        xticks=3
+        yticks=5>
+    <parameter label="k">5</parameter>
+    <parameter label="n">500</parameter>
+    </pacioli-histogram>
+
+    <pacioli-inputs for="random_pairs"></pacioli-inputs>
 
 ### Adding Scatterplots
 
@@ -318,7 +344,7 @@ Add
     yupper="1"
     xticks="3"
     yticks="3">
-<parameter label="k">10</parameter>
+<parameter label="k">5</parameter>
 <parameter label="n">500</parameter>
 </pacioli-scatter-plot>
 
@@ -338,8 +364,8 @@ Add the following
         yupper="1"
         xticks="3"
         yticks="3">
-    <parameter>10</parameter>
-    <parameter>500</parameter>
+    <parameter label="k">5</parameter>
+    <parameter label="n">500</parameter>
     </pacioli-scatter-plot>
 
     <pacioli-inputs for="random_pairs_scatter"></pacioli-inputs>
@@ -354,14 +380,16 @@ copies of the charts from the previous section for k=1, 10, 100 and 1000, but se
 In that case an input panel won't work. We can create our own inputs and manipulate
 the charts from JavaScript directly.
 
-n = <input type="number" onchange="onSamples(this)" value=100>
+n = <input id="nrsamples" type="number" value=100>
+<button onclick="onSetSamples()">Apply</button>
 
 <script>
-    function onSamples(element) {
+    function onSetSamples() {
+        const value = document.querySelector("#nrsamples").value
         document
             .querySelectorAll("parameter.samples")
             .forEach((paramElt) => {
-                paramElt.innerText = element.value    
+                paramElt.innerText = value    
             })
     }
 </script>
@@ -438,9 +466,23 @@ n = <input type="number" onchange="onSamples(this)" value=100>
 
 </div>
 
-Add HTML
+Add HTML. We need to find the relevant parameter elements to set the values. In this case
+the parameter `n` elements are given css class `samples`. This allows us to query them
+from JavaScript.
 
-    n = <input type="number" onchange="onSamples(this)" value=100>
+    n = <input id="nrsamples" type="number" value=100>
+    <button onclick="onSetSamples()">Apply</button>
+
+    <script>
+        function onSetSamples() {
+            const value = document.querySelector("#nrsamples").value
+            document
+                .querySelectorAll("parameter.samples")
+                .forEach((paramElt) => {
+                    paramElt.innerText = value
+                })
+        }
+    </script>
 
     <pacioli-scatter-plot
         class="avg"
@@ -457,15 +499,5 @@ Add HTML
     <parameter>1</parameter>
     <parameter class="samples">100</parameter>
     </pacioli-scatter-plot>
-
-    <script>
-        function onSamples(element) {
-            document
-                .querySelectorAll("parameter.samples")
-                .forEach((paramElt) => {
-                    paramElt.innerText = element.value
-                })
-        }
-    </script>
 
 Repeat the `pacioli-scatter-plot` for the others three plots, adjusting the caption and parameter for each chart.
