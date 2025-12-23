@@ -86,7 +86,7 @@ Another way to create dimensionless matrices is function `delta`. It creates a d
 
     define start_position_alt =
         let
-            mag = 10 '.*' delta(Space!x) + 10 '.*' delta(Space!y)
+            mag = 10 '.*' delta(Space@x) + 10 '.*' delta(Space@y)
         in
             mag * |Space!unit|
         end;
@@ -105,8 +105,7 @@ Toplevel `defmatrix` is syntactic sugar for the previous constructions with func
 
     defmatrix foo :: Space!unit = {
         x -> 10,
-        y -> 10,
-        z -> 0
+        y -> 10
     }
 
 is equivalent to the previous contructions. It creates a dimensioned matrix of the declared type.
