@@ -4,13 +4,12 @@ title: Matrix Type
 
 # Matrix Type
 
-Pacioli's type system's design is driven by the goal of incorporating dimensioned vector spaces into
-a polymorphic type system.
-
+Pacioli's type system's adds rules for dimensioned vector spaces to a
+polymorphic type system.
+Polymorphic type systems cannot handle dimensioned vector spaces. It can only handle
+uniform vectors and matrices. Vectors and matrices can however have non-uniform units of measurement.
 Pacioli's matrix type enables type inference of linear algebra expressions.
-It is able to infer dimensioned vector spaces. But this requires an extension of the type inference
-engine. Polymorphic type systems cannot handle dimensioned vector spaces. It can only handle
-uniform vectors and matrices. Vectors and matrices can however have non-uniform units of measyrement.
+It extension the type inference engine with rules for dimensioned vector spaces.
 
 Any numerical value is a matrix. A scalar is a 1x1 matrix. A vector
 is a 1xN or a Nx1 matrix.
@@ -60,6 +59,10 @@ matricized with the Kronecker product. This makes multi-dimensional
 data transparent for matrices and addresses the issue in the
 indices. Multi-dimensional data is indexed with compound indices
 instead of multiple row or column indices. See [Indices](index-type).
+
+## todo
+
+Explain index sets.
 
 ## Some Principles and Properties
 
