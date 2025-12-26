@@ -66,14 +66,20 @@ export function updateMesh(
 ) {
   const [, , position, rotations, name] = mesh;
 
-  if (name.value !== "" && position.value) {
+  if (name.value !== "") {
     const object = body.getObjectByName(name.value);
 
-    if (position.value.kind === "matrix") {
-      moveObject(object!, position.value, units);
-      rotateObject(object!, rotations);
+    if (object) {
+      if (position.value) {
+        if (position.value.kind === "matrix") {
+          moveObject(object, position.value, units);
+        } else {
+          throw Error("Mesh position must be a matrix");
+        }
+      }
+      rotateObject(object, rotations);
     } else {
-      throw Error("Mesh position must be a matrix");
+      throw Error(`Mesh with name ${name.value} not found`);
     }
   }
 }

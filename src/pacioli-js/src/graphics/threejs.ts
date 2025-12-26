@@ -60,8 +60,8 @@ export function rotateObject(
 
   if (object) {
     object.rotation.x = getNumber((x as PacioliMatrix).numbers, 0, 0);
-    object.rotation.y = getNumber((y as PacioliMatrix).numbers, 0, 0);
-    object.rotation.z = getNumber((z as PacioliMatrix).numbers, 0, 0);
+    object.rotation.y = getNumber((z as PacioliMatrix).numbers, 0, 0);
+    object.rotation.z = getNumber((y as PacioliMatrix).numbers, 0, 0);
   }
 }
 
