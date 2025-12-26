@@ -246,9 +246,6 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
     this.chart = new Histogram(data, PacioliContext.si(), options);
 
     this.chart.draw(this.contentParent());
-
-    // Nr bins etc. might have been updated
-    this.callCallbacks();
   }
 }
 

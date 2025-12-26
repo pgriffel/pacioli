@@ -33,8 +33,12 @@ body {
     grid-area: animation;
 }
 
+pacioli-controls {
+    width: 80pt;
+}
 
-.pacioli-inputs-content, .NOpacioli-controls-content, .pacioli.histogram.options {
+
+.pacioli.histogram.options {
     margin-left: 10pt;
     margin-bottom: 10pt;
     padding: 10pt;
@@ -43,7 +47,7 @@ body {
     NOcolor: var(--fg-color)
 }
 
-.pacioli-inputs-content button, .pacioli.histogram.options button {
+.pacioli.histogram.options button {
     width: 80pt;
     margin: 10pt;
     padding: 3pt;
@@ -60,66 +64,4 @@ body {
 .pacioli.histogram.options .inputs {
     display: flex;
     flex-direction: row;
-}
-
-.pacioli-controls-animation {
-    display: flex;
-    flex-direction: row;
-    margin-left: 10pt;
-    margin-bottom: 10pt;
-    padding: 10pt;
-    border: var(--border);
-    NObackground: var(--bg-color);
-    NOcolor: var(--fg-color)
-}
-
-input[type="checkbox"]
-{
-    vertical-align:middle;
-}
-
-.pacioli-controls-configuration {
-    NOdisplay: inline-block;
-    display: flex;
-    flex-direction: row;
-    margin-left: 10pt;
-    margin-bottom: 10pt;
-    padding: 10pt;
-    border: var(--border);
-    NObackground: var(--bg-color);
-    NOcolor: var(--fg-color)
-}
-
-.pacioli-controls-animation button {
-    width: 80pt;
-    margin: 10pt;
-    padding: 3pt;
-    NObackground: var(--element-bg-color);
-    NOcolor: var(--fg-color);
-    NOborder: var(--border);
-}
-
-.pacioli-controls-configuration label {
-    padding: 8pt;
-    NObackground: var(--element-bg-color);
-    NOmargin: 5pt;
-}
-
-.pacioli-controls-configuration input {
-    margin-right: 10pt;
-    padding: 3pt;
-    NObackground: var(--element-bg-color);
-    NOmargin: 5pt;
-}
-
-.pacioli-controls-table {
-    margin: 15pt;
-}
-
-td {
-    padding: 1pt;
-}
-
-input {
-    padding: 3pt;
 }

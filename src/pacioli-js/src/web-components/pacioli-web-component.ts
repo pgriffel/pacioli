@@ -26,12 +26,7 @@ import {
   setParameterNodes,
 } from "./utils";
 import { PacioliValue } from "../boxing";
-import {
-  Callable,
-  ErrorOutput,
-  Followed,
-  PacioliWebComponentBase,
-} from "./interfaces";
+import { Callable, ErrorOutput, PacioliWebComponentBase } from "./interfaces";
 
 const TEMPLATE = document.createElement("template");
 
@@ -57,14 +52,8 @@ TEMPLATE.innerHTML = `
  */
 export abstract class PacioliWebComponent
   extends HTMLElement
-  implements PacioliWebComponentBase, Callable, Followed, ErrorOutput
+  implements PacioliWebComponentBase, Callable, ErrorOutput
 {
-  /**
-   * List of registered callbacks. The callback mechanism is used by connected controls and
-   * input elements to get informed about relevant changes.
-   */
-  private callbacks: (() => void)[] = [];
-
   set definition(value: string) {
     this.setStringAttribute("definition", value);
   }
@@ -178,29 +167,6 @@ export abstract class PacioliWebComponent
    */
   fetchData(): PacioliValue {
     return computeWebComponentValue(this);
-  }
-
-  /**
-   * Implementation of the Followed api.
-   */
-  registerCallback(callback: () => void) {
-    this.callbacks.push(callback);
-  }
-
-  /**
-   * Implementation of the Followed api.
-   */
-  unregisterCallback(callback: () => void) {
-    this.callbacks = this.callbacks.filter((obj) => obj !== callback);
-  }
-
-  /**
-   * Implementation of the Followed api.
-   */
-  callCallbacks() {
-    for (let callback of this.callbacks) {
-      callback();
-    }
   }
 
   /**

@@ -64,6 +64,12 @@ const SUPPORTED_ATTRIBUTES = {
 };
 
 /**
+ * Style sheet for the bar chart
+ */
+const STYLES = ` 
+  .content{ display: inline; }`;
+
+/**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
  *
  * Say we have a scene function foo from file bar.pacioli, and the function takes
@@ -104,11 +110,19 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   static observedAttributes = ["unit", "unitx", "unity", "unitz"];
 
+  constructor() {
+    super();
+    this.adoptStyles(STYLES);
+  }
+
   /**
    * Web component life-cycle event.
    */
   connectedCallback() {
     super.connectedCallback();
+
+    // Set the CSS styles
+    // this.contentParent().className = "content";
 
     // Create the Space
     this.space = new Space(this.contentParent(), this.spaceOptions());
@@ -162,7 +176,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    *
    * @returns The scene kind
    */
-  sceneKind(): "scene" | "animation" | "stateful-animation" {
+  kind(): "scene" | "animation" | "stateful-animation" {
     const kindAttribute = this.getAttribute("kind");
 
     if (kindAttribute === null) {
@@ -180,6 +194,11 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
         );
       }
     }
+  }
+
+  isAnimation(): boolean {
+    const kind = this.kind();
+    return kind === "animation" || kind === "stateful-animation";
   }
 
   /**
@@ -234,7 +253,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   setRunning(running: boolean) {
     if (this.space) {
       this.space.setRunning(running);
-      this.callCallbacks();
     }
   }
 
@@ -284,13 +302,10 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   private loadData(space: Space) {
     if (this.fetchedData) {
       // Load the computed data into the space
-      loadSpaceData(space, this.fetchedData, this.sceneKind());
+      loadSpaceData(space, this.fetchedData, this.kind());
 
       // Update the screen to show the loaded data
       space.draw();
-
-      // Synchronize any connected controls and inputs
-      this.callCallbacks();
     }
   }
 }

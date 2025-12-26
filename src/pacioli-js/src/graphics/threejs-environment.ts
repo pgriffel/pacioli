@@ -40,7 +40,7 @@ import { addLabel } from "./text";
  */
 export class ThreeJsEnvironment {
   // Element to attach to the DOM. Container for the threejs renderers.
-  private readonly root: HTMLDivElement;
+  private readonly root: HTMLCanvasElement;
 
   // Fixed Three.js elements
   private readonly renderer: THREE.WebGLRenderer;
@@ -68,7 +68,8 @@ export class ThreeJsEnvironment {
   constructor(public readonly options: SpaceOptions) {
     // Create the root element and attach a renderer
     this.renderer = createWebGLRenderer(options.width, options.height);
-    this.root = createRootElement(this.renderer.domElement);
+    // this.root = createRootElement(this.renderer.domElement);
+    this.root = this.renderer.domElement;
 
     // Create the remaining elements
     this.scene = new THREE.Scene();
@@ -426,15 +427,15 @@ export class ThreeJsEnvironment {
   }
 }
 
-function createRootElement(webGLElement: HTMLElement) {
-  const renderersDiv = document.createElement("div");
+// function createRootElement(webGLElement: HTMLElement) {
+//   const renderersDiv = document.createElement("div");
 
-  renderersDiv.style.position = "relative";
+//   renderersDiv.style.position = "relative";
 
-  renderersDiv.appendChild(webGLElement);
+//   renderersDiv.appendChild(webGLElement);
 
-  return renderersDiv;
-}
+//   return renderersDiv;
+// }
 
 function createWebGLRenderer(
   width: number,
