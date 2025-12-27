@@ -333,43 +333,8 @@ defunit Geom3!zsquared = {
     z: metre^2
 };
 
-# Make special syntax to generate the following from above defunit?!
-
 declare make_zsquared ::
     for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
 
 define make_zsquared(a, b, c) = 
     vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;
-
-# Limited use, what about Geom3!zsquared^2? You can de zsquared_z(sqrt(v))^2, but
-# what about higher powers? With cube_root you can also generate powers 3, 4 and 6,
-# and so on. All prime powers will leave gaps.
-
-# declare zsquared_x :: for_unit a: (a*Geom3!zsquared) -> a*metre;
-# declare zsquared_y :: for_unit a: (a*Geom3!zsquared) -> a*metre;
-# declare zsquared_z :: for_unit a: (a*Geom3!zsquared) -> a*metre^2;
-
-# define zsquared_x(v) = 
-#     get_num(v, Geom3@x, _) * scalar_unit(v) * |metre|;
-
-# define zsquared_y(v) = 
-#     get_num(v, Geom3@y, _) * scalar_unit(v) * |metre|;
-
-# define zsquared_z(v) = 
-#     get_num(v, Geom3@z, _) * scalar_unit(v) * |metre^2|;
-
-# # Not generated:
-
-# declare zsquared_z2 :: for_unit a: (a^2*Geom3!zsquared^2) -> a^2*metre^4;
-
-# define zsquared_z2(v) = 
-#     zsquared_z(sqrt(v))^2;
-
-# define zsquared_z3(v) = 
-#     zsquared_z(cbrt(v))^3;
-
-# define zsquared_z4(v) = 
-#     zsquared_z(sqrt(sqrt(v)))^4;
-
-# define zsquared_z6(v) = 
-#     zsquared_z(sqrt(cbrt(v)))^6;

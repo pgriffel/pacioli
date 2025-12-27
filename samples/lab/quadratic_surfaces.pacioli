@@ -9,6 +9,8 @@ define LINE_COLOR = make_color("steelblue");
 
 define MATERIAL = "Normal";
 
+# Note dec 2025: Deze file is bedoeld om Geom3!zsquared uit te zoeken. De rest is overblijfsel en kan weg.
+
 # ------------------------------------------------------------------------------
 # Experiment with paraboloid as a quadratic form - a bilinear form with two identical arguments
 # - to complement the (already existing) parametric solution based upon sin / cos functions
