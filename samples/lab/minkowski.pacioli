@@ -7,7 +7,7 @@
 import testing;
 import random;
 
-include metrics;
+import metrics;
 
 export
     SpaceTime;
@@ -321,7 +321,7 @@ defmatrix permute_zt :: SpaceTime!si per SpaceTime!si= {
 # define minkowski_metric = metric; # bad naming fix
 
 define minkowski_inner2(x, y) =
-    bilinear_form(spacetime_metric, x, y);
+    bilinear_form(spacetime_metric)(x, y);
 
 define minkowski_seminorm(x) = ???;
     # metric_norm(minkowski_metric, x);

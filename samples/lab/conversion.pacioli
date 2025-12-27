@@ -1,5 +1,4 @@
 import geometry;
-include standard_candidates;
 
 # ------------------------------------------------------------------------------
 # Commutativity findings:
