@@ -196,11 +196,15 @@ doc run_test_suites
     When at least one of the tests is marked as 'focused' then it will only run the
     marked tests and skip all others.";
 
+define counter = make_array(2);
+
 define run_test_suites(suites) =
     begin
         print("\nRuning test suites\n");
 
         start := now();
+        array_put(counter, 0, 0);
+        array_put(counter, 1, 0);
 
         # Determine which suites to run
         to_test :=
@@ -252,10 +256,12 @@ define run_test_suites(suites) =
         total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
 
         # Print the totals
-        printf("\nTotal tests -> %d/%d success%s (%s ms)",
+        printf("\nTotal tests -> %d/%d success%s attempts=%s count=%s (%s ms)",
             total_nr_successes,
             total_nr_tests,
             skipped_message(total_nr_skipped),
+            array_get(counter, 0),
+            array_get(counter, 1),
             now() - start);
     end;
 
@@ -299,6 +305,8 @@ define run_test_suite(suite) =
 
             for test <- tests do
                 result := catch(() -> run_test(test));
+                array_put(counter, 0, array_get(counter, 0) + 1);
+                array_put(counter, 1, array_get(counter, 1) + 1);
 
                 if is_error(result) then
                     printf("  %s -> An error occurred: %s", test_description(test), result_error(result));
@@ -341,6 +349,7 @@ define run_random_test_body(description, body) =
 
         while okay and successes != target and i < limit do
             test_result := catch(body);
+            array_put(counter, 0, array_get(counter, 0) + 1);
 
             if is_error(test_result) then
                 printf("  error: '%s'", result_error(test_result));
@@ -350,6 +359,7 @@ define run_random_test_body(description, body) =
 
                 if or_else(false, result) then
                     successes := successes + 1;
+                    array_put(counter, 1, array_get(counter, 1) + 1);
                 end
 
                 okay := or_else(true, result);
