@@ -20,20 +20,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { VectorBase } from "./vector-base";
+import type { VectorBase } from "./vector-base";
 import { UOM } from "uom-ts";
-import { IndexSet } from "./index-set";
+import type { IndexSet } from "./index-set";
 import { MatrixDimension } from "./matrix-dimension";
-import { MatrixShape, SIVector } from "./matrix-shape";
+import type { SIVector } from "./matrix-shape";
+import { MatrixShape } from "./matrix-shape";
 
 export class PacioliCoordinates {
   readonly kind = "coordinates";
 
   public static fromIndex(indexSets: IndexSet[], n: number) {
-    let names: string[] = [];
-    var pos = n;
-    for (var i = indexSets.length - 1; 0 <= i; i--) {
-      var l = indexSets[i].items.length;
+    const names: string[] = [];
+    let pos = n;
+    for (let i = indexSets.length - 1; 0 <= i; i--) {
+      const l = indexSets[i].items.length;
       names[i] = indexSets[i].items[pos % l];
       pos = Math.floor(pos / l);
     }
@@ -43,18 +44,18 @@ export class PacioliCoordinates {
   constructor(public names: string[], public indexSets: IndexSet[]) {}
 
   public position() {
-    var position = 0;
-    for (var i = 0; i < this.order(); i++) {
-      var set = this.indexSets[i];
+    let position = 0;
+    for (let i = 0; i < this.order(); i++) {
+      const set = this.indexSets[i];
       position = position * set.items.length + set.position(this.names[i]);
     }
     return position;
   }
 
   public project(cols: number[]): PacioliCoordinates {
-    var names = [];
-    var indexSets = [];
-    for (var i = 0; i < cols.length; i++) {
+    const names = [];
+    const indexSets = [];
+    for (let i = 0; i < cols.length; i++) {
       names.push(this.names[cols[i]]);
       indexSets.push(this.indexSets[cols[i]]);
     }
@@ -62,12 +63,12 @@ export class PacioliCoordinates {
   }
 
   public toText(): string {
-    var n = this.order();
+    const n = this.order();
     if (n === 0) {
       return "_";
     } else {
-      var names = new Array(n);
-      for (var i = 0; i < n; i++) {
+      const names = new Array(n);
+      for (let i = 0; i < n; i++) {
         names[i] = this.indexSets[i].name + "@" + this.names[i];
       }
       return names.reduce(function (x, y) {
@@ -77,7 +78,7 @@ export class PacioliCoordinates {
   }
 
   public shortText(): string {
-    var n = this.order();
+    const n = this.order();
     if (n === 0) {
       return "_";
     } else {
@@ -96,7 +97,7 @@ export class PacioliCoordinates {
     if (other.order() !== n) {
       return false;
     }
-    for (var i = 0; i < n; i++) {
+    for (let i = 0; i < n; i++) {
       if (this.indexSets[i] !== other.indexSets[i]) {
         return false;
       }
@@ -108,9 +109,9 @@ export class PacioliCoordinates {
   }
 
   public size() {
-    var size = 1;
-    for (var i = 0; i < this.order(); i++) {
-      var set = this.indexSets[i];
+    let size = 1;
+    for (let i = 0; i < this.order(); i++) {
+      const set = this.indexSets[i];
       size = size * set.items.length;
     }
     return size;
@@ -127,20 +128,20 @@ export class PacioliCoordinates {
   }
 
   public findIndividualUnit(unit: SIVector) {
-    var names = this.names;
+    const names = this.names;
 
     const vecBaseItem = (base: VectorBase, order: number) => {
       if (base.position == order) {
-        var vec = base.vector;
-        var pos = names[order];
+        const vec = base.vector;
+        const pos = names[order];
         return vec.get(base.vector.indexSet.position(pos));
       } else {
         return UOM.ONE;
       }
     };
 
-    var newUnit = UOM.ONE;
-    for (var i = 0; i < this.order(); i++) {
+    let newUnit = UOM.ONE;
+    for (let i = 0; i < this.order(); i++) {
       newUnit = newUnit.mult(
         unit.map((base) => {
           return vecBaseItem(base, i);

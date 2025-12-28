@@ -21,9 +21,9 @@
  */
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import type { PacioliParameter } from "../utils";
 import {
   attachedPacioliWebComponent,
-  PacioliParameter,
   parameterNodes,
   parseParameterNode,
 } from "../utils";
@@ -190,8 +190,10 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
               : input.element.value
           )
         );
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (error: unknown) {
+        scene.displayError(
+          error instanceof Error ? error.message : String(error)
+        );
       }
     }
   }
@@ -235,7 +237,8 @@ function createParameterInputs(
       // the animation.
       if (booleansImmediate && parameter.type === "boole") {
         inputElement.addEventListener("change", (event) => {
-          if (true) {
+          const TRIGGER_ON_CHANGE = true;
+          if (TRIGGER_ON_CHANGE) {
             event.preventDefault();
             enterKeyCallback();
           }

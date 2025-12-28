@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliValue } from "../boxing";
-import { PacioliType } from "../type";
-import { RawValue } from "../value";
+import type { PacioliValue } from "../boxing";
+import type { PacioliType } from "../type";
+import type { RawValue } from "../value";
 
 export class PacioliMaybe {
   readonly kind = "maybe";

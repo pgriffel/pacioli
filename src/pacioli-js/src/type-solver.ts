@@ -21,12 +21,13 @@
  */
 
 import { UOM } from "uom-ts";
-import { PacioliType, PacioliUnit, PacioliVector } from "./type";
-import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
+import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
+import type { IndexType, PacioliIndex } from "./types/matrix";
+import { MatrixType } from "./types/matrix";
 import { GenericType } from "./types/generic";
 import { FunctionType } from "./types/function";
-import { IndexVar, PacioliVar } from "./types/variables";
-import { PacioliBase } from "./types/bases";
+import type { IndexVar, PacioliVar } from "./types/variables";
+import type { PacioliBase } from "./types/bases";
 
 type PacioliEquation =
   | TypeEquation
@@ -81,11 +82,11 @@ export function matchTypes(x: PacioliType, y: PacioliType) {
  * @returns
  */
 function solveEquations(eqs: PacioliEquation[]) {
-  var map = new Binding();
+  let map = new Binding();
   eqs.forEach((eq) => {
     switch (eq.kind) {
       case "typeeq": {
-        var lhs = subs(eq.lhs, map);
+        const lhs = subs(eq.lhs, map);
         if (lhs.kind === "typevar") {
           map = Binding.fromType(lhs, subs(eq.rhs, map)).compose(map);
         }
@@ -185,8 +186,8 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   const map = new Map<string, UOM<T>>();
 
   // Split the bases into variables and non-variables
-  let varBases: T[] = [];
-  let fixedBases: T[] = [];
+  const varBases: T[] = [];
+  const fixedBases: T[] = [];
   unit.bases().forEach((base) => {
     if (base.isVar) {
       varBases.push(base);
@@ -205,13 +206,13 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   }
 
   // Look at the first variable and its power
-  var firstVar = varBases[0];
-  var power = unit.power(firstVar);
+  const firstVar = varBases[0];
+  const power = unit.power(firstVar);
 
   // If it's the only one, then we are done. Either fail, or bind the var
   // to the proper unit and return the map.
   if (varBases.length === 1) {
-    var rest = UOM.ONE;
+    let rest = UOM.ONE;
     fixedBases.forEach((base) => {
       const fixedPower = unit.power(base);
       if (fixedPower % power !== 0) throw "unit error in unit " + unit.toText();
@@ -223,7 +224,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   }
 
   // See if there is a variable with a smaller power
-  var minVar = firstVar;
+  let minVar = firstVar;
   varBases.forEach((base) => {
     if (Math.abs(unit.power(base)) < Math.abs(unit.power(minVar))) {
       minVar = base;
@@ -231,8 +232,8 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   });
 
   // Recurse on the unit variable with the smallest power
-  var rest = UOM.ONE;
-  var minPower = unit.power(minVar);
+  let rest = UOM.ONE;
+  const minPower = unit.power(minVar);
   unit.bases().forEach((base) => {
     if (base != minVar) {
       rest = rest
@@ -260,7 +261,7 @@ export function collectTypeEquations(
   } else if (y.kind === "typevar") {
     return [new TypeEquation(y, x)]; // or x, y?
   } else if (x.kind === "matrix" && y.kind === "matrix") {
-    var eqs: PacioliEquation[] = [];
+    const eqs: PacioliEquation[] = [];
     eqs.push(new UnitEquation(x.multiplier, y.multiplier));
     eqs.push(new IndexEquation(x.rowIndex, y.rowIndex));
     const rowIndex = x.rowIndex;
@@ -275,13 +276,13 @@ export function collectTypeEquations(
     if (x.name !== y.name) {
       throw new Error(`Mixup of types ${x.name} and ${y.name}`);
     }
-    var eqs: PacioliEquation[] = [];
-    for (var i = 0; i < x.items.length; i++) {
+    let eqs: PacioliEquation[] = [];
+    for (let i = 0; i < x.items.length; i++) {
       eqs = eqs.concat(...collectTypeEquations(x.items[i], y.items[i]));
     }
     return eqs;
   } else if (x.kind === "function" && y.kind === "function") {
-    var eqs: PacioliEquation[] = [];
+    const eqs: PacioliEquation[] = [];
     eqs.push(new TypeEquation(x.from, y.from));
     eqs.push(new TypeEquation(x.to, y.to));
     return eqs;

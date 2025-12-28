@@ -20,15 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import {
-  Context,
-  Context as UOMContext,
-  siDef,
-  SIUnit,
-  DimNum,
-  Definition,
-} from "uom-ts";
-import { IndexSet } from "./values/index-set";
+import type { SIUnit, DimNum, Definition } from "uom-ts";
+import { Context, Context as UOMContext, siDef } from "uom-ts";
+import type { IndexSet } from "./values/index-set";
 import { UnitVector } from "./values/unit-vector";
 
 export const emptyDef: Definition = {
@@ -115,7 +109,7 @@ export class PacioliContext {
   public addUnitVectorFromJSON(
     name: string,
     index: string,
-    units: any[]
+    units: { name: string; unit: any }[]
   ): UnitVector {
     const indexSet = this.findIndexSet(index);
     if (indexSet) {

@@ -28,7 +28,7 @@ import {
 import { arrayEqual } from "./util";
 import { UOM } from "uom-ts";
 import { PacioliCoordinates } from "../src/values/coordinates.js";
-import { IndexSet } from "../src/values/index-set.js";
+import type { IndexSet } from "../src/values/index-set.js";
 import "jasmine";
 
 /**
@@ -85,7 +85,7 @@ describe("PacioliCoordinates", () => {
               expect(
                 arrayEqual(coordinatesA.names, coordinatesB.names) &&
                   arrayEqual(coordinatesA.indexSets, coordinatesB.indexSets)
-              ).toBeFalse;
+              ).toBeFalse();
               // expect(coordinatesA.indexSets).not.to.deep.equal(coordinatesB.indexSets)
             }
           }

@@ -21,7 +21,7 @@
  */
 
 import { DimNum } from "uom-ts";
-import { Context, SIUnit } from "uom-ts";
+import type { Context, SIUnit } from "uom-ts";
 import {
   getCOONumbers,
   getFullNumbers,
@@ -29,7 +29,8 @@ import {
   tagNumbers,
 } from "./numbers";
 import { MatrixShape } from "./matrix-shape";
-import { RawMatrix, STORAGE_COO } from "../value";
+import type { RawMatrix } from "../value";
+import { STORAGE_COO } from "../value";
 
 /**
  * A matrix combines a shape and numbers.
@@ -95,11 +96,11 @@ export class PacioliMatrix {
 
     if (zeros) {
       // Get the full numbers
-      var full = getFullNumbers(this.numbers);
+      const full = getFullNumbers(this.numbers);
 
       // Fill the list with all values
-      for (var i = 0; i < this.shape.nrRows(); i++) {
-        for (var j = 0; j < this.shape.nrColumns(); j++) {
+      for (let i = 0; i < this.shape.nrRows(); i++) {
+        for (let j = 0; j < this.shape.nrColumns(); j++) {
           kvList.push({
             row: this.shape.rowCoordinates(i).names,
             column: this.shape.columnCoordinates(j).names,
@@ -109,13 +110,13 @@ export class PacioliMatrix {
       }
     } else {
       // Get the COO numbers
-      var coo = getCOONumbers(this.numbers);
-      var rows = coo[0];
-      var columns = coo[1];
-      var values = coo[2];
+      const coo = getCOONumbers(this.numbers);
+      const rows = coo[0];
+      const columns = coo[1];
+      const values = coo[2];
 
       // Fill the list with all non-zero values
-      for (var i = 0; i < rows.length; i++) {
+      for (let i = 0; i < rows.length; i++) {
         if (values[i] !== 0) {
           kvList.push({
             row: this.shape.rowCoordinates(rows[i]).names,
@@ -150,11 +151,11 @@ export class PacioliMatrix {
     const shape = this.shape;
     const num = this.numbers;
 
-    var rowOrder = shape.rowOrder();
-    var columnOrder = shape.columnOrder();
+    const rowOrder = shape.rowOrder();
+    const columnOrder = shape.columnOrder();
 
     if (rowOrder === 0 && columnOrder === 0) {
-      var n = getNumber(num, 0, 0);
+      const n = getNumber(num, 0, 0);
       return n.toFixed(decimals) + "" + shape.unitAt(0, 0).toText();
     } else {
       const matrix = new PacioliMatrix(shape, num);
@@ -196,15 +197,15 @@ export class PacioliMatrix {
   }
 
   public tableRows(decimals: number): string[][] {
-    var shape = this.shape;
-    var numbers = this.numbers;
+    const shape = this.shape;
+    const numbers = this.numbers;
 
-    var rowOrder = shape.rowOrder();
-    var columnOrder = shape.columnOrder();
+    const rowOrder = shape.rowOrder();
+    const columnOrder = shape.columnOrder();
 
-    var table: string[][] = [];
+    const table: string[][] = [];
 
-    var row: string[] = [];
+    let row: string[] = [];
 
     if (0 < rowOrder) {
       row.push(shape.rowName());
@@ -218,14 +219,14 @@ export class PacioliMatrix {
 
     table.push(row);
 
-    var coo = getCOONumbers(numbers);
-    var rows = coo[0];
-    var columns = coo[1];
-    var values = coo[2];
+    const coo = getCOONumbers(numbers);
+    const rows = coo[0];
+    const columns = coo[1];
+    const values = coo[2];
     if (rows.length === 0) {
       return [];
     } else {
-      for (var i = 0; i < rows.length; i++) {
+      for (let i = 0; i < rows.length; i++) {
         row = [];
         if (0 < rowOrder) {
           row.push(shape.rowCoordinates(rows[i]).names.toString());
@@ -236,7 +237,7 @@ export class PacioliMatrix {
 
         row.push(values[i].toFixed(decimals));
 
-        var un = shape.unitAt(rows[i], columns[i]);
+        const un = shape.unitAt(rows[i], columns[i]);
         if (un.toText() === "1") {
           row.push("");
         } else {
@@ -263,17 +264,17 @@ export function filter_matrix(
 
   const coo = getCOONumbers(numbers);
 
-  var rows = coo[0];
-  var columns = coo[1];
-  var values = coo[2];
+  const rows = coo[0];
+  const columns = coo[1];
+  const values = coo[2];
 
   const filteredRows = [];
   const filteredColumns = [];
   const filteredValues = [];
 
-  for (var i = 0; i < rows.length; i++) {
-    var rowCoords = { kind: "coordinates", position: rows[i], size: m };
-    var columnCoords = { kind: "coordinates", position: columns[i], size: n };
+  for (let i = 0; i < rows.length; i++) {
+    const rowCoords = { kind: "coordinates", position: rows[i], size: m };
+    const columnCoords = { kind: "coordinates", position: columns[i], size: n };
     if (predicate(values[i], rowCoords, columnCoords)) {
       filteredRows.push(rows[i]);
       filteredColumns.push(columns[i]);
@@ -303,14 +304,14 @@ export function convert_unit(
 
   const coo = getCOONumbers(numbers);
 
-  var rows = coo[0];
-  var columns = coo[1];
-  var values = coo[2];
+  const rows = coo[0];
+  const columns = coo[1];
+  const values = coo[2];
 
   const convertedValues = [];
 
-  for (var i = 0; i < rows.length; i++) {
-    var factor = context.conversionFactor(
+  for (let i = 0; i < rows.length; i++) {
+    const factor = context.conversionFactor(
       shape.unitAt(rows[i], columns[i]),
       unit
     );

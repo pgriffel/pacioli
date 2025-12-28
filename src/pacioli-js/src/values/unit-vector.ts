@@ -20,9 +20,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
-import { IndexSet } from "./index-set";
-import { ToText } from "../boxing";
+import type { SIUnit} from "uom-ts";
+import { UOM } from "uom-ts";
+import type { IndexSet } from "./index-set";
+import type { ToText } from "../boxing";
 
 export class UnitVector implements ToText {
   constructor(

@@ -20,21 +20,24 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { DimNum, SIUnit, UOM, parseDimNum as uomParseDimNum } from "uom-ts";
+import type { DimNum, SIUnit} from "uom-ts";
+import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
-import { PacioliUnit, PacioliVector } from "./type";
-import { PacioliContext } from "./context";
+import type { PacioliUnit, PacioliVector } from "./type";
+import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
-import { MatrixType, PacioliIndex } from "./types/matrix";
-import { boxRawValue, PacioliValue, typeFromValue } from "./boxing";
+import type { PacioliIndex } from "./types/matrix";
+import { MatrixType } from "./types/matrix";
+import type { PacioliValue} from "./boxing";
+import { boxRawValue, typeFromValue } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { GenericType } from "./types/generic";
-import BigNumber from "bignumber.js";
+import type BigNumber from "bignumber.js";
 
 // -----------------------------------------------------------------------------
 // New
@@ -188,7 +191,7 @@ export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
   }
-  var vList = array.map(function (elt) {
+  const vList = array.map(function (elt) {
     return elt; //.value;
   });
   return new PacioliList(

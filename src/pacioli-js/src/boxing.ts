@@ -20,36 +20,41 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
-import { PacioliType, PacioliUnit, PacioliVector } from "./type";
-import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
-import {
-  NOTHING,
+import type { SIUnit } from "uom-ts";
+import { UOM } from "uom-ts";
+import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
+import type { PacioliIndex } from "./types/matrix";
+import { IndexType, MatrixType } from "./types/matrix";
+import type {
   RawCoordinates,
   RawList,
   RawMatrix,
   RawTuple,
   RawValue,
 } from "./value";
-import { PacioliBoole, pacioliFalse, pacioliTrue } from "./values/boole";
+import { NOTHING, tagList, tagTuple } from "./value";
+import type { PacioliBoole } from "./values/boole";
+import { pacioliFalse, pacioliTrue } from "./values/boole";
 import { PacioliFunction } from "./values/function";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixDimension } from "./values/matrix-dimension";
-import { MatrixShape, SIVector } from "./values/matrix-shape";
+import type { SIVector } from "./values/matrix-shape";
+import { MatrixShape } from "./values/matrix-shape";
 import { PacioliString } from "./values/string";
 import { VectorBase } from "./values/vector-base";
-import { PacioliVoid, VOID } from "./values/void";
+import type { PacioliVoid } from "./values/void";
+import { VOID } from "./values/void";
 import { GenericType } from "./types/generic";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { PacioliMaybe, RawMaybe } from "./values/maybe";
-import { PacioliContext } from "./context";
+import type { PacioliContext } from "./context";
 import { PacioliCoordinates } from "./values/coordinates";
 import { fetchIndex, fetchUnit, fetchUnitVector } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
-import { PacioliArray } from "./values/array";
-import { PacioliRef } from "./values/ref";
-import { PacioliMap } from "./values/map";
+import type { PacioliArray } from "./values/array";
+import type { PacioliRef } from "./values/ref";
+import type { PacioliMap } from "./values/map";
 
 export type PacioliValue =
   | PacioliMatrix
@@ -86,8 +91,8 @@ export function boxRawValue(
     case "generic": {
       if (type.name === "Tuple") {
         const values = value as RawTuple;
-        var tuple = new PacioliTuple();
-        for (var i = 0; i < values.length; i++) {
+        const tuple = new PacioliTuple();
+        for (let i = 0; i < values.length; i++) {
           tuple.push(boxRawValue(values[i], type.items[i], context));
         }
         return tuple;
@@ -118,8 +123,8 @@ export function boxRawValue(
       } else if (type.name === "List") {
         if (typeof value === "object") {
           const values = value as RawList;
-          var list = new PacioliList(type);
-          for (var i = 0; i < values.length; i++) {
+          const list = new PacioliList(type);
+          for (let i = 0; i < values.length; i++) {
             list.push(boxRawValue(values[i], type.items[0], context));
           }
           return list;
@@ -199,7 +204,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
     }
     case "list": {
       // TODO: fix any
-      return (value as any).type;
+      return value.type;
     }
     case "tuple": {
       const valueList = value as unknown as PacioliValue[];
@@ -220,16 +225,16 @@ export function typeFromValue(value: PacioliValue): PacioliType {
   }
 }
 
-export function rawValueFromValue(value: PacioliValue): any {
+export function rawValueFromValue(value: PacioliValue): RawValue {
   switch (value.kind) {
     case "matrix": {
       return value.numbers;
     }
     case "tuple": {
-      return value.map(rawValueFromValue);
+      return tagTuple(value.map(rawValueFromValue));
     }
     case "list": {
-      return value.map(rawValueFromValue);
+      return tagList(value.map(rawValueFromValue));
     }
     case "string": {
       return value.value;

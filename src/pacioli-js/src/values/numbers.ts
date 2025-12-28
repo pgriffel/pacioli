@@ -21,16 +21,8 @@
  */
 
 import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
-import {
-  MatrixStorage,
-  RawList,
-  RawMatrix,
-  RawTuple,
-  STORAGE_CCS,
-  STORAGE_COO,
-  STORAGE_DOK,
-  STORAGE_FULL,
-} from "../value";
+import type { MatrixStorage, RawList, RawMatrix, RawTuple } from "../value";
+import { STORAGE_CCS, STORAGE_COO, STORAGE_DOK, STORAGE_FULL } from "../value";
 
 // -----------------------------------------------------------------------------
 // Matrix Numbers
@@ -85,14 +77,14 @@ export function tagNumbers(
 }
 
 export function getFullNumbers(numbers: any) {
-  var m = numbers.nrRows;
-  var n = numbers.nrColumns;
+  const m = numbers.nrRows;
+  const n = numbers.nrColumns;
 
   const fillDOK = function (nums: any) {
-    var array = new Array(m);
-    for (var i = 0; i < m; i++) {
-      var inner = new Array(n);
-      for (var j = 0; j < n; j++) {
+    const array = new Array(m);
+    for (let i = 0; i < m; i++) {
+      const inner = new Array(n);
+      for (let j = 0; j < n; j++) {
         inner[j] = nums[i] ? nums[i][j] || 0 : 0;
       }
       array[i] = inner;
@@ -101,45 +93,49 @@ export function getFullNumbers(numbers: any) {
   };
 
   switch (numbers.storage) {
-    case STORAGE_FULL:
+    case STORAGE_FULL: {
       return numbers;
-    case STORAGE_DOK:
+    }
+    case STORAGE_DOK: {
       return fillDOK(numbers);
-    case STORAGE_COO:
+    }
+    case STORAGE_COO: {
       return fillDOK(sscatter(numbers));
+    }
     // or:
     // return numeric.ccsFull(numeric.ccsScatter(this.numbers))
-    case STORAGE_CCS:
+    case STORAGE_CCS: {
       // Let numeric create a full matrix, although it might be too small
-      var full = ccsFull(numbers);
+      const full = ccsFull(numbers);
 
       // Fill the missing rows and columns with zeros
-      for (var i = full.length; i < m; i++) {
+      for (let i = full.length; i < m; i++) {
         full[i] = [];
-        for (var j = 0; j < n; j++) {
+        for (let j = 0; j < n; j++) {
           full[i][j] = 0;
         }
       }
-      for (var j = full[0].length; j < n; j++) {
-        for (var i = 0; i < m; i++) {
+      for (let j = full[0].length; j < n; j++) {
+        for (let i = 0; i < m; i++) {
           full[i][j] = 0;
         }
       }
 
       return tagNumbers(full, m, n, STORAGE_FULL);
+    }
   }
 }
 
 // Pacioli.getDOKNumbers = function (numbers) {
 
-//     var m = numbers.nrRows
-//     var n = numbers.nrColumns
+//     const m = numbers.nrRows
+//     const n = numbers.nrColumns
 
 //     sparseDOK = function (nums) {
-//         var array = []
-//         for (var i = 0; i < m; i++) {
-//             var inner = nums[i]
-//             for (var j = 0; j < n; j++) {
+//         const array = []
+//         for (const i = 0; i < m; i++) {
+//             const inner = nums[i]
+//             for (const j = 0; j < n; j++) {
 //                 if (inner[j] !== 0) {
 //                     if (array[i] === undefined) {
 //                         array[i] = []
@@ -165,36 +161,41 @@ export function getFullNumbers(numbers: any) {
 
 export function getCOONumbers(numbers: any): number[][] {
   switch ((numbers as any).storage) {
-    case 0:
+    case 0: {
       return DOK2COO(numbers);
-    case 1:
+    }
+    case 1: {
       return DOK2COO(numbers);
-    case 2:
+    }
+    case 2: {
       return numbers;
-    case 3:
-      var ccsNumbers = ccsGather(numbers);
-      var rows = ccsNumbers[0];
-      var columns = ccsNumbers[1];
-      var values = ccsNumbers[2];
-      var tmp: any = [];
-      for (var i = 0; i < rows.length; i++) {
+    }
+    case 3: {
+      const ccsNumbers = ccsGather(numbers);
+      const rows = ccsNumbers[0];
+      const columns = ccsNumbers[1];
+      const values = ccsNumbers[2];
+      const tmp: any = [];
+      for (let i = 0; i < rows.length; i++) {
         if (tmp[rows[i]] === undefined) tmp[rows[i]] = [];
         tmp[rows[i]][columns[i]] = values[i];
       }
       return DOK2COO(tmp);
+    }
     default:
       throw new Error("unknown number kind");
   }
 }
 
 export function getCCSNumbers(numbers: any) {
-  var ccsNumbers;
+  let ccsNumbers;
   switch (numbers.storage) {
-    case 0:
+    case 0: {
       ccsNumbers = ccsSparse(numbers);
       break;
-    case 1:
-      var gathered = DOK2COO(numbers);
+    }
+    case 1: {
+      const gathered = DOK2COO(numbers);
       if (gathered[0].length === 0) {
         ccsNumbers = ccsScatter([[0], [0], [0]]);
       } else {
@@ -204,36 +205,39 @@ export function getCCSNumbers(numbers: any) {
         );
       }
       break;
-    case 2:
+    }
+    case 2: {
       if (numbers[0].length === 0) {
         ccsNumbers = ccsScatter([[0], [0], [0]]);
       } else {
         ccsNumbers = ccsScatter(numbers);
       }
       break;
-    case 3:
+    }
+    case 3: {
       return numbers;
+    }
   }
   return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, STORAGE_CCS);
 }
 
 function DOK2COO(numbers: any): RawMatrix {
-  var rows = [];
-  var columns = [];
-  var values = [];
-  var tmp = [];
-  for (let x in numbers) {
+  const rows = [];
+  const columns = [];
+  const values = [];
+  const tmp = [];
+  for (const x in numbers) {
     if (numbers.hasOwnProperty(x)) {
-      var parsedX = parseInt(x);
+      const parsedX = parseInt(x);
       //if (typeof parsedX === "number") {
       if (isFinite(parsedX) && !isNaN(parsedX)) {
-        var row = numbers[parsedX];
-        for (let y in row) {
+        const row = numbers[parsedX];
+        for (const y in row) {
           if (row.hasOwnProperty(y)) {
-            var parsedY = parseInt(y);
+            const parsedY = parseInt(y);
             //if (typeof parsedY === "number") {
             if (isFinite(parsedY) && !isNaN(parsedY)) {
-              var value = row[parsedY];
+              const value = row[parsedY];
               if (value !== 0) {
                 tmp.push([parsedX, parsedY, value]);
               }
@@ -250,7 +254,7 @@ function DOK2COO(numbers: any): RawMatrix {
     if (a[1] < b[1]) return -1;
     return 0;
   });
-  for (var i = 0; i < tmp.length; i++) {
+  for (let i = 0; i < tmp.length; i++) {
     rows.push(tmp[i][0]);
     columns.push(tmp[i][1]);
     values.push(tmp[i][2]);
@@ -270,21 +274,23 @@ export function get(numbers: any, i: any, j: any) {
 
 export function set(numbers: any, row: number, column: number, value: number) {
   switch (numbers.storage) {
-    case 0:
+    case 0: {
       numbers[row][column] = value;
       break;
-    case 1:
+    }
+    case 1: {
       if (numbers[row] === undefined) {
         numbers[row] = new Array(numbers.nrColumns);
       }
       numbers[row][column] = value;
       break;
-    case 2:
-      var rows = numbers[0];
-      var columns = numbers[1];
-      var values = numbers[2];
-      var n = rows.length;
-      var i = n;
+    }
+    case 2: {
+      const rows = numbers[0];
+      const columns = numbers[1];
+      const values = numbers[2];
+      const n = rows.length;
+      let i = n;
       while (
         0 < i &&
         (row < rows[i - 1] || (row === rows[i - 1] && column <= columns[i - 1]))
@@ -292,7 +298,7 @@ export function set(numbers: any, row: number, column: number, value: number) {
         i--;
       }
       if (i < n && column !== columns[i]) {
-        for (var k = n; i < k; k--) {
+        for (let k = n; i < k; k--) {
           rows[k] = rows[k - 1];
           columns[k] = columns[k - 1];
           values[k] = values[k - 1];
@@ -302,22 +308,26 @@ export function set(numbers: any, row: number, column: number, value: number) {
       columns[i] = column;
       values[i] = value;
       break;
-    case 3:
+    }
+    case 3: {
       throw "Set not implemented for CCS storage";
+    }
   }
 }
 
 export function getNumber(numbers: RawMatrix, row: number, column: number) {
   switch (numbers.storage) {
-    case 0:
+    case 0: {
       return numbers[row][column];
-    case 1:
+    }
+    case 1: {
       return numbers[row] ? numbers[row][column] || 0 : 0;
-    case 2:
-      var rows = numbers[0];
-      var columns = numbers[1];
-      var values = numbers[2];
-      for (var i = 0; i < rows.length; i++) {
+    }
+    case 2: {
+      const rows = numbers[0];
+      const columns = numbers[1];
+      const values = numbers[2];
+      for (let i = 0; i < rows.length; i++) {
         if (row < rows[i]) return 0;
         if (row === rows[i]) {
           if (column < columns[i]) return 0;
@@ -325,15 +335,16 @@ export function getNumber(numbers: RawMatrix, row: number, column: number) {
         }
       }
       return 0;
-    case 3:
-      var columns = numbers[0];
-      var rows = numbers[1];
-      var values = numbers[2];
-      var n = columns.length - 1;
+    }
+    case 3: {
+      const columns = numbers[0];
+      const rows = numbers[1];
+      const values = numbers[2];
+      const n = columns.length - 1;
       if (column < n) {
-        var start = columns[column];
-        var end = columns[column + 1];
-        for (var i = start; i != end; i++) {
+        const start = columns[column];
+        const end = columns[column + 1];
+        for (let i = start; i != end; i++) {
           if (rows[i] === row) {
             return values[i];
           }
@@ -342,8 +353,10 @@ export function getNumber(numbers: RawMatrix, row: number, column: number) {
       } else {
         return 0;
       }
-    default:
+    }
+    default: {
       throw new Error("unexpect number storage");
+    }
   }
 }
 
@@ -351,7 +364,7 @@ export function unaryNumbers(
   numbers: RawMatrix,
   fun: (val: number) => number
 ): RawMatrix {
-  var coo = getCOONumbers(numbers);
+  const coo = getCOONumbers(numbers);
   return tagNumbers(
     [coo[0], coo[1], coo[2].map(fun)],
     numbers.nrRows,
@@ -361,25 +374,25 @@ export function unaryNumbers(
 }
 
 export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
-  var px = 0;
-  var py = 0;
-  var xCOO = getCOONumbers(xNumbers);
-  var yCOO = getCOONumbers(yNumbers);
-  var xRows = xCOO[0];
-  var xColumns = xCOO[1];
-  var xValues = xCOO[2];
-  var yRows = yCOO[0];
-  var yColumns = yCOO[1];
-  var yValues = yCOO[2];
-  var xLen = xRows.length;
-  var yLen = yRows.length;
+  let px = 0;
+  let py = 0;
+  const xCOO = getCOONumbers(xNumbers);
+  const yCOO = getCOONumbers(yNumbers);
+  const xRows = xCOO[0];
+  const xColumns = xCOO[1];
+  const xValues = xCOO[2];
+  const yRows = yCOO[0];
+  const yColumns = yCOO[1];
+  const yValues = yCOO[2];
+  const xLen = xRows.length;
+  const yLen = yRows.length;
 
-  var rows: number[] = [];
-  var columns: number[] = [];
-  var values: number[] = [];
+  const rows: number[] = [];
+  const columns: number[] = [];
+  const values: number[] = [];
 
-  var handle = function (r: number, c: number, vx: number, vy: number) {
-    var val = fun(vx, vy);
+  const handle = function (r: number, c: number, vx: number, vy: number) {
+    const val = fun(vx, vy);
     if (typeof val === "number" && val !== 0) {
       rows.push(r);
       columns.push(c);
@@ -388,10 +401,10 @@ export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
   };
 
   while (px < xLen && py < yLen) {
-    var rx = xRows[px];
-    var ry = yRows[py];
-    var cx = xColumns[px];
-    var cy = yColumns[py];
+    const rx = xRows[px];
+    const ry = yRows[py];
+    const cx = xColumns[px];
+    const cy = yColumns[py];
     if (rx > ry) {
       handle(ry, cy, 0, yValues[py]);
       py++;
@@ -414,15 +427,15 @@ export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
   }
 
   while (px < xLen) {
-    var rx = xRows[px];
-    var cx = xColumns[px];
+    const rx = xRows[px];
+    const cx = xColumns[px];
     handle(rx, cx, xValues[px], 0);
     px++;
   }
 
   while (py < yLen) {
-    var ry = yRows[py];
-    var cy = yColumns[py];
+    const ry = yRows[py];
+    const cy = yColumns[py];
     handle(ry, cy, 0, yValues[py]);
     py++;
   }
@@ -441,25 +454,25 @@ export function findNonZero(
   fun: any,
   zero_zero_case: any
 ) {
-  var px = 0;
-  var py = 0;
-  var xCOO = getCOONumbers(xNumbers);
-  var yCOO = getCOONumbers(yNumbers);
-  var xRows = xCOO[0];
-  var xColumns = xCOO[1];
-  var xValues = xCOO[2];
-  var yRows = yCOO[0];
-  var yColumns = yCOO[1];
-  var yValues = yCOO[2];
-  var xLen = xRows.length;
-  var yLen = yRows.length;
-  var count = 0;
+  let px = 0;
+  let py = 0;
+  const xCOO = getCOONumbers(xNumbers);
+  const yCOO = getCOONumbers(yNumbers);
+  const xRows = xCOO[0];
+  const xColumns = xCOO[1];
+  const xValues = xCOO[2];
+  const yRows = yCOO[0];
+  const yColumns = yCOO[1];
+  const yValues = yCOO[2];
+  const xLen = xRows.length;
+  const yLen = yRows.length;
+  let count = 0;
 
   while (px < xLen && py < yLen) {
-    var rx = xRows[px];
-    var ry = yRows[py];
-    var cx = xColumns[px];
-    var cy = yColumns[py];
+    const rx = xRows[px];
+    const ry = yRows[py];
+    const cx = xColumns[px];
+    const cy = yColumns[py];
     if (rx > ry) {
       if (fun(0, yValues[py])) return true; //[ry, cy]
       py++;
@@ -483,16 +496,16 @@ export function findNonZero(
   }
 
   while (px < xLen) {
-    var rx = xRows[px];
-    var cx = xColumns[px];
+    // const rx = xRows[px];
+    // const cx = xColumns[px];
     if (fun(xValues[px], 0)) return true; //[rx, cx]
     px++;
     count++;
   }
 
   while (py < yLen) {
-    var ry = yRows[py];
-    var cy = yColumns[py];
+    // const ry = yRows[py];
+    // const cy = yColumns[py];
     if (fun(0, yValues[py])) return true; //[ry, cy]
     py++;
     count++;
@@ -506,15 +519,15 @@ export function findNonZero(
 }
 
 // Pacioli.projectNumbers = function (numbers, shape, cols) {
-//     var projectedShape = shape.project(cols)
-//     var result = Pacioli.zeroNumbers(projectedShape.nrRows(), projectedShape.nrColumns())
-//     var coo = Pacioli.getCOONumbers(numbers)
-//     var rows = coo[0]
-//     var values = coo[2]
-//     for (var i = 0; i < rows.length; i++) {
-//         var coords = shape.rowCoordinates(rows[i])
-//         var pos = coords.project(cols).position()
-//         var sum = Pacioli.getNumber(result, pos, 0)
+//     const projectedShape = shape.project(cols)
+//     const result = Pacioli.zeroNumbers(projectedShape.nrRows(), projectedShape.nrColumns())
+//     const coo = Pacioli.getCOONumbers(numbers)
+//     const rows = coo[0]
+//     const values = coo[2]
+//     for (const i = 0; i < rows.length; i++) {
+//         const coords = shape.rowCoordinates(rows[i])
+//         const pos = coords.project(cols).position()
+//         const sum = Pacioli.getNumber(result, pos, 0)
 //         Pacioli.set(result, pos, 0, sum === undefined ? values[i] : sum + values[i])
 //     }
 //     return result
@@ -523,43 +536,43 @@ export function findNonZero(
 // Pacioli.projectNumbersAlt = function (numbers, shape, cols) {
 
 //     // Determine the projected shape
-//     var projectedShape = shape.project(cols);
-//     var m = projectedShape.nrRows();
-//     var n = projectedShape.nrColumns();
+//     const projectedShape = shape.project(cols);
+//     const m = projectedShape.nrRows();
+//     const n = projectedShape.nrColumns();
 
 //     // Determine which columns are not projected
-//     var colsComp = [];
-//     for (var i = 0; i < shape.rowOrder(); i++) {
+//     const colsComp = [];
+//     for (const i = 0; i < shape.rowOrder(); i++) {
 //         if (cols.indexOf(i) == -1) {
 //             colsComp.push(i);
 //         }
 //     }
 
 //     // Determine the size of the complement coordinates index set.
-//     var nrRows = shape.project(colsComp).nrRows();
+//     const nrRows = shape.project(colsComp).nrRows();
 
 //     // Create a map from the complement coordinates to the projected matrices.
 //     // Matrix map(x) is the sum of all rows where the compound index contains x.
-//     var map = new Map();
-//     var coo = Pacioli.getCOONumbers(numbers)
-//     var rows = coo[0]
-//     var values = coo[2]
-//     for (var i = 0; i < rows.length; i++) {
-//         var coords = shape.rowCoordinates(rows[i])
-//         var coordsComp = coords.project(colsComp).position();
-//         var pos = coords.project(cols).position()
+//     const map = new Map();
+//     const coo = Pacioli.getCOONumbers(numbers)
+//     const rows = coo[0]
+//     const values = coo[2]
+//     for (const i = 0; i < rows.length; i++) {
+//         const coords = shape.rowCoordinates(rows[i])
+//         const coordsComp = coords.project(colsComp).position();
+//         const pos = coords.project(cols).position()
 //         if (!map.has(coordsComp)) {
 //             map.set(coordsComp, Pacioli.zeroNumbers(m, n))
 //         }
-//         var mat = map.get(coordsComp);
-//         var sum = Pacioli.getNumber(mat, pos, 0)
+//         const mat = map.get(coordsComp);
+//         const sum = Pacioli.getNumber(mat, pos, 0)
 //         Pacioli.set(mat, pos, 0, sum === undefined ? values[i] : sum + values[i])
 //     }
 
 //     // Turn the map into the desired list
-//     var result = [];
+//     const result = [];
 //     map.forEach(function (value, key) {
-//         var pair = Pacioli.tagKind([{kind: "coordinates", position: key, size: nrRows}, value], "tuple");
+//         const pair = Pacioli.tagKind([{kind: "coordinates", position: key, size: nrRows}, value], "tuple");
 //         result.push(pair)
 //     });
 

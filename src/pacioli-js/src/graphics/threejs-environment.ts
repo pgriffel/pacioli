@@ -20,16 +20,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
+import type { SIUnit } from "uom-ts";
 import { getNumber } from "../values/numbers";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { createGridHelper, makeCanvasLabelObject } from "./threejs";
-import { addMesh, disposeMesh, PacioliMesh, updateMesh } from "./mesh";
-import { addPath, disposePath, PacioliPath } from "./path";
+import type { PacioliMesh } from "./mesh";
+import { addMesh, disposeMesh, updateMesh } from "./mesh";
+import type { PacioliPath } from "./path";
+import { addPath, disposePath } from "./path";
 import { addArrow, updateArrow } from "./arrow";
-import { SpaceOptions } from "./space";
-import { PacioliScene } from "./scene";
+import type { SpaceOptions } from "./space";
+import type { PacioliScene } from "./scene";
 import { addSpotLight } from "./lights";
 import { addLabel } from "./text";
 
@@ -292,7 +294,7 @@ export class ThreeJsEnvironment {
   }
 
   hasAxisLabels() {
-    this.axisLabels.length > 0;
+    return this.axisLabels.length > 0;
   }
 
   showAxisLabels() {
@@ -454,7 +456,7 @@ function createWebGLRenderer(
 function createOrbitControls(
   camera: THREE.Camera,
   domElement: HTMLElement,
-  _options: {}
+  _options: object
 ) {
   const controls = new OrbitControls(camera, domElement);
 

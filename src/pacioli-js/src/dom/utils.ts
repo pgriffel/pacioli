@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
+import type { SIUnit } from "uom-ts";
 
 export const locale = "nl-NL";
 

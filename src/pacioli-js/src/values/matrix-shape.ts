@@ -20,10 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import type { SIUnit} from "uom-ts";
+import { UOM } from "uom-ts";
 import { PacioliCoordinates } from "./coordinates";
 import { MatrixDimension } from "./matrix-dimension";
-import { VectorBase } from "./vector-base";
+import type { VectorBase } from "./vector-base";
 
 export type SIVector = UOM<VectorBase>;
 
@@ -48,7 +49,7 @@ export class MatrixShape {
   ) {}
 
   public toText() {
-    var text = "(" + this.multiplier.toText() + "|";
+    let text = "(" + this.multiplier.toText() + "|";
     text += this.rowDimension + "|";
     text += this.columnDimension + "|";
     text += this.rowUnit.toText() + "|";
@@ -262,16 +263,16 @@ export class MatrixShape {
   //   }
 
   public nrRows() {
-    var count = 1;
-    for (var i = 0; i < this.rowOrder(); i++) {
+    let count = 1;
+    for (let i = 0; i < this.rowOrder(); i++) {
       count *= this.rowDimension.indexSets[i].items.length;
     }
     return count;
   }
 
   public nrColumns() {
-    var count = 1;
-    for (var i = 0; i < this.columnOrder(); i++) {
+    let count = 1;
+    for (let i = 0; i < this.columnOrder(); i++) {
       count *= this.columnDimension.indexSets[i].items.length;
     }
     return count;

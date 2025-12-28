@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliMatrix } from "../values/matrix";
+import type { PacioliMatrix } from "../values/matrix";
 import { getNumber, getFullNumbers } from "../values/numbers";
 import { firstDefined, locale, toFixed, unitToText } from "./utils";
 
@@ -229,7 +229,7 @@ function createDOMTable(
 
   // Add a header for each column
   for (let i = 0; i < n; i++) {
-    let header = document.createElement("th");
+    const header = document.createElement("th");
     header.className = "value";
     header.innerHTML = columns[i].title;
     header.colSpan = 2;

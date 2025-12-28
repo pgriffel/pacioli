@@ -24,7 +24,7 @@ import "jasmine";
 import { PacioliMatrix } from "../src/values/matrix.js";
 import { MatrixShape } from "../src/values/matrix-shape.js";
 import { testContext } from "./test-context.js";
-import { IndexSet } from "../src/values/index-set.js";
+import type { IndexSet } from "../src/values/index-set.js";
 import { MatrixDimension } from "../src/values/matrix-dimension.js";
 import { UOM } from "uom-ts";
 import { initialNumbers } from "../src/cache.js";

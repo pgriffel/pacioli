@@ -20,11 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliCoordinates } from "./values/coordinates";
-import { PacioliMap } from "./values/map";
-import { MatrixShape } from "./values/matrix-shape";
+import type { PacioliCoordinates } from "./values/coordinates";
+import type { PacioliMap } from "./values/map";
+import type { MatrixShape } from "./values/matrix-shape";
 import { RawMaybe } from "./values/maybe";
-import { PacioliVoid } from "./values/void";
+import type { PacioliVoid } from "./values/void";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive

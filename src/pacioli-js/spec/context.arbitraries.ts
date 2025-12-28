@@ -21,9 +21,10 @@
  */
 
 import * as fc from "fast-check";
-import { SIBase, Prefix, Context as UOMContext, UOM } from "uom-ts";
+import type { SIBase, Prefix, Context as UOMContext} from "uom-ts";
+import { UOM } from "uom-ts";
 import { MatrixDimension } from "../src/values/matrix-dimension";
-import { PacioliContext } from "./../src/context";
+import type { PacioliContext } from "./../src/context";
 import { pickOne } from "./util";
 import { MatrixShape } from "../src/values/matrix-shape";
 

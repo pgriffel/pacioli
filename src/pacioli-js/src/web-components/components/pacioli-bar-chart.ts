@@ -21,10 +21,11 @@
  */
 
 import { PacioliContext } from "../../context";
-import { BarChart, BarChartOptions } from "../../charts/d3-bar-chart";
+import type { BarChartOptions } from "../../charts/d3-bar-chart";
+import { BarChart } from "../../charts/d3-bar-chart";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
-import { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the bar chart component
@@ -76,7 +77,7 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): String {
+  get unit(): string {
     return this.getStringAttribute("unit");
   }
 
@@ -161,8 +162,8 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
       if (this.contentParent() && this.data) {
         this.drawChart(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -174,8 +175,8 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
       this.data = this.fetchData();
 
       this.drawChart(this.data);
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

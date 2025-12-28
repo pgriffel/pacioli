@@ -21,19 +21,21 @@
  */
 
 import * as d3 from "d3";
-import { PieArcDatum } from "d3";
-import { PacioliValue } from "../boxing";
-import { PacioliContext } from "../context";
+import type { PieArcDatum } from "d3";
+import type { PacioliValue } from "../boxing";
+import type { PacioliContext } from "../context";
+import type {
+  DefaultChartOptions} from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  DefaultChartOptions,
   displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import { BandChartData, bandChartData } from "./chart-data";
+import type { BandChartData} from "./chart-data";
+import { bandChartData } from "./chart-data";
 import { DimNum } from "uom-ts";
 import { parseUnit } from "../api";
 
@@ -146,13 +148,13 @@ export class PieChart {
         parent.removeChild(parent.firstChild);
       }
 
-      var margin = combineMargins(
+      const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
 
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+      const width = this.options.width - margin.left - margin.right;
+      const height = this.options.height - margin.top - margin.bottom;
 
       const svg = d3
         .select(parent)

@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
+import type { SIUnit } from "uom-ts";
+import type { PacioliMatrix } from "../values/matrix";
+import type { PacioliString } from "../values/string";
 import {
   makeCanvasLabelObject,
   updateCanvasLabelObject,
@@ -133,7 +133,7 @@ function createTHREEArrowHelper(
   const from = vector2THREE(origin, options);
   const [dirVec, vectorLength] = arrowDirectionAndLength(vector, options);
 
-  let arr = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
+  const arr = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
 
   if (name.value !== "") {
     arr.name = name.value;

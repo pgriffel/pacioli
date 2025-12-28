@@ -20,14 +20,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import type { SIUnit} from "uom-ts";
+import { UOM } from "uom-ts";
 import { num, unit } from "../api";
-import { PacioliFunction } from "../values/function";
-import { PacioliValue } from "../boxing";
-import { PacioliScene, StatefulAnimation, Animation } from "./scene";
+import type { PacioliFunction } from "../values/function";
+import type { PacioliValue } from "../boxing";
+import type { PacioliScene, StatefulAnimation, Animation } from "./scene";
 import { ThreeJsEnvironment } from "./threejs-environment";
-import { PacioliPath } from "./path";
-import { PacioliMesh } from "./mesh";
+import type { PacioliPath } from "./path";
+import type { PacioliMesh } from "./mesh";
 
 /**
  * Configuration options for the Space class

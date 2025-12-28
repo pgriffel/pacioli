@@ -20,19 +20,22 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import type {
+  DefaultChartOptions} from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  DefaultChartOptions,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import { DimNum, SIUnit } from "uom-ts";
-import { PacioliValue } from "../boxing";
-import { PacioliContext } from "../context";
+import type { SIUnit } from "uom-ts";
+import { DimNum } from "uom-ts";
+import type { PacioliValue } from "../boxing";
+import type { PacioliContext } from "../context";
 import { displayChartError } from "./chart-utils";
-import { BandChartData, bandChartData } from "./chart-data";
+import type { BandChartData} from "./chart-data";
+import { bandChartData } from "./chart-data";
 import * as d3 from "d3";
 import { parseUnit } from "../api";
 
@@ -128,13 +131,13 @@ export class Histogram {
       );
 
       // Determine the drawing dimensions
-      var margin = combineMargins(
+      const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
 
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+      const width = this.options.width - margin.left - margin.right;
+      const height = this.options.height - margin.top - margin.bottom;
 
       // Make the parent node empty
       while (parent.firstChild) {
@@ -172,7 +175,7 @@ export class Histogram {
           ? (this.options.upper as number)
           : Math.floor(data.max) + 1;
 
-        let nrBins = hasBins
+        const nrBins = hasBins
           ? (this.options.bins as number)
           : binSize(data.entries, lower, upper, this.options.heuristic);
 
@@ -294,10 +297,10 @@ function appendHistogram(
     return d.length;
   }) as number;
 
-  var yMin = options.ylower || 0;
-  var yMax = options.yupper || maxFrequency;
+  const yMin = options.ylower || 0;
+  const yMax = options.yupper || maxFrequency;
 
-  var range = d3.scaleLinear().domain([yMin, yMax]).range([height, 0]);
+  const range = d3.scaleLinear().domain([yMin, yMax]).range([height, 0]);
 
   // Create the axes
 
@@ -485,7 +488,7 @@ function binData(
   const upper = bin.x1 || 0; // TODO: better undefined handling
   const frequency = bin.length;
 
-  var result: { keys: string[]; value: string }[] = [];
+  const result: { keys: string[]; value: string }[] = [];
 
   for (let i = 0; i < data.entries.length; i++) {
     const num = data.entries[i].value;

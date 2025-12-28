@@ -20,8 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliValue } from "../../boxing";
-import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
+import type { PacioliValue } from "../../boxing";
+import type { ScatterPlotOptions } from "../../charts/d3-scatter-plot";
+import { ScatterPlot } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
@@ -185,8 +186,8 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
       if (this.contentParent() && this.data) {
         this.drawChart(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -198,8 +199,8 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
       this.data = this.fetchData();
 
       this.drawChart(this.data);
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

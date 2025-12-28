@@ -20,11 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PieChart, PieChartOptions } from "../../charts/d3-pie-chart";
+import type { PieChartOptions } from "../../charts/d3-pie-chart";
+import { PieChart } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
-import { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the pie chart component
@@ -61,7 +62,7 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): String {
+  get unit(): string {
     return this.getStringAttribute("unit");
   }
 
@@ -120,8 +121,8 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
       if (this.contentParent() && this.data) {
         this.drawChart(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -133,8 +134,8 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
       this.data = this.fetchData();
 
       this.drawChart(this.data);
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

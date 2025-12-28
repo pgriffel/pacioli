@@ -20,12 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
+import type { SIUnit } from "uom-ts";
 import { conversionFactor } from "../api";
-import { PacioliMatrix } from "../values/matrix";
+import type { PacioliMatrix } from "../values/matrix";
 import { getNumber } from "../values/numbers";
 import * as THREE from "three";
-import { PacioliTuple } from "../values/tuple";
+import type { PacioliTuple } from "../values/tuple";
 
 export function createGridHelper(
   size: number,
@@ -82,13 +82,13 @@ export function vector2THREE(
   // Find the conversion factor between the vectors' units and the space's unit. Assume
   // that the vector units are homogeneous (the same for x, y and z), and the unit is in
   // the type's multiplier.
-  var factorx =
+  const factorx =
     extraFactor *
     conversionFactor(vector.shape.unitAt(0, 0), options.unitX).toNumber();
-  var factory =
+  const factory =
     extraFactor *
     conversionFactor(vector.shape.unitAt(1, 0), options.unitY).toNumber();
-  var factorz =
+  const factorz =
     extraFactor *
     conversionFactor(vector.shape.unitAt(2, 0), options.unitZ).toNumber();
 
@@ -114,14 +114,14 @@ export function makeCanvasLabelObject(
   const completeFont = `${options.fontSize}px ${options.fontFamily}`;
 
   // Write the text on a new canvas.
-  var canvas = document.createElement("canvas");
-  var context = canvas.getContext("2d");
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
   if (context) {
     context.font = completeFont;
 
     // measureText gives css pixels. 2.54cm = 96px. Add some slack. Does not matter since we align center.
-    var width = 1.1 * Math.ceil(context.measureText(text).width);
-    var height = options.fontSize;
+    const width = 1.1 * Math.ceil(context.measureText(text).width);
+    const height = options.fontSize;
 
     // Create a picture of the text.
     canvas.width = width;
@@ -134,23 +134,23 @@ export function makeCanvasLabelObject(
     context.fillText(text, width / 2, height / 2);
 
     // Put the canvas in a texture and make a plane.
-    var texture = new THREE.CanvasTexture(canvas);
+    const texture = new THREE.CanvasTexture(canvas);
 
     // texture.minFilter = THREE.LinearFilter;
     texture.wrapS = THREE.ClampToEdgeWrapping;
     texture.wrapT = THREE.ClampToEdgeWrapping;
 
-    var cover = new THREE.MeshBasicMaterial({
+    const cover = new THREE.MeshBasicMaterial({
       map: texture,
       transparent: true,
       side: THREE.DoubleSide,
     });
 
-    var fudge = (options.labelScale * scale) / options.fontSize;
-    var shape = new THREE.PlaneGeometry(width * fudge, height * fudge);
+    const fudge = (options.labelScale * scale) / options.fontSize;
+    const shape = new THREE.PlaneGeometry(width * fudge, height * fudge);
 
     // Create the label
-    var label = new THREE.Mesh(shape, cover);
+    const label = new THREE.Mesh(shape, cover);
 
     label.visible = true;
     return label;
@@ -166,9 +166,9 @@ export function updateCanvasLabelObject(
   const texture = labelObj.material.map;
 
   if (texture !== null) {
-    var canvas = texture.source.data as HTMLCanvasElement;
+    const canvas = texture.source.data as HTMLCanvasElement;
 
-    var context = canvas.getContext("2d");
+    let context = canvas.getContext("2d");
 
     if (context !== null) {
       const width = 1.1 * Math.ceil(context.measureText(text).width);

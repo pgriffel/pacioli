@@ -20,9 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { RawValue, RawList, tagList, tagTuple, RawCoordinates } from "../value";
+import type { RawValue, RawList, RawCoordinates } from "../value";
+import { tagList, tagTuple } from "../value";
 import { RawMaybe } from "./maybe";
-import { VOID, PacioliVoid } from "./void";
+import type { PacioliVoid } from "./void";
+import { VOID } from "./void";
 
 export class PacioliMap {
   readonly kind = "map";
@@ -49,8 +51,8 @@ export class PacioliMap {
   }
 
   public keys(): RawList {
-    let keys: RawValue[] = [];
-    for (let key of this.keyMap.values()) {
+    const keys: RawValue[] = [];
+    for (const key of this.keyMap.values()) {
       keys.push(key);
     }
     return tagList(keys);

@@ -26,7 +26,7 @@ import {
   addInputEventListener,
   attachedPacioliWebComponent,
 } from "../utils";
-import { PacioliHistogramComponent } from "./pacioli-histogram";
+import type { PacioliHistogramComponent } from "./pacioli-histogram";
 
 const TEMPLATE = document.createElement("template");
 

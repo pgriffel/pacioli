@@ -21,10 +21,11 @@
  */
 
 import { PacioliContext } from "../../context";
-import { Histogram, HistogramOptions } from "../../charts/d3-histogram";
+import type { HistogramOptions } from "../../charts/d3-histogram";
+import { Histogram } from "../../charts/d3-histogram";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
-import { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../boxing";
 
 /**
  * Attribues supported by the histogram component
@@ -110,7 +111,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): String {
+  get unit(): string {
     return this.getStringAttribute("unit");
   }
 
@@ -121,7 +122,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   /**
    * The heuristic used for the number of bins.
    */
-  get heuristic(): String {
+  get heuristic(): string {
     return this.getStringAttribute("heuristic");
   }
 
@@ -207,8 +208,8 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
       if (this.contentParent() && this.data) {
         this.updateChart(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -222,8 +223,8 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
 
       // Refresh the chart
       this.updateChart(this.data);
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

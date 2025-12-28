@@ -136,8 +136,8 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
       // Refresh the html
       this.clearContent();
       this.contentParent().appendChild(DOM(data));
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

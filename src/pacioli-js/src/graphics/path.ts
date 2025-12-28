@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
+import type { SIUnit } from "uom-ts";
+import type { PacioliMatrix } from "../values/matrix";
+import type { PacioliString } from "../values/string";
 import { vector2THREE } from "./threejs";
 import * as THREE from "three";
 
@@ -50,8 +50,8 @@ function createTHREEPath(
   path: PacioliPath,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
-  var geometry = new THREE.BufferGeometry();
-  var material = new THREE.LineBasicMaterial({
+  const geometry = new THREE.BufferGeometry();
+  const material = new THREE.LineBasicMaterial({
     color: path[1].value === "" ? "#222222" : path[1].value,
     transparent: true,
     opacity: 1.0,
@@ -61,7 +61,7 @@ function createTHREEPath(
     path[0].map((point: PacioliMatrix) => vector2THREE(point, options))
   );
 
-  var lineObject = new THREE.Line(geometry, material);
+  const lineObject = new THREE.Line(geometry, material);
 
   return lineObject;
 }

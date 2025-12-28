@@ -22,18 +22,20 @@
 
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
-import { PacioliValue } from "../boxing";
-import { PacioliContext } from "../context";
+import type { PacioliValue } from "../boxing";
+import type { PacioliContext } from "../context";
+import type {
+  DefaultChartOptions,
+  Margin} from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  DefaultChartOptions,
   displayChartError,
-  Margin,
   parseMargin,
 } from "./chart-utils";
-import { BandChartData, bandChartData } from "./chart-data";
+import type { BandChartData} from "./chart-data";
+import { bandChartData } from "./chart-data";
 import { ToolTip } from "./chart-utils";
 import { parseUnit } from "../api";
 
@@ -172,7 +174,7 @@ export class BarChart {
           : undefined;
 
       // Transform the data to a usable format
-      var input = bandChartData(
+      const input = bandChartData(
         this.context,
         this.data,
         this.options.zeros,
@@ -185,7 +187,7 @@ export class BarChart {
       }
 
       // Add an svg element
-      var svg = d3
+      const svg = d3
         .select(parent)
         .append("svg")
         .attr("width", this.options.width)
@@ -193,9 +195,9 @@ export class BarChart {
       // .attr("class", "pacioli chart bar-chart");
 
       if (input !== null) {
-        var inner = svg.append("g");
+        const inner = svg.append("g");
 
-        var margin = combineMargins(
+        const margin = combineMargins(
           DEFAULT_CHART_MARGIN,
           parseMargin(this.options.margin)
         );
@@ -238,19 +240,19 @@ function appendBarChart(
   margin: Margin,
   options: BarChartOptions
 ): void {
-  var width = options.width - margin.left - margin.right;
-  var height = options.height - margin.top - margin.bottom;
+  const width = options.width - margin.left - margin.right;
+  const height = options.height - margin.top - margin.bottom;
 
   // Determine the min and max data values. Cannot be undefined because data is not empty.
   // TODO: why do data.min and data.max not work? Bars get shifted.
-  var yMin = Math.min(
+  const yMin = Math.min(
     0,
     options.ylower ||
       (d3.min(data.entries, function (d) {
         return d.value;
       }) as number)
   );
-  var yMax = Math.max(
+  const yMax = Math.max(
     0,
     options.yupper ||
       (d3.max(data.entries, function (d) {
@@ -259,7 +261,7 @@ function appendBarChart(
   );
 
   // Create the x and y scales
-  var x = d3.scaleBand();
+  const x = d3.scaleBand();
 
   // TODO: Without rangeRound we get artifacts (the bars get ugly) if the number of bars gets large. But with
   // rangeRound gaps appear on the left and the right side of the bars. Can we round ourselves below?
@@ -272,13 +274,13 @@ function appendBarChart(
       })
     );
 
-  var y = d3.scaleLinear();
+  const y = d3.scaleLinear();
   y.range([height, 0]).domain([yMin, yMax]); // related to above todo: why end at 0?
 
   // Create an x and y axis for the inner group
-  var xAxis = d3.axisBottom(x);
+  const xAxis = d3.axisBottom(x);
 
-  var yAxis = d3.axisLeft(y);
+  const yAxis = d3.axisLeft(y);
   yAxis.ticks(5);
 
   // Add the x axis to the inner group

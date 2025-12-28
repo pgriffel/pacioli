@@ -23,6 +23,10 @@
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { DOMTable } from "../../dom/dom";
+import type { PacioliTuple } from "../../values/tuple";
+import type { PacioliValue } from "../../boxing";
+import type { PacioliString } from "../../values/string";
+import type { PacioliMatrix } from "../../values/matrix";
 
 /**
  * Attribues supported by the table component
@@ -110,20 +114,26 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
       const data = this.fetchData();
 
       if (data.kind === "tuple") {
-        const items = data as any;
+        const items = data as PacioliTuple;
         // Refresh the table
         this.clearContent();
-        const columns = items.map((item: any) => ({
-          title: item[0].value,
-          value: item[1],
-          decimals: 2,
-        }));
+        const columns = items.map((item: PacioliValue) => {
+          if (item.kind === "tuple") {
+            return {
+              title: (item[0] as PacioliString).value,
+              value: item[1] as PacioliMatrix,
+              decimals: 2,
+            };
+          } else {
+            throw Error(`Expected a tuple of columns.`);
+          }
+        });
         this.contentParent().appendChild(DOMTable(columns));
       } else {
         throw Error(`Expected a list of columns.`);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

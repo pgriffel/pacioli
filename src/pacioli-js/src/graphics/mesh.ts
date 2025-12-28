@@ -21,13 +21,13 @@
  */
 
 import * as THREE from "three";
-import { SIUnit } from "uom-ts";
-import { PacioliBoole } from "../values/boole";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliMaybe } from "../values/maybe";
+import type { SIUnit } from "uom-ts";
+import type { PacioliBoole } from "../values/boole";
+import type { PacioliMatrix } from "../values/matrix";
+import type { PacioliMaybe } from "../values/maybe";
 import { getNumber } from "../values/numbers";
-import { PacioliString } from "../values/string";
-import { PacioliTuple } from "../values/tuple";
+import type { PacioliString } from "../values/string";
+import type { PacioliTuple } from "../values/tuple";
 import { moveObject, rotateObject, vector2THREE } from "./threejs";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 
@@ -53,7 +53,8 @@ export function addMesh(
   const meshObject = createTHREEMesh(mesh, options);
   body.add(meshObject);
 
-  if (false && meshObject.geometry.attributes.normal) {
+  const ADD_NORMALS = false;
+  if (ADD_NORMALS && meshObject.geometry.attributes.normal) {
     const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
     body.add(helper);
   }
@@ -97,9 +98,9 @@ function createTHREEMesh(
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
 
-  var material = materialOption.value.toLowerCase();
+  const material = materialOption.value.toLowerCase();
 
-  var props = {
+  const props = {
     // overdraw: !(wireframe || transparent),
     wireframe: hasWireframe.value,
     side: THREE.DoubleSide,
@@ -121,7 +122,7 @@ function createTHREEMesh(
   }
 
   // Create a mesh object with the material and add it to the body
-  var meshObject = mesh2THREE(
+  const meshObject = mesh2THREE(
     [vs, fs],
     mat,
     options,
@@ -163,16 +164,16 @@ function mesh2THREE(
 ) {
   const [vertices, faces] = mesh;
 
-  var geometry = new THREE.BufferGeometry();
+  let geometry = new THREE.BufferGeometry();
 
-  var indices = new Uint32Array(faces.length * 3); // indices for 4 faces
-  var positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
+  const indices = new Uint32Array(faces.length * 3); // indices for 4 faces
+  const positions = new Float32Array(vertices.length * 3); // buffer arrray, position of 4 vertices
 
   // Compute our own normals instead of geometry.computeVertexNormals() below!?
   // Not used at the moment.
-  var normals = [];
+  const normals = [];
 
-  for (var i = 0; i < vertices.length; i++) {
+  for (let i = 0; i < vertices.length; i++) {
     const vec = vector2THREE(vertices[i][0], options);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
@@ -181,8 +182,8 @@ function mesh2THREE(
     normals.push(vec.x, vec.y, vec.z);
   }
 
-  for (var i = 0; i < faces.length; i++) {
-    var face = faces[i];
+  for (let i = 0; i < faces.length; i++) {
+    const face = faces[i];
     indices[i * 3 + 0] = getNumber(face[0].numbers, 0, 0);
     indices[i * 3 + 1] = getNumber(face[1].numbers, 0, 0);
     indices[i * 3 + 2] = getNumber(face[2].numbers, 0, 0);
@@ -220,11 +221,11 @@ function mesh2THREE(
   geometry.computeVertexNormals();
 
   if (wireframe) {
-    var geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
+    const geo = new THREE.EdgesGeometry(geometry); // or WireframeGeometry( geometry )
 
-    var mat = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
+    const mat = new THREE.LineBasicMaterial({ color: 0x222222, linewidth: 2 });
 
-    var wireframeSegment = new THREE.LineSegments(geo, mat);
+    const wireframeSegment = new THREE.LineSegments(geo, mat);
     return wireframeSegment;
   } else {
     return new THREE.Mesh(geometry, material);

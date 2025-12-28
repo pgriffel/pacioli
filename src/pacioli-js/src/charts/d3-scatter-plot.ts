@@ -22,7 +22,7 @@
 
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
-import { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../boxing";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
@@ -30,10 +30,12 @@ import {
   displayChartError,
   parseMargin,
 } from "./chart-utils";
-import { LinearChartData, linearChartData } from "./chart-data";
-import { PacioliContext } from "./../context";
-import { PacioliCoordinates } from "../values/coordinates";
-import { DefaultChartOptions, ToolTip } from "./chart-utils";
+import type { LinearChartData} from "./chart-data";
+import { linearChartData } from "./chart-data";
+import type { PacioliContext } from "./../context";
+import type { PacioliCoordinates } from "../values/coordinates";
+import type { DefaultChartOptions} from "./chart-utils";
+import { ToolTip } from "./chart-utils";
 import { parseUnit } from "../api";
 
 /**
@@ -117,7 +119,7 @@ export class ScatterPlot {
   public draw(parent: HTMLElement) {
     try {
       // Determine the data
-      var data = linearChartData(
+      const data = linearChartData(
         this.context,
         this.data,
         this.options.convert && this.options.xunit
@@ -128,7 +130,7 @@ export class ScatterPlot {
           : undefined
       );
 
-      var margin = combineMargins(
+      const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );

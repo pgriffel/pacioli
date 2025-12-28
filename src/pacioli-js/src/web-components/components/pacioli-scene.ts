@@ -20,13 +20,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { Space, SpaceOptions } from "../../graphics/space";
-import { PacioliValue } from "../../boxing";
+import type { SIUnit } from "uom-ts";
+import type { SpaceOptions } from "../../graphics/space";
+import { Space } from "../../graphics/space";
+import type { PacioliValue } from "../../boxing";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
-import {
+import type {
   PacioliScene,
   StatefulAnimation,
   Animation,
@@ -151,8 +152,8 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
           break;
         }
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -165,8 +166,8 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
         this.fetchedData = this.fetchData();
         this.loadData(this.space);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 

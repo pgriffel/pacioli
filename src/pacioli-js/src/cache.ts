@@ -20,15 +20,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { DimNum, SIBase, SIUnit } from "uom-ts";
+import type { DimNum, SIBase, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { DOM } from "./dom/dom";
 import { IndexSet } from "./values/index-set";
 import { set, tagNumbers } from "./values/numbers";
-import { PacioliUnit } from "./type";
+import type { PacioliUnit } from "./type";
 import { PacioliContext } from "./context";
-import { MatrixType } from "./types/matrix";
-import { RawCoordinates, RawMatrix, RawValue, STORAGE_DOK } from "./value";
+import type { MatrixType } from "./types/matrix";
+import type { RawCoordinates, RawMatrix, RawValue} from "./value";
+import { STORAGE_DOK } from "./value";
 import { internUnit, matrixShapeFromType } from "./boxing";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
@@ -48,13 +49,13 @@ export function createCoordinates(
   pairs: string[][],
   context: PacioliContext = defaultContext
 ): RawCoordinates {
-  var names = [];
-  var indexSets = [];
-  for (var i = 0; i < pairs.length; i++) {
+  const names = [];
+  const indexSets = [];
+  for (let i = 0; i < pairs.length; i++) {
     names[i] = pairs[i][0];
     indexSets[i] = lookupItem(pairs[i][1], context);
   }
-  var coords = new PacioliCoordinates(names, indexSets);
+  const coords = new PacioliCoordinates(names, indexSets);
   // added coords for b_Matrix_make_matrix
   return {
     kind: "coordinates",
@@ -76,9 +77,9 @@ export function zeroNumbers(m: number, n: number): RawMatrix {
 
 // No longer needs to export this since oneNumbersFromShape is used.
 export function oneNumbers(m: number, n: number): RawMatrix {
-  var numbers = tagNumbers([], m, n, STORAGE_DOK);
-  for (var i = 0; i < m; i++) {
-    for (var j = 0; j < n; j++) {
+  const numbers = tagNumbers([], m, n, STORAGE_DOK);
+  for (let i = 0; i < m; i++) {
+    for (let j = 0; j < n; j++) {
       set(numbers, i, j, 1);
     }
   }
@@ -114,8 +115,8 @@ export function initialNumbers(
 ): RawMatrix {
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
-  var numbers = tagNumbers([], m, n, STORAGE_DOK);
-  for (var i = 0; i < data.length; i++) {
+  const numbers = tagNumbers([], m, n, STORAGE_DOK);
+  for (let i = 0; i < data.length; i++) {
     set(numbers, data[i][0], data[i][1], data[i][2]);
   }
   return numbers;

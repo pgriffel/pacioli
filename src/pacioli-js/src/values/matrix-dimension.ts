@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { IndexSet } from "./index-set";
+import type { IndexSet } from "./index-set";
 
 export class MatrixDimension {
   public static empty() {

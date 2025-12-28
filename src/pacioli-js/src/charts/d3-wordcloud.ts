@@ -21,12 +21,8 @@
  */
 
 import * as d3 from "d3";
-import {
-  combineMargins,
-  DefaultChartOptions,
-  displayChartError,
-  parseMargin,
-} from "./chart-utils";
+import type { DefaultChartOptions } from "./chart-utils";
+import { combineMargins, displayChartError, parseMargin } from "./chart-utils";
 import cloud from "d3-cloud";
 
 export interface WordCloudOptions extends DefaultChartOptions {
@@ -65,7 +61,7 @@ export class WordCloud {
         parent.removeChild(parent.firstChild);
       }
 
-      var words = this.data.map(function (d: any) {
+      const words = this.data.map(function (d: any) {
         return {
           text: d[0],
           size: d[1],
@@ -73,19 +69,19 @@ export class WordCloud {
       });
 
       // Determine the drawing dimensions
-      var margin = combineMargins(
+      const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
 
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+      const width = this.options.width - margin.left - margin.right;
+      const height = this.options.height - margin.top - margin.bottom;
 
-      var w = width + margin.left + margin.right;
-      var h = height + margin.top + margin.bottom;
+      const w = width + margin.left + margin.right;
+      const h = height + margin.top + margin.bottom;
 
       // Create an svg element under the parent
-      var svg = d3
+      const svg = d3
         .select(parent)
         .append("svg")
         .attr("width", w)
@@ -94,7 +90,7 @@ export class WordCloud {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      var layout = cloud<{ text: string; size: number }>()
+      const layout = cloud<{ text: string; size: number }>()
         .size([w, h])
         .words(
           /*[
@@ -147,7 +143,7 @@ export class WordCloud {
             return d.text;
           });
       }
-    } catch (err) {
+    } catch (err: unknown) {
       displayChartError(parent, "While drawing word cloud:", err);
     }
   }

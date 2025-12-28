@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliBase } from "./bases";
+import type { PacioliBase } from "./bases";
 
 export type PacioliVar = TypeVar | UnitVar | IndexVar;
 

@@ -20,15 +20,17 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliString } from "../values/string";
-import { PacioliMatrix } from "../values/matrix";
+import type { SIUnit } from "uom-ts";
+import type { PacioliString } from "../values/string";
+import type { PacioliMatrix } from "../values/matrix";
 import { num, parseDimNum, value } from "../api";
 import { PacioliFunction } from "../values/function";
-import { PacioliValue } from "../boxing";
-import { PacioliWebComponent } from "./pacioli-web-component";
-import { PacioliBoole, pacioliFalse, pacioliTrue } from "../values/boole";
+import type { PacioliValue } from "../boxing";
+import type { PacioliWebComponent } from "./pacioli-web-component";
+import type { PacioliBoole } from "../values/boole";
+import { pacioliFalse, pacioliTrue } from "../values/boole";
 import { string } from "../cache";
+import type { PacioliList } from "../values/list";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -130,8 +132,7 @@ export function parameterNodes(element: HTMLElement): HTMLElement[] {
 export function setParameterNodes(element: HTMLElement, values: string[]) {
   const children = parameterNodes(element);
 
-  if (children.length === values.length) {
-  } else {
+  if (children.length !== values.length) {
     const definition = element.getAttribute("definition");
 
     throw Error(
@@ -227,9 +228,11 @@ export function parseParameterNode(
         );
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw Error(
-      `cannot read value ${value} for ${type} parameter ${label}:\n\n ${error}.`
+      `cannot read value ${value} for ${type} parameter ${label}:\n\n ${
+        error instanceof Error ? error.message : String(error)
+      }.`
     );
   }
 }
@@ -380,10 +383,10 @@ export function optionsFromScript<Options>(
 
   const optionValue = computeWebComponentValue(element, "options");
   if (optionValue.kind === "list") {
-    const items = optionValue as any;
+    const items = optionValue as PacioliList;
     const table = new Map<string, string | null>();
 
-    items.forEach((item: any) => {
+    items.forEach((item: PacioliValue) => {
       if (item.kind !== "tuple") {
         throw Error(
           `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
@@ -433,7 +436,7 @@ export function optionsFromScript<Options>(
       }
     });
 
-    for (let key of table.keys()) {
+    for (const key of table.keys()) {
       if (table.get(key) !== null) {
         console.warn(`Ignoring unknown chart option '${key}'`);
       }

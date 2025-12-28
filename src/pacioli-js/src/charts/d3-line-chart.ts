@@ -21,18 +21,20 @@
  */
 
 import * as d3 from "d3";
-import { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../boxing";
+import type {
+  DefaultChartOptions} from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  DefaultChartOptions,
   displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import { LinearChartData, linearChartData } from "./chart-data";
-import { PacioliContext } from "./../context";
+import type { LinearChartData} from "./chart-data";
+import { linearChartData } from "./chart-data";
+import type { PacioliContext } from "./../context";
 import { DimNum } from "uom-ts";
 import { parseUnit } from "../api";
 
@@ -120,7 +122,7 @@ export class LineChart {
           : undefined;
 
       // Transform the data to a usable format
-      var data = linearChartData(
+      const data = linearChartData(
         this.context,
         this.data,
         xunit || unit,
@@ -133,13 +135,13 @@ export class LineChart {
       }
 
       // Define dimensions of graph
-      var m = combineMargins(
+      const m = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
 
-      var w = this.options.width - m.left - m.right;
-      var h = this.options.height - m.top - m.bottom;
+      const w = this.options.width - m.left - m.right;
+      const h = this.options.height - m.top - m.bottom;
 
       // Add an SVG element with the desired dimensions and margin.
       const svg = d3
@@ -228,10 +230,10 @@ function appendLineChart(
   h: number,
   options: LineChartOptions
 ) {
-  var yMin = options.ylower !== undefined ? options.ylower : data.yLower;
-  var yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
-  var xMin = data.xLower;
-  var xMax = data.xUpper;
+  const yMin = options.ylower !== undefined ? options.ylower : data.yLower;
+  const yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
+  const xMin = data.xLower;
+  const xMax = data.xUpper;
 
   // Determine data ranges
   const xScale = d3.scaleLinear([xMin, xMax], [0, w]);
@@ -280,7 +282,7 @@ function appendLineChart(
     );
 
   // create y axis
-  var yAxisLeft = d3.axisLeft(yScale).ticks(options.yticks);
+  const yAxisLeft = d3.axisLeft(yScale).ticks(options.yticks);
 
   const yAxisElt = group
     .append("g")
@@ -299,7 +301,7 @@ function appendLineChart(
   // Add a norm line if requested
   const norm = options.norm;
   if (norm && data !== null) {
-    var normline = d3
+    const normline = d3
       .line()
       .x(([i, _]) => {
         // return xScale(data.labels[i]) || 0;

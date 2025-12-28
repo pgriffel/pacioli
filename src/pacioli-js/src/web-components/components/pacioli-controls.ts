@@ -26,7 +26,7 @@ import {
   addCheckBoxEventListener,
   attachedPacioliWebComponent,
 } from "../utils";
-import { PacioliSceneComponent } from "./pacioli-scene";
+import type { PacioliSceneComponent } from "./pacioli-scene";
 
 const TEMPLATE = document.createElement("template");
 
@@ -209,8 +209,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
       try {
         scene.setRunning(!scene.isRunning());
         this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -224,8 +224,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
       try {
         scene.step();
         this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -239,8 +239,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
       try {
         scene.reset();
         this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -257,8 +257,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
         } else {
           scene.space.hideAxis();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -275,8 +275,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
         } else {
           scene.space.hideLabels();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -293,8 +293,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
         } else {
           scene.space.hideGrid();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -313,8 +313,8 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
         } else {
           scene.space.stopAutoRotation();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
