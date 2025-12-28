@@ -37,7 +37,11 @@ public class Maybe implements PacioliValue {
 
     @Override
     public void printText(PrintWriter out) {
-        out.print("nothing");
+        if (value == null) {
+            out.print("nothing");
+        } else {
+            value.printText(out);
+        }
     }
 
     @Override
