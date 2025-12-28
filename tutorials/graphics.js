@@ -448,7 +448,7 @@ Pacioli.$graphics_scene_empty_scene(
 lcl_id));})(
 Pacioli.graphics_make_center_spot_light(
 Pacioli.$base_matrix_multiply(
-Pacioli.initialNumbers(1, 1, [[0, 0, 2]]), 
+Pacioli.initialNumbers(1, 1, [[0, 0, 0]]), 
 Pacioli.oneNumbersFromShape(Pacioli.createMatrixType(Pacioli.unitType('radian').expt(1), new Pacioli.IndexType([]), Pacioli.ONE, new Pacioli.IndexType([]), Pacioli.ONE))), 
 Pacioli.$base_matrix_multiply(
 Pacioli.initialNumbers(1, 1, [[0, 0, 20]]), 
