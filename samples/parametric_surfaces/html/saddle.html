@@ -7,6 +7,23 @@
 
     <title>Saddle</title>
 
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
     <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
@@ -22,119 +39,20 @@
     <p>
         Plot of a saddle surface.
 
-
     <p>
-        <math>
-            <mi>f</mi>
-            <mo>(</mo>
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            <mo>)</mo>
-            <mo>=</mo>
-            <msup>
-                <mrow>
-                    <mo>(</mo>
-                    <mi>x</mi>
-                    <mo>,</mo>
-                    <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    <mo>)</mo>
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        with
+        $f(u, v) = (x, y, z)^T$ with
     <ul>
-        <li>
-            <math>
-                <mi>x</mi>
-                <mo>=</mo>
-                <mi>u</mi>
-            </math>
-        </li>
-        <li>
-            <math>
-                <mi>y</mi>
-                <mo>=</mo>
-                <mi>v</mi>
-            </math>
-        </li>
-        <li>
-            <math>
-                <mi>z</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <msup>
-                    <mi>u</mi>
-                    <mn>2</mn>
-                </msup>
-                <mo>+</mo>
-                <mi>b</mi>
-                <msup>
-                    <mi>v</mi>
-                    <mn>2</mn>
-                </msup>
-            </math>
-        </li>
+        <li>$x = u$</li>
+        <li>$y = v$</li>
+        <li>$z = au^2 + bv^2$</li>
     </ul>
-    where
-    <math>
-        <mi>a</mi>
-    </math>
-    and
-    <math>
-        <mi>b</mi>
-    </math>
-    are a scaling factors,
-    <math>
-        <mn>-5</mn>
-        <mo>&le;</mo>
-        <mi>u</mi>
-        <mo>&le;</mo>
-        <mn>5</mn>
-    </math>
-    , and
-    <math>
-        <mn>-5</mn>
-        <mo>&le;</mo>
-        <mi>v</mi>
-        <mo>&le;</mo>
-        <mn>5</mn>
-    </math>
+    where $a$ and $b$ are scaling factors, $-5 \le u \le 5$, and $-5 \le v \le 5$.
 
     <p>
-        The squares
-        <math>
-            <msup>
-                <mi>u</mi>
-                <mn>2</mn>
-            </msup>
-        </math>
-        and
-        <math>
-            <msup>
-                <mi>v</mi>
-                <mn>2</mn>
-            </msup>
-        </math>
-        for
-        <math>
-            <mi>z</mi>
-        </math>
-        makes its unit metre squared.
+        The squares $u^2$ and $v^2$ for $z$ makes its unit metre squared.
 
     <p>
-        Setting
-        <math>
-            <mi>a</mi>
-        </math>
-        and
-        <math>
-            <mi>b</mi>
-        </math>
-        to the parameter of the paraboloid gives the same surface, but parameterized differently.
+        Setting $a$ and $b$ to the parameter of the paraboloid gives the same surface, but parameterized differently.
 
     <p>
 
