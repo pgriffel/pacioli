@@ -7,6 +7,23 @@
 
     <title>Sphere II</title>
 
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
     <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
@@ -25,115 +42,20 @@
             'Parametric equation of a cone'</a> on math.stackexchange
 
     <p>
-        <math>
-            <mi>f</mi>
-            (
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            )
-            <mo>=</mo>
-            <msup>
-                <mrow>
-                    (
-                    <mi>x</mi>
-                    <mo>,</mo>
-                    <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    )
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        with
+        $f(u, v) = (x, y, z)^T$ with
     <ul>
         <li>
-            <math>
-                <mi>x</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <mi>sin</mi>
-                (<mi>u</mi>
-                <mi>atan</mi>
-                (<mfrac>
-                    <mi>v</mi>
-                    <mi>u</mi>
-                </mfrac>
-                ))
-                <mi>sin</mi>
-                (<mi>v</mi>
-                <mi>atan</mi>
-                (<mfrac>
-                    <mi>v</mi>
-                    <mi>u</mi>
-                </mfrac>))
-            </math>
+            $x = a \sin(u \arctan(\frac{v}{u})) \sin(v \arctan(\frac{v}{u}))$
         </li>
         <li>
-            <math>
-                <mi>y</mi>
-                <mo>=</mo>
-                <mi>b</mi>
-                <mi>sin</mi>
-                (<mi>u</mi>
-                <mi>atan</mi>
-                (<mfrac>
-                    <mi>v</mi>
-                    <mi>u</mi>
-                </mfrac>
-                ))
-                <mi>cos</mi>
-                (<mi>v</mi>
-                <mi>atan</mi>
-                (<mfrac>
-                    <mi>v</mi>
-                    <mi>u</mi>
-                </mfrac>))
-            </math>
+            $y = b \sin(u \arctan(\frac{v}{u})) \cos(v \arctan(\frac{v}{u}))$
         </li>
         <li>
-            <math>
-                <mi>z</mi>
-                <mo>=</mo>
-                <mi>c</mi>
-                <mi>cos</mi>
-                (<mi>u</mi>
-                <mi>atan</mi>
-                (<mfrac>
-                    <mi>v</mi>
-                    <mi>u</mi>
-                </mfrac>))
-            </math>
+            $z = c \cos(u \arctan(\frac{v}{u}))$
         </li>
     </ul>
-    where
-    <math>
-        <mi>a</mi>
-    </math>,
-    <math>
-        <mi>b</mi>
-    </math>,
-    and
-    <math>
-        <mi>c</mi>
-    </math>
-    are scaling factors,
-    <math>
-        <mn>0</mn>
-        <mo>-5</mo>
-        <mi>u</mi>
-        <mo>&le;</mo>
-        <mn>5</mn>
-    </math>
-    , and
-    <math>
-        <mn>-5</mn>
-        <mo>&le;</mo>
-        <mi>v</mi>
-        <mo>&le;</mo>
-        <mn>5</mn>
-    </math>
+    where $a$, $b$ and $c$ are scaling factors, $-5 \le u \le 5$ and $-5 \le v \le 5$.
+
 
     <p>
     <div class="example">
@@ -155,17 +77,7 @@
         </pacioli-scene>
         <pacioli-inputs for="alternative_sphere_scene"></pacioli-inputs>
         <pacioli-controls for="alternative_sphere_scene"></pacioli-controls>
-        <button onclick="onSave()">Save</button>
-        <button onclick="document.getElementsByTagName('pacioli-scene')[0].openImage('scene')">Save2</button>
     </div>
-
-
-    <script>
-        function onSave() {
-
-            document.getElementsByTagName("pacioli-scene")[0].openImage("scene");
-        }
-    </script>
 
 </body>
 
