@@ -351,16 +351,22 @@ export function optionsFromAttributes<Options>(
     numbers: string[];
   }
 ): Partial<Options> {
-  const SYSTEM_ATTRIBUTES = ["id", "definition"];
-  element.getAttributeNames().forEach((attribute) => {
-    if (
-      !SYSTEM_ATTRIBUTES.includes(attribute) &&
-      !supportedAttributes.strings.includes(attribute) &&
-      !supportedAttributes.booleans.includes(attribute) &&
-      !supportedAttributes.numbers.includes(attribute)
-    )
-      console.warn(`Skipping unknown attribute ${attribute}`);
-  });
+  const CHECK_ATTRIBUTES = false;
+
+  if (CHECK_ATTRIBUTES) {
+    const SYSTEM_ATTRIBUTES = ["id", "definition"];
+
+    element.getAttributeNames().forEach((attribute) => {
+      if (
+        !SYSTEM_ATTRIBUTES.includes(attribute) &&
+        !supportedAttributes.strings.includes(attribute) &&
+        !supportedAttributes.booleans.includes(attribute) &&
+        !supportedAttributes.numbers.includes(attribute)
+      ) {
+        console.warn(`Skipping unknown attribute ${attribute}`);
+      }
+    });
+  }
 
   return {
     ...optionalStringAttributes(element, supportedAttributes.strings),

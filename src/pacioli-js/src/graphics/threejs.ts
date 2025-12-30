@@ -120,7 +120,9 @@ export function makeCanvasLabelObject(
     context.font = completeFont;
 
     // measureText gives css pixels. 2.54cm = 96px. Add some slack. Does not matter since we align center.
-    const width = 1.1 * Math.ceil(context.measureText(text).width);
+    // Make the width at least 1 to avoid webgl errors. The text can be empty (when name is not empty), which
+    // results in a zero width.
+    const width = Math.max(1, 1.1 * Math.ceil(context.measureText(text).width));
     const height = options.fontSize;
 
     // Create a picture of the text.
