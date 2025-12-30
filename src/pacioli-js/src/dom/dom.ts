@@ -41,7 +41,7 @@ export function DOM(
           return DOMmatrixTable(x, options);
         } else {
           // hack to debug without shape info via print en printed
-          return document.createTextNode(getFullNumbers(x));
+          return document.createTextNode(getFullNumbers(x) as any);
         }
       }
       case "coordinates": {

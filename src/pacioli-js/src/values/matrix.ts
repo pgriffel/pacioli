@@ -29,7 +29,7 @@ import {
   tagNumbers,
 } from "./numbers";
 import { MatrixShape } from "./matrix-shape";
-import type { RawMatrix } from "../value";
+import type { RawCoordinates, RawMatrix } from "../value";
 import { STORAGE_COO } from "../value";
 
 /**
@@ -53,14 +53,13 @@ export class PacioliMatrix {
    * @param predicate A boolean function on coordinates and values
    * @returns A new matrix of the same shape
    */
-  public filter(predicate: (value: number, i: any, j: any) => boolean) {
+  public filter(
+    predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean
+  ) {
     return new PacioliMatrix(
       this.shape,
       filter_matrix(this.numbers, predicate)
     );
-    // }
-
-    return this;
   }
 
   getDimNum(row: number, column: number) {
@@ -256,8 +255,8 @@ export class PacioliMatrix {
  * is implemented!? Could be/should be/is a glbl_ function!?
  */
 export function filter_matrix(
-  numbers: any,
-  predicate: (value: number, i: any, j: any) => boolean
+  numbers: RawMatrix,
+  predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean
 ) {
   const m = numbers.nrRows;
   const n = numbers.nrColumns;
@@ -273,8 +272,16 @@ export function filter_matrix(
   const filteredValues = [];
 
   for (let i = 0; i < rows.length; i++) {
-    const rowCoords = { kind: "coordinates", position: rows[i], size: m };
-    const columnCoords = { kind: "coordinates", position: columns[i], size: n };
+    const rowCoords = {
+      kind: "coordinates" as const,
+      position: rows[i],
+      size: m,
+    };
+    const columnCoords = {
+      kind: "coordinates" as const,
+      position: columns[i],
+      size: n,
+    };
     if (predicate(values[i], rowCoords, columnCoords)) {
       filteredRows.push(rows[i]);
       filteredColumns.push(columns[i]);
@@ -294,7 +301,7 @@ export function filter_matrix(
  * is implemented!? Could be/should be/is be a glbl_ function!?
  */
 export function convert_unit(
-  numbers: any,
+  numbers: RawMatrix,
   shape: MatrixShape,
   unit: SIUnit,
   context: Context

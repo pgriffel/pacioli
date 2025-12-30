@@ -28,7 +28,7 @@ import { set, tagNumbers } from "./values/numbers";
 import type { PacioliUnit } from "./type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
-import type { RawCoordinates, RawMatrix, RawValue} from "./value";
+import type { RawCoordinates, RawMatrix, RawValue } from "./value";
 import { STORAGE_DOK } from "./value";
 import { internUnit, matrixShapeFromType } from "./boxing";
 import { UnitVector } from "./values/unit-vector";

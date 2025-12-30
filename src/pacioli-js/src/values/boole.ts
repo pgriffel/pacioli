@@ -23,11 +23,11 @@
 export type PacioliBoole = typeof pacioliTrue | typeof pacioliFalse;
 
 export const pacioliTrue = {
-  kind: "boole" as "boole",
+  kind: "boole" as const,
   value: true,
 };
 
 export const pacioliFalse = {
-  kind: "boole" as "boole",
+  kind: "boole" as const,
   value: false,
 };

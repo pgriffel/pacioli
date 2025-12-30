@@ -23,6 +23,7 @@
 import numeric from "numeric";
 import { UOM } from "uom-ts";
 import { initialNumbers, oneNumbers, printValue, zeroNumbers } from "./cache";
+import type { FULL_MATRIX } from "./values/numbers";
 import {
   elementWiseNumbers,
   findNonZero,
@@ -72,6 +73,9 @@ import { EigenvalueDecomposition } from "./linear-algebra/eigenvalue-decompositi
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
 // -----------------------------------------------------------------------------
+
+// See note in numbers.ts
+const USE_CCS = false;
 
 export const ONE = UOM.ONE;
 
@@ -510,7 +514,7 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
   // Currently the only function that uses CCS. The others have been disabled with
   // the === 13 hack. See note in numbers.ts
   return tagNumbers(
-    numeric.dot(getFullNumbers(x), getFullNumbers(y)),
+    numeric.dot(getFullNumbers(x), getFullNumbers(y)) as FULL_MATRIX,
     x.nrRows,
     y.nrColumns,
     STORAGE_FULL
@@ -524,8 +528,8 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
-  // TODO: 13????? See note in numbers.ts
-  if ((x.storage as any) === 13) {
+  // See note in numbers.ts
+  if (USE_CCS && x.storage === STORAGE_CCS) {
     return tagNumbers(
       numeric.ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -589,8 +593,8 @@ export function $base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
-  // TODO: 13????? See note in numbers.ts
-  if ((x.storage as any) === 13) {
+  // See note in numbers.ts
+  if (USE_CCS && x.storage === STORAGE_CCS) {
     return tagNumbers(
       numeric.ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -606,8 +610,8 @@ export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
   //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
-  // TODO: 13????? See note in numbers.ts
-  if ((x.storage as any) === 13) {
+  // See note in numbers.ts
+  if (USE_CCS && x.storage === STORAGE_CCS) {
     return tagNumbers(
       numeric.ccssub(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -1417,7 +1421,7 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
         const debugHack = false;
 
         const arg = args[argumentIndex++];
-        const mat = arg as any as RawMatrix;
+        const mat = arg as RawMatrix;
         if (debugHack && mat.kind === "matrix") {
           out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
             mat.storage
@@ -1445,7 +1449,7 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
             size = null;
           }
 
-          const mat = args[argumentIndex++] as any as RawMatrix;
+          const mat = args[argumentIndex++] as RawMatrix;
 
           if (mat.kind !== "matrix") {
             throw new Error("Expected matrix for %d format argument");
@@ -1476,7 +1480,7 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
               size = null;
             }
 
-            const mat = args[argumentIndex++] as any as RawMatrix;
+            const mat = args[argumentIndex++] as RawMatrix;
 
             if (mat.kind !== "matrix") {
               throw new Error("Expected matrix for %d format argument");

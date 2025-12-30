@@ -25,8 +25,8 @@ import {
   addParametersObserver,
   setParameterNodes,
 } from "./utils";
-import { PacioliValue } from "../boxing";
-import { Callable, ErrorOutput, PacioliWebComponentBase } from "./interfaces";
+import type { PacioliValue } from "../boxing";
+import type { Callable, ErrorOutput, PacioliWebComponentBase } from "./interfaces";
 
 const TEMPLATE = document.createElement("template");
 
@@ -253,7 +253,7 @@ export abstract class PacioliWebComponent
   }
 
   protected setBooleAttribute(attribute: string, value: boolean | undefined) {
-    if (Boolean(value)) {
+    if (value) {
       this.setAttribute(attribute, "");
     } else {
       this.removeAttribute(attribute);

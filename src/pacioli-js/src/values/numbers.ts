@@ -24,6 +24,13 @@ import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
 import type { MatrixStorage, RawList, RawMatrix, RawTuple } from "../value";
 import { STORAGE_CCS, STORAGE_COO, STORAGE_DOK, STORAGE_FULL } from "../value";
 
+// Match the types from numeric
+export type FULL_MATRIX = number[][];
+export type DOK_MATRIX = number[][];
+export type COO_MATRIX = [number[], number[], number[]];
+export type CCS_MATRIX = [number[], number[], number[]];
+export type NUMERIC_MATRIX = FULL_MATRIX | DOK_MATRIX | COO_MATRIX | CCS_MATRIX;
+
 // -----------------------------------------------------------------------------
 // Matrix Numbers
 //
@@ -64,23 +71,26 @@ Array.prototype.toString = function () {
 };
 
 export function tagNumbers(
-  numbers: any,
+  numbers: NUMERIC_MATRIX,
   nrRows: number,
   nrColumns: number,
   storage: MatrixStorage
 ): RawMatrix {
-  numbers.nrRows = nrRows;
-  numbers.nrColumns = nrColumns;
-  numbers.storage = storage;
-  numbers.kind = "matrix";
-  return numbers;
+  const matrix = numbers as RawMatrix;
+
+  matrix.nrRows = nrRows;
+  matrix.nrColumns = nrColumns;
+  matrix.storage = storage;
+  matrix.kind = "matrix";
+
+  return matrix;
 }
 
-export function getFullNumbers(numbers: any) {
+export function getFullNumbers(numbers: RawMatrix): FULL_MATRIX {
   const m = numbers.nrRows;
   const n = numbers.nrColumns;
 
-  const fillDOK = function (nums: any) {
+  const fullFromDOK = function (nums: number[][]): FULL_MATRIX {
     const array = new Array(m);
     for (let i = 0; i < m; i++) {
       const inner = new Array(n);
@@ -89,7 +99,8 @@ export function getFullNumbers(numbers: any) {
       }
       array[i] = inner;
     }
-    return tagNumbers(array, m, n, STORAGE_FULL);
+    // return tagNumbers(array, m, n, STORAGE_FULL);
+    return array;
   };
 
   switch (numbers.storage) {
@@ -97,16 +108,16 @@ export function getFullNumbers(numbers: any) {
       return numbers;
     }
     case STORAGE_DOK: {
-      return fillDOK(numbers);
+      return fullFromDOK(numbers);
     }
     case STORAGE_COO: {
-      return fillDOK(sscatter(numbers));
+      return fullFromDOK(sscatter(numbers) as DOK_MATRIX);
     }
     // or:
     // return numeric.ccsFull(numeric.ccsScatter(this.numbers))
     case STORAGE_CCS: {
       // Let numeric create a full matrix, although it might be too small
-      const full = ccsFull(numbers);
+      const full = ccsFull(numbers as unknown as CCS_MATRIX);
 
       // Fill the missing rows and columns with zeros
       for (let i = full.length; i < m; i++) {
@@ -121,7 +132,8 @@ export function getFullNumbers(numbers: any) {
         }
       }
 
-      return tagNumbers(full, m, n, STORAGE_FULL);
+      // return tagNumbers(full, m, n, STORAGE_FULL);
+      return full;
     }
   }
 }
@@ -159,23 +171,23 @@ export function getFullNumbers(numbers: any) {
 //     }
 // }
 
-export function getCOONumbers(numbers: any): number[][] {
-  switch ((numbers as any).storage) {
-    case 0: {
+export function getCOONumbers(numbers: RawMatrix): COO_MATRIX {
+  switch (numbers.storage) {
+    case STORAGE_FULL: {
       return DOK2COO(numbers);
     }
-    case 1: {
+    case STORAGE_DOK: {
       return DOK2COO(numbers);
     }
-    case 2: {
-      return numbers;
+    case STORAGE_COO: {
+      return numbers as unknown as COO_MATRIX;
     }
-    case 3: {
-      const ccsNumbers = ccsGather(numbers);
+    case STORAGE_CCS: {
+      const ccsNumbers = ccsGather(numbers as unknown as CCS_MATRIX);
       const rows = ccsNumbers[0];
       const columns = ccsNumbers[1];
       const values = ccsNumbers[2];
-      const tmp: any = [];
+      const tmp: DOK_MATRIX = [];
       for (let i = 0; i < rows.length; i++) {
         if (tmp[rows[i]] === undefined) tmp[rows[i]] = [];
         tmp[rows[i]][columns[i]] = values[i];
@@ -187,41 +199,41 @@ export function getCOONumbers(numbers: any): number[][] {
   }
 }
 
-export function getCCSNumbers(numbers: any) {
-  let ccsNumbers;
+export function getCCSNumbers(numbers: RawMatrix): CCS_MATRIX {
+  let ccsNumbers: CCS_MATRIX;
   switch (numbers.storage) {
-    case 0: {
+    case STORAGE_FULL: {
       ccsNumbers = ccsSparse(numbers);
       break;
     }
-    case 1: {
+    case STORAGE_DOK: {
       const gathered = DOK2COO(numbers);
       if (gathered[0].length === 0) {
         ccsNumbers = ccsScatter([[0], [0], [0]]);
       } else {
-        ccsNumbers = ccsScatter(
-          // TODO: better type. This is wat DOK2COO puts in the any in RawMatrix
-          gathered as unknown as [number[], number[], number[]]
-        );
+        ccsNumbers = ccsScatter(gathered);
       }
       break;
     }
-    case 2: {
+    case STORAGE_COO: {
       if (numbers[0].length === 0) {
         ccsNumbers = ccsScatter([[0], [0], [0]]);
       } else {
-        ccsNumbers = ccsScatter(numbers);
+        ccsNumbers = ccsScatter(numbers as unknown as COO_MATRIX);
       }
       break;
     }
-    case 3: {
-      return numbers;
+    case STORAGE_CCS: {
+      return numbers as unknown as CCS_MATRIX;
+    }
+    default: {
+      throw new Error("unknown number kind");
     }
   }
-  return tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, STORAGE_CCS);
+  return ccsNumbers; // tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, STORAGE_CCS);
 }
 
-function DOK2COO(numbers: any): RawMatrix {
+function DOK2COO(numbers: DOK_MATRIX): COO_MATRIX {
   const rows = [];
   const columns = [];
   const values = [];
@@ -260,19 +272,26 @@ function DOK2COO(numbers: any): RawMatrix {
     values.push(tmp[i][2]);
   }
 
-  return tagNumbers(
-    [rows, columns, values],
-    numbers.nrRows,
-    numbers.nrColumns,
-    STORAGE_COO
-  );
+  // // TODO: drop the tagNumbers
+  // return tagNumbers(
+  //   [rows, columns, values],
+  //   numbers.nrRows,
+  //   numbers.nrColumns,
+  //   STORAGE_COO
+  // ) as unknown as COO_MATRIX;
+  return [rows, columns, values];
 }
 
-export function get(numbers: any, i: any, j: any) {
+export function get(numbers: RawMatrix, i: number, j: number) {
   return tagNumbers([[getNumber(numbers, i, j)]], 1, 1, STORAGE_FULL);
 }
 
-export function set(numbers: any, row: number, column: number, value: number) {
+export function set(
+  numbers: RawMatrix,
+  row: number,
+  column: number,
+  value: number
+) {
   switch (numbers.storage) {
     case 0: {
       numbers[row][column] = value;
@@ -315,7 +334,11 @@ export function set(numbers: any, row: number, column: number, value: number) {
   }
 }
 
-export function getNumber(numbers: RawMatrix, row: number, column: number) {
+export function getNumber(
+  numbers: RawMatrix,
+  row: number,
+  column: number
+): number {
   switch (numbers.storage) {
     case 0: {
       return numbers[row][column];
@@ -373,7 +396,11 @@ export function unaryNumbers(
   );
 }
 
-export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
+export function elementWiseNumbers(
+  xNumbers: RawMatrix,
+  yNumbers: RawMatrix,
+  fun: (x: number, y: number) => number
+) {
   let px = 0;
   let py = 0;
   const xCOO = getCOONumbers(xNumbers);
@@ -449,10 +476,10 @@ export function elementWiseNumbers(xNumbers: any, yNumbers: any, fun: any) {
 }
 
 export function findNonZero(
-  xNumbers: any,
-  yNumbers: any,
-  fun: any,
-  zero_zero_case: any
+  xNumbers: RawMatrix,
+  yNumbers: RawMatrix,
+  fun: (x: number, y: number) => boolean,
+  zero_zero_case: boolean
 ) {
   let px = 0;
   let py = 0;

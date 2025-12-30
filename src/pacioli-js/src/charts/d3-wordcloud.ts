@@ -61,7 +61,7 @@ export class WordCloud {
         parent.removeChild(parent.firstChild);
       }
 
-      const words = this.data.map(function (d: any) {
+      const words = this.data.map(function (d: [string, number]) {
         return {
           text: d[0],
           size: d[1],
@@ -112,7 +112,16 @@ export class WordCloud {
 
       layout.start();
 
-      function draw(words: any[]) {
+      function draw(
+        // Can this type be imported?
+        words: {
+          size: number;
+          text: string;
+          x: number;
+          y: number;
+          rotate: number;
+        }[]
+      ) {
         //          d3.select("body").append("svg")
         //              .attr("width", layout.size()[0])
         //              .attr("height", layout.size()[1])
