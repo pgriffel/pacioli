@@ -20,16 +20,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { DimNum, SIUnit} from "uom-ts";
+import type { DimNum, SIUnit } from "uom-ts";
 import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
-import type { PacioliUnit, PacioliVector } from "./type";
+import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import type { PacioliIndex } from "./types/matrix";
 import { MatrixType } from "./types/matrix";
-import type { PacioliValue} from "./boxing";
+import type { PacioliValue } from "./boxing";
 import { boxRawValue, typeFromValue } from "./boxing";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
@@ -38,6 +38,7 @@ import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { GenericType } from "./types/generic";
 import type BigNumber from "bignumber.js";
+import type { RawValue } from "./value";
 
 // -----------------------------------------------------------------------------
 // New
@@ -63,8 +64,8 @@ export function value(
   context: PacioliContext = defaultContext
 ): PacioliValue {
   return boxRawValue(
-    lookupItem(module + "_" + name, context),
-    lookupItem("u_" + module + "_" + name, context),
+    lookupItem<RawValue>(module + "_" + name, context),
+    lookupItem<PacioliType>("u_" + module + "_" + name, context),
     context
   );
 }
@@ -75,8 +76,8 @@ export function fun(
   name: string,
   context: PacioliContext = defaultContext
 ): PacioliFunction {
-  const type = lookupItem("u_" + module + "_" + name, context);
-  const value = lookupItem(module + "_" + name, context);
+  const type = lookupItem<PacioliType>("u_" + module + "_" + name, context);
+  const value = lookupItem<RawValue>(module + "_" + name, context);
   const box = boxRawValue(value, type, context);
   if (box instanceof PacioliFunction) {
     return box;

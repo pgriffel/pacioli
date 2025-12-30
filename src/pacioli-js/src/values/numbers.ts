@@ -239,13 +239,13 @@ function DOK2COO(numbers: DOK_MATRIX): COO_MATRIX {
   const values = [];
   const tmp = [];
   for (const x in numbers) {
-    if (numbers.hasOwnProperty(x)) {
+    if (Object.prototype.hasOwnProperty.call(numbers, x)) {
       const parsedX = parseInt(x);
       //if (typeof parsedX === "number") {
       if (isFinite(parsedX) && !isNaN(parsedX)) {
         const row = numbers[parsedX];
         for (const y in row) {
-          if (row.hasOwnProperty(y)) {
+          if (Object.prototype.hasOwnProperty.call(row, y)) {
             const parsedY = parseInt(y);
             //if (typeof parsedY === "number") {
             if (isFinite(parsedY) && !isNaN(parsedY)) {

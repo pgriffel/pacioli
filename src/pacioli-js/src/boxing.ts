@@ -265,7 +265,7 @@ function matrixDimensionFromIndex(
   if (index.kind === "index") {
     return new MatrixDimension(
       index.sets.map((name) => {
-        const set = fetchIndex(name, context);
+        const set = fetchIndex("index_" + name, context);
         if (set) return set;
         else {
           throw new Error(

@@ -26,7 +26,11 @@ import { combineMargins, displayChartError, parseMargin } from "./chart-utils";
 import cloud from "d3-cloud";
 
 export interface WordCloudOptions extends DefaultChartOptions {
-  onclick?: (data: any) => void;
+  onclick?: (data: {
+    value: string;
+    size: number;
+    options: WordCloudOptions;
+  }) => void;
 }
 
 const DEFAULT_CHART_MARGIN = { left: 40, top: 20, right: 20, bottom: 50 };
@@ -36,15 +40,16 @@ export class WordCloud {
     width: number;
     height: number;
     margin?: string;
-    onclick: (data: any) => void;
+    onclick?: (data: {
+      value: string;
+      size: number;
+      options: WordCloudOptions;
+    }) => void;
   };
 
   readonly defaultOptions = {
     width: 640,
     height: 360,
-    onclick: (data: any) => {
-      alert("Todo: word cloud click " + data);
-    },
   };
 
   constructor(
@@ -56,6 +61,8 @@ export class WordCloud {
 
   public draw(parent: HTMLElement) {
     try {
+      const options = this.options;
+
       // Make the parent node empty
       while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
@@ -150,6 +157,17 @@ export class WordCloud {
           })
           .text(function (d) {
             return d.text;
+          })
+          .on("click", (_, d) => {
+            if (options.onclick) {
+              setTimeout(() => {
+                options.onclick!({
+                  value: d.text,
+                  size: d.size,
+                  options: options,
+                });
+              }, 0);
+            }
           });
       }
     } catch (err: unknown) {

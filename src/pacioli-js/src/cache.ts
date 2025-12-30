@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { DimNum, SIBase, SIUnit } from "uom-ts";
+import type { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { DOM } from "./dom/dom";
 import { IndexSet } from "./values/index-set";
@@ -53,7 +53,7 @@ export function createCoordinates(
   const indexSets = [];
   for (let i = 0; i < pairs.length; i++) {
     names[i] = pairs[i][0];
-    indexSets[i] = lookupItem(pairs[i][1], context);
+    indexSets[i] = fetchIndex(pairs[i][1], context);
   }
   const coords = new PacioliCoordinates(names, indexSets);
   // added coords for b_Matrix_make_matrix
@@ -176,14 +176,14 @@ export function string(value: string): PacioliString {
 // 1. The Store
 // -----------------------------------------------------------------------------
 
-const cache: any = {};
+const cache: object = {};
 
 export function fetchValue(
   home: string,
   name: string,
   context: PacioliContext = defaultContext
-) {
-  return lookupItem(home + "_" + name, context);
+): RawValue {
+  return lookupItem<RawValue>(home + "_" + name, context);
 }
 
 export function fetchIndex(
@@ -192,20 +192,12 @@ export function fetchIndex(
 ): IndexSet {
   const indexSet = context.findIndexSet(id);
   if (indexSet == undefined) {
-    const computed = findFunction("compute_index_" + id)();
+    const computed = findFunction<IndexSet>("compute_" + id)();
     context.addIndexSet(computed);
     return computed;
   } else {
     return indexSet;
   }
-}
-
-export function fetchScalarBase(
-  id: string,
-  context: PacioliContext = defaultContext
-): SIBase {
-  console.log("who uses fetchScalarBase?");
-  return lookupItem("sbase_" + id, context);
 }
 
 export function fetchUnit(
@@ -244,7 +236,8 @@ export function fetchUnitVector(
 ): UnitVector {
   const vec = context.findUnitVector(id);
   if (vec == undefined) {
-    const unitObject = findFunction("compute_vbase_" + id)().units;
+    const unitObject = findFunction<{ units: any }>("compute_vbase_" + id)()
+      .units;
     const unitMap = new Map<string, SIUnit>();
     for (const [key, value] of Object.entries(unitObject)) {
       unitMap.set(key, internUnit(value as PacioliUnit, context));
@@ -257,94 +250,81 @@ export function fetchUnitVector(
   }
 }
 
-export function lookupItem(
+/**
+ * Gets a Pacioli item from the cache. If it is not found it computes the value
+ * and puts it in the cache.
+ *
+ * Values can be stored as a value or as a function that computes the value. The
+ * compiler generates both. Better to always generate functions instead of both
+ * mechanisms at the same time?!
+ *
+ * The T type is a temporary hack to clarify the usage of this function.
+ *
+ * @param full
+ * @param _context
+ * @returns
+ */
+export function lookupItem<T>(
   full: string,
   _context: PacioliContext = defaultContext
-) {
-  if (cache[full] == undefined) {
-    if (window["Pacioli" as any][full as any]) {
-      cache[full] = window["Pacioli" as any][full as any];
-    } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-      const fn = window["Pacioli" as any][("compute_" + full) as any];
-      if (typeof fn === "function") {
-        cache[full] = (fn as any)();
-      }
+): T {
+  // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
+  if (cache[full] === undefined) {
+    // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
+    const asValue = window["Pacioli"][full];
+
+    if (asValue) {
+      // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
+      cache[full] = asValue;
     } else {
-      throw new Error(
-        "no function found to compute Pacioli item '" + full + "'"
-      );
+      // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
+      cache[full] = findFunction<T>("compute_" + full)();
     }
   }
-  if (cache[full] === undefined || cache[full] === null) {
-    throw new Error(
-      "result of Pacioli item '" + full + "' computation is undefined"
-    );
-  }
-  return cache[full];
+
+  // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
+  return cache[full] as T;
 }
 
-export function lookupBase(
-  full: string,
-  context: PacioliContext = defaultContext
-) {
-  if (cache(full) == undefined) {
-    if (window["Pacioli" as any][full as any]) {
-      context.addIndexSet(window["Pacioli" as any][full as any] as any);
-    } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-      const fn = window["Pacioli" as any][("compute_" + full) as any];
-      if (typeof fn === "function") {
-        context.addIndexSet((fn as any)());
-      }
-    } else {
-      throw new Error(
-        "no function found to compute Pacioli item '" + full + "'"
-      );
-    }
-  }
-  if (
-    context.findIndexSet(full) === undefined ||
-    context.findIndexSet(full) === null
-  ) {
-    throw new Error(
-      "result of Pacioli item '" + full + "' computation is undefined"
-    );
-  }
-  return context.findIndexSet(full);
-}
-
+/**
+ * Only used in fetchUnit
+ */
 function computeItem(full: string): { symbol: string; definition?: DimNum } {
-  if (window["Pacioli" as any][full as any]) {
-    return window["Pacioli" as any][full as any] as any;
-  } else if (window["Pacioli" as any][("compute_" + full) as any]) {
-    const fn = window["Pacioli" as any][("compute_" + full) as any];
-    if (typeof fn === "function") {
-      return (fn as any)();
+  return findFunction<{ symbol: string; definition?: DimNum }>(
+    "compute_" + full
+  )();
+}
+
+/**
+ * Finds the generated javascript code for a PacioliValue.
+ *
+ * Note that a PacioliValue can also be stored as value.
+ *
+ * The T type is a temporary hack to clarify the usage of this function.
+ *
+ * @param name
+ * @returns
+ */
+function findFunction<T>(name: string): () => T {
+  if ("Pacioli" in window) {
+    const nameSpace = window["Pacioli"] as object;
+
+    // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
+    const fun = nameSpace[name] as unknown as () => T;
+
+    if (fun === undefined) {
+      throw new Error(`No function found to compute Pacioli item '${name}'`);
+    }
+    if (typeof fun === "function") {
+      return fun;
     } else {
       throw new Error(
-        "expected a function to compute Pacioli item '" + full + "'"
+        `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
       );
     }
   } else {
-    throw new Error("no function found to compute Pacioli item '" + full + "'");
-  }
-}
-
-function findFunction(name: string): () => any {
-  const nameSpace = window["Pacioli" as any];
-  if (nameSpace === undefined) {
     throw new Error(
       `No 'Pacioli' namespace found, cannot compute Pacioli item '${name}'`
-    );
-  }
-  const fun = nameSpace[name as any] as unknown as () => any;
-  if (fun === undefined) {
-    throw new Error(`No function found to compute Pacioli item '${name}'`);
-  }
-  if (typeof fun === "function") {
-    return fun;
-  } else {
-    throw new Error(
-      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
     );
   }
 }
