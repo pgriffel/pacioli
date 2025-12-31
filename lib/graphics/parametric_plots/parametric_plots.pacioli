@@ -18,16 +18,11 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 # ------------------------------------------------------------------------------
-# 3D graphics
+# Parametric Plots
 # ------------------------------------------------------------------------------
 
 import geometry;
-
-include color;
-include arrow;
-include scene;
-include mesh;
-include path;
+import graphics;
 
 export 
     plot_parametric_path,

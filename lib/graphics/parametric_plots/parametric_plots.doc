@@ -1,0 +1,30 @@
+<p>
+The `parametric_plots` library is part of the graphics library.
+
+<p>
+Example
+
+<pre>
+import geometry;
+import graphics;
+import graphics/parametric_plots;
+
+define plot =
+    begin
+        scene := empty_scene("plot");
+
+        fun := (u, v) -> vector3d(u,v, 1/(u*v));
+
+        range := make_range(-5, 5, -5, 5);
+
+        options := default_parametric_plot_options;
+        options := with_parametric_plot_options_n(50, options);
+        
+        scene := plot_parametric_surface(fun, range, options, scene);
+        scene := plot_parametric_surface_grid(fun, range, options, scene);
+
+        return scene;
+    end;
+</pre>
+
+ Use the `pacioli_scene` web-component to display the plot in a web-page.

@@ -19,7 +19,8 @@ test/**/*.js
 bundle.cmd
 pacioli.bat
 debug.options
-doc/
+doc/*
+!doc/index.html
 doc.sh
 samples/shock_tube/
 samples/commodity/

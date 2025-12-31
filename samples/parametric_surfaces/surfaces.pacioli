@@ -1,5 +1,6 @@
 import geometry;
 import graphics;
+import graphics/parametric_plots;
 
 define NORMAL_COLOR = make_color("green");
 define DELTA_COLOR = make_color("red");
