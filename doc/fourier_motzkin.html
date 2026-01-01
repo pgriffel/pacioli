@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>fourier_motzkin</title>
+</head>
+<body>
+<h1>The <code>fourier_motzkin</code> library</h1>
+<p>Interface for the <code>fourier_motzkin</code> library</p>
+<h2>Synopsis</h2>
+<pre>
+<a href="#fourier_motzkin">fourier_motzkin</a> :: for_index P, Q: for_unit a, P!u: (a*P!u per Q!) -> List(Q!)
+</pre>
+<h2>Functions</h2>
+<h3 id="fourier_motzkin">fourier_motzkin</h3>
+<p><code>:: for_index P, Q: for_unit a, P!u: (a*P!u per Q!) -> List(Q!)</code>
+
+<p>All nullifiers of the matrix. That is, all integer vectors <code>v</code>
+such that <code>matrix '*' v</code> is zero.
+<p>The matrix must be an integer matrix.
+<p>The algorithm is exponential in the row dimension and in the column dimension.
+<p><small>Version dev, 2025-12-31T18:34:20.706887400+01:00[Europe/Amsterdam]</small>
+</body>
+</html>

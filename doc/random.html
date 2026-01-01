@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>random</title>
+</head>
+<body>
+<h1>The <code>random</code> library</h1>
+<p>Interface for the <code>random</code> library</p>
+<h2>Synopsis</h2>
+<pre>
+<a href="#choose">choose</a> :: for_type a: (List(a)) -> List(a)
+<a href="#pick">pick</a> :: for_type t: (List(t)) -> t
+<a href="#random_nat">random_nat</a> :: (1) -> 1
+<a href="#sample">sample</a> :: for_type a: (List(a), 1) -> List(a)
+<a href="#shuffle">shuffle</a> :: for_type a: (List(a)) -> List(a)
+</pre>
+<h2>Functions</h2>
+<h3 id="choose">choose</h3>
+<p><code>:: for_type a: (List(a)) -> List(a)</code>
+
+<p>Random sublist/subset of the list. For each element it flips a coin to
+see whether it stays, or is removed.
+<h3 id="pick">pick</h3>
+<p><code>:: for_type t: (List(t)) -> t</code>
+
+<p>Picks a random elements from a list. Each element is equally likely.
+<h3 id="random_nat">random_nat</h3>
+<p><code>:: (1) -> 1</code>
+
+<p>Random natural number below n. Parameter n must be a non-zero natural number.
+<h3 id="sample">sample</h3>
+<p><code>:: for_type a: (List(a), 1) -> List(a)</code>
+
+<p>Random sublist/subset of a specific size. For each element it is equally 
+likely that it stays, or is removed.
+<h3 id="shuffle">shuffle</h3>
+<p><code>:: for_type a: (List(a)) -> List(a)</code>
+
+<p>A random permutation of a list. Each permutation is equally likely.
+<p><small>Version dev, 2026-01-01T18:13:18.440264+01:00[Europe/Amsterdam]</small>
+</body>
+</html>
