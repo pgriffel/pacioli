@@ -48,7 +48,7 @@ Manual for Pacioli 0.5
   - [Binding (let in)](expressions/binding)
   - [Imperative Blocks (begin end)](expressions/statements)
 - [Web Components](web-components/contents)
-  - [Introduction](introduction)
+  - [Introduction](web-components/introduction)
   - [pacioli-value](web-components/pacioli-value)
   - [pacioli-table](web-components/pacioli-table)
   - [pacioli-bar-chart](web-components/pacioli-bar-chart)
