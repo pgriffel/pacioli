@@ -60,8 +60,6 @@ export { PacioliContext } from "./context";
 
 export { DOM, DOMTable } from "./dom/dom";
 
-export { DOMTableColumns } from "./dom/table";
-
 export { IndexSet } from "./values/index-set";
 
 export { PacioliMatrix as Matrix } from "./values/matrix";

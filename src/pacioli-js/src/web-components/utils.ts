@@ -388,6 +388,7 @@ export function optionsFromScript<Options>(
   }
 
   const optionValue = computeWebComponentValue(element, "options");
+  // TODO: accept tuples?! Zie random_vec_histogram_options in web_components.pacioli
   if (optionValue.kind === "list") {
     const items = optionValue as PacioliList;
     const table = new Map<string, string | null>();

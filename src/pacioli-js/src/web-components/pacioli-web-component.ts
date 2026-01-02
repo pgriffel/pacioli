@@ -26,7 +26,11 @@ import {
   setParameterNodes,
 } from "./utils";
 import type { PacioliValue } from "../boxing";
-import type { Callable, ErrorOutput, PacioliWebComponentBase } from "./interfaces";
+import type {
+  Callable,
+  ErrorOutput,
+  PacioliWebComponentBase,
+} from "./interfaces";
 
 const TEMPLATE = document.createElement("template");
 
@@ -92,6 +96,14 @@ export abstract class PacioliWebComponent
 
   get decimals(): number {
     return this.getNumberAttribute("decimals", 0);
+  }
+
+  set ignoreDecimals(value: boolean) {
+    this.setBooleAttribute("ignoredecimals", value);
+  }
+
+  get ignoreDecimals(): boolean {
+    return this.getBooleAttribute("ignoredecimals");
   }
 
   /**

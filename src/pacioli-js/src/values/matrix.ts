@@ -31,6 +31,8 @@ import {
 import { MatrixShape } from "./matrix-shape";
 import type { RawCoordinates, RawMatrix } from "../value";
 import { STORAGE_COO } from "../value";
+import type { IndexSet } from "./index-set";
+import { TableData } from "../dom/table";
 
 /**
  * A matrix combines a shape and numbers.
@@ -85,169 +87,95 @@ export class PacioliMatrix {
     );
   }
 
+  public rowIndexSets(): IndexSet[] {
+    return this.shape.rowDimension.indexSets;
+  }
+
+  public columnIndexSets(): IndexSet[] {
+    return this.shape.columnDimension.indexSets;
+  }
+
   public keyValueList(zeros: boolean = false): {
     values: { row: string[]; column: string[]; value: DimNum }[];
     rows: string[];
     columns: string[];
   } {
-    // The key value list we will return
-    const kvList: { row: string[]; column: string[]; value: DimNum }[] = [];
-
-    if (zeros) {
-      // Get the full numbers
-      const full = getFullNumbers(this.numbers);
-
-      // Fill the list with all values
-      for (let i = 0; i < this.shape.nrRows(); i++) {
-        for (let j = 0; j < this.shape.nrColumns(); j++) {
-          kvList.push({
-            row: this.shape.rowCoordinates(i).names,
-            column: this.shape.columnCoordinates(j).names,
-            value: DimNum.fromNumber(full[i][j], this.shape.unitAt(i, j)),
-          });
-        }
-      }
-    } else {
-      // Get the COO numbers
-      const coo = getCOONumbers(this.numbers);
-      const rows = coo[0];
-      const columns = coo[1];
-      const values = coo[2];
-
-      // Fill the list with all non-zero values
-      for (let i = 0; i < rows.length; i++) {
-        if (values[i] !== 0) {
-          kvList.push({
-            row: this.shape.rowCoordinates(rows[i]).names,
-            column: this.shape.columnCoordinates(columns[i]).names,
-            value: DimNum.fromNumber(
-              values[i],
-              this.shape.unitAt(rows[i], columns[i])
-            ),
-          });
-        }
-      }
-    }
-
-    return {
-      values: kvList,
-      rows: this.shape.rowNames(),
-      columns: this.shape.columnNames(),
-    };
+    return matrixKeyValueList(this, zeros);
   }
 
   public number(): number {
     return getNumber(this.numbers, 0, 0);
   }
 
-  public toDecimal(decimals: number) {
-    function columnSize(rows: string[][], column: number) {
-      return rows
-        .map((row) => row[column].length)
-        .reduce((x, y) => Math.max(x, y), 0);
-    }
-
-    const shape = this.shape;
-    const num = this.numbers;
-
-    const rowOrder = shape.rowOrder();
-    const columnOrder = shape.columnOrder();
-
-    if (rowOrder === 0 && columnOrder === 0) {
-      const n = getNumber(num, 0, 0);
-      return n.toFixed(decimals) + "" + shape.unitAt(0, 0).toText();
-    } else {
-      const matrix = new PacioliMatrix(shape, num);
-      const rows = matrix.tableRows(decimals) as string[][];
-      const colSize0 = columnSize(rows, 0);
-
-      if (rowOrder > 0 && columnOrder > 0) {
-        const colSize1 = columnSize(rows, 1);
-        const colSize2 = columnSize(rows.slice(1), 2);
-        const text = rows
-          .map((row, i) => {
-            return i === 0
-              ? `${row[0].padEnd(colSize0, " ")} ${row[1].padEnd(
-                  colSize1,
-                  " "
-                )} ${row[2]}`
-              : `${row[0].padEnd(colSize0, " ")} ${row[1].padEnd(
-                  colSize1,
-                  " "
-                )} ${row[2].padStart(colSize2, " ")} ${row[3]}`;
-          })
-          .reduce((x, y) => `${x}${y}\n`, "");
-        return text;
-      } else {
-        const colSize1 = columnSize(rows.slice(1), 1);
-        const text = rows
-          .map((row, i) => {
-            return i === 0
-              ? `${row[0].padEnd(colSize0, " ")} ${row[1]}`
-              : `${row[0].padEnd(colSize0, " ")} ${row[1].padStart(
-                  colSize1,
-                  " "
-                )} ${row[2]}`;
-          })
-          .reduce((x, y) => `${x}${y}\n`, "");
-        return text;
-      }
-    }
+  public toDecimal(decimals: number, zero?: string) {
+    return this.tableData("Value").stringify(zero, [decimals], false).ascii();
   }
 
-  public tableRows(decimals: number): string[][] {
-    const shape = this.shape;
-    const numbers = this.numbers;
+  public tableData(header: string, showTotals: boolean = true): TableData {
+    return TableData.from(this, header, showTotals);
+  }
+}
 
-    const rowOrder = shape.rowOrder();
-    const columnOrder = shape.columnOrder();
+/**
+ * Helper for the Matrix type. All numbers in the matrix as key value list.
+ *
+ * @param matrix A Pacioli matrix
+ * @param zeros Should zero values be included? Can blow up tensors!
+ * @returns The matrix numbers as (row, column, value) triples, the
+ *          complete row index and the complete column index.
+ */
+export function matrixKeyValueList(
+  matrix: PacioliMatrix,
+  zeros: boolean = false
+): {
+  values: { row: string[]; column: string[]; value: DimNum }[];
+  rows: string[];
+  columns: string[];
+} {
+  // The key value list we will return
+  const kvList: { row: string[]; column: string[]; value: DimNum }[] = [];
 
-    const table: string[][] = [];
+  if (zeros) {
+    // Get the full numbers
+    const full = getFullNumbers(matrix.numbers);
 
-    let row: string[] = [];
-
-    if (0 < rowOrder) {
-      row.push(shape.rowName());
+    // Fill the list with all values
+    for (let i = 0; i < matrix.shape.nrRows(); i++) {
+      for (let j = 0; j < matrix.shape.nrColumns(); j++) {
+        kvList.push({
+          row: matrix.shape.rowCoordinates(i).names,
+          column: matrix.shape.columnCoordinates(j).names,
+          value: DimNum.fromNumber(full[i][j], matrix.shape.unitAt(i, j)),
+        });
+      }
     }
-    if (0 < columnOrder) {
-      row.push(shape.columnName());
-    }
-
-    row.push("Value");
-    row.push("");
-
-    table.push(row);
-
-    const coo = getCOONumbers(numbers);
+  } else {
+    // Get the COO numbers
+    const coo = getCOONumbers(matrix.numbers);
     const rows = coo[0];
     const columns = coo[1];
     const values = coo[2];
-    if (rows.length === 0) {
-      return [];
-    } else {
-      for (let i = 0; i < rows.length; i++) {
-        row = [];
-        if (0 < rowOrder) {
-          row.push(shape.rowCoordinates(rows[i]).names.toString());
-        }
-        if (0 < columnOrder) {
-          row.push(shape.columnCoordinates(rows[i]).names.toString());
-        }
 
-        row.push(values[i].toFixed(decimals));
-
-        const un = shape.unitAt(rows[i], columns[i]);
-        if (un.toText() === "1") {
-          row.push("");
-        } else {
-          row.push(un.toText());
-        }
-
-        table.push(row);
+    // Fill the list with all non-zero values
+    for (let i = 0; i < rows.length; i++) {
+      if (values[i] !== 0) {
+        kvList.push({
+          row: matrix.shape.rowCoordinates(rows[i]).names,
+          column: matrix.shape.columnCoordinates(columns[i]).names,
+          value: DimNum.fromNumber(
+            values[i],
+            matrix.shape.unitAt(rows[i], columns[i])
+          ),
+        });
       }
     }
-    return table;
   }
+
+  return {
+    values: kvList,
+    rows: matrix.shape.rowNames(),
+    columns: matrix.shape.columnNames(),
+  };
 }
 
 /**

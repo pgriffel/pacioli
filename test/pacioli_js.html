@@ -23,16 +23,37 @@
     <p>
         Test of the pacioli-value web component
     <p>
-        <pacioli-value definition="web_components:wordcloud">
+        <pacioli-value definition="web_components:pair_list">
         </pacioli-value>
+
+    <p>
+        Value with 10 decimals
+        <pacioli-value definition="web_components:pair_list" decimals="10">
+        </pacioli-value>
+
+    <p>
+        Value added from js.
+        Nr decimals: <input id="decs" type="number" value="5"></input>
+        <button onclick="onAddPairList()">add</button>
+        <span id="pair-list"></span>
 
 
     <h2>Pacioli table</h2>
     <p>
         Test of the pacioli-table web component
+
     <p>
-        <pacioli-table definition="web_components:test_columns">
+        <pacioli-table definition="web_components:commodity_columns" totals ignoredecimals>
         </pacioli-table>
+
+
+    <p>
+        <pacioli-table definition="web_components:test_columns" totals>
+        </pacioli-table>
+
+    <p>
+        <pacioli-value definition="web_components:test_columns" totals>
+        </pacioli-value>
 
     <table>
         <tr>
@@ -165,6 +186,9 @@
 
 
     <div class="example">
+        <pacioli-value definition="web_components:random_vec_histogram_options">
+            <parameter label="n">100</parameter>
+        </pacioli-value>
 
         <pacioli-histogram id="dice1" unit="1" definition="web_components:randomNatVec" lower="0" upper="50"
             options="web_components:random_vec_histogram_options" nbins="10" label="n test" decimals="2" gap="1.0"
@@ -366,6 +390,20 @@
 </body>
 
 <script>
+
+    function onAddPairList() {
+        const decs = document.getElementById("decs")
+
+        const slot = document.getElementById("pair-list")
+
+        const newElt = document.createElement("pacioli-value")
+
+        slot.appendChild(newElt)
+
+        newElt.definition = "web_components:pair_list"
+
+        newElt.decimals = decs.value
+    }
 
     function addChart() {
 

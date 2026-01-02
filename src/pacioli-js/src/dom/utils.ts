@@ -41,12 +41,3 @@ export function toFixed(
 export function unitToText(unit: SIUnit, empty: boolean): string {
   return empty || unit.isDimensionless() ? " " : unit.toText();
 }
-
-export function firstDefined<T>(...args: T[]): T | undefined {
-  for (const arg of args) {
-    if (arg !== undefined && arg !== null) {
-      return arg;
-    }
-  }
-  return undefined;
-}

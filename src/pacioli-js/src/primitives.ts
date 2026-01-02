@@ -1524,7 +1524,7 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
   return output;
 }
 
-let NR_DECIMALS = 2;
+export let NR_DECIMALS = 2;
 let PRECISION = 14;
 
 export function $base_system__nr_decimals(): RawMatrix {
