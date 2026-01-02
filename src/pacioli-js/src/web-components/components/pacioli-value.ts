@@ -126,6 +126,11 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Web component field.
+   */
+  static observedAttributes = ["definition", "decimals"];
+
+  /**
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
@@ -135,7 +140,7 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
 
       // Refresh the html
       this.clearContent();
-      this.contentParent().appendChild(DOM(data));
+      this.contentParent().appendChild(DOM(data, this.elementOptions()));
     } catch (err: unknown) {
       this.displayError(err instanceof Error ? err.message : String(err));
     }
@@ -146,7 +151,7 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
    *
    * @returns An object with only the entries that are found in the attributes.
    */
-  chartOptions(): Partial<{
+  elementOptions(): Partial<{
     decimals?: number;
     zero?: string;
     zeroRows?: boolean;
