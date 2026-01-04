@@ -28,7 +28,6 @@ import type { IndexSet } from "../src/values/index-set.js";
 import { MatrixDimension } from "../src/values/matrix-dimension.js";
 import { UOM } from "uom-ts";
 import { initialNumbers } from "../src/cache.js";
-import { DOMTableColumns } from "../src/dom/table.js";
 
 /**
  * A fast check Arbitrary for the {@link Shape} class.
@@ -53,24 +52,32 @@ describe("DOM", () => {
       );
       const numbers = initialNumbers(personSet.size(), 1, [
         [0, 0, 1],
+        // eslint-disable-next-line no-loss-of-precision
         [1, 0, 1.234567890123456789],
+        // eslint-disable-next-line no-loss-of-precision
         [2, 0, 1234567890.123456789],
       ]);
 
-      const column0 = {
-        title: "Foo",
-        value: new PacioliMatrix(shape, numbers),
-        decimals: 2,
-      };
+      const matrix = new PacioliMatrix(shape, numbers);
 
-      const domTable = new DOMTableColumns([column0]);
+      const tableData = matrix.tableData("Value");
 
-      expect(domTable.toClipboardText()).toEqual(`Person\tFoo
+      const stringified = tableData.stringify("0", [2], false);
+
+      expect(tableData.clipboardText()).toEqual(`Person\tValue
 Jack\t1
 Jill\t1.2345678901234567
 Jane\t1234567890.1234567
 John\t0
 Jennifer\t0`);
+
+      expect(stringified.ascii()).toEqual(`Person           Value 
+Jack              1.00 
+Jill              1.23 
+Jane     1234567890.12 
+John                 0 
+Jennifer             0 
+`);
     });
   });
 });
