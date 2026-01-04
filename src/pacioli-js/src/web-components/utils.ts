@@ -174,9 +174,9 @@ export function addParametersObserver(
 export function parseParameterNode(
   parameterNode: HTMLElement
 ): PacioliParameter {
-  const label = parameterNode.getAttribute("label") || "n/a";
-  const type = parameterNode.getAttribute("type") || "number";
-  const unit = parameterNode.getAttribute("unit") || "1";
+  const label = parameterNode.getAttribute("label") ?? "n/a";
+  const type = parameterNode.getAttribute("type") ?? "number";
+  const unit = parameterNode.getAttribute("unit") ?? "1";
   const value = parameterNode.innerText;
 
   try {
@@ -248,7 +248,7 @@ export function attachedPacioliWebComponent(
   element: HTMLElement
 ): PacioliWebComponent | null {
   const elementId = element.getAttribute("for");
-  return elementId ? getPacioliWebComponentById(elementId) : null;
+  return elementId !== null ? getPacioliWebComponentById(elementId) : null;
 }
 
 /**

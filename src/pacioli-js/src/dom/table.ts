@@ -436,7 +436,7 @@ function stringifyTableData(
       row: value.row.map((cell, col) => {
         return {
           magnitude:
-            cell.magnitude.isZero() && zeroString
+            cell.magnitude.isZero() && zeroString !== undefined
               ? zeroString
               : omitDecimals
               ? cell.magnitude.toFixed()
@@ -453,7 +453,7 @@ function stringifyTableData(
     }
     return {
       magnitude:
-        cell.magnitude.isZero() && zeroString
+        cell.magnitude.isZero() && zeroString !== undefined
           ? zeroString
           : omitDecimals
           ? cell.magnitude.toFixed()
