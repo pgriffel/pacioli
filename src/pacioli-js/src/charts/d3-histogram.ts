@@ -20,8 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type {
-  DefaultChartOptions} from "./chart-utils";
+import type { DefaultChartOptions } from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
@@ -34,7 +33,7 @@ import { DimNum } from "uom-ts";
 import type { PacioliValue } from "../boxing";
 import type { PacioliContext } from "../context";
 import { displayChartError } from "./chart-utils";
-import type { BandChartData} from "./chart-data";
+import type { BandChartData } from "./chart-data";
 import { bandChartData } from "./chart-data";
 import * as d3 from "d3";
 import { parseUnit } from "../api";
@@ -376,14 +375,10 @@ function appendHistogram(
     .attr("x", options.gap)
     // .attr("width", binWidth)
     .attr("width", (d) => {
-      return (
-        (d3.max([
-          0,
-          domain(d.x1 as number) - domain(d.x0 as number),
-        ]) as number) -
-        2 * options.gap +
-        1
-      );
+      return d3.max([
+        0,
+        domain(d.x1 as number) - domain(d.x0 as number) - 2 * options.gap + 1,
+      ]) as number;
     })
     .attr("height", function (d) {
       return height - range(d.length);
