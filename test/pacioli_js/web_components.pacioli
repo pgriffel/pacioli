@@ -192,8 +192,10 @@ define test_columns() =
         tuple("Population", c2 '.*' population, just(2)),
         tuple("Density", population/land_area, 3, true, just(12 * |people/kilo:metre^2|)),
         tuple("Density", population/land_area, just(3), just(true), just(12 * |people/kilo:metre^2|)),
-        with_table_column_total(just(12 * |people/kilo:metre^2|), default_table_column("Density", population/land_area)),
-        make_table_column("Density", population/land_area, 3*|decimals|, false, just(12 * |people/kilo:metre^2|)));
+        with_column_total(just(12 * |people/kilo:metre^2|), default_column("Density", population/land_area)),
+        with_column_total(just(total(population)/total(land_area)), default_column("Density", population/land_area)),
+        default_column_with_total("Density", population/land_area, total(population)/total(land_area)),
+        make_column("Density", population/land_area, 3*|decimals|, false, just(12 * |people/kilo:metre^2|)));
 
 defconv c1 :: mega:metre/kilo:metre;
 defconv c2 :: mega:people/people;
@@ -211,16 +213,27 @@ define population_pairs = [
     tuple("Oceania" , 44491724 * |people|)
 ];
 
-defrecord for_index P: for_unit a, b, P!u:
-    TableColumn(a, P!u, b) as table_column where
-        header: String,
-        value: a*P!u,
-        decimals: decimals,
-        show_total: Boole,
-        total: Maybe(b);
+# # ------------------------------------------------------------------------------
+# # The Column Type
+# # ------------------------------------------------------------------------------
 
-define default_table_column(header, value) =
-    make_table_column(header, value, 2*|decimals|, true, nothing());
+# doc Column
+#     "A column for the pacioli-table web-component. The component expects a 
+#     tuple of these columns.";
+
+# defrecord for_index P: for_unit a, b, P!u:
+#     Column(a, P!u, b) as column where
+#         header: String,
+#         value: a*P!u,
+#         decimals: decimals,
+#         show_total: Boole,
+#         total: Maybe(b);
+
+# declare default_column :: for_index P: for_unit a, P!u, b:
+#     (String, a*P!u) -> Tuple(String, a*P!u, decimals, Boole, Maybe(b));
+
+# define default_column(header, value) =
+#     make_column(header, value, 2*|decimals|, true, nothing());
 
 # ------------------------------------------------------------------------------
 # Cubes I - My nice scene!
