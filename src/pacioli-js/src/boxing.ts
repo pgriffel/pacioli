@@ -118,7 +118,9 @@ export function boxRawValue(
         const val = (value as RawMaybe).value;
         return new PacioliMaybe(
           type,
-          val ? boxRawValue(val, type.items[0], context) : undefined
+          val === undefined
+            ? undefined
+            : boxRawValue(val, type.items[0], context)
         );
       } else if (type.name === "List") {
         if (typeof value === "object") {
