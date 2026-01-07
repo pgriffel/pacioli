@@ -128,13 +128,13 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      // Reload the data if the definition changes. The initial load is done in
-      // parametersChanged.
-      if (name === "definition" && this.data !== undefined) {
-        this.data = this.fetchData();
-      }
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
 
-      if (this.contentParent() && this.data) {
         this.drawTable(this.data);
       }
     } catch (err: unknown) {
@@ -146,13 +146,9 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    try {
-      this.data = this.fetchData();
+    this.data = this.fetchData();
 
-      this.drawTable(this.data);
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
+    this.drawTable(this.data);
   }
 
   drawTable(value: PacioliValue) {

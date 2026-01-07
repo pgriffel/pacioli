@@ -21,10 +21,10 @@
  */
 
 import type { VectorBase } from "./vector-base";
-import { UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import type { IndexSet } from "./index-set";
 import { MatrixDimension } from "./matrix-dimension";
-import type { SIVector } from "./matrix-shape";
+import { SIVector } from "./matrix-shape";
 import { MatrixShape } from "./matrix-shape";
 
 export class PacioliCoordinates {
@@ -67,7 +67,7 @@ export class PacioliCoordinates {
     if (n === 0) {
       return "_";
     } else {
-      const names = new Array(n);
+      const names = new Array(n) as string[];
       for (let i = 0; i < n; i++) {
         names[i] = this.indexSets[i].name + "@" + this.names[i];
       }
@@ -119,28 +119,28 @@ export class PacioliCoordinates {
 
   public shape() {
     return new MatrixShape(
-      UOM.ONE,
+      SIUnit.ONE,
       new MatrixDimension(this.indexSets),
-      UOM.ONE,
+      SIVector.ONE,
       MatrixDimension.empty(),
-      UOM.ONE
+      SIVector.ONE
     );
   }
 
-  public findIndividualUnit(unit: SIVector) {
+  public findIndividualUnit(unit: SIVector): SIUnit {
     const names = this.names;
 
     const vecBaseItem = (base: VectorBase, order: number) => {
-      if (base.position == order) {
+      if (base.position === order) {
         const vec = base.vector;
         const pos = names[order];
         return vec.get(base.vector.indexSet.position(pos));
       } else {
-        return UOM.ONE;
+        return SIUnit.ONE;
       }
     };
 
-    let newUnit = UOM.ONE;
+    let newUnit = SIUnit.ONE;
     for (let i = 0; i < this.order(); i++) {
       newUnit = newUnit.mult(
         unit.map((base) => {

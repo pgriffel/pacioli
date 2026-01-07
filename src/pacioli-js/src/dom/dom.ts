@@ -59,10 +59,10 @@ export function DOM(
             .tableData("Value")
             .stringify(
               options?.zero,
-              [options?.decimals || NR_DECIMALS],
-              options?.ignoredecimals || false
+              [options?.decimals ?? NR_DECIMALS],
+              options?.ignoredecimals ?? false
             )
-            .dom(options?.totals || false);
+            .dom(options?.totals ?? false);
         } else {
           // hack to debug without shape info via print en printed
           return document.createTextNode(getFullNumbers(x) as any);
@@ -129,7 +129,7 @@ export function DOMTable(
   }>
 ) {
   const decs = columns.map((column) => {
-    return column.decimals || options.decimals || NR_DECIMALS;
+    return column.decimals ?? options.decimals ?? NR_DECIMALS;
   });
 
   return mergeTableDatas(
@@ -142,6 +142,6 @@ export function DOMTable(
       )
     )
   )
-    .stringify(options.zero, decs, options.ignoredecimals || false)
-    .dom(options.totals || false);
+    .stringify(options.zero, decs, options.ignoredecimals ?? false)
+    .dom(options.totals ?? false);
 }

@@ -37,38 +37,22 @@ type PacioliEquation =
 
 class TypeEquation {
   readonly kind = "typeeq";
-  constructor(public lhs: PacioliType, public rhs: PacioliType) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliType, public rhs: PacioliType) {}
 }
 
 class UnitEquation {
   readonly kind = "uniteq";
-  constructor(public lhs: PacioliUnit, public rhs: PacioliUnit) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliUnit, public rhs: PacioliUnit) {}
 }
 
 class VectorEquation {
   readonly kind = "vectoreq";
-  constructor(public lhs: PacioliVector, public rhs: PacioliVector) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliVector, public rhs: PacioliVector) {}
 }
 
 class IndexEquation {
   readonly kind = "indexeq";
-  constructor(public lhs: PacioliIndex, public rhs: PacioliIndex) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliIndex, public rhs: PacioliIndex) {}
 }
 
 export function matchTypes(x: PacioliType, y: PacioliType) {
@@ -178,7 +162,7 @@ function matchUnits<T extends PacioliBase>(
   x: UOM<T>,
   y: UOM<T>
 ): Map<string, UOM<T>> {
-  return x.equals(y) ? new Map() : unitMatch(x.div(y));
+  return x.equals(y) ? new Map<string, UOM<T>>() : unitMatch(x.div(y));
 }
 
 function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
@@ -200,7 +184,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   // fail or return the empty map
   if (varBases.length === 0) {
     if (fixedBases.length !== 0) {
-      throw "Contradiction in unit match: 1 = " + unit.toText();
+      throw Error("Contradiction in unit match: 1 = " + unit.toText());
     }
     return map;
   }
@@ -212,10 +196,11 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   // If it's the only one, then we are done. Either fail, or bind the var
   // to the proper unit and return the map.
   if (varBases.length === 1) {
-    let rest = UOM.ONE;
+    let rest = UOM.ONE as UOM<T>;
     fixedBases.forEach((base) => {
       const fixedPower = unit.power(base);
-      if (fixedPower % power !== 0) throw "unit error in unit " + unit.toText();
+      if (fixedPower % power !== 0)
+        throw Error("unit error in unit " + unit.toText());
       rest = rest.mult(UOM.fromBase(base).expt(-fixedPower / power));
     });
 
@@ -232,10 +217,10 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   });
 
   // Recurse on the unit variable with the smallest power
-  let rest = UOM.ONE;
+  let rest = UOM.ONE as UOM<T>;
   const minPower = unit.power(minVar);
   unit.bases().forEach((base) => {
-    if (base != minVar) {
+    if (base !== minVar) {
       rest = rest
         .mult(UOM.fromBase(base))
         .expt(-Math.floor(unit.power(base) / minPower));
@@ -287,7 +272,7 @@ export function collectTypeEquations(
     eqs.push(new TypeEquation(x.to, y.to));
     return eqs;
   }
-  throw "cannot match: kind " + x.kind + " and " + y.kind;
+  throw Error("cannot match: kind " + x.kind + " and " + y.kind);
 }
 
 function subsIndex(

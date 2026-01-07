@@ -52,7 +52,7 @@ export function arrowName(arrow: PacioliArrow): string {
 }
 
 export function addArrow(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   arrow: PacioliArrow,
   options: {
     labelColor: string;
@@ -74,7 +74,7 @@ export function addArrow(
 }
 
 export function updateArrow(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   pacioliArrow: PacioliArrow,
   options: {
     unitX: SIUnit;
@@ -88,7 +88,9 @@ export function updateArrow(
 
   if (name.value !== "") {
     // Update the arrow helper
-    const arrow = body.getObjectByName(name.value) as THREE.ArrowHelper;
+    const arrow = body.getObjectByName(name.value) as
+      | THREE.ArrowHelper
+      | undefined;
 
     if (arrow) {
       const [dirVec, vectorLength] = arrowDirectionAndLength(to, options);
@@ -102,10 +104,9 @@ export function updateArrow(
     }
 
     // Update the label
-    const labelObj = body.getObjectByName(name.value + "_label") as THREE.Mesh<
-      THREE.PlaneGeometry,
-      THREE.MeshBasicMaterial
-    >;
+    const labelObj = body.getObjectByName(name.value + "_label") as
+      | THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
+      | undefined;
 
     if (labelObj) {
       const labelPos = vector2THREE(from, options).add(

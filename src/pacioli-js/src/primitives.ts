@@ -21,7 +21,7 @@
  */
 
 import numeric from "numeric";
-import { UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { initialNumbers, oneNumbers, printValue, zeroNumbers } from "./cache";
 import type { FULL_MATRIX } from "./values/numbers";
 import {
@@ -51,6 +51,7 @@ import type {
 } from "./value";
 import {
   NOTHING,
+  rawValueLabel,
   STORAGE_CCS,
   STORAGE_FULL,
   tagArray,
@@ -77,7 +78,7 @@ import { EigenvalueDecomposition } from "./linear-algebra/eigenvalue-decompositi
 // See note in numbers.ts
 const USE_CCS = false;
 
-export const ONE = UOM.ONE;
+export const ONE = SIUnit.ONE;
 
 export const prefix = {
   yotta: { symbol: "Y", factor: Math.pow(10, 24) },
@@ -129,7 +130,7 @@ export function $base_base__new_ref(value: RawValue): RawRef {
 }
 
 export function $base_base__empty_ref(): RawRef {
-  return tagRef(new Array(1));
+  return tagRef(new Array<RawValue>(1));
 }
 
 export function $base_base__ref_set(ref: RawRef, value: RawValue): RawRef {
@@ -150,9 +151,10 @@ export function $base_base_error(value: RawString): unknown {
 }
 
 export function $base_base_try_catch(code: RawFunction, handler: RawFunction) {
+  // dev switch to debug exceptions in a catch block
   const DEV_SWITCH = false;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (DEV_SWITCH) {
-    // dev switch to debug exceptions in a catch block
     return code();
   } else {
     try {
@@ -193,7 +195,7 @@ export function $base_base_not_equal(x: RawValue, y: RawValue): RawBoole {
 export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
   // if (x.kind !== y.kind) return false;
 
-  if (x == y) {
+  if (x === y) {
     return true;
   } else if (typeof x === "string" || typeof y === "string") {
     return x === y;
@@ -249,7 +251,7 @@ export function $base_io_print(x: RawValue): PacioliVoid {
 export function $base_matrix_is_zero(x: RawMatrix): RawBoole {
   const values = getCOONumbers(x)[2];
   for (let i = 0; i < values.length; i++) {
-    if (values[i] != 0) return false;
+    if (values[i] !== 0) return false;
   }
   return true;
 }
@@ -312,7 +314,7 @@ export function $base_matrix_column(
 
 export function $base_matrix_column_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrColumns;
-  const domain = new Array(n);
+  const domain = new Array<RawValue>(n);
   for (let i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
@@ -483,7 +485,7 @@ export function $base_matrix_right_identity(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_reciprocal(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
-    return val == 0 ? 0 : 1 / val;
+    return val === 0 ? 0 : 1 / val;
   });
 }
 
@@ -581,13 +583,13 @@ export function $base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
       a = b;
       b = temp;
     }
-    if (a == 0) return b;
-    if (b == 0) return a;
+    if (a === 0) return b;
+    if (b === 0) return a;
     while (true) {
       a %= b;
-      if (a == 0) return b;
+      if (a === 0) return b;
       b %= a;
-      if (b == 0) return a;
+      if (b === 0) return a;
     }
   });
 }
@@ -1212,7 +1214,7 @@ export function $base_matrix_cholesky_decomposition(A: RawMatrix): RawMatrix {
 
   const L: number[][] = decomposition.getL();
 
-  return tagNumbers(L, m, n, STORAGE_FULL) as RawMatrix;
+  return tagNumbers(L, m, n, STORAGE_FULL);
 }
 
 export function $base_matrix_random(): RawMatrix {
@@ -1268,7 +1270,7 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
 }
 
 export function $base_list_zip(x: RawList, y: RawList): RawList {
-  const list = new Array(Math.min(x.length, y.length));
+  const list = new Array<RawValue>(Math.min(x.length, y.length));
   for (let i = 0; i < list.length; i++) {
     list[i] = tagTuple([x[i], y[i]]);
   }
@@ -1276,7 +1278,7 @@ export function $base_list_zip(x: RawList, y: RawList): RawList {
 }
 
 export function $base_list_map_list(fun: RawFunction, items: RawList): RawList {
-  const list = tagList(new Array(items.length));
+  const list = tagList(new Array<RawValue>(items.length));
   for (let i = 0; i < items.length; i++) {
     list[i] = fun(items[i]);
   }
@@ -1297,7 +1299,7 @@ export function $base_list_reverse(x: RawList): RawList {
 }
 
 export function $base_list_tail(x: RawList): RawList {
-  const array = new Array(x.length - 1);
+  const array = new Array<RawValue>(x.length - 1);
   for (let i = 0; i < array.length; i++) {
     array[i] = x[i + 1];
   }
@@ -1314,7 +1316,7 @@ export function $base_list_nth(x: RawMatrix, y: RawList): RawValue {
 
 export function $base_list_naturals(num: RawMatrix): RawList {
   const n = getNumber(num, 0, 0);
-  const list = new Array(n);
+  const list = new Array<RawValue>(n);
   for (let i = 0; i < n; i++) {
     list[i] = initialNumbers(1, 1, [[0, 0, i]]);
   }
@@ -1345,7 +1347,7 @@ export function $base_list_fold_list(
   fun: RawFunction,
   list: RawList
 ): RawValue {
-  if (list.length == 0) {
+  if (list.length === 0) {
     throw new Error("Cannot fold an empty list");
   }
   let accu = list[0];
@@ -1390,7 +1392,9 @@ export function $base_list_empty_list(): RawList {
 export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
   if (typeof formatter !== "string") {
     throw new Error(
-      `Illegal format string. The first argument to format must be a string. Found: \n\n${formatter}`
+      `Illegal format string. The first argument to format must be a string. Found: \n\n${rawValueLabel(
+        formatter
+      )}`
     );
   }
 
@@ -1430,7 +1434,7 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
         if (typeof arg === "object" && arg.kind === "coordinates") {
           out += arg.position;
         } else {
-          out += arg;
+          out += arg.toString(); // TODO fix this
         }
         i += 2;
       } else if (secondChar === "n") {
@@ -1634,7 +1638,7 @@ export function $base_system__system_time(): RawMatrix {
 }
 
 export function $base_array_make_array(n: RawMatrix): RawArray {
-  return tagArray(new Array(getNumber(n, 0, 0)));
+  return tagArray(new Array<RawValue>(getNumber(n, 0, 0)));
 }
 
 export function $base_array_array_get(arr: RawArray, pos: RawMatrix): RawValue {

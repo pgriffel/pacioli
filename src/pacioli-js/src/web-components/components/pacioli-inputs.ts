@@ -119,9 +119,9 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
     // Add input rows to the parameter table and follow the attached component
     setTimeout(() => {
       // Connect the apply button handler
-      this.findElement(".apply").addEventListener("click", () =>
-        this.applyButtonClicked()
-      );
+      this.findElement(".apply").addEventListener("click", () => {
+        this.applyButtonClicked();
+      });
 
       if (attachedPacioliWebComponent(this)) {
         this.createAndAppendTableRows();
@@ -166,7 +166,9 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
       return createParameterInputs(
         parameterNodes(scene).map(parseParameterNode),
         !this.hasAttribute("calm"),
-        () => this.applyButtonClicked()
+        () => {
+          this.applyButtonClicked();
+        }
       );
     } else {
       return [];
@@ -238,6 +240,7 @@ function createParameterInputs(
       if (booleansImmediate && parameter.type === "boole") {
         inputElement.addEventListener("change", (event) => {
           const TRIGGER_ON_CHANGE = true;
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (TRIGGER_ON_CHANGE) {
             event.preventDefault();
             enterKeyCallback();

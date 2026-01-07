@@ -96,7 +96,9 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
     // Set the inputs initially to the values from the heuristic. After initial
     // construction we don't touch the users input. Delay the call to make sure
     // the inputs exist.
-    setTimeout(() => this.updateInputs(), 1);
+    setTimeout(() => {
+      this.updateInputs();
+    }, 1);
   }
 
   /**
@@ -187,11 +189,11 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
   }
 
   private inputElement(className: string): HTMLInputElement {
-    return this.findElement(`${className}`) as HTMLInputElement;
+    return this.findElement(className) as HTMLInputElement;
   }
 
   private buttonElement(className: string): HTMLButtonElement {
-    return this.findElement(` ${className}`) as HTMLButtonElement;
+    return this.findElement(className) as HTMLButtonElement;
   }
 }
 

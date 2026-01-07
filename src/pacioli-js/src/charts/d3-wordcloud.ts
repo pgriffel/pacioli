@@ -95,7 +95,10 @@ export class WordCloud {
         .attr("height", h)
         .attr("class", "pacioli wordcloud")
         .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`
+        );
 
       const layout = cloud<{ text: string; size: number }>()
         .size([w, h])
@@ -137,31 +140,30 @@ export class WordCloud {
           .append("g")
           .attr(
             "transform",
-            "translate(" +
-              layout.size()[0] / 2 +
-              "," +
-              layout.size()[1] / 2 +
-              ")"
+            `translate(${(layout.size()[0] / 2).toString()},${(
+              layout.size()[1] / 2
+            ).toString()})`
           )
           .selectAll("text")
           .data(words)
           .enter()
           .append("text")
           .style("font-size", function (d) {
-            return d.size + "px";
+            return d.size.toString() + "px";
           })
           .style("font-family", "Impact")
           .attr("text-anchor", "middle")
           .attr("transform", function (d) {
-            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            return `translate(${d.x.toString()},${d.y.toString()})rotate(${d.rotate.toString()})`;
           })
           .text(function (d) {
             return d.text;
           })
           .on("click", (_, d) => {
-            if (options.onclick) {
+            const handler = options.onclick;
+            if (handler) {
               setTimeout(() => {
-                options.onclick!({
+                handler({
                   value: d.text,
                   size: d.size,
                   options: options,

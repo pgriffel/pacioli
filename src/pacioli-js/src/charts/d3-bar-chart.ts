@@ -24,9 +24,7 @@ import * as d3 from "d3";
 import { DimNum } from "uom-ts";
 import type { PacioliValue } from "../boxing";
 import type { PacioliContext } from "../context";
-import type {
-  DefaultChartOptions,
-  Margin} from "./chart-utils";
+import type { DefaultChartOptions, Margin } from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
@@ -34,7 +32,7 @@ import {
   displayChartError,
   parseMargin,
 } from "./chart-utils";
-import type { BandChartData} from "./chart-data";
+import type { BandChartData } from "./chart-data";
 import { bandChartData } from "./chart-data";
 import { ToolTip } from "./chart-utils";
 import { parseUnit } from "../api";
@@ -169,7 +167,7 @@ export class BarChart {
   public draw(parent: HTMLElement): void {
     try {
       const unit =
-        this.options.unit && this.options.unit !== ""
+        this.options.unit !== undefined && this.options.unit !== ""
           ? parseUnit(this.options.unit)
           : undefined;
 
@@ -204,7 +202,7 @@ export class BarChart {
 
         inner.attr(
           "transform",
-          "translate(" + margin.left + "," + margin.top + ")"
+          `translate(${margin.left.toString()},${margin.top.toString()})`
         );
 
         appendBarChart(inner, input, margin, this.options);
@@ -215,11 +213,10 @@ export class BarChart {
       // Add the caption above all other elements
       appendChartCaption(svg, this.options);
     } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing bar chart '" + this.options.caption + "':",
-        err
-      );
+      const labelText =
+        this.options.caption === undefined ? "" : ` '${this.options.caption}'`;
+
+      displayChartError(parent, `While drawing bar chart${labelText}:`, err);
     }
   }
 }
@@ -247,14 +244,14 @@ function appendBarChart(
   // TODO: why do data.min and data.max not work? Bars get shifted.
   const yMin = Math.min(
     0,
-    options.ylower ||
+    options.ylower ??
       (d3.min(data.entries, function (d) {
         return d.value;
       }) as number)
   );
   const yMax = Math.max(
     0,
-    options.yupper ||
+    options.yupper ??
       (d3.max(data.entries, function (d) {
         return d.value;
       }) as number)
@@ -287,7 +284,7 @@ function appendBarChart(
   const xAxisElt = inner
     .append("g")
     // .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
+    .attr("transform", `translate(0,${height.toString()})`)
     .attr("shape-rendering", "crispEdges");
 
   const rotation = 0;
@@ -299,7 +296,7 @@ function appendBarChart(
     // do this if rotation != 0?
     // .style("text-anchor", "end")
     .attr("transform", function (_) {
-      return `rotate(${rotation})`;
+      return `rotate(${rotation.toString()})`;
     });
 
   const xlabel =
@@ -328,9 +325,9 @@ function appendBarChart(
     .append("rect")
     .attr("class", "bar")
     .attr("x", (d) => {
-      return x(d.label)!;
+      return x(d.label) ?? 0;
     })
-    .attr("width", x.bandwidth)
+    .attr("width", x.bandwidth())
     .attr("y", (d) => {
       return Math.min(y(0), y(d.value)); // related to above todo: why min with 0?
     })
@@ -338,19 +335,18 @@ function appendBarChart(
       return Math.abs(y(0) - y(d.value)); // idem
     })
     .on("click", (_, d) => {
-      if (options.onclick) {
+      const handler = options.onclick;
+
+      if (handler) {
         tooltip.hide();
+
         // Without the timeout the display: none does not have an effect
         setTimeout(() => {
-          options.onclick!(
-            DimNum.fromNumber(d.value, data.unit),
-            d.label,
-            options
-          );
+          handler(DimNum.fromNumber(d.value, data.unit), d.label, options);
         }, 0);
       }
     })
-    .on("mouseover", (event, d) => {
+    .on("mouseover", (event: MouseEvent, d) => {
       if (options.tooltip) {
         tooltip.show(
           options.tooltip(
@@ -363,14 +359,18 @@ function appendBarChart(
         );
       }
     })
-    .on("mouseout", () => tooltip.hide());
+    .on("mouseout", () => {
+      tooltip.hide();
+    });
 
   // Add the y axis label to the inner group
-  const yUnitText = data.unit.toText();
+  const labelText = options.ylabel === undefined ? "" : `${options.ylabel} `;
+  const yUnitText = `[${data.unit.toText()}]`;
+
   yAxisElt
     .append("text")
     .attr("x", -16)
     .attr("y", -16)
     .style("text-anchor", "start")
-    .text(options.ylabel + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
+    .text(labelText + yUnitText);
 }

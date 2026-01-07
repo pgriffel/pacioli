@@ -118,7 +118,7 @@ export class Histogram {
     try {
       // Get the data in the asked unit of measurement
       const unit =
-        this.options.unit && this.options.unit !== ""
+        this.options.unit !== undefined && this.options.unit !== ""
           ? parseUnit(this.options.unit)
           : undefined;
 
@@ -156,7 +156,7 @@ export class Histogram {
           .append("g")
           .attr(
             "transform",
-            "translate(" + margin.left + "," + margin.top + ")"
+            `translate(${margin.left.toString()},${margin.top.toString()})`
           );
 
         // Check the existence of options for the bin calculation.
@@ -179,12 +179,14 @@ export class Histogram {
           : binSize(data.entries, lower, upper, this.options.heuristic);
 
         if (nrBins <= 0) {
-          throw Error(`number of bins ${nrBins} must be a positive number`);
+          throw Error(
+            `number of bins ${nrBins.toString()} must be a positive number`
+          );
         }
 
         if (upper < lower) {
           throw Error(
-            `upper limit ${upper} must at least as large as the lower limit ${upper}`
+            `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`
           );
         }
 
@@ -213,11 +215,10 @@ export class Histogram {
       // Add the caption above all other elements
       appendChartCaption(svg, this.options);
     } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing histogram '" + this.options.caption + "':",
-        err
-      );
+      const labelText =
+        this.options.caption === undefined ? "" : ` '${this.options.caption}'`;
+
+      displayChartError(parent, `While drawing histogram${labelText}:`, err);
     }
   }
 
@@ -251,7 +252,7 @@ function histogramClickHanler(
   const mat = values.map(
     (value) => `\n${value.keys.toString()}  ${value.value} `
   );
-  alert(text + mat);
+  alert(text + mat.join(","));
 }
 
 function histogramTooltip(
@@ -280,13 +281,13 @@ function appendHistogram(
 
   const binWidth = dataRange / nrBins;
 
-  const tresholds = [...Array(nrBins)].map(
+  const tresholds = [...Array<number>(nrBins)].map(
     (_, i) => (i + 1) * binWidth + lower
   );
   const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
   const binArray = histogram(data.entries.map((entry) => entry.value));
 
-  const domain: d3.ScaleLinear<number, number, never> = d3
+  const domain: d3.ScaleLinear<number, number> = d3
     .scaleLinear()
     .domain([lower, upper])
     .range([0, width]);
@@ -296,8 +297,8 @@ function appendHistogram(
     return d.length;
   }) as number;
 
-  const yMin = options.ylower || 0;
-  const yMax = options.yupper || maxFrequency;
+  const yMin = options.ylower ?? 0;
+  const yMax = options.yupper ?? maxFrequency;
 
   const range = d3.scaleLinear().domain([yMin, yMax]).range([height, 0]);
 
@@ -306,16 +307,16 @@ function appendHistogram(
   // Add the x axis
   const xAxisElt = group
     .append("g")
-    .attr("transform", "translate(0," + height + ")")
+    .attr("transform", `translate(0,${height.toString()})`)
     .attr("class", "x axis");
 
   const xAxis = d3.axisBottom(domain);
-  if (options.xticks) {
+  if (options.xticks !== undefined) {
     xAxis.ticks(options.xticks);
   }
   xAxisElt.append("g").call(xAxis);
 
-  const label = options.xlabel || data.label;
+  const label = options.xlabel ?? data.label;
   xAxisElt
     .append("text")
     .attr("x", width)
@@ -343,7 +344,7 @@ function appendHistogram(
     .attr("class", "y axis");
 
   const yAxis = d3.axisLeft(range);
-  if (options.yticks) {
+  if (options.yticks !== undefined) {
     yAxis.ticks(options.yticks);
   }
   yAxisElt.append("g").call(yAxis);
@@ -354,7 +355,7 @@ function appendHistogram(
     .attr("y", -16)
     // .attr("dy", "-.71em")
     .style("text-anchor", "left")
-    .text(options.ylabel || "");
+    .text(options.ylabel ?? "");
 
   // Create a tooltip with a unique css class name for the histogram charts.
   const tooltip = new ToolTip("pacioli tooltip histogram");
@@ -367,9 +368,9 @@ function appendHistogram(
     .append("g")
     .attr("class", "bar")
     .attr("transform", function (d) {
-      return (
-        "translate(" + domain(d.x0 as number) + "," + range(d.length) + ")"
-      );
+      return `translate(${domain(
+        d.x0 as number
+      ).toString()}, ${range(d.length).toString()})`;
     })
     .append("rect")
     .attr("x", options.gap)
@@ -384,25 +385,23 @@ function appendHistogram(
       return height - range(d.length);
     })
     .on("click", (_, d) => {
-      if (options.onclick) {
+      const handler = options.onclick;
+
+      if (handler) {
         tooltip.hide();
-        const dat = binData(d, data, options.decimals || 2);
+
+        const dat = binData(d, data, options.decimals ?? 2);
+
         // Without the timeout the tooltip.hide() does not have an effect
         setTimeout(() => {
-          options.onclick!(
-            dat.value,
-            dat.frequency,
-            dat.lower,
-            dat.upper,
-            options
-          );
+          handler(dat.value, dat.frequency, dat.lower, dat.upper, options);
         }, 0);
       }
     })
-    .on("mouseover", (event, d) => {
+    .on("mouseover", (event: MouseEvent, d) => {
       if (options.tooltip) {
         // Determine the data in the clicked bin
-        const dat = binData(d, data, options.decimals || 2);
+        const dat = binData(d, data, options.decimals ?? 2);
 
         // Call the tooltip callback to get the HTML to display, add it to the DOM and
         // move it the proper position. Use the event's pageX and pageY properties to
@@ -414,7 +413,9 @@ function appendHistogram(
         );
       }
     })
-    .on("mouseout", () => tooltip.hide());
+    .on("mouseout", () => {
+      tooltip.hide();
+    });
 }
 
 function binSize(
@@ -457,7 +458,7 @@ function freedmanDiaconis(
 ): number {
   const perc25 = d3.quantile(values, 0.25);
   const perc75 = d3.quantile(values, 0.75);
-  if (perc25 && perc75) {
+  if (perc25 !== undefined && perc75 !== undefined) {
     const h = (2 * (perc75 - perc25)) / values.length ** (1 / 3);
     return h === 0 ? 1 : Math.ceil((upper - lower) / h);
   } else {
@@ -479,8 +480,8 @@ function binData(
   lower: DimNum;
   upper: DimNum;
 } {
-  const lower = bin.x0 || 0; // TODO: better undefined handling
-  const upper = bin.x1 || 0; // TODO: better undefined handling
+  const lower = bin.x0 ?? 0; // TODO: better undefined handling
+  const upper = bin.x1 ?? 0; // TODO: better undefined handling
   const frequency = bin.length;
 
   const result: { keys: string[]; value: string }[] = [];

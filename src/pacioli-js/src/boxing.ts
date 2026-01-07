@@ -32,7 +32,7 @@ import type {
   RawTuple,
   RawValue,
 } from "./value";
-import { NOTHING, tagList, tagTuple } from "./value";
+import { NOTHING, rawValueLabel, tagList, tagTuple } from "./value";
 import type { PacioliBoole } from "./values/boole";
 import { pacioliFalse, pacioliTrue } from "./values/boole";
 import { PacioliFunction } from "./values/function";
@@ -101,7 +101,7 @@ export function boxRawValue(
           return value ? pacioliTrue : pacioliFalse;
         } else {
           throw new Error(
-            `Expected a boolean instead of ${value} when boxing raw boolean value`
+            `Expected a boolean instead of ${typeof value} when boxing raw boolean value`
           );
         }
       } else if (type.name === "String") {
@@ -109,7 +109,7 @@ export function boxRawValue(
           return new PacioliString(value);
         } else {
           throw new Error(
-            `Expected a string instead of ${value} when boxing raw string value`
+            `Expected a string instead of ${typeof value} when boxing raw string value`
           );
         }
       } else if (type.name === "Void") {
@@ -123,7 +123,10 @@ export function boxRawValue(
             : boxRawValue(val, type.items[0], context)
         );
       } else if (type.name === "List") {
-        if (typeof value === "object") {
+        // TODO: This is called with value.kind undefined. Does generated code not tag lists?
+        // Or is it better to be permissive here?
+        // if (Array.isArray(value) && value.kind === "list") {
+        if (Array.isArray(value)) {
           const values = value as RawList;
           const list = new PacioliList(type);
           for (let i = 0; i < values.length; i++) {
@@ -132,11 +135,13 @@ export function boxRawValue(
           return list;
         } else {
           throw new Error(
-            `Expected an array object instead of ${value} when boxing raw list value`
+            `Expected an array object instead of ${typeof value} when boxing raw list value`
           );
         }
       } else {
-        throw new Error(`Unxpected type '${type.name}' for value ${value} `);
+        throw new Error(
+          `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
+        );
       }
     }
     case "function": {
@@ -266,15 +271,7 @@ function matrixDimensionFromIndex(
 ): MatrixDimension {
   if (index.kind === "index") {
     return new MatrixDimension(
-      index.sets.map((name) => {
-        const set = fetchIndex("index_" + name, context);
-        if (set) return set;
-        else {
-          throw new Error(
-            "index set " + name + " unknown when transforming type to shape"
-          );
-        }
-      })
+      index.sets.map((name) => fetchIndex("index_" + name, context))
     );
   } else {
     throw new Error("index kind " + index.kind + " unexpected");
@@ -300,14 +297,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const siUnit = fetchUnit(base.prefix, base.base, context);
-      if (siUnit) {
-        return siUnit;
-      } else {
-        throw new Error(
-          "unit " + unit.toText() + " unknown when transforming type to shape"
-        );
-      }
+      return fetchUnit(base.prefix, base.base, context);
     }
   });
 }
@@ -355,13 +345,7 @@ function internUnitVector(
     }
   });
 
-  if (siUnit) {
-    return siUnit;
-  } else {
-    throw new Error(
-      "unit " + unit.toText() + " unknown when transforming type to shape"
-    );
-  }
+  return siUnit;
 }
 
 /**

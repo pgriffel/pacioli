@@ -79,10 +79,10 @@ export function combineMargins(
   y: { left: number; top: number; right: number; bottom: number } | undefined
 ) {
   return {
-    left: (x?.left || 0) + (y?.left || 0),
-    top: (x?.top || 0) + (y?.top || 0),
-    right: (x?.right || 0) + (y?.right || 0),
-    bottom: (x?.bottom || 0) + (y?.bottom || 0),
+    left: (x?.left ?? 0) + (y?.left ?? 0),
+    top: (x?.top ?? 0) + (y?.top ?? 0),
+    right: (x?.right ?? 0) + (y?.right ?? 0),
+    bottom: (x?.bottom ?? 0) + (y?.bottom ?? 0),
   };
 }
 
@@ -179,8 +179,8 @@ export class ToolTip {
 
     // Set the html and the position
     div.html(html);
-    div.style("left", x + "px");
-    div.style("top", y + "px");
+    div.style("left", x.toString() + "px");
+    div.style("top", y.toString() + "px");
 
     // Remove the display none style (set initially and by hide) to make the tooltip appear
     div.style("display", null);
@@ -228,9 +228,9 @@ export function appendChartCaption(
   options: DefaultChartOptions,
   caption?: string
 ) {
-  const text = caption || options.caption;
+  const text = caption ?? options.caption;
 
-  if (text) {
+  if (text !== undefined) {
     svg
       .append("text")
       .attr("x", options.width / 2)

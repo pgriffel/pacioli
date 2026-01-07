@@ -22,8 +22,7 @@
 
 import * as d3 from "d3";
 import type { PacioliValue } from "../boxing";
-import type {
-  DefaultChartOptions} from "./chart-utils";
+import type { DefaultChartOptions } from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
@@ -32,7 +31,7 @@ import {
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import type { LinearChartData} from "./chart-data";
+import type { LinearChartData } from "./chart-data";
 import { linearChartData } from "./chart-data";
 import type { PacioliContext } from "./../context";
 import { DimNum } from "uom-ts";
@@ -107,17 +106,17 @@ export class LineChart {
   public draw(parent: HTMLElement) {
     try {
       const unit =
-        this.options.unit && this.options.unit !== ""
+        this.options.unit !== undefined && this.options.unit !== ""
           ? parseUnit(this.options.unit)
           : undefined;
 
       const xunit =
-        this.options.xunit && this.options.xunit !== ""
+        this.options.xunit !== undefined && this.options.xunit !== ""
           ? parseUnit(this.options.xunit)
           : undefined;
 
       const yunit =
-        this.options.yunit && this.options.yunit !== ""
+        this.options.yunit !== undefined && this.options.yunit !== ""
           ? parseUnit(this.options.yunit)
           : undefined;
 
@@ -157,7 +156,10 @@ export class LineChart {
           .append("g")
           .attr("width", w)
           .attr("height", h)
-          .attr("transform", "translate(" + m.left + "," + m.top + ")");
+          .attr(
+            "transform",
+            `translate(${m.left.toString()},${m.top.toString()})`
+          );
 
         appendLineChart(group, data, w, h, this.options);
       } else {
@@ -167,7 +169,6 @@ export class LineChart {
       // Add the caption above all other elements
       appendChartCaption(svg, this.options);
     } catch (err) {
-      console.log(err);
       displayChartError(
         parent,
         "While drawing line chart '" + this.options.ylabel + "':",
@@ -253,11 +254,11 @@ function appendLineChart(
   const xElt = group
     .append("g")
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + h + ")");
+    .attr("transform", `translate(0,${h.toString()})`);
 
   xElt.append("g").call(xAxis);
 
-  if (options.rotate) {
+  if (options.rotate === true) {
     xElt
       .selectAll("text")
       .style("text-anchor", "end")
@@ -273,12 +274,9 @@ function appendLineChart(
     .attr("dy", "0.71em")
     .style("text-anchor", "end")
     .text(
-      options.xlabel +
-        " [" +
-        data.xUnit.toText() +
-        "] (n=" +
-        data.values.length +
-        ")"
+      `${
+        options.xlabel
+      } [${data.xUnit.toText()}] (n=${data.values.length.toString()})`
     );
 
   // create y axis
@@ -300,7 +298,7 @@ function appendLineChart(
 
   // Add a norm line if requested
   const norm = options.norm;
-  if (norm && data !== null) {
+  if (norm !== undefined) {
     const normline = d3
       .line()
       .x(([i, _]) => {
@@ -324,7 +322,7 @@ function appendLineChart(
     .y(([_, d]) => yScale(d));
 
   // Make the line smooth if requested
-  if (options.smooth) {
+  if (options.smooth === true) {
     line.curve(d3.curveCardinal);
   }
 
@@ -366,12 +364,15 @@ function appendLineChart(
     .style("pointer-events", "all")
     // .style("display", "none")
     .on("click", (_, entry) => {
-      if (options.onclick) {
+      const handler = options.onclick;
+
+      if (handler) {
         tooltip.hide();
         tooltipDot.style("display", "none");
-        // Without the timeout the display: none does not have an effect
+
+        // Without the timeout the tooltip.hide and display: none do not have an effect
         setTimeout(() => {
-          options.onclick!(
+          handler(
             DimNum.fromNumber(entry.x, data.xUnit),
             DimNum.fromNumber(entry.y, data.yUnit),
             options
@@ -379,7 +380,7 @@ function appendLineChart(
         }, 0);
       }
     })
-    .on("mouseover", (event, entry) => {
+    .on("mouseover", (event: MouseEvent, entry) => {
       if (options.tooltip) {
         // Call the tooltip callback to get the HTML to display
         tooltip.show(

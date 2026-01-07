@@ -367,7 +367,7 @@ export function getNumber(
       if (column < n) {
         const start = columns[column];
         const end = columns[column + 1];
-        for (let i = start; i != end; i++) {
+        for (let i = start; i !== end; i++) {
           if (rows[i] === row) {
             return values[i];
           }
@@ -538,7 +538,7 @@ export function findNonZero(
     count++;
   }
 
-  if (count == xNumbers.nrRows * xNumbers.nrColumns) {
+  if (count === xNumbers.nrRows * xNumbers.nrColumns) {
     return false;
   } else {
     return zero_zero_case;

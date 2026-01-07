@@ -30,12 +30,12 @@ export interface PacioliWebComponentBase {
   /**
    * The web component root element. Use the contentParent to append content.
    */
-  rootElement(): HTMLElement;
+  rootElement(): HTMLElement | null;
 
   /**
    * Element to append content.
    */
-  contentParent(): HTMLElement;
+  contentParent(): HTMLElement | null;
 
   /**
    * Makes the content parent element (not the root element) empty.
@@ -43,7 +43,12 @@ export interface PacioliWebComponentBase {
   clearContent(): void;
 
   /**
-   * Convenience method to find elements in the component's tree.
+   * Convenience method to find an HTMLElement in the component's element tree that is
+   * expected to exist.
+   *
+   * Throws an error if the element does not exist.
+   *
+   * The selector must yield a HTMLElement (and not simply a Element).
    *
    * @param selectors A query selector string
    */
@@ -66,6 +71,10 @@ export interface Callable {
 
   /**
    * Called when the parameters are changed. Also initially after construction.
+   *
+   * Calls to parametersChanged are surrounded by a try-catch that displays the
+   * error. No need to add a try-catch unless this standard behaviour must be
+   * overridden.
    */
   parametersChanged(): void;
 

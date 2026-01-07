@@ -160,14 +160,11 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   /**
    * Pacioli web component life-cycle event.
    */
-  parametersChanged() {
-    try {
-      if (this.space) {
-        this.fetchedData = this.fetchData();
-        this.loadData(this.space);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
+  override parametersChanged() {
+    if (this.space !== undefined) {
+      this.fetchedData = this.fetchData();
+
+      this.loadData(this.space);
     }
   }
 
@@ -277,23 +274,17 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * @param name Optional name for the download file
    */
   openImage(name?: string) {
-    const canvas: HTMLCanvasElement = this.findElement(
-      "canvas"
-    ) as HTMLCanvasElement;
+    const canvas = this.findElement("canvas") as HTMLCanvasElement;
 
-    if (canvas) {
-      const dataURL = canvas.toDataURL("image/png");
+    const dataURL = canvas.toDataURL("image/png");
 
-      if (name) {
-        const link = document.createElement("a");
-        link.href = dataURL;
-        link.download = `${name}.png`;
-        link.click();
-      } else {
-        window.open(dataURL, "_blank");
-      }
+    if (name !== undefined) {
+      const link = document.createElement("a");
+      link.href = dataURL;
+      link.download = `${name}.png`;
+      link.click();
     } else {
-      throw Error("Cannot create image of scene, no canvas found");
+      window.open(dataURL, "_blank");
     }
   }
 

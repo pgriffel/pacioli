@@ -35,7 +35,7 @@ export class RawMaybe {
 
   constructor(public value?: RawValue) {}
 
-  toString(): string {
-    return this.value === undefined ? "nothing" : this.value.toString();
-  }
+  // toString(): string {
+  //   return this.value === undefined ? "nothing" : this.value.toString();
+  // }
 }

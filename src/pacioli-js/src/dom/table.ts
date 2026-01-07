@@ -176,7 +176,10 @@ export function mergeTableDatas(datas: TableData[]): TableData {
   }
 }
 
-function asciiFromTableData(data: StringifiedTableData) {
+function asciiFromTableData(
+  data: StringifiedTableData,
+  showZeroRows: boolean = true
+) {
   const zero = "0";
 
   const n = data.valueHeaders.length;
@@ -225,8 +228,6 @@ function asciiFromTableData(data: StringifiedTableData) {
 
   const nrRows = data.index.length;
 
-  const showZeroRows = true;
-
   // Add the data rows
   for (let i = 0; i < nrRows; i++) {
     const index = data.index[i];
@@ -242,8 +243,8 @@ function asciiFromTableData(data: StringifiedTableData) {
       });
 
       values.row.forEach((value) => {
-        row.push(value.magnitude.toString());
-        row.push(value.unit.toString());
+        row.push(value.magnitude);
+        row.push(value.unit);
       });
 
       text.push(row);
@@ -272,9 +273,9 @@ function asciiFromTableData(data: StringifiedTableData) {
 
 function domFromTableData(
   data: StringifiedTableData,
-  showTotals: boolean
+  showTotals: boolean,
+  showZeroRows: boolean = true
 ): HTMLElement {
-  const showZeroRows = true;
   const zero = "0";
 
   if (data.isSingleScalar()) {
@@ -495,7 +496,7 @@ function tableDataFromMatrix(
   let effectiveTotal =
     showTotal && total !== undefined ? total.getDimNum(0, 0) : undefined;
 
-  if (nrRows === 0 || nrColumns == 0) {
+  if (nrRows === 0 || nrColumns === 0) {
     throw new Error("No rows and columns?");
   } else {
     let deriveTotal = showTotal && total === undefined;
@@ -505,8 +506,6 @@ function tableDataFromMatrix(
     // Add the data rows
     for (let i = 0; i < nrRows; i++) {
       for (let j = 0; j < nrColumns; j++) {
-        let allZero = true;
-
         const indexEntry = {
           row: shape.rowCoordinates(i),
           column: shape.columnCoordinates(j),
@@ -515,23 +514,13 @@ function tableDataFromMatrix(
         index.push(indexEntry);
 
         const num = numbers[i][j];
-        allZero = allZero && num === 0;
 
         const dimNum = DimNum.fromNumber(num, shape.unitAt(i, j));
         columns.push({ row: [dimNum], isZero: num === 0 });
 
-        const nofilter = true; // dev hack
-
         if (deriveTotal) {
           if (effectiveTotal === undefined) {
-            if (
-              nofilter ||
-              dimNum.unit.bases().every((base) => dimNum.unit.power(base) >= 0)
-            ) {
-              effectiveTotal = dimNum;
-            } else {
-              deriveTotal = false;
-            }
+            effectiveTotal = dimNum;
           } else if (effectiveTotal.unit.equals(dimNum.unit)) {
             effectiveTotal = effectiveTotal.sum(dimNum);
           } else {
@@ -607,8 +596,6 @@ function toClipboardText(data: TableData): string {
 
   const nrRows = data.index.length;
 
-  const showZeroRows = true;
-
   // Add the data rows
   for (let i = 0; i < nrRows; i++) {
     const index = data.index[i];
@@ -616,21 +603,19 @@ function toClipboardText(data: TableData): string {
 
     text += "\n";
 
-    if (showZeroRows || !values.isZero) {
-      // Create a new row
-      const row: string[] = [];
+    // Create a new row
+    const row: string[] = [];
 
-      // Add the index
-      index.row.names.concat(index.column.names).forEach((idx) => {
-        row.push(idx);
-      });
+    // Add the index
+    index.row.names.concat(index.column.names).forEach((idx) => {
+      row.push(idx);
+    });
 
-      values.row.forEach((value) => {
-        row.push(value.magnitude.toString());
-      });
+    values.row.forEach((value) => {
+      row.push(value.magnitude.toString());
+    });
 
-      text += row.join("\t");
-    }
+    text += row.join("\t");
   }
 
   return text;

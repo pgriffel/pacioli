@@ -152,13 +152,13 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      // Reload the data if the definition changes. The initial load is done in
-      // parametersChanged.
-      if (name === "definition" && this.data !== undefined) {
-        this.data = this.fetchData();
-      }
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
 
-      if (this.contentParent() && this.data) {
         this.drawTable(this.data);
       }
     } catch (err: unknown) {
@@ -170,13 +170,9 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    try {
-      this.data = this.fetchData();
+    this.data = this.fetchData();
 
-      this.drawTable(this.data);
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
+    this.drawTable(this.data);
   }
 
   drawTable(value: PacioliValue) {
@@ -274,7 +270,7 @@ function columnData(value: PacioliTuple): {
     if (value.length >= 4) {
       if (value[3].kind === "maybe") {
         const val = value[3].value;
-        if (val === undefined || val?.kind === "boole") {
+        if (val === undefined || val.kind === "boole") {
           showTotal = val?.value;
         } else {
           throw Error(
@@ -293,7 +289,7 @@ function columnData(value: PacioliTuple): {
     if (value.length >= 5) {
       if (value[4].kind === "maybe") {
         const val = value[4].value;
-        if (val === undefined || val?.kind === "matrix") {
+        if (val === undefined || val.kind === "matrix") {
           total = val;
         } else {
           throw Error(
@@ -316,7 +312,7 @@ function columnData(value: PacioliTuple): {
     };
   } else {
     throw Error(
-      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length} tuple elements instead of 2 or 3.`
+      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`
     );
   }
 }

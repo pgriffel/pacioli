@@ -44,7 +44,7 @@ export class PacioliFunction {
       return boxRawValue(this.fun(...values), type, this.context);
     } else {
       throw Error(
-        `Number of arguments do not match. Expected ${expectedNrArgs}, but got ${args.length}`
+        `Number of arguments do not match. Expected ${expectedNrArgs.toString()}, but got ${args.length.toString()}`
       );
     }
   }

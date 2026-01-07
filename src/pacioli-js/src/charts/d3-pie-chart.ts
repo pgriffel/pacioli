@@ -24,8 +24,7 @@ import * as d3 from "d3";
 import type { PieArcDatum } from "d3";
 import type { PacioliValue } from "../boxing";
 import type { PacioliContext } from "../context";
-import type {
-  DefaultChartOptions} from "./chart-utils";
+import type { DefaultChartOptions } from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
@@ -34,7 +33,7 @@ import {
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import type { BandChartData} from "./chart-data";
+import type { BandChartData } from "./chart-data";
 import { bandChartData } from "./chart-data";
 import { DimNum } from "uom-ts";
 import { parseUnit } from "../api";
@@ -95,11 +94,15 @@ function pieChartClickHandler(
   fraction: number,
   options: PieChartOptions
 ) {
-  alert(
-    `${options.label}: value for ${label} is ${number.toFixed(
-      options.decimals
-    )} (${(fraction * 100).toFixed(0)}%)`
-  );
+  const num = number.toFixed(options.decimals);
+  const frac = (fraction * 100).toFixed(0);
+
+  const prefix =
+    options.label === undefined || options.label === ""
+      ? "Value"
+      : `${options.label}: value`;
+
+  alert(`${prefix} for ${label} is ${num} (${frac}%)`);
 }
 
 function pieChartTooltip(
@@ -132,7 +135,7 @@ export class PieChart {
   public draw(parent: HTMLElement) {
     try {
       const unit =
-        this.options.unit && this.options.unit !== ""
+        this.options.unit !== undefined && this.options.unit !== ""
           ? parseUnit(this.options.unit)
           : undefined;
 
@@ -168,7 +171,7 @@ export class PieChart {
           .append("g")
           .attr(
             "transform",
-            "translate(" + margin.left + "," + margin.top + ")"
+            `translate(${margin.left.toString()},${margin.top.toString()})`
           );
 
         appendPieChart(group, input, width, height, this.options);
@@ -179,11 +182,10 @@ export class PieChart {
       // Add the caption above all other elements
       appendChartCaption(svg, this.options);
     } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing pie chart '" + this.options.label + "':",
-        err
-      );
+      const labelText =
+        this.options.label === undefined ? "" : ` '${this.options.label}'`;
+
+      displayChartError(parent, `While drawing pie chart${labelText}:`, err);
     }
   }
 }
@@ -195,7 +197,10 @@ function appendPieChart(
   height: number,
   options: PieChartOptions
 ) {
-  group.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+  group.attr(
+    "transform",
+    `translate(${(width / 2).toString()},${(height / 2).toString()})`
+  );
 
   const size = Math.min(width, height);
   const fourth = size / 4;
@@ -251,21 +256,26 @@ function appendPieChart(
     .attr("class", "slice")
     .attr("fill", (d) => color(d.data.name))
     .attr("d", arc)
-    .on("click", (_, d) => {
-      if (options.onclick) {
+    .on("click", (_, arcDatum) => {
+      const handler = options.onclick;
+
+      if (handler) {
+        const clicked = arcDatum.data;
+
         tooltip.hide();
-        // Without the timeout the display: none does not have an effect
+
+        // Without the timeout the tooltip.hide() does not have an effect
         setTimeout(() => {
-          options.onclick!(
-            DimNum.fromNumber(d.data.value, data.unit),
-            d.data.name,
-            d.data.value / total,
+          handler(
+            DimNum.fromNumber(clicked.value, data.unit),
+            clicked.name,
+            clicked.value / total,
             options
           );
         }, 0);
       }
     })
-    .on("mouseover", (event, d) => {
+    .on("mouseover", (event: MouseEvent, d) => {
       if (options.tooltip) {
         tooltip.show(
           options.tooltip(
@@ -279,7 +289,9 @@ function appendPieChart(
         );
       }
     })
-    .on("mouseout", () => tooltip.hide());
+    .on("mouseout", () => {
+      tooltip.hide();
+    });
 
   const labels = plotArea
     .selectAll("text")
@@ -288,13 +300,13 @@ function appendPieChart(
     .append("text")
     .style("text-anchor", "middle")
     .style("alignment-baseline", "middle")
-    .attr("transform", (d) => `translate(${arcLabel.centroid(d)})`);
+    .attr("transform", (d) => `translate(${arcLabel.centroid(d).toString()})`);
 
   labels
     .append("tspan")
     .attr("y", "-0.6em")
     .attr("x", 0)
-    .text((d) => `${d.data.name}`);
+    .text((d) => d.data.name);
 
   // labels.append('tspan')
   //   .attr('y', '0.6em')

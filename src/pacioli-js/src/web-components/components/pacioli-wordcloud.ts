@@ -65,17 +65,13 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged() {
-    try {
-      // Compute the words.
-      const words = wordData(this.fetchData() as unknown as WordCloudData);
+    // Compute the words.
+    const words = wordData(this.fetchData() as unknown as WordCloudData);
 
-      // Add a new word cloud to the content parent
-      this.clearContent();
-      this.chart = new WordCloud(words, this.chartOptions());
-      this.chart.draw(this.contentParent());
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
+    // Add a new word cloud to the content parent
+    this.clearContent();
+    this.chart = new WordCloud(words, this.chartOptions());
+    this.chart.draw(this.contentParent());
   }
 
   /**

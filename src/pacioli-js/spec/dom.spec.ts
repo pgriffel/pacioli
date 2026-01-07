@@ -22,11 +22,11 @@
 
 import "jasmine";
 import { PacioliMatrix } from "../src/values/matrix.js";
-import { MatrixShape } from "../src/values/matrix-shape.js";
+import { MatrixShape, SIVector } from "../src/values/matrix-shape.js";
 import { testContext } from "./test-context.js";
 import type { IndexSet } from "../src/values/index-set.js";
 import { MatrixDimension } from "../src/values/matrix-dimension.js";
-import { UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { initialNumbers } from "../src/cache.js";
 
 /**
@@ -44,11 +44,11 @@ describe("DOM", () => {
       const personSet = testContext.findIndexSet("Person") as IndexSet;
 
       const shape = new MatrixShape(
-        UOM.ONE,
+        SIUnit.ONE,
         new MatrixDimension([personSet]),
-        UOM.ONE,
+        SIVector.ONE,
         new MatrixDimension([]),
-        UOM.ONE
+        SIVector.ONE
       );
       const numbers = initialNumbers(personSet.size(), 1, [
         [0, 0, 1],

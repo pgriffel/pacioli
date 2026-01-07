@@ -191,7 +191,7 @@ export function fetchIndex(
   context: PacioliContext = defaultContext
 ): IndexSet {
   const indexSet = context.findIndexSet(id);
-  if (indexSet == undefined) {
+  if (indexSet === undefined) {
     const computed = findFunction<IndexSet>("compute_" + id)();
     context.addIndexSet(computed);
     return computed;
@@ -218,12 +218,7 @@ export function fetchUnit(
     // TODO
     context.addBase(baseName, def.symbol, def.definition);
 
-    const retry = context.getUnit(prefix, base);
-    if (retry === undefined) {
-      throw new Error(`Could not add base ${baseName}`);
-    } else {
-      return retry;
-    }
+    return context.getUnit(prefix, base);
   } else {
     return unit;
   }
@@ -235,8 +230,8 @@ export function fetchUnitVector(
   context: PacioliContext = defaultContext
 ): UnitVector {
   const vec = context.findUnitVector(id);
-  if (vec == undefined) {
-    const unitObject = findFunction<{ units: any }>("compute_vbase_" + id)()
+  if (vec === undefined) {
+    const unitObject = findFunction<{ units: object }>("compute_vbase_" + id)()
       .units;
     const unitMap = new Map<string, SIUnit>();
     for (const [key, value] of Object.entries(unitObject)) {

@@ -52,6 +52,40 @@ export const STORAGE_COO = 2;
 export const STORAGE_CCS = 3;
 
 /**
+ * The RawValue kind is not complete. It is undefined for strings, booleans and functions.
+ *
+ * This label is an alternative that is complete. Useful to display to the user, etc.
+ *
+ * @param value Any raw value
+ * @returns One of the labels.
+ */
+export function rawValueLabel(
+  value: RawValue
+):
+  | "matrix"
+  | "list"
+  | "tuple"
+  | "array"
+  | "ref"
+  | "coordinates"
+  | "map"
+  | "maybe"
+  | "void"
+  | "string"
+  | "boolean"
+  | "function" {
+  if (typeof value === "string") {
+    return "string";
+  } else if (typeof value === "boolean") {
+    return "boolean";
+  } else if (typeof value === "function") {
+    return "function";
+  } else {
+    return value.kind;
+  }
+}
+
+/**
  * Type of an unboxed matrix. Implemented as a nested array of numbers with some
  * extra properties (nr rows, nr columns, and storage kind). The meaning of the
  * numbers depends on the storage kind.

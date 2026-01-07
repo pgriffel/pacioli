@@ -20,8 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { SIUnit } from "uom-ts";
-import { UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import type { PacioliContext } from "../context";
 import { getNumber } from "../values/numbers";
 import type { PacioliValue } from "../boxing";
@@ -80,7 +79,7 @@ export function linearChartData(
     case "tuple": {
       if (data.length !== 2) {
         throw Error(
-          `exptected a pair, but got a tuple of length (${data.length}`
+          `exptected a pair, but got a tuple of length (${data.length.toString()}`
         );
       }
 
@@ -137,13 +136,17 @@ export function linearChartData(
         );
       }
 
-      throw "exptected a list of numbers but got a list of " + firstElt.kind;
+      throw Error(
+        "exptected a list of numbers but got a list of " + firstElt.kind
+      );
     }
     case "matrix": {
       return pairsFromVector(data);
     }
     default: {
-      throw "exptected a vector or a list of numbers but got a " + data.kind;
+      throw Error(
+        "exptected a vector or a list of numbers but got a " + data.kind
+      );
     }
   }
 }
@@ -197,7 +200,9 @@ export function bandChartData(
     case "matrix":
       return bandChartDataFromVector(convert(data), includeZeros);
     default:
-      throw "exptected a vector or a list of numbers but got a " + data.kind;
+      throw Error(
+        "exptected a vector or a list of numbers but got a " + data.kind
+      );
   }
 }
 
@@ -293,12 +298,13 @@ function pairsFromLists(
   }
 }
 
-function pairsFromListofScalars(items: PacioliValue[]): LinearChartData {
+function pairsFromListofScalars(
+  items: PacioliValue[],
+  includeZeros: boolean = true
+): LinearChartData {
   const values: LinearChartEntry[] = [];
   let min;
   let max;
-
-  const includeZeros = true;
 
   for (let i = 0; i < items.length; i++) {
     const value = (items[i] as PacioliMatrix).getNum(0, 0);
@@ -315,22 +321,23 @@ function pairsFromListofScalars(items: PacioliValue[]): LinearChartData {
     values,
     xLower: 0,
     xUpper: items.length,
-    yLower: min || 0, // todo
-    yUpper: max || 1, // todo
-    xUnit: UOM.ONE,
+    yLower: min ?? 0, // todo
+    yUpper: max ?? 1, // todo
+    xUnit: SIUnit.ONE,
     yUnit: (items[0] as PacioliMatrix).getUnit(0, 0), // assume uniform units
   };
 }
 
-function pairsFromVector(data: PacioliMatrix): LinearChartData {
+function pairsFromVector(
+  data: PacioliMatrix,
+  includeZeros: boolean = true
+): LinearChartData {
   const values: LinearChartEntry[] = [];
   let min;
   let max;
 
   const numbers = data.numbers;
   const shape = data.shape;
-
-  const includeZeros = true;
 
   for (let i = 0; i < numbers.length; i++) {
     const factor = 1;
@@ -346,9 +353,9 @@ function pairsFromVector(data: PacioliMatrix): LinearChartData {
     values,
     xLower: 0,
     xUpper: numbers.length,
-    yLower: min || 0, // todo
-    yUpper: max || 1, // todo
-    xUnit: UOM.ONE,
+    yLower: min ?? 0, // todo
+    yUpper: max ?? 1, // todo
+    xUnit: SIUnit.ONE,
     yUnit: shape.unitAt(0, 0),
   };
 }
@@ -384,8 +391,8 @@ export function bandChartDataFromList(
     return {
       entries: values,
       unit: conv(content).getUnit(0, 0),
-      max: max || 0,
-      min: min || 0,
+      max: max ?? 0,
+      min: min ?? 0,
       label: "", // TODO? Is this used?
     };
   } else if (content.kind === "tuple") {
@@ -413,12 +420,14 @@ export function bandChartDataFromList(
     return {
       entries: values,
       unit: conv(content[1] as PacioliMatrix).getUnit(0, 0),
-      max: max || 0,
-      min: min || 0,
+      max: max ?? 0,
+      min: min ?? 0,
       label: "", // TODO? Is this used?
     };
   } else {
-    throw "exptected a list of numbers but got a list of " + content.kind;
+    throw Error(
+      "exptected a list of numbers but got a list of " + content.kind
+    );
   }
 }
 
@@ -453,8 +462,8 @@ export function bandChartDataFromVector(
   return {
     entries: values,
     unit: data.getUnit(0, 0),
-    max: max || 0,
-    min: min || 0,
+    max: max ?? 0,
+    min: min ?? 0,
     label: shape.rowName(),
   };
 }

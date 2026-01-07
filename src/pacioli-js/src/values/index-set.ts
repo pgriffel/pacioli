@@ -23,7 +23,7 @@
 export class IndexSet {
   // TODO: is an id and name needed?
   public static fromItems(id: string, name: string, items: string[]) {
-    const index = new Map();
+    const index = new Map<string, number>();
     for (let i = 0; i < items.length; i++) {
       index.set(items[i], i);
     }
@@ -50,8 +50,7 @@ export class IndexSet {
         "Element " +
           name +
           " not found when looking for position in index set " +
-          this.name +
-          this.items
+          this.name
       );
     }
   }

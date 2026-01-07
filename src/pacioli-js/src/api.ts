@@ -20,7 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { DimNum, SIUnit } from "uom-ts";
+import type { DimNum } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
@@ -83,7 +84,7 @@ export function fun(
     return box;
   } else {
     throw new Error(
-      `Expected a PacioliFunction when creating fun ${module}_${name} but got ${box}`
+      `Expected a PacioliFunction when creating fun ${module}_${name} but got a '${box.kind}'`
     );
   }
 }
@@ -111,7 +112,11 @@ export function unit(name: string): SIUnit {
 
 // Used in generated code
 export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
-  return UOM.fromBase(new SIBaseType(name2 ? name1 : "", name2 ?? name1));
+  return UOM.fromBase(
+    name2 === undefined
+      ? new SIBaseType("", name1)
+      : new SIBaseType(name1, name2)
+  );
 }
 
 // Used only by VectorBase. In asJs method.
@@ -138,9 +143,9 @@ export function typeFromVarName(varName: string): TypeVar {
 
 export function num(
   num: string | number,
-  unit: SIUnit = UOM.ONE
+  unit: SIUnit = SIUnit.ONE
 ): PacioliMatrix {
-  const shape = MatrixShape.scalar(unit === undefined ? UOM.ONE : unit);
+  const shape = MatrixShape.scalar(unit);
   const numbers = initialNumbers(1, 1, [
     [0, 0, typeof num === "string" ? parseFloat(num) : num],
   ]);
@@ -160,7 +165,8 @@ export function parseUnit(
 
 export function stringifyUnit(unit: SIUnit): string {
   return unit.fold(
-    (base, power) => (power === 1 ? base.name : `${base.name}^${power}`),
+    (base, power) =>
+      power === 1 ? base.name : `${base.name}^${power.toString()}`,
     (x, y) => x + "*" + y,
     ""
   );

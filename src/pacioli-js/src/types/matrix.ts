@@ -38,9 +38,5 @@ export class MatrixType {
     public rowUnit: PacioliVector,
     public columnIndex: PacioliIndex,
     public columnUnit: PacioliVector
-  ) {
-    if (!multiplier) {
-      throw new Error("k");
-    }
-  }
+  ) {}
 }

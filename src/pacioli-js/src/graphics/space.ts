@@ -20,8 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { SIUnit} from "uom-ts";
-import { UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { num, unit } from "../api";
 import type { PacioliFunction } from "../values/function";
 import type { PacioliValue } from "../boxing";
@@ -81,9 +80,9 @@ const defaultOptions: SpaceOptions = {
   axisColorsZ: "#aaaaee",
   width: 800,
   height: 450,
-  unitX: UOM.ONE,
-  unitY: UOM.ONE,
-  unitZ: UOM.ONE,
+  unitX: SIUnit.ONE,
+  unitY: SIUnit.ONE,
+  unitZ: SIUnit.ONE,
   verbose: false,
   fps: 60,
   background: "#eeeeee",
@@ -445,7 +444,10 @@ export class Space {
   }
 
   private pauseAnimation() {
-    if (this.animationRequest && !this.environment.isAutoRotating()) {
+    if (
+      this.animationRequest !== undefined &&
+      !this.environment.isAutoRotating()
+    ) {
       window.cancelAnimationFrame(this.animationRequest);
       this.animationRequest = undefined;
     }
@@ -476,24 +478,35 @@ export class Space {
     // check the inputs. This catches unit errors etc., but it would
     // be nice if this could be checked earlier and omitted here.
     // Maybe just make the first call checked?!
-    if (this.callback) {
-      this.animationScene = this.callback.call(
-        num(this.runningTime(), this.TIME_UNIT),
-        this.animationScene as unknown as PacioliValue
-      ) as unknown as PacioliScene;
-    } else if (this.statefulCallback) {
-      const [state, scene] = this.statefulCallback.call(
-        num(this.runningTime(), this.TIME_UNIT),
-        this.animationState ? this.animationState : this.initialState!,
-        this.animationScene as unknown as PacioliValue
-      ) as unknown as [PacioliValue, PacioliScene];
-      this.animationState = state;
-      this.animationScene = scene;
-    } else {
-      throw new Error("no callback to recalculate scene for animation");
-    }
+    if (this.animationScene) {
+      if (this.callback) {
+        this.animationScene = this.callback.call(
+          num(this.runningTime(), this.TIME_UNIT),
+          this.animationScene as unknown as PacioliValue
+        ) as unknown as PacioliScene;
+      } else if (this.statefulCallback) {
+        const currentState = this.animationState ?? this.initialState;
 
-    this.environment.updateScene(this.animationScene);
+        if (currentState) {
+          const [state, scene] = this.statefulCallback.call(
+            num(this.runningTime(), this.TIME_UNIT),
+            currentState,
+            this.animationScene as unknown as PacioliValue
+          ) as unknown as [PacioliValue, PacioliScene];
+
+          this.animationState = state;
+          this.animationScene = scene;
+        } else {
+          throw new Error("no state to recalculate scene for animation");
+        }
+      } else {
+        throw new Error("no callback to recalculate scene for animation");
+      }
+
+      this.environment.updateScene(this.animationScene);
+    } else {
+      throw new Error("no animation scene for animation");
+    }
   }
 
   public addPath(

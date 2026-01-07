@@ -30,7 +30,6 @@ import type { PacioliWebComponent } from "./pacioli-web-component";
 import type { PacioliBoole } from "../values/boole";
 import { pacioliFalse, pacioliTrue } from "../values/boole";
 import { string } from "../cache";
-import type { PacioliList } from "../values/list";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -136,7 +135,9 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
     const definition = element.getAttribute("definition");
 
     throw Error(
-      `invalid number of arugments for definition '${definition}'. Expected ${children.length}, but got ${values.length}.`
+      `invalid number of arugments for definition '${
+        definition ?? "unknown"
+      }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`
     );
   }
 
@@ -156,7 +157,12 @@ export function addParametersObserver(
   element: PacioliWebComponent
 ): MutationObserver {
   const observer = new MutationObserver(() => {
-    element.parametersChanged();
+    // element.parametersChanged();
+    try {
+      element.parametersChanged();
+    } catch (err: unknown) {
+      element.displayError(err instanceof Error ? err.message : String(err));
+    }
   });
 
   observer.observe(element, { childList: true, subtree: true });
@@ -353,6 +359,7 @@ export function optionsFromAttributes<Options>(
 ): Partial<Options> {
   const CHECK_ATTRIBUTES = false;
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   if (CHECK_ATTRIBUTES) {
     const SYSTEM_ATTRIBUTES = ["id", "definition"];
 
@@ -390,10 +397,9 @@ export function optionsFromScript<Options>(
   const optionValue = computeWebComponentValue(element, "options");
   // TODO: accept tuples?! Zie random_vec_histogram_options in web_components.pacioli
   if (optionValue.kind === "list") {
-    const items = optionValue as PacioliList;
     const table = new Map<string, string | null>();
 
-    items.forEach((item: PacioliValue) => {
+    optionValue.forEach((item: PacioliValue) => {
       if (item.kind !== "tuple") {
         throw Error(
           `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
@@ -433,12 +439,15 @@ export function optionsFromScript<Options>(
 
     supportedAttributes.numbers.forEach((attribute) => {
       if (table.has(attribute)) {
-        const num = Number(table.get(attribute));
+        const value = table.get(attribute);
+        const num = Number(value);
         if (Number.isFinite(num)) {
           object = { ...object, [attribute]: num };
           table.set(attribute, null);
         } else {
-          throw Error(`invalid number ${value} for attritube ${attribute}`);
+          throw Error(
+            `invalid number ${num.toString()} for attritube ${attribute}`
+          );
         }
       }
     });

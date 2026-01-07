@@ -47,7 +47,7 @@ export type AmbientLight = [
 ];
 
 export function addSpotLight(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   spotlight: PacioliSpotLight,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {

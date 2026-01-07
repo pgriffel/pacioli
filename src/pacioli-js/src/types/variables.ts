@@ -32,7 +32,7 @@ export class TypeVar {
   constructor(public readonly name: string) {}
 
   static fresh(): TypeVar {
-    return new TypeVar(`${TypeVar.counter++}`);
+    return new TypeVar((TypeVar.counter++).toString());
   }
 }
 

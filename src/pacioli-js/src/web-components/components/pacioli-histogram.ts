@@ -198,14 +198,13 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      // Reload the data if the definition changes. The initial load is done in
-      // parametersChanged.
-      if (name === "definition" && this.data !== undefined) {
-        this.data = this.fetchData();
-      }
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
 
-      // Refresh the chart if this is an update and we have data to display
-      if (this.contentParent() && this.data) {
         this.updateChart(this.data);
       }
     } catch (err: unknown) {
@@ -217,15 +216,11 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    try {
-      // Compute the data using the new parameter values
-      this.data = this.fetchData();
+    // Compute the data using the new parameter values
+    this.data = this.fetchData();
 
-      // Refresh the chart
-      this.updateChart(this.data);
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
+    // Refresh the chart
+    this.updateChart(this.data);
   }
 
   /**

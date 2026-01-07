@@ -20,8 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { RawValue, RawList, RawCoordinates } from "../value";
-import { tagList, tagTuple } from "../value";
+import type { RawValue, RawList } from "../value";
+import { tagList } from "../value";
 import { RawMaybe } from "./maybe";
 import type { PacioliVoid } from "./void";
 import { VOID } from "./void";
@@ -31,8 +31,6 @@ export class PacioliMap {
 
   valueMap = new Map<string, RawValue>();
   keyMap = new Map<string, RawValue>();
-
-  constructor() {}
 
   public store(key: RawValue, value: RawValue): PacioliVoid {
     const effKey = uniqueMapKey(key);
@@ -58,21 +56,22 @@ export class PacioliMap {
     return tagList(keys);
   }
 
-  toString(): string {
-    return (
-      "[" +
-      this.keys()
-        .map((key) => tagTuple([key, this.lookup(key).value!]))
-        .join(", ") +
-      "]"
-    );
-  }
+  // toString(): string {
+  //   return (
+  //     "[" +
+  //     this.keys()
+  //       .map((key) => tagTuple([key, this.lookup(key).value!]))
+  //       .join(", ") +
+  //     "]"
+  //   );
+  // }
 }
 
 function uniqueMapKey(value: RawValue): string {
-  if ((value as RawCoordinates).kind === "coordinates") {
-    return (value as RawCoordinates).position.toString();
+  if (typeof value === "object" && value.kind === "coordinates") {
+    return value.position.toString();
   } else {
+    // TODO: finish this. Finish toText and use that instead of toString?
     return value.toString();
   }
 }

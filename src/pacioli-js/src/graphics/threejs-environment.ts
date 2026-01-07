@@ -48,7 +48,7 @@ export class ThreeJsEnvironment {
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.Camera;
-  private readonly body: THREE.Object3D<THREE.Object3DEventMap>;
+  private readonly body: THREE.Object3D;
   private readonly controls: OrbitControls;
 
   // Dynamic Three.js elements
@@ -140,8 +140,8 @@ export class ThreeJsEnvironment {
     // Don't overrule light that is set via options. This allows
     // the web components to change the ambient light.
     this.setAmbientLight(
-      this.options.ambientColor || ambientLight[0].value,
-      this.options.ambientIntensity || getNumber(ambientLight[1].numbers, 0, 0)
+      this.options.ambientColor ?? ambientLight[0].value,
+      this.options.ambientIntensity ?? getNumber(ambientLight[1].numbers, 0, 0)
     );
   }
 

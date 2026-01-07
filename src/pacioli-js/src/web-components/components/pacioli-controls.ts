@@ -155,7 +155,9 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
 
     // Make sure the proper buttons are shown and enabled
     // this.updateControls();
-    setTimeout(() => this.updateControls(), 1);
+    setTimeout(() => {
+      this.updateControls();
+    }, 1);
   }
 
   /**
@@ -173,28 +175,31 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Helper for connectedCallback. Call only once!
    */
   private addEventListeners() {
-    addButtonEventListener(this.animationButton('[part="button run"]'), () =>
-      this.startButtonClicked()
-    );
-    addButtonEventListener(this.animationButton('[part="button step"]'), () =>
-      this.stepButtonClicked()
-    );
-    addButtonEventListener(this.animationButton('[part="button reset"]'), () =>
-      this.resetButtonClicked()
+    addButtonEventListener(this.animationButton('[part="button run"]'), () => {
+      this.startButtonClicked();
+    });
+    addButtonEventListener(this.animationButton('[part="button step"]'), () => {
+      this.stepButtonClicked();
+    });
+    addButtonEventListener(
+      this.animationButton('[part="button reset"]'),
+      () => {
+        this.resetButtonClicked();
+      }
     );
 
-    addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) =>
-      this.axisCheckBoxClicked(checked)
-    );
-    addCheckBoxEventListener(this.configurationLabel(".grid"), (checked) =>
-      this.gridCheckBoxClicked(checked)
-    );
-    addCheckBoxEventListener(this.configurationLabel(".labels"), (checked) =>
-      this.labelsCheckBoxClicked(checked)
-    );
-    addCheckBoxEventListener(this.configurationLabel(".rotate"), (checked) =>
-      this.autoRotateCheckboxClicked(checked)
-    );
+    addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) => {
+      this.axisCheckBoxClicked(checked);
+    });
+    addCheckBoxEventListener(this.configurationLabel(".grid"), (checked) => {
+      this.gridCheckBoxClicked(checked);
+    });
+    addCheckBoxEventListener(this.configurationLabel(".labels"), (checked) => {
+      this.labelsCheckBoxClicked(checked);
+    });
+    addCheckBoxEventListener(this.configurationLabel(".rotate"), (checked) => {
+      this.autoRotateCheckboxClicked(checked);
+    });
     addButtonEventListener(this.animationButton(".snapshot"), () => {
       this.snapshotButtonClicked();
     });
@@ -205,10 +210,16 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    */
   private startButtonClicked() {
     const scene = this.sceneElement();
+
     if (scene) {
       try {
-        scene.setRunning(!scene.isRunning());
-        this.updateControls();
+        const isRunning = scene.isRunning();
+
+        if (isRunning !== undefined) {
+          scene.setRunning(!isRunning);
+
+          this.updateControls();
+        }
       } catch (err: unknown) {
         scene.displayError(err instanceof Error ? err.message : String(err));
       }
@@ -325,7 +336,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   private snapshotButtonClicked() {
     const followedId = this.getAttribute("for");
     const scene = this.sceneElement();
-    if (scene && followedId) {
+    if (scene && followedId !== null) {
       scene.openImage(followedId);
     } else {
       if (scene) {
@@ -351,7 +362,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
 
     if (scene && scene.space) {
       // If we get here the space must have been created
-      const space = scene.space!;
+      const space = scene.space;
 
       this.configurationCheckbox(".axis").checked = space.hasAxis();
       this.configurationCheckbox(".grid").checked = space.hasGrid();
@@ -392,7 +403,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   }
 
   private animationButton(className: string): HTMLButtonElement {
-    return this.findElement(`${className}`) as HTMLButtonElement;
+    return this.findElement(className) as HTMLButtonElement;
   }
 
   private configurationLabel(className: string): HTMLLabelElement {

@@ -44,7 +44,7 @@ export function createGridHelper(
  * @param units - An object specifying the SI units for each axis (x, y, z).
  */
 export function moveObject(
-  object: THREE.Object3D<THREE.Object3DEventMap>,
+  object: THREE.Object3D,
   position: PacioliMatrix,
   units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
@@ -52,17 +52,12 @@ export function moveObject(
   object.position.set(jsVector.x, jsVector.y, jsVector.z);
 }
 
-export function rotateObject(
-  object: THREE.Object3D<THREE.Object3DEventMap>,
-  rotations: PacioliTuple
-) {
+export function rotateObject(object: THREE.Object3D, rotations: PacioliTuple) {
   const [x, y, z] = rotations;
 
-  if (object) {
-    object.rotation.x = getNumber((x as PacioliMatrix).numbers, 0, 0);
-    object.rotation.y = getNumber((z as PacioliMatrix).numbers, 0, 0);
-    object.rotation.z = getNumber((y as PacioliMatrix).numbers, 0, 0);
-  }
+  object.rotation.x = getNumber((x as PacioliMatrix).numbers, 0, 0);
+  object.rotation.y = getNumber((z as PacioliMatrix).numbers, 0, 0);
+  object.rotation.z = getNumber((y as PacioliMatrix).numbers, 0, 0);
 }
 
 /**
@@ -76,7 +71,7 @@ export function vector2THREE(
   vector: PacioliMatrix,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
-  const extraFactor = options.scale ?? 1;
+  const extraFactor = options.scale;
   const numbers = vector.numbers;
 
   // Find the conversion factor between the vectors' units and the space's unit. Assume
@@ -111,7 +106,7 @@ export function makeCanvasLabelObject(
 ): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
   // See https://threejs.org/manual/#en/canvas-textures
 
-  const completeFont = `${options.fontSize}px ${options.fontFamily}`;
+  const completeFont = `${options.fontSize.toString()}px ${options.fontFamily}`;
 
   // Write the text on a new canvas.
   const canvas = document.createElement("canvas");

@@ -45,7 +45,7 @@ export type PacioliMesh = [
 ];
 
 export function addMesh(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   mesh: PacioliMesh,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
@@ -54,14 +54,15 @@ export function addMesh(
   body.add(meshObject);
 
   const ADD_NORMALS = false;
-  if (ADD_NORMALS && meshObject.geometry.attributes.normal) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if (ADD_NORMALS) {
     const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
     body.add(helper);
   }
 }
 
 export function updateMesh(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   mesh: PacioliMesh,
   units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {

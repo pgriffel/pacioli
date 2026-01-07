@@ -53,7 +53,7 @@ export class VectorBaseType implements PacioliBase {
   constructor(public readonly name: string, public readonly position: number) {}
 
   public toText(): string {
-    return this.name + "$" + this.position;
+    return this.name + "$" + this.position.toString();
   }
 
   public shift(delta: number): VectorBaseType {

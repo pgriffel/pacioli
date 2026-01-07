@@ -26,7 +26,7 @@ import {
   arbitraryIndexSetElement,
 } from "./index-set.spec.js";
 import { arrayEqual } from "./util";
-import { UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "../src/values/coordinates.js";
 import type { IndexSet } from "../src/values/index-set.js";
 import "jasmine";
@@ -227,13 +227,13 @@ describe("PacioliCoordinates", () => {
           const shape = coordinates.shape();
 
           // Then the shape elements should be correct
-          expect(shape.multiplier).toEqual(UOM.ONE);
+          expect(shape.multiplier).toEqual(SIUnit.ONE);
           expect(
             arrayEqual(shape.rowDimension.indexSets, indexSets)
           ).toBeTrue();
-          expect(shape.rowUnit).toEqual(UOM.ONE);
+          expect(shape.rowUnit).toEqual(SIUnit.ONE);
           expect(arrayEqual(shape.columnDimension.indexSets, [])).toBeTrue();
-          expect(shape.columnUnit).toEqual(UOM.ONE);
+          expect(shape.columnUnit).toEqual(SIUnit.ONE);
         })
       );
     });
