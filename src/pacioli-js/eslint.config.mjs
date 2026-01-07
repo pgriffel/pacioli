@@ -1,5 +1,3 @@
-// @ts-check
-
 import eslint from "@eslint/js";
 import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
@@ -35,9 +33,10 @@ export default defineConfig([
       "@typescript-eslint/restrict-plus-operands": "warn",
       "@typescript-eslint/unbound-method": "warn",
 
-      "@typescript-eslint/no-for-in-array": "off",
+      "@typescript-eslint/no-for-in-array": "warn",
 
       "@typescript-eslint/strict-boolean-expressions": "error",
+      eqeqeq: "error",
 
       "@typescript-eslint/consistent-type-imports": "warn",
       "@typescript-eslint/no-import-type-side-effects": "warn",
@@ -51,9 +50,6 @@ export default defineConfig([
         },
       ],
     },
-    extends: [
-      eslint.configs.recommended,
-      tseslint.configs.recommendedTypeChecked,
-    ],
+    extends: [eslint.configs.recommended, tseslint.configs.strictTypeChecked],
   },
 ]);
