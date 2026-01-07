@@ -42,7 +42,20 @@ export class UOM<T extends UOMBase> {
   /**
    * The identity unit
    */
-  public static ONE: UOM<any> = new UOM(new Map());
+  public static ONE: UOM<UOMBase> = new UOM(new Map());
+
+  /**
+   * Generic accessor for the identity unit. Just passes UOM.ONE.
+   * Calling this instead of using UOM.ONE gives a generic unit
+   * at the expense of an extra function calls.
+   *
+   * An alternative is to do UOM.ONE as ...
+   *
+   * Or use SIUnit.ONE if that is applicable.
+   */
+  public static one<T extends UOMBase>(): UOM<T> {
+    return UOM.ONE as UOM<T>;
+  }
 
   /**
    * Constructs a unit from a base. The unit has only one term, which
@@ -215,7 +228,7 @@ export class UOM<T extends UOMBase> {
   }
 
   map<U extends UOMBase>(fun: (base: T) => UOM<U>): UOM<U> {
-    var result = UOM.ONE;
+    var result = new UOM<U>(new Map());
     for (const term of this.termMap.values()) {
       var base = fun(term.base);
       result = result.mult(base.expt(term.power));

@@ -61,7 +61,9 @@ export interface Definition {
 /**
  * An SI unit of measurement.
  */
-export type SIUnit = UOM<SIBase>;
+export class SIUnit extends UOM<SIBase> {
+  public static ONE: SIUnit = new UOM(new Map());
+}
 
 /**
  * Context for the SI

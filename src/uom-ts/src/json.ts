@@ -60,5 +60,5 @@ export function unitFromJSON<T extends UOMBase>(
   });
 
   // Multiply the units of the individual terms
-  return unit.reduce((x, y) => x.mult(y), UOM.ONE);
+  return unit.reduce((x, y) => x.mult(y), UOM.ONE as UOM<T>);
 }
