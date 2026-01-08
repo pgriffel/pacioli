@@ -54,6 +54,7 @@ import {
   rawValueLabel,
   STORAGE_CCS,
   STORAGE_FULL,
+  stringifyRawValue,
   tagArray,
   tagList,
   tagRef,
@@ -64,7 +65,6 @@ import { VOID } from "./values/void";
 import { PacioliMatrix } from "./values/matrix";
 import { PacioliMap } from "./values/map";
 import { RawMaybe } from "./values/maybe";
-import { DOM } from "./dom/dom";
 import { SingularValueDecomposition } from "./linear-algebra/singular-value-decomposition";
 import { CholeskyDecomposition } from "./linear-algebra/cholesky-decomposition";
 import { QRDecomposition } from "./linear-algebra/qr-decomposition";
@@ -76,7 +76,7 @@ import { EigenvalueDecomposition } from "./linear-algebra/eigenvalue-decompositi
 // -----------------------------------------------------------------------------
 
 // See note in numbers.ts
-const USE_CCS = false;
+const FLAG_USE_CCS: boolean = false;
 
 export const ONE = SIUnit.ONE;
 
@@ -150,11 +150,13 @@ export function $base_base_error(value: RawString): unknown {
   throw Error(value);
 }
 
+/**
+ * Dev switch to debug exceptions in a catch block
+ */
+const FLAG_DONT_CATCH_PACIOLI_ERRORS: boolean = false;
+
 export function $base_base_try_catch(code: RawFunction, handler: RawFunction) {
-  // dev switch to debug exceptions in a catch block
-  const DEV_SWITCH = false;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (DEV_SWITCH) {
+  if (FLAG_DONT_CATCH_PACIOLI_ERRORS) {
     return code();
   } else {
     try {
@@ -531,7 +533,7 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
   // See note in numbers.ts
-  if (USE_CCS && x.storage === STORAGE_CCS) {
+  if (FLAG_USE_CCS && x.storage === STORAGE_CCS) {
     return tagNumbers(
       numeric.ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -596,7 +598,7 @@ export function $base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
   // See note in numbers.ts
-  if (USE_CCS && x.storage === STORAGE_CCS) {
+  if (FLAG_USE_CCS && x.storage === STORAGE_CCS) {
     return tagNumbers(
       numeric.ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -613,7 +615,7 @@ export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
 export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
   //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
   // See note in numbers.ts
-  if (USE_CCS && x.storage === STORAGE_CCS) {
+  if (FLAG_USE_CCS && x.storage === STORAGE_CCS) {
     return tagNumbers(
       numeric.ccssub(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
@@ -1110,6 +1112,8 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
   return res;
 }
 
+const FLAG_JAMA_SVD: boolean = true;
+
 /**
  * The singular value decomposition of a matrix A based on the JAMA library
  * implementation.
@@ -1122,8 +1126,6 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
  * @returns A list of tuples (s, u, v)
  */
 export function $base_matrix_singular_value_list(A: RawMatrix): RawList {
-  const JAMA_SVD = true;
-
   // numerics and the jama version require that the number of rows is at least
   // as large as the number of columns. Transpose to fix this if needed.
   const needsTranspose = A.nrRows < A.nrColumns;
@@ -1133,7 +1135,7 @@ export function $base_matrix_singular_value_list(A: RawMatrix): RawList {
 
   const full = getFullNumbers(needsTranspose ? $base_matrix_transpose(A) : A);
 
-  if (JAMA_SVD) {
+  if (FLAG_JAMA_SVD) {
     const decomposition = new SingularValueDecomposition(full);
 
     const s: number[] = decomposition.getSingularValues();
@@ -1422,21 +1424,25 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
         out += "%";
         i += 2;
       } else if (secondChar === "s") {
-        const debugHack = false;
-
-        const arg = args[argumentIndex++];
-        const mat = arg as RawMatrix;
-        if (debugHack && mat.kind === "matrix") {
-          out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
-            mat.storage
-          }`;
-        }
-        if (typeof arg === "object" && arg.kind === "coordinates") {
-          out += arg.position;
-        } else {
-          out += arg.toString(); // TODO fix this
-        }
+        // TODO: stringifyRawValue gebruiken!
+        out += stringifyRawValue(args[argumentIndex++]);
         i += 2;
+
+        // const debugHack = false;
+
+        // const arg = args[argumentIndex++];
+        // const mat = arg as RawMatrix;
+        // if (debugHack && mat.kind === "matrix") {
+        //   out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
+        //     mat.storage
+        //   }`;
+        // }
+        // if (typeof arg === "object" && arg.kind === "coordinates") {
+        //   out += arg.position;
+        // } else {
+        //   out += arg.toString(); // TODO fix this
+        // }
+        // i += 2;
       } else if (secondChar === "n") {
         out += "\n";
         i += 2;
@@ -1453,9 +1459,9 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
             size = null;
           }
 
-          const mat = args[argumentIndex++] as RawMatrix;
+          const mat = args[argumentIndex++]; // as RawMatrix;
 
-          if (mat.kind !== "matrix") {
+          if (typeof mat !== "object" || mat.kind !== "matrix") {
             throw new Error("Expected matrix for %d format argument");
           }
 
@@ -1484,9 +1490,9 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
               size = null;
             }
 
-            const mat = args[argumentIndex++] as RawMatrix;
+            const mat = args[argumentIndex++];
 
-            if (mat.kind !== "matrix") {
+            if (typeof mat !== "object" || mat.kind !== "matrix") {
               throw new Error("Expected matrix for %d format argument");
             }
 
@@ -1494,13 +1500,14 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
               const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
               out += size === null ? txt : txt.padStart(size, " ");
             } else {
-              // FIXME: replace this quick and dirty solution with proper matrix formatting
-              const rowList = DOM(mat, { decimals: nrDecs }).textContent;
-              if (rowList === null) {
-                out += "Could not format matrix";
-              } else {
-                out += rowList;
-              }
+              // // FIXME: replace this quick and dirty solution with proper matrix formatting
+              // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
+              // if (rowList === null) {
+              //   out += "Could not format matrix";
+              // } else {
+              //   out += rowList;
+              // }
+              out += stringifyRawValue(mat);
             }
 
             i += match[0].length;

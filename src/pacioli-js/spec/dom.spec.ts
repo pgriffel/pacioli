@@ -52,9 +52,7 @@ describe("DOM", () => {
       );
       const numbers = initialNumbers(personSet.size(), 1, [
         [0, 0, 1],
-        // eslint-disable-next-line no-loss-of-precision
         [1, 0, 1.234567890123456789],
-        // eslint-disable-next-line no-loss-of-precision
         [2, 0, 1234567890.123456789],
       ]);
 

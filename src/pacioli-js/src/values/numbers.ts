@@ -21,7 +21,7 @@
  */
 
 import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
-import type { MatrixStorage, RawList, RawMatrix, RawTuple } from "../value";
+import type { MatrixStorage, RawMatrix } from "../value";
 import { STORAGE_CCS, STORAGE_COO, STORAGE_DOK, STORAGE_FULL } from "../value";
 
 // Match the types from numeric
@@ -51,24 +51,24 @@ export type NUMERIC_MATRIX = FULL_MATRIX | DOK_MATRIX | COO_MATRIX | CCS_MATRIX;
 // CCS calls are disabled by checking === 13 instead of === 3.
 // -----------------------------------------------------------------------------
 
-Array.prototype.toString = function () {
-  const array = this as RawMatrix | RawTuple | RawList;
-  if (array.kind === "matrix") {
-    if (array.nrRows === 1 && array.nrColumns === 1) {
-      return getNumber(array, 0, 0).toString();
-    } else {
-      const nums = getFullNumbers(array) as number[][];
-      return (
-        "[" + nums.map((row) => "[" + row.join(", ") + "]").join(", ") + "]"
-      );
-    }
-  } else if (array.kind === "tuple") {
-    return "(" + array.map((x) => x.toString()).join(", ") + ")";
-  } else if (array.kind === "list") {
-    return "[" + array.map((x) => x.toString()).join(", ") + "]";
-  }
-  return this.map((x) => x.toString()).join(",");
-};
+// Array.prototype.toString = function () {
+//   const array = this as RawMatrix | RawTuple | RawList;
+//   if (array.kind === "matrix") {
+//     if (array.nrRows === 1 && array.nrColumns === 1) {
+//       return getNumber(array, 0, 0).toString();
+//     } else {
+//       const nums = getFullNumbers(array) as number[][];
+//       return (
+//         "[" + nums.map((row) => "[" + row.join(", ") + "]").join(", ") + "]"
+//       );
+//     }
+//   } else if (array.kind === "tuple") {
+//     return "(" + array.map((x) => x.toString()).join(", ") + ")";
+//   } else if (array.kind === "list") {
+//     return "[" + array.map((x) => x.toString()).join(", ") + "]";
+//   }
+//   return this.map((x) => x.toString()).join(",");
+// };
 
 export function tagNumbers(
   numbers: NUMERIC_MATRIX,
@@ -293,18 +293,18 @@ export function set(
   value: number
 ) {
   switch (numbers.storage) {
-    case 0: {
+    case STORAGE_FULL: {
       numbers[row][column] = value;
       break;
     }
-    case 1: {
+    case STORAGE_DOK: {
       if (numbers[row] === undefined) {
         numbers[row] = new Array(numbers.nrColumns);
       }
       numbers[row][column] = value;
       break;
     }
-    case 2: {
+    case STORAGE_COO: {
       const rows = numbers[0];
       const columns = numbers[1];
       const values = numbers[2];
@@ -328,7 +328,7 @@ export function set(
       values[i] = value;
       break;
     }
-    case 3: {
+    case STORAGE_CCS: {
       throw "Set not implemented for CCS storage";
     }
   }
@@ -340,13 +340,13 @@ export function getNumber(
   column: number
 ): number {
   switch (numbers.storage) {
-    case 0: {
+    case STORAGE_FULL: {
       return numbers[row][column];
     }
-    case 1: {
+    case STORAGE_DOK: {
       return numbers[row] ? numbers[row][column] || 0 : 0;
     }
-    case 2: {
+    case STORAGE_COO: {
       const rows = numbers[0];
       const columns = numbers[1];
       const values = numbers[2];
@@ -359,7 +359,7 @@ export function getNumber(
       }
       return 0;
     }
-    case 3: {
+    case STORAGE_CCS: {
       const columns = numbers[0];
       const rows = numbers[1];
       const values = numbers[2];

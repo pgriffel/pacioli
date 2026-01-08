@@ -21,10 +21,9 @@
  */
 
 import type { PacioliMatrix } from "../values/matrix";
-import { getFullNumbers } from "../values/numbers";
-import type { PacioliCoordinates } from "../values/coordinates";
 import { mergeTableDatas, TableData } from "./table";
 import { NR_DECIMALS } from "../primitives";
+import type { PacioliValue } from "../boxing";
 
 /**
  * Creates HTML for any PacioliValue.
@@ -39,7 +38,7 @@ import { NR_DECIMALS } from "../primitives";
  * @returns A tree of HTML elements that represent the value
  */
 export function DOM(
-  x: any,
+  x: PacioliValue,
   options?: Partial<{
     decimals: number;
     ignoredecimals: boolean;
@@ -48,29 +47,44 @@ export function DOM(
     totals: boolean;
   }>
 ): HTMLElement | Text {
-  if (typeof x === "boolean" || typeof x === "string") {
-    return document.createTextNode(x.toString());
+  if (
+    typeof x === "boolean" ||
+    typeof x === "string" ||
+    typeof x === "function"
+  ) {
+    // return document.createTextNode(x.toString());
+    throw Error("Typescript says this cannot happen");
   } else {
     switch (x.kind) {
       case "matrix": {
-        if (x.shape) {
-          const mat = x as PacioliMatrix;
-          return mat
-            .tableData("Value")
-            .stringify(
-              options?.zero,
-              [options?.decimals ?? NR_DECIMALS],
-              options?.ignoredecimals ?? false
-            )
-            .dom(options?.totals ?? false);
-        } else {
-          // hack to debug without shape info via print en printed
-          return document.createTextNode(getFullNumbers(x) as any);
-        }
+        // if (x.shape) {
+        //   const mat = x as PacioliMatrix;
+        //   return mat
+        //     .tableData("Value")
+        //     .stringify(
+        //       options?.zero,
+        //       [options?.decimals ?? NR_DECIMALS],
+        //       options?.ignoredecimals ?? false
+        //     )
+        //     .dom(options?.totals ?? false);
+        // } else {
+        //   // hack to debug without shape info via print en printed
+        //   return document.createTextNode(stringifyRawValue(x as RawMatrix));
+        // }
+        return x
+          .tableData("Value")
+          .stringify(
+            options?.zero,
+            [options?.decimals ?? NR_DECIMALS],
+            options?.ignoredecimals ?? false
+          )
+          .dom(options?.totals ?? false);
+      }
+      case "string": {
+        return document.createTextNode(x.value);
       }
       case "coordinates": {
-        const coords = x as PacioliCoordinates;
-        return document.createTextNode(coords.shortText());
+        return document.createTextNode(x.shortText());
         // case "ref":
         //     return Pacioli.DOM(x.value[0])
       }
@@ -94,13 +108,24 @@ export function DOM(
         }
         return tup;
       }
+      case "array": {
+        const list = document.createElement("ol");
+        const items = x;
+        for (let i = 0; i < items.length; i++) {
+          const item = document.createElement("li");
+          item.appendChild(DOM(items[i], options));
+          list.appendChild(item);
+        }
+        return list;
+      }
       case "maybe": {
-        return x.value
+        return x.value !== undefined
           ? DOM(x.value, options)
           : document.createTextNode("Nothing");
       }
+      //   PacioliRef | PacioliBoole | PacioliFunction | PacioliMap | PacioliVoid
       default:
-        return document.createTextNode(x.value);
+        return document.createTextNode(x.toString());
     }
   }
 }

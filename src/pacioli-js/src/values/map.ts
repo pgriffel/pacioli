@@ -21,7 +21,7 @@
  */
 
 import type { RawValue, RawList } from "../value";
-import { tagList } from "../value";
+import { stringifyRawValue, tagList } from "../value";
 import { RawMaybe } from "./maybe";
 import type { PacioliVoid } from "./void";
 import { VOID } from "./void";
@@ -33,6 +33,7 @@ export class PacioliMap {
   keyMap = new Map<string, RawValue>();
 
   public store(key: RawValue, value: RawValue): PacioliVoid {
+    // TODO: stringifyRawValue gebruiken!
     const effKey = uniqueMapKey(key);
     this.valueMap.set(effKey, value);
     this.keyMap.set(effKey, key);
@@ -40,6 +41,7 @@ export class PacioliMap {
   }
 
   public lookup(key: RawValue): RawMaybe {
+    // TODO: stringifyRawValue gebruiken!
     const effKey = uniqueMapKey(key);
     if (this.keyMap.has(effKey)) {
       return new RawMaybe(this.valueMap.get(effKey));
@@ -68,10 +70,12 @@ export class PacioliMap {
 }
 
 function uniqueMapKey(value: RawValue): string {
-  if (typeof value === "object" && value.kind === "coordinates") {
-    return value.position.toString();
-  } else {
-    // TODO: finish this. Finish toText and use that instead of toString?
-    return value.toString();
-  }
+  return stringifyRawValue(value);
+  // if (typeof value === "object" && value.kind === "coordinates") {
+  //   return value.position.toString();
+  // } else {
+  //   // TODO: finish this. Finish toText and use that instead of toString?
+  //   // TODO: stringifyRawValue gebruiken! See above.
+  //   return value.toString();
+  // }
 }

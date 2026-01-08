@@ -682,6 +682,10 @@ define format_suite = test_suite("Function format", [
          
     test("should format %s with a string", () ->
         format("prefix%ssuffix", "foo") = "prefixfoosuffix"),
+
+    test("should format %s with a scalar", () ->
+        format("num=%s", 12) = "num=12.00" or
+        format("num=%s", 12) = "num=12,00"),
       
     test("should format %d with a dimensionless number", () ->
         format("prefix%dsuffix", 12) = "prefix12suffix"),   

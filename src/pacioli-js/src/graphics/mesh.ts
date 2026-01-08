@@ -32,6 +32,11 @@ import { moveObject, rotateObject, vector2THREE } from "./threejs";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
 
 /**
+ * Are VertexNormalsHelper normals added to a mesh?
+ */
+const FLAG_EXPERIMENT_THREEJS_VERTEX_NORMAL_HELPER: boolean = false;
+
+/**
  * Matches the Mesh type from the graphics Pacioli library
  */
 export type PacioliMesh = [
@@ -53,9 +58,7 @@ export function addMesh(
   const meshObject = createTHREEMesh(mesh, options);
   body.add(meshObject);
 
-  const ADD_NORMALS = false;
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (ADD_NORMALS) {
+  if (FLAG_EXPERIMENT_THREEJS_VERTEX_NORMAL_HELPER) {
     const helper = new VertexNormalsHelper(meshObject, 1, 0xff0000);
     body.add(helper);
   }

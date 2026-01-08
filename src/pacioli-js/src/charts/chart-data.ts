@@ -398,12 +398,21 @@ export function bandChartDataFromList(
   } else if (content.kind === "tuple") {
     for (let i = 0; i < items.length; i++) {
       const tup = items[i] as PacioliTuple;
-      const mat = conv(tup[1] as PacioliMatrix);
+
+      if (tup[1].kind !== "matrix") {
+        throw Error(
+          `Second tuple element for chart data must be a matrix, not a ${tup[1].kind}`
+        );
+      }
+
+      const mat: PacioliMatrix = conv(tup[1]);
+
       const value = getNumber(mat.numbers, 0, 0);
 
       if (includeZeros || value !== 0) {
-        let label = tup[0].toString();
+        let label = (i + 1).toString();
 
+        // TODO: Use toText here?
         if (tup[0].kind === "coordinates") {
           label = tup[0].shortText();
         } else if (tup[0].kind === "string") {

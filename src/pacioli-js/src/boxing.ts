@@ -26,6 +26,7 @@ import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
 import type { PacioliIndex } from "./types/matrix";
 import { IndexType, MatrixType } from "./types/matrix";
 import type {
+  RawArray,
   RawCoordinates,
   RawList,
   RawMatrix,
@@ -52,7 +53,7 @@ import { PacioliCoordinates } from "./values/coordinates";
 import { fetchIndex, fetchUnit, fetchUnitVector } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
-import type { PacioliArray } from "./values/array";
+import { PacioliArray } from "./values/array";
 import type { PacioliRef } from "./values/ref";
 import type { PacioliMap } from "./values/map";
 
@@ -138,6 +139,19 @@ export function boxRawValue(
             `Expected an array object instead of ${typeof value} when boxing raw list value`
           );
         }
+      } else if (type.name === "Array") {
+        if (Array.isArray(value)) {
+          const values = value as RawArray;
+          const array = new PacioliArray();
+          for (let i = 0; i < values.length; i++) {
+            array.push(boxRawValue(values[i], type.items[0], context));
+          }
+          return array;
+        } else {
+          throw new Error(
+            `Expected an array object instead of ${typeof value} when boxing raw array value`
+          );
+        }
       } else {
         throw new Error(
           `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
@@ -149,7 +163,7 @@ export function boxRawValue(
         return new PacioliFunction(value, type, context);
       } else {
         throw new Error(
-          `Expected a function instead of ${value} when boxing raw function value`
+          `Expected a function instead of ${typeof value} when boxing raw function value`
         );
       }
     }
@@ -161,9 +175,9 @@ export function boxRawValue(
     }
     case "typevar": {
       throw Error(
-        `Unxpected typevar '${
-          type.kind
-        }' for type ${typeof value} with value ${value} `
+        `Unxpected typevar '${type.kind}' for type ${typeof value} with value ${
+          type.name
+        } `
       );
     }
     case "index": {
@@ -227,7 +241,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
       return new GenericType("Boole", []);
     }
     default: {
-      throw new Error(`Unexpected value kind ${value.kind} in value ${value}`);
+      throw new Error(`Unexpected value kind ${value.kind}`);
     }
   }
 }
@@ -257,10 +271,9 @@ export function rawValueFromValue(value: PacioliValue): RawValue {
         ? NOTHING
         : new RawMaybe(rawValueFromValue(value.value));
     }
+    // TODO:  "coordinates" | "array" | "ref" | "map" | "void"
     default: {
-      throw new Error(
-        `unexpected value kind ${value.kind} in Pacioli value ${value}`
-      );
+      throw new Error(`unexpected value kind ${value.kind}`);
     }
   }
 }
@@ -327,21 +340,14 @@ function internUnitVector(
 ): SIVector {
   const siUnit: SIVector = unit.map((base) => {
     if (base.isVar) {
-      throw new Error("cannot have variable");
+      throw new Error("cannot intern a unit containing a unit variable");
     } else {
       const unitVector = fetchUnitVector(
         base.name,
         dimension.indexSets[base.position],
         context
       );
-      if (unitVector !== undefined) {
-        const siUnitVec: SIVector = UOM.fromBase(
-          new VectorBase(unitVector, base.position, base.name)
-        );
-        return siUnitVec;
-      } else {
-        throw new Error("invalid unit vector " + base.toText());
-      }
+      return UOM.fromBase(new VectorBase(unitVector, base.position, base.name));
     }
   });
 

@@ -206,6 +206,12 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
 }
 
 /**
+ * Does the enter key on a pacioli-inputs web-component trigger a
+ * setParameters call on the connected scene?
+ */
+const FLAG_ENABLE_WEB_COMPONENT_INPUT_ENTER_KEY: boolean = true;
+
+/**
  * Create HTML input elements for the PacioliSceneComponent parameters
  *
  * @param parsedParameters The parsed scene parameters
@@ -239,9 +245,7 @@ function createParameterInputs(
       // the animation.
       if (booleansImmediate && parameter.type === "boole") {
         inputElement.addEventListener("change", (event) => {
-          const TRIGGER_ON_CHANGE = true;
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-          if (TRIGGER_ON_CHANGE) {
+          if (FLAG_ENABLE_WEB_COMPONENT_INPUT_ENTER_KEY) {
             event.preventDefault();
             enterKeyCallback();
           }

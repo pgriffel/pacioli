@@ -22,14 +22,13 @@
 
 import type { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
-import { DOM } from "./dom/dom";
 import { IndexSet } from "./values/index-set";
 import { set, tagNumbers } from "./values/numbers";
 import type { PacioliUnit } from "./type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
 import type { RawCoordinates, RawMatrix, RawValue } from "./value";
-import { STORAGE_DOK } from "./value";
+import { STORAGE_DOK, stringifyRawValue } from "./value";
 import { internUnit, matrixShapeFromType } from "./boxing";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
@@ -152,11 +151,11 @@ export function initialNumbers(
 export function printValue(x: RawValue) {
   const cons = document.getElementById("console");
   if (cons) {
-    const body = DOM(x);
-    const elt = document.createElement(
-      typeof x === "string" && x.toString() === "" ? "pre" : "pre"
-    );
-    elt.appendChild(body);
+    const body = stringifyRawValue(x);
+    // const body = DOM(x);
+    const elt = document.createElement("pre");
+    // elt.appendChild(body);
+    elt.innerText = body;
     cons.appendChild(elt);
   } else {
     console.log(x);
@@ -305,7 +304,7 @@ function findFunction<T>(name: string): () => T {
     const nameSpace = window["Pacioli"] as object;
 
     // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
-    const fun = nameSpace[name] as unknown as () => T;
+    const fun = nameSpace[name] as undefined | (() => T);
 
     if (fun === undefined) {
       throw new Error(`No function found to compute Pacioli item '${name}'`);

@@ -91,6 +91,17 @@ define pair_list() = [
 
 # ------------------------------------------------------------------------------
 
+define test_array() = 
+    begin 
+        array := make_array(3);
+        array_put(array, 0, Geom3@x);
+        array_put(array, 1, Geom3@y);
+        array_put(array, 2, Geom3@z);
+        return array;
+    end;
+
+# ------------------------------------------------------------------------------
+
 define scattered(n) =
   tuple(randomNatVec(100), randomNatVec(200));
 

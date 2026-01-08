@@ -349,6 +349,11 @@ export function optionalBooleanAttributes(
   return object;
 }
 
+/**
+ * Unfinished experiment to check the validity of encountered web-component attributes.
+ */
+const FLAG_EXPERIMENT_CHECK_ATTRIBUTES: boolean = false;
+
 export function optionsFromAttributes<Options>(
   element: HTMLElement,
   supportedAttributes: {
@@ -357,10 +362,7 @@ export function optionsFromAttributes<Options>(
     numbers: string[];
   }
 ): Partial<Options> {
-  const CHECK_ATTRIBUTES = false;
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (CHECK_ATTRIBUTES) {
+  if (FLAG_EXPERIMENT_CHECK_ATTRIBUTES) {
     const SYSTEM_ATTRIBUTES = ["id", "definition"];
 
     element.getAttributeNames().forEach((attribute) => {
