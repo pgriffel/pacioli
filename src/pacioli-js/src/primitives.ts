@@ -23,7 +23,7 @@
 import numeric from "numeric";
 import { SIUnit } from "uom-ts";
 import { initialNumbers, oneNumbers, printValue, zeroNumbers } from "./cache";
-import type { FULL_MATRIX } from "./values/numbers";
+import type { NumericFullMatrix } from "./values/numbers";
 import {
   elementWiseNumbers,
   findNonZero,
@@ -518,7 +518,7 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
   // Currently the only function that uses CCS. The others have been disabled with
   // the === 13 hack. See note in numbers.ts
   return tagNumbers(
-    numeric.dot(getFullNumbers(x), getFullNumbers(y)) as FULL_MATRIX,
+    numeric.dot(getFullNumbers(x), getFullNumbers(y)) as NumericFullMatrix,
     x.nrRows,
     y.nrColumns,
     STORAGE_FULL

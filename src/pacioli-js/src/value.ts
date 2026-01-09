@@ -26,6 +26,12 @@ import type { PacioliCoordinates } from "./values/coordinates";
 import type { PacioliMap } from "./values/map";
 import type { MatrixShape } from "./values/matrix-shape";
 import { RawMaybe } from "./values/maybe";
+import type {
+  NumericFullMatrix,
+  numericCCSMatrix,
+  NumericCOOMatrix,
+  NumericDOKMatrix,
+} from "./values/numbers";
 import { getFullNumbers } from "./values/numbers";
 import type { PacioliVoid } from "./values/void";
 
@@ -54,9 +60,9 @@ export type RawValue =
 // export const STORAGE_COO = 2;
 // export const STORAGE_CCS = 3;
 
-export type MatrixStorage = "0" | "1" | "2" | "3"; // Full, DOK, COO or CCS
+export type RawMatrixStorage = "full" | "1" | "2" | "3"; // Full, DOK, COO or CCS
 
-export const STORAGE_FULL = "0";
+export const STORAGE_FULL = "full";
 export const STORAGE_DOK = "1";
 export const STORAGE_COO = "2";
 export const STORAGE_CCS = "3";
@@ -243,22 +249,46 @@ export function tableDataFromRawMatrix(
  * extra properties (nr rows, nr columns, and storage kind). The meaning of the
  * numbers depends on the storage kind.
  */
-export interface RestMatrix extends Array<Array<number>> {
+export interface RawFullMatrix extends NumericFullMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
   shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "0" | "1" | "2" | "3";
+  // storage: "0" | "1" | "2" | "3";
+  // storage: "0" | "2" | "3";
+  storage: "full";
 }
 
-export type RawMatrix = RestMatrix; // | DOKMatrix;
+// export type RawMatrix = RestMatrix | DOKMatrix;
+// export type RawMatrix = RestMatrix;
+export type RawMatrix =
+  | RawFullMatrix
+  | RawDOKMatrix
+  | RawCOOMatrix
+  | RawCCSMatrix;
 
-export interface DOKMatrix extends Array<Array<number> | undefined> {
+export interface RawDOKMatrix extends NumericDOKMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
   shape?: MatrixShape; // see oneNumbersFromShape
   storage: "1";
+}
+
+export interface RawCOOMatrix extends NumericCOOMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  storage: "2";
+}
+
+export interface RawCCSMatrix extends numericCCSMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  storage: "3";
 }
 
 /**
