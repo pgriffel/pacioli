@@ -68,8 +68,6 @@ import {
   get,
   getNumber,
   set,
-  STORAGE_CCS,
-  STORAGE_FULL,
   unaryNumbers,
 } from "./raw-values/raw-matrix";
 
@@ -116,7 +114,8 @@ export const compute_$base_system__runtime_environment = function () {
 };
 
 export const $base_base_tuple = function (...args: RawValue[]): RawTuple {
-  return tagTuple(Array.prototype.slice.call(args));
+  // return tagTuple([...args]);
+  return tagTuple(args);
 };
 
 export const $base_base_apply = function (fun: RawFunction, arg: RawTuple) {
@@ -523,24 +522,24 @@ export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.dot(getFullNumbers(x), getFullNumbers(y)) as NumericFullMatrix,
     x.nrRows,
     y.nrColumns,
-    STORAGE_FULL
+    "full"
   );
   // return tagNumbers(
   //   ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
   //   x.nrRows,
   //   y.nrColumns,
-  //   STORAGE_CCS
+  //   "CCS"
   // );
 }
 
 export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
   // See note in numbers.ts
-  if (FLAG_USE_CCS && x.storage === STORAGE_CCS) {
+  if (FLAG_USE_CCS && x.storage === "CCS") {
     return tagMatrix(
       numeric.ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
-      STORAGE_CCS
+      "CCS"
     );
   } else {
     return elementWiseNumbers(x, y, function (a: number, b: number) {
@@ -600,12 +599,12 @@ export function $base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
   // See note in numbers.ts
-  if (FLAG_USE_CCS && x.storage === STORAGE_CCS) {
+  if (FLAG_USE_CCS && x.storage === "CCS") {
     return tagMatrix(
       numeric.ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
-      STORAGE_CCS
+      "CCS"
     );
   } else {
     return elementWiseNumbers(x, y, function (a: number, b: number) {
@@ -617,12 +616,12 @@ export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
 export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
   //return Pacioli.elementWiseNumbers(x, y, function(a, b) { return a-b})
   // See note in numbers.ts
-  if (FLAG_USE_CCS && x.storage === STORAGE_CCS) {
+  if (FLAG_USE_CCS && x.storage === "CCS") {
     return tagMatrix(
       numeric.ccssub(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
-      STORAGE_CCS
+      "CCS"
     );
   } else {
     return elementWiseNumbers(x, y, function (a: number, b: number) {
@@ -704,7 +703,7 @@ export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -713,7 +712,7 @@ export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -722,7 +721,7 @@ export function $base_matrix_sin(x: RawMatrix): RawMatrix {
     numeric.sin(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -731,7 +730,7 @@ export function $base_matrix_cos(x: RawMatrix): RawMatrix {
     numeric.cos(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -740,7 +739,7 @@ export function $base_matrix_tan(x: RawMatrix): RawMatrix {
     numeric.tan(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -749,7 +748,7 @@ export function $base_system__asin(x: RawMatrix): RawMatrix {
     numeric.asin(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -758,7 +757,7 @@ export function $base_system__acos(x: RawMatrix): RawMatrix {
     numeric.acos(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -767,7 +766,7 @@ export function $base_system__atan(x: RawMatrix): RawMatrix {
     numeric.atan(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -776,7 +775,7 @@ export function $base_system__atan2(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.atan2(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -818,12 +817,7 @@ export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
     return x;
   } else if (n < 0) {
     return $base_matrix_mexpt(
-      tagMatrix(
-        numeric.inv(getFullNumbers(x)),
-        x.nrColumns,
-        x.nrRows,
-        STORAGE_FULL
-      ),
+      tagMatrix(numeric.inv(getFullNumbers(x)), x.nrColumns, x.nrRows, "full"),
       // $base_matrix_solve(x, $base_matrix_left_identity(x)),
       $base_matrix_negative(y)
     );
@@ -842,7 +836,7 @@ export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.pow(getFullNumbers(x), n),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -850,12 +844,7 @@ export function $base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
   const yLogged = numeric.log(getFullNumbers(y));
   const yLog = initialNumbers(1, 1, [[0, 0, yLogged[0][0]]]);
   return $base_matrix_scale_down(
-    tagMatrix(
-      numeric.log(getFullNumbers(x)),
-      x.nrRows,
-      x.nrColumns,
-      STORAGE_FULL
-    ),
+    tagMatrix(numeric.log(getFullNumbers(x)), x.nrRows, x.nrColumns, "full"),
     yLog
   );
 }
@@ -865,7 +854,7 @@ export function $base_matrix_exp(x: RawMatrix): RawMatrix {
     numeric.exp(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -874,7 +863,7 @@ export function $base_matrix_ln(x: RawMatrix): RawMatrix {
     numeric.log(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    STORAGE_FULL
+    "full"
   );
 }
 
@@ -1218,11 +1207,11 @@ export function $base_matrix_cholesky_decomposition(A: RawMatrix): RawMatrix {
 
   const L: number[][] = decomposition.getL();
 
-  return tagMatrix(L, m, n, STORAGE_FULL);
+  return tagMatrix(L, m, n, "full");
 }
 
 export function $base_matrix_random(): RawMatrix {
-  return tagMatrix([[Math.random()]], 1, 1, STORAGE_FULL);
+  return tagMatrix([[Math.random()]], 1, 1, "full");
 }
 
 export function $base_matrix_ranking(x: RawMatrix): RawMatrix {
@@ -1261,10 +1250,7 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
       rows[i],
       columns[i],
       getNumber(
-        fun.call(
-          fun,
-          tagMatrix([[values[i]]], 1, 1, STORAGE_FULL)
-        ) as RawMatrix,
+        fun.call(fun, tagMatrix([[values[i]]], 1, 1, "full")) as RawMatrix,
         0,
         0
       )

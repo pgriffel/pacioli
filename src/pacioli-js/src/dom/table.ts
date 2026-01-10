@@ -537,7 +537,7 @@ function tableDataFromMatrix(
   ]);
 }
 
-function tableDataHeadersEqual(left: TableData, right: TableData) {
+function tableDataHeadersEqual(left: TableData, right: TableData): boolean {
   return left === right || true; // TODO: implement this
 }
 

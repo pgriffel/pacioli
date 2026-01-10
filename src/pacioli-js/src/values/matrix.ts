@@ -26,7 +26,7 @@ import { getCOONumbers, getFullNumbers } from "../raw-values/numbers";
 import { MatrixShape } from "./matrix-shape";
 import { tagMatrix, type RawCoordinates } from "../raw-values/raw-value";
 import type { RawMatrix } from "../raw-values/raw-matrix";
-import { getNumber, STORAGE_COO } from "../raw-values/raw-matrix";
+import { getNumber } from "../raw-values/raw-matrix";
 import type { IndexSet } from "./index-set";
 import { TableData } from "../dom/table";
 
@@ -216,7 +216,7 @@ export function filter_matrix(
     [filteredRows, filteredColumns, filteredValues],
     m,
     n,
-    STORAGE_COO
+    "COO"
   );
 }
 
@@ -248,5 +248,5 @@ export function convert_unit(
     );
     convertedValues.push(values[i] * factor.toNumber());
   }
-  return tagMatrix([rows, columns, convertedValues], m, n, STORAGE_COO);
+  return tagMatrix([rows, columns, convertedValues], m, n, "COO");
 }

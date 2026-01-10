@@ -32,117 +32,33 @@ import type {
 import { getCOONumbers, getFullNumbers } from "./numbers";
 import { tagMatrix } from "./raw-value";
 
-// export type MatrixStorage = 0 | 1 | 2 | 3; // Full, DOK, COO or CCS
-
-// export const STORAGE_FULL = 0;
-// export const STORAGE_DOK = 1;
-// export const STORAGE_COO = 2;
-// export const STORAGE_CCS = 3;
-
-export type RawMatrixStorage = "full" | "1" | "2" | "3"; // Full, DOK, COO or CCS
-
-export const STORAGE_FULL = "full";
-export const STORAGE_DOK = "1";
-export const STORAGE_COO = "2";
-export const STORAGE_CCS = "3";
-
-/**
- * By using StringifiedTableData we don't duplicate code and have uniform output.
- *
- * @param matrix
- * @param header
- * @param _showTotal
- * @param total
- * @returns
- */
-export function tableDataFromRawMatrix(
-  matrix: RawMatrix,
-  header: string,
-  _showTotal: boolean,
-  total?: string
-): StringifiedTableData {
-  const indexSets = {
-    row: matrix.nrRows === 1 ? [] : ["row"],
-    column: matrix.nrColumns === 1 ? [] : ["column"],
-  };
-  const index: {
-    row: string[];
-    column: string[];
-  }[] = [];
-  const columnHeaders: string[] = [header];
-  const columns: {
-    row: { magnitude: string; unit: string }[];
-    isZero: boolean;
-  }[] = [];
-
-  const nrRows = matrix.nrRows;
-  const nrColumns = matrix.nrColumns;
-
-  let effectiveTotal = 0;
-
-  if (nrRows === 0 || nrColumns === 0) {
-    throw new Error("No rows and columns?");
-  } else {
-    const numbers = getFullNumbers(matrix);
-
-    // Add the data rows
-    for (let i = 0; i < nrRows; i++) {
-      for (let j = 0; j < nrColumns; j++) {
-        const indexEntry = {
-          row: [i.toString()],
-          column: [j.toString()],
-        };
-
-        index.push(indexEntry);
-
-        const num = numbers[i][j];
-
-        const dimNum = { magnitude: num.toFixed(NR_DECIMALS), unit: "" };
-
-        columns.push({ row: [dimNum], isZero: num === 0 });
-
-        effectiveTotal += num;
-      }
-    }
-  }
-
-  return new StringifiedTableData(indexSets, index, columnHeaders, columns, [
-    {
-      magnitude: total === undefined ? effectiveTotal.toString() : total,
-      unit: "",
-    },
-  ]);
-}
+export type RawMatrixStorage = "full" | "DOK" | "COO" | "CCS";
 
 /**
  * Type of an unboxed matrix. Implemented as a nested array of numbers with some
  * extra properties (nr rows, nr columns, and storage kind). The meaning of the
  * numbers depends on the storage kind.
  */
-export interface RawFullMatrix extends NumericFullMatrix {
-  kind: "matrix";
-  nrRows: number;
-  nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
-  // storage: "0" | "1" | "2" | "3";
-  // storage: "0" | "2" | "3";
-  storage: "full";
-}
-
-// export type RawMatrix = RestMatrix | DOKMatrix;
-// export type RawMatrix = RestMatrix;
 export type RawMatrix =
   | RawFullMatrix
   | RawDOKMatrix
   | RawCOOMatrix
   | RawCCSMatrix;
 
+export interface RawFullMatrix extends NumericFullMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  storage: "full";
+}
+
 export interface RawDOKMatrix extends NumericDOKMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
   shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "1";
+  storage: "DOK";
 }
 
 export interface RawCOOMatrix extends NumericCOOMatrix {
@@ -150,7 +66,7 @@ export interface RawCOOMatrix extends NumericCOOMatrix {
   nrRows: number;
   nrColumns: number;
   shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "2";
+  storage: "COO";
 }
 
 export interface RawCCSMatrix extends numericCCSMatrix {
@@ -158,11 +74,11 @@ export interface RawCCSMatrix extends numericCCSMatrix {
   nrRows: number;
   nrColumns: number;
   shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "3";
+  storage: "CCS";
 }
 
 export function get(numbers: RawMatrix, i: number, j: number) {
-  return tagMatrix([[getNumber(numbers, i, j)]], 1, 1, STORAGE_FULL);
+  return tagMatrix([[getNumber(numbers, i, j)]], 1, 1, "full");
 }
 
 export function set(
@@ -172,18 +88,18 @@ export function set(
   value: number
 ) {
   switch (numbers.storage) {
-    case STORAGE_FULL: {
+    case "full": {
       numbers[row][column] = value;
       break;
     }
-    case STORAGE_DOK: {
+    case "DOK": {
       if (numbers[row] === undefined) {
         numbers[row] = new Array(numbers.nrColumns);
       }
       numbers[row][column] = value;
       break;
     }
-    case STORAGE_COO: {
+    case "COO": {
       const rows = numbers[0];
       const columns = numbers[1];
       const values = numbers[2];
@@ -207,8 +123,8 @@ export function set(
       values[i] = value;
       break;
     }
-    case STORAGE_CCS: {
-      throw "Set not implemented for CCS storage";
+    case "CCS": {
+      throw Error("Set not implemented for CCS storage");
     }
   }
 }
@@ -219,13 +135,14 @@ export function getNumber(
   column: number
 ): number {
   switch (numbers.storage) {
-    case STORAGE_FULL: {
+    case "full": {
       return numbers[row][column];
     }
-    case STORAGE_DOK: {
-      return numbers[row] ? numbers[row][column] || 0 : 0;
+    case "DOK": {
+      const entry = numbers[row];
+      return entry ? entry[column] ?? 0 : 0;
     }
-    case STORAGE_COO: {
+    case "COO": {
       const rows = numbers[0];
       const columns = numbers[1];
       const values = numbers[2];
@@ -238,7 +155,7 @@ export function getNumber(
       }
       return 0;
     }
-    case STORAGE_CCS: {
+    case "CCS": {
       const columns = numbers[0];
       const rows = numbers[1];
       const values = numbers[2];
@@ -271,7 +188,7 @@ export function unaryNumbers(
     [coo[0], coo[1], coo[2].map(fun)],
     numbers.nrRows,
     numbers.nrColumns,
-    STORAGE_COO
+    "COO"
   );
 }
 
@@ -350,7 +267,7 @@ export function elementWiseNumbers(
     [rows, columns, values],
     xNumbers.nrRows,
     xNumbers.nrColumns,
-    STORAGE_COO
+    "COO"
   );
 }
 
@@ -485,3 +402,71 @@ export function findNonZero(
 //     // Return the list
 //     return Pacioli.tagKind(result, "list");
 // }
+
+/**
+ * By using StringifiedTableData we don't duplicate code and have uniform output.
+ *
+ * @param matrix
+ * @param header
+ * @param _showTotal
+ * @param total
+ * @returns
+ */
+export function tableDataFromRawMatrix(
+  matrix: RawMatrix,
+  header: string,
+  _showTotal: boolean,
+  total?: string
+): StringifiedTableData {
+  const indexSets = {
+    row: matrix.nrRows === 1 ? [] : ["row"],
+    column: matrix.nrColumns === 1 ? [] : ["column"],
+  };
+  const index: {
+    row: string[];
+    column: string[];
+  }[] = [];
+  const columnHeaders: string[] = [header];
+  const columns: {
+    row: { magnitude: string; unit: string }[];
+    isZero: boolean;
+  }[] = [];
+
+  const nrRows = matrix.nrRows;
+  const nrColumns = matrix.nrColumns;
+
+  let effectiveTotal = 0;
+
+  if (nrRows === 0 || nrColumns === 0) {
+    throw new Error("No rows and columns?");
+  } else {
+    const numbers = getFullNumbers(matrix);
+
+    // Add the data rows
+    for (let i = 0; i < nrRows; i++) {
+      for (let j = 0; j < nrColumns; j++) {
+        const indexEntry = {
+          row: [i.toString()],
+          column: [j.toString()],
+        };
+
+        index.push(indexEntry);
+
+        const num = numbers[i][j];
+
+        const dimNum = { magnitude: num.toFixed(NR_DECIMALS), unit: "" };
+
+        columns.push({ row: [dimNum], isZero: num === 0 });
+
+        effectiveTotal += num;
+      }
+    }
+  }
+
+  return new StringifiedTableData(indexSets, index, columnHeaders, columns, [
+    {
+      magnitude: total === undefined ? effectiveTotal.toString() : total,
+      unit: "",
+    },
+  ]);
+}

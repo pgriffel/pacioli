@@ -33,7 +33,6 @@ import { internUnit, matrixShapeFromType } from "./values/pacioli-value";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
 import type { RawMatrix } from "./raw-values/raw-matrix";
-import { STORAGE_DOK } from "./raw-values/raw-matrix";
 
 export const defaultContext = PacioliContext.empty();
 
@@ -73,12 +72,12 @@ export function createCoordinates(
 // }
 
 export function zeroNumbers(m: number, n: number): RawMatrix {
-  return tagMatrix([], m, n, STORAGE_DOK);
+  return tagMatrix([], m, n, "DOK");
 }
 
 // No longer needs to export this since oneNumbersFromShape is used.
 export function oneNumbers(m: number, n: number): RawMatrix {
-  const numbers = tagMatrix([], m, n, STORAGE_DOK);
+  const numbers = tagMatrix([], m, n, "DOK");
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
       set(numbers, i, j, 1);
@@ -116,7 +115,7 @@ export function initialNumbers(
 ): RawMatrix {
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
-  const numbers = tagMatrix([], m, n, STORAGE_DOK);
+  const numbers = tagMatrix([], m, n, "DOK");
   for (let i = 0; i < data.length; i++) {
     set(numbers, data[i][0], data[i][1], data[i][2]);
   }
