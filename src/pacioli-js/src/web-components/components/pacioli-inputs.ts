@@ -49,6 +49,10 @@ TEMPLATE.innerHTML = `
     tr {
       padding: 4pt;
     }
+
+    td {
+      white-space: nowrap
+    }
   </style>
 
   <table class="parameters" part="parameters"></table>
