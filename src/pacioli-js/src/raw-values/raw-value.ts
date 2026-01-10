@@ -20,11 +20,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliCoordinates } from "./values/coordinates";
-import { PacioliMap } from "./values/map";
-import { MatrixShape } from "./values/matrix-shape";
-import { RawMaybe } from "./values/maybe";
-import { PacioliVoid } from "./values/void";
+import type { PacioliCoordinates } from "../values/coordinates";
+import type { PacioliMap } from "../values/map";
+import { RawMaybe } from "../values/maybe";
+import type { NumericMatrix } from "./numbers";
+import type { PacioliVoid } from "../values/void";
+import {
+  tableDataFromRawMatrix,
+  type RawMatrix,
+  type RawMatrixStorage,
+} from "./raw-matrix";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -43,26 +48,6 @@ export type RawValue =
   | RawMap
   | RawMaybe
   | RawVoid;
-
-export type MatrixStorage = 0 | 1 | 2 | 3; // Full, DOK, COO or CCS
-
-export const STORAGE_FULL = 0;
-export const STORAGE_DOK = 1;
-export const STORAGE_COO = 2;
-export const STORAGE_CCS = 3;
-
-/**
- * Type of an unboxed matrix. Implemented as a nested array of numbers with some
- * extra properties (nr rows, nr columns, and storage kind). The meaning of the
- * numbers depends on the storage kind.
- */
-export interface RawMatrix extends Array<Array<number>> {
-  kind: "matrix";
-  nrRows: number;
-  nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
-  storage: MatrixStorage;
-}
 
 /**
  * Type of an unboxed Pacioli tuple. A javascript array tagged with kind 'tuple'.
@@ -142,6 +127,22 @@ export type RawBoole = boolean;
  */
 export const NOTHING = new RawMaybe();
 
+export function tagMatrix(
+  numbers: NumericMatrix,
+  nrRows: number,
+  nrColumns: number,
+  storage: RawMatrixStorage
+): RawMatrix {
+  const matrix = numbers as RawMatrix;
+
+  matrix.nrRows = nrRows;
+  matrix.nrColumns = nrColumns;
+  matrix.storage = storage;
+  matrix.kind = "matrix";
+
+  return matrix;
+}
+
 export function tagList(value: Array<RawValue>): RawList {
   (value as RawList).kind = "list";
   return value as RawList;
@@ -160,4 +161,122 @@ export function tagArray(value: Array<RawValue>): RawArray {
 export function tagRef(value: Array<RawValue>): RawRef {
   (value as RawRef).kind = "ref";
   return value as RawRef;
+}
+
+/**
+ * The RawValue kind is not complete. It is undefined for strings, booleans and functions.
+ *
+ * This label is an alternative that is complete. Useful to display to the user, etc.
+ *
+ * @param value Any raw value
+ * @returns One of the labels.
+ */
+export function rawValueLabel(
+  value: RawValue
+):
+  | "matrix"
+  | "list"
+  | "tuple"
+  | "array"
+  | "ref"
+  | "coordinates"
+  | "map"
+  | "maybe"
+  | "void"
+  | "string"
+  | "boolean"
+  | "function" {
+  if (typeof value === "string") {
+    return "string";
+  } else if (typeof value === "boolean") {
+    return "boolean";
+  } else if (typeof value === "function") {
+    return "function";
+  } else {
+    return value.kind;
+  }
+}
+
+/**
+ * String representation of a raw Pacioli value.
+ *
+ * Does not include unit information.
+ *
+ * Satisfies
+ *
+ *  x equals y in Pacioli
+ *    <=>
+ *  stringifyRawValue(x) === stringifyRawValue(y)
+ *
+ * when units are ignored and equality is defined.
+ *
+ * The last is important for e.g. boolean true and string
+ * "true", but also for list and tuples, because it does
+ * not hold in these cases. Function stringifyRawValue
+ * treats list and tuples as equal. This is not a problem
+ * because Pacioli does not allow equality between a list
+ * and a tuple.
+ *
+ * Is not a method because we use primitive javascript values.
+ * For PacioliValue there is the toText method. Where possible
+ * we reuse that.
+ *
+ * @param value
+ */
+export function stringifyRawValue(value: RawValue): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "function") {
+    return "|closure|";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "true" : "false";
+  }
+
+  switch (value.kind) {
+    case "matrix": {
+      return tableDataFromRawMatrix(value, "Value", false).ascii();
+      // return `mat(${value.nrRows.toString()}, ${value.nrColumns.toString()}) ${value.join(
+      //   " + "
+      // )} ${value.storage.toString()}`;
+    }
+    case "list": {
+      return `[${value.map(stringifyRawValue).join(", ")}]`;
+    }
+    case "tuple": {
+      return `[${value.map(stringifyRawValue).join(", ")}]`;
+    }
+    case "array": {
+      return `<${value.map(stringifyRawValue).join(", ")}>`;
+    }
+    case "ref": {
+      return `<${value.map(stringifyRawValue).join(", ")}>`;
+    }
+    case "coordinates": {
+      return `${value.size.toString()}@${value.position.toString()}`;
+    }
+    case "map": {
+      const pairs: string[] = [];
+
+      for (const key of value.keyMap.keys()) {
+        const k = value.keyMap.get(key);
+        const v = value.valueMap.get(key);
+        if (k !== undefined && v !== undefined) {
+          pairs.push(`${stringifyRawValue(k)}->${stringifyRawValue(v)}`);
+        }
+      }
+      return `<${pairs.join(", ")}>`;
+    }
+    case "void": {
+      return "Void";
+    }
+    case "maybe": {
+      return value.value === undefined
+        ? "Nothing"
+        : `just<${stringifyRawValue(value.value)}>`;
+    }
+  }
 }

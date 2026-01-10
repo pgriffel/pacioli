@@ -69,7 +69,7 @@ export function parseMargin(text: string | undefined): {
       right: nums[2 % n],
       bottom: nums[3 % n],
     };
-  } catch (err) {
+  } catch (_) {
     return ZERO_MARGIN;
   }
 }
@@ -79,10 +79,10 @@ export function combineMargins(
   y: { left: number; top: number; right: number; bottom: number } | undefined
 ) {
   return {
-    left: (x?.left || 0) + (y?.left || 0),
-    top: (x?.top || 0) + (y?.top || 0),
-    right: (x?.right || 0) + (y?.right || 0),
-    bottom: (x?.bottom || 0) + (y?.bottom || 0),
+    left: (x?.left ?? 0) + (y?.left ?? 0),
+    top: (x?.top ?? 0) + (y?.top ?? 0),
+    right: (x?.right ?? 0) + (y?.right ?? 0),
+    bottom: (x?.bottom ?? 0) + (y?.bottom ?? 0),
   };
 }
 
@@ -106,7 +106,7 @@ export interface DefaultChartOptions {
 export function displayChartError(
   parent: HTMLElement,
   message: string,
-  err: any
+  err: unknown
 ) {
   while (parent.firstChild) {
     parent.removeChild(parent.firstChild);
@@ -115,7 +115,9 @@ export function displayChartError(
   const par = document.createElement("p");
   par.style.color = "red";
   parent.appendChild(par);
-  par.appendChild(document.createTextNode(err));
+  par.appendChild(
+    document.createTextNode(err instanceof Error ? err.message : String(err))
+  );
 }
 
 // Tooltips in d3:
@@ -146,9 +148,14 @@ export class ToolTip {
       .join(".");
   }
 
-  private findDiv(): d3.Selection<HTMLDivElement, unknown, HTMLElement, any> {
+  private findDiv(): d3.Selection<
+    HTMLDivElement,
+    unknown,
+    HTMLElement,
+    unknown
+  > {
     // See if a tooltip exists
-    const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, any> =
+    const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, unknown> =
       d3.select("div." + this.id);
 
     // Return a tooltip parent with default styling. Create it if it does not exist yet.
@@ -172,8 +179,8 @@ export class ToolTip {
 
     // Set the html and the position
     div.html(html);
-    div.style("left", x + "px");
-    div.style("top", y + "px");
+    div.style("left", x.toString() + "px");
+    div.style("top", y.toString() + "px");
 
     // Remove the display none style (set initially and by hide) to make the tooltip appear
     div.style("display", null);
@@ -181,7 +188,7 @@ export class ToolTip {
 
   public hide() {
     // Set the display style to none to make the tooltip disappear
-    const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, any> =
+    const tt: d3.Selection<HTMLDivElement, unknown, HTMLElement, unknown> =
       d3.select("div." + this.id);
     tt.style("display", "none");
   }
@@ -221,9 +228,9 @@ export function appendChartCaption(
   options: DefaultChartOptions,
   caption?: string
 ) {
-  const text = caption || options.caption;
+  const text = caption ?? options.caption;
 
-  if (text) {
+  if (text !== undefined) {
     svg
       .append("text")
       .attr("x", options.width / 2)

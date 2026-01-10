@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOMBase } from "uom-ts";
-import { UnitVector } from "./unit-vector";
-import { ToText } from "../boxing";
+import type { SIUnit, UOMBase } from "uom-ts";
+import type { UnitVector } from "./unit-vector";
+import type { ToText } from "./pacioli-value";
 
 export class VectorBase implements UOMBase, ToText {
   constructor(

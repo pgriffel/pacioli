@@ -21,12 +21,17 @@
  */
 
 import { UOM } from "uom-ts";
-import { PacioliType, PacioliUnit, PacioliVector } from "./type";
-import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
+import type {
+  PacioliType,
+  PacioliUnit,
+  PacioliVector,
+} from "./types/pacioli-type";
+import type { IndexType, PacioliIndex } from "./types/matrix";
+import { MatrixType } from "./types/matrix";
 import { GenericType } from "./types/generic";
 import { FunctionType } from "./types/function";
-import { IndexVar, PacioliVar } from "./types/variables";
-import { PacioliBase } from "./types/bases";
+import type { IndexVar, PacioliVar } from "./types/variables";
+import type { PacioliBase } from "./types/bases";
 
 type PacioliEquation =
   | TypeEquation
@@ -36,38 +41,22 @@ type PacioliEquation =
 
 class TypeEquation {
   readonly kind = "typeeq";
-  constructor(public lhs: PacioliType, public rhs: PacioliType) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliType, public rhs: PacioliType) {}
 }
 
 class UnitEquation {
   readonly kind = "uniteq";
-  constructor(public lhs: PacioliUnit, public rhs: PacioliUnit) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliUnit, public rhs: PacioliUnit) {}
 }
 
 class VectorEquation {
   readonly kind = "vectoreq";
-  constructor(public lhs: PacioliVector, public rhs: PacioliVector) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliVector, public rhs: PacioliVector) {}
 }
 
 class IndexEquation {
   readonly kind = "indexeq";
-  constructor(public lhs: PacioliIndex, public rhs: PacioliIndex) {
-    if (!lhs || !rhs) {
-      throw new Error("undefined equation parts");
-    }
-  }
+  constructor(public lhs: PacioliIndex, public rhs: PacioliIndex) {}
 }
 
 export function matchTypes(x: PacioliType, y: PacioliType) {
@@ -81,11 +70,11 @@ export function matchTypes(x: PacioliType, y: PacioliType) {
  * @returns
  */
 function solveEquations(eqs: PacioliEquation[]) {
-  var map = new Binding();
+  let map = new Binding();
   eqs.forEach((eq) => {
     switch (eq.kind) {
       case "typeeq": {
-        var lhs = subs(eq.lhs, map);
+        const lhs = subs(eq.lhs, map);
         if (lhs.kind === "typevar") {
           map = Binding.fromType(lhs, subs(eq.rhs, map)).compose(map);
         }
@@ -177,7 +166,7 @@ function matchUnits<T extends PacioliBase>(
   x: UOM<T>,
   y: UOM<T>
 ): Map<string, UOM<T>> {
-  return x.equals(y) ? new Map() : unitMatch(x.div(y));
+  return x.equals(y) ? new Map<string, UOM<T>>() : unitMatch(x.div(y));
 }
 
 function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
@@ -185,8 +174,8 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   const map = new Map<string, UOM<T>>();
 
   // Split the bases into variables and non-variables
-  let varBases: T[] = [];
-  let fixedBases: T[] = [];
+  const varBases: T[] = [];
+  const fixedBases: T[] = [];
   unit.bases().forEach((base) => {
     if (base.isVar) {
       varBases.push(base);
@@ -199,22 +188,23 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   // fail or return the empty map
   if (varBases.length === 0) {
     if (fixedBases.length !== 0) {
-      throw "Contradiction in unit match: 1 = " + unit.toText();
+      throw Error("Contradiction in unit match: 1 = " + unit.toText());
     }
     return map;
   }
 
   // Look at the first variable and its power
-  var firstVar = varBases[0];
-  var power = unit.power(firstVar);
+  const firstVar = varBases[0];
+  const power = unit.power(firstVar);
 
   // If it's the only one, then we are done. Either fail, or bind the var
   // to the proper unit and return the map.
   if (varBases.length === 1) {
-    var rest = UOM.ONE;
+    let rest = UOM.ONE as UOM<T>;
     fixedBases.forEach((base) => {
       const fixedPower = unit.power(base);
-      if (fixedPower % power !== 0) throw "unit error in unit " + unit.toText();
+      if (fixedPower % power !== 0)
+        throw Error("unit error in unit " + unit.toText());
       rest = rest.mult(UOM.fromBase(base).expt(-fixedPower / power));
     });
 
@@ -223,7 +213,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   }
 
   // See if there is a variable with a smaller power
-  var minVar = firstVar;
+  let minVar = firstVar;
   varBases.forEach((base) => {
     if (Math.abs(unit.power(base)) < Math.abs(unit.power(minVar))) {
       minVar = base;
@@ -231,10 +221,10 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   });
 
   // Recurse on the unit variable with the smallest power
-  var rest = UOM.ONE;
-  var minPower = unit.power(minVar);
+  let rest = UOM.ONE as UOM<T>;
+  const minPower = unit.power(minVar);
   unit.bases().forEach((base) => {
-    if (base != minVar) {
+    if (base !== minVar) {
       rest = rest
         .mult(UOM.fromBase(base))
         .expt(-Math.floor(unit.power(base) / minPower));
@@ -260,7 +250,7 @@ export function collectTypeEquations(
   } else if (y.kind === "typevar") {
     return [new TypeEquation(y, x)]; // or x, y?
   } else if (x.kind === "matrix" && y.kind === "matrix") {
-    var eqs: PacioliEquation[] = [];
+    const eqs: PacioliEquation[] = [];
     eqs.push(new UnitEquation(x.multiplier, y.multiplier));
     eqs.push(new IndexEquation(x.rowIndex, y.rowIndex));
     const rowIndex = x.rowIndex;
@@ -275,18 +265,18 @@ export function collectTypeEquations(
     if (x.name !== y.name) {
       throw new Error(`Mixup of types ${x.name} and ${y.name}`);
     }
-    var eqs: PacioliEquation[] = [];
-    for (var i = 0; i < x.items.length; i++) {
+    let eqs: PacioliEquation[] = [];
+    for (let i = 0; i < x.items.length; i++) {
       eqs = eqs.concat(...collectTypeEquations(x.items[i], y.items[i]));
     }
     return eqs;
   } else if (x.kind === "function" && y.kind === "function") {
-    var eqs: PacioliEquation[] = [];
+    const eqs: PacioliEquation[] = [];
     eqs.push(new TypeEquation(x.from, y.from));
     eqs.push(new TypeEquation(x.to, y.to));
     return eqs;
   }
-  throw "cannot match: kind " + x.kind + " and " + y.kind;
+  throw Error("cannot match: kind " + x.kind + " and " + y.kind);
 }
 
 function subsIndex(

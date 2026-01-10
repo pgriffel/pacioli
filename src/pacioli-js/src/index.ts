@@ -52,15 +52,13 @@ export {
   createCoordinates,
 } from "./cache";
 
-export { findNonZero } from "./values/numbers";
+export { findNonZero } from "./raw-values/raw-matrix";
 
 export { Space } from "./graphics/space";
 
 export { PacioliContext } from "./context";
 
 export { DOM, DOMTable } from "./dom/dom";
-
-export { DOMTableColumns } from "./dom/table";
 
 export { IndexSet } from "./values/index-set";
 
@@ -70,7 +68,7 @@ export { MatrixShape as Shape } from "./values/matrix-shape";
 
 export { MatrixType, IndexType } from "./types/matrix";
 
-export { PacioliType, PacioliUnit, PacioliVector } from "./type";
+export { PacioliType, PacioliUnit, PacioliVector } from "./types/pacioli-type";
 
 export { SIBaseType, VectorBaseType } from "./types/bases";
 
@@ -234,7 +232,7 @@ export {
   ONE,
 } from "./primitives";
 
-export { internUnit, matrixShapeFromType } from "./boxing";
+export { internUnit, matrixShapeFromType } from "./values/pacioli-value";
 
 export { PacioliSceneComponent } from "./web-components/components/pacioli-scene";
 export { PacioliControlsComponent } from "./web-components/components/pacioli-controls";

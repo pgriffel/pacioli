@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
-import { IndexSet } from "./index-set";
-import { ToText } from "../boxing";
+import { SIUnit } from "uom-ts";
+import type { IndexSet } from "./index-set";
+import type { ToText } from "./pacioli-value";
 
 export class UnitVector implements ToText {
   constructor(
@@ -38,7 +38,7 @@ export class UnitVector implements ToText {
   ) {
     const units: SIUnit[] = [];
     indexSet.items.forEach((element) => {
-      units.push(elements.get(element) || UOM.ONE);
+      units.push(elements.get(element) ?? SIUnit.ONE);
     });
     return new UnitVector(name, indexSet, units);
   }

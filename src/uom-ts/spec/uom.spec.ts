@@ -38,7 +38,7 @@ export function arbitraryUOM(): fc.Arbitrary<SIUnit> {
   return fc
     .array(arbitrarySIBase())
     .map((terms) =>
-      terms.map(UOM.fromBase).reduce((x, y) => x.mult(y), UOM.ONE)
+      terms.map(UOM.fromBase).reduce((x, y) => x.mult(y), SIUnit.ONE)
     );
 }
 

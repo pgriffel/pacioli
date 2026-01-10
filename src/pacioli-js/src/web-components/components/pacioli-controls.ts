@@ -20,41 +20,81 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliWebController } from "../pacioli-web-controller";
-import { addButtonEventListener, addCheckBoxEventListener } from "../utils";
-import { PacioliSceneComponent } from "./pacioli-scene";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import {
+  addButtonEventListener,
+  addCheckBoxEventListener,
+  attachedPacioliWebComponent,
+} from "../utils";
+import type { PacioliSceneComponent } from "./pacioli-scene";
 
 const TEMPLATE = document.createElement("template");
 
 TEMPLATE.innerHTML = `
   <style>
-    .pacioli-controls-animation {
-      background: var(--bg-color);
+   
+    :host {
+      display: block;
+    }
+    
+    .content {
+      display: flex;
+      flex-direction: row;
+      gap: 8pt;
+      align-items: left;
+      flex-wrap: wrap;
+      padding: 8pt;
     }
 
-    .pacioli-controls-configuration {
-      background: var(--bg-color);
+    .animation {
+      display: flex;
+      flex-direction: row;
+      gap: 8pt;
+      flex-wrap: wrap;
+    }
+
+    .configuration {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8pt;
+    }
+
+    button {
+      width: 80pt;
+    }
+    
+    input[type="checkbox"]
+    {
+        vertical-align: middle;
+        margin-right: 0pt;
     }
   </style>
-  <div class="pacioli-controls-animation">
-    <button class="run">Run</button>
-    <button class="step">Step</button>
-    <button class="reset">Reset</button>
+
+  <div class="configuration" part="configuration">
+    <label class="axis">
+      <input type="checkbox" part="input axis"></input>
+      axis
+    </label>
+    <label class="grid">
+      <input type="checkbox" part="input grid"></input>
+      grid
+    </label>
+    <label class="labels">
+      <input type="checkbox" part="input labels"></input>
+      labels
+    </label>
+    <label class="rotate">
+      <input type="checkbox" part="input rotate"></input>
+      rotate
+    </label>
   </div>
-  <div class="pacioli-controls-configuration">
-    <label class="axis">axis
-      <input type="checkbox"></input>
-    </label>
-    <label class="grid">grid
-      <input type="checkbox"></input>
-    </label>
-    <label class="labels">labels
-      <input type="checkbox"></input>
-    </label>
-    <label class="rotate">rotate
-      <input type="checkbox"></input>
-    </label>
-    <button class="snapshot">Snapshot</button>
+  
+  <div class="animation" part="animation">
+    <button class="run" part="button run">Run</button>
+    <button class="step" part="button step">Step</button>
+    <button class="reset" part="button reset">Reset</button>
+    <button class="snapshot" part="button snapshot">Snapshot</button>
   </div>
 `;
 
@@ -70,7 +110,7 @@ TEMPLATE.innerHTML = `
  *
  * <pacioli-controls for="my_scene"></pacioli-controls>
  */
-export class PacioliControlsComponent extends PacioliWebController {
+export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
@@ -84,14 +124,16 @@ export class PacioliControlsComponent extends PacioliWebController {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string | null, next: string) {
+  attributeChangedCallback(
+    name: string,
+    _oldValue: string | null,
+    _newValue: string
+  ) {
     switch (name) {
       case "for": {
         // Only handle changes after the initial construction. Initial
         // construction is done in connectedCallback.
         if (this.isConnected) {
-          this.unfollow();
-          this.follow(next, () => this.updateControls());
           this.updateControls();
         }
         break;
@@ -111,17 +153,11 @@ export class PacioliControlsComponent extends PacioliWebController {
     // Connect all event handlers to the content elements
     this.addEventListeners();
 
-    // Set the CSS styles
-    this.contentParent().className = "pacioli-controls-content";
-
     // Make sure the proper buttons are shown and enabled
-    this.updateControls();
-
-    // If we are connected to a scene, then we need to keep the
-    // state of the buttons synchronized with the scene animation.
-    if (this.attachedComponent()) {
-      this.followAttached(() => this.updateControls());
-    }
+    // this.updateControls();
+    setTimeout(() => {
+      this.updateControls();
+    }, 1);
   }
 
   /**
@@ -131,7 +167,7 @@ export class PacioliControlsComponent extends PacioliWebController {
    * @returns The connected PacioliScene, or undefined if no connected scene exists.
    */
   sceneElement(): PacioliSceneComponent | undefined {
-    const component = this.attachedComponent();
+    const component = attachedPacioliWebComponent(this);
     return component ? (component as PacioliSceneComponent) : undefined;
   }
 
@@ -139,29 +175,32 @@ export class PacioliControlsComponent extends PacioliWebController {
    * Helper for connectedCallback. Call only once!
    */
   private addEventListeners() {
-    addButtonEventListener(this.animationButton(".run"), () =>
-      this.startButtonClicked()
-    );
-    addButtonEventListener(this.animationButton(".step"), () =>
-      this.stepButtonClicked()
-    );
-    addButtonEventListener(this.animationButton(".reset"), () =>
-      this.resetButtonClicked()
+    addButtonEventListener(this.animationButton('[part="button run"]'), () => {
+      this.startButtonClicked();
+    });
+    addButtonEventListener(this.animationButton('[part="button step"]'), () => {
+      this.stepButtonClicked();
+    });
+    addButtonEventListener(
+      this.animationButton('[part="button reset"]'),
+      () => {
+        this.resetButtonClicked();
+      }
     );
 
-    addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) =>
-      this.axisCheckBoxClicked(checked)
-    );
-    addCheckBoxEventListener(this.configurationLabel(".grid"), (checked) =>
-      this.gridCheckBoxClicked(checked)
-    );
-    addCheckBoxEventListener(this.configurationLabel(".labels"), (checked) =>
-      this.labelsCheckBoxClicked(checked)
-    );
-    addCheckBoxEventListener(this.configurationLabel(".rotate"), (checked) =>
-      this.autoRotateCheckboxClicked(checked)
-    );
-    addButtonEventListener(this.configurationButton(".snapshot"), () => {
+    addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) => {
+      this.axisCheckBoxClicked(checked);
+    });
+    addCheckBoxEventListener(this.configurationLabel(".grid"), (checked) => {
+      this.gridCheckBoxClicked(checked);
+    });
+    addCheckBoxEventListener(this.configurationLabel(".labels"), (checked) => {
+      this.labelsCheckBoxClicked(checked);
+    });
+    addCheckBoxEventListener(this.configurationLabel(".rotate"), (checked) => {
+      this.autoRotateCheckboxClicked(checked);
+    });
+    addButtonEventListener(this.animationButton(".snapshot"), () => {
       this.snapshotButtonClicked();
     });
   }
@@ -171,12 +210,18 @@ export class PacioliControlsComponent extends PacioliWebController {
    */
   private startButtonClicked() {
     const scene = this.sceneElement();
+
     if (scene) {
       try {
-        scene.setRunning(!scene.isRunning());
-        this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+        const isRunning = scene.isRunning();
+
+        if (isRunning !== undefined) {
+          scene.setRunning(!isRunning);
+
+          this.updateControls();
+        }
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -190,8 +235,8 @@ export class PacioliControlsComponent extends PacioliWebController {
       try {
         scene.step();
         this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -205,8 +250,8 @@ export class PacioliControlsComponent extends PacioliWebController {
       try {
         scene.reset();
         this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -223,8 +268,8 @@ export class PacioliControlsComponent extends PacioliWebController {
         } else {
           scene.space.hideAxis();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -241,8 +286,8 @@ export class PacioliControlsComponent extends PacioliWebController {
         } else {
           scene.space.hideLabels();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -259,8 +304,8 @@ export class PacioliControlsComponent extends PacioliWebController {
         } else {
           scene.space.hideGrid();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -279,8 +324,8 @@ export class PacioliControlsComponent extends PacioliWebController {
         } else {
           scene.space.stopAutoRotation();
         }
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (err: unknown) {
+        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -291,7 +336,7 @@ export class PacioliControlsComponent extends PacioliWebController {
   private snapshotButtonClicked() {
     const followedId = this.getAttribute("for");
     const scene = this.sceneElement();
-    if (scene && followedId) {
+    if (scene && followedId !== null) {
       scene.openImage(followedId);
     } else {
       if (scene) {
@@ -307,7 +352,7 @@ export class PacioliControlsComponent extends PacioliWebController {
    * button labels for the animation buttons.
    */
   private updateControls() {
-    const animationElement = this.findElement(".pacioli-controls-animation");
+    // const animationElement = this.findElement(".animation");
 
     const runButton = this.animationButton(".run");
     const stepButton = this.animationButton(".step");
@@ -317,7 +362,7 @@ export class PacioliControlsComponent extends PacioliWebController {
 
     if (scene && scene.space) {
       // If we get here the space must have been created
-      const space = scene.space!;
+      const space = scene.space;
 
       this.configurationCheckbox(".axis").checked = space.hasAxis();
       this.configurationCheckbox(".grid").checked = space.hasGrid();
@@ -326,12 +371,13 @@ export class PacioliControlsComponent extends PacioliWebController {
         space.autoRotateSpeed() > 0;
 
       // Distinguish animations and static scenes
-      if (space.isAnimation()) {
+      if (scene.isAnimation()) {
         const isRunning = space.isRunning();
 
-        animationElement.style.display = "";
-        runButton.hidden = false;
-        stepButton.hidden = false;
+        // animationElement.style.display = "";
+        runButton.style.display = "";
+        stepButton.style.display = "";
+        resetButton.style.display = "";
 
         runButton.innerText = isRunning ? "Pause" : "Run";
         stepButton.innerText = "Step " + space.runningTime().toFixed(2) + "s";
@@ -340,36 +386,32 @@ export class PacioliControlsComponent extends PacioliWebController {
         stepButton.disabled = isRunning;
         resetButton.disabled = isRunning;
       } else {
-        animationElement.style.display = "none";
+        runButton.style.display = "none";
+        stepButton.style.display = "none";
+        resetButton.style.display = "none";
       }
     } else {
-      // No scene, just disable the animation buttons
-      runButton.disabled = true;
-      stepButton.disabled = true;
-      resetButton.disabled = true;
+      // No scene, just enable the animation buttons
+      runButton.style.display = "";
+      stepButton.style.display = "";
+      resetButton.style.display = "";
+
+      runButton.disabled = false;
+      stepButton.disabled = false;
+      resetButton.disabled = false;
     }
   }
 
   private animationButton(className: string): HTMLButtonElement {
-    return this.findElement(
-      `.pacioli-controls-animation ${className}`
-    ) as HTMLButtonElement;
+    return this.findElement(className) as HTMLButtonElement;
   }
 
   private configurationLabel(className: string): HTMLLabelElement {
-    return this.findElement(
-      `.pacioli-controls-configuration ${className}`
-    ) as HTMLLabelElement;
+    return this.findElement(`.configuration ${className}`) as HTMLLabelElement;
   }
 
   private configurationCheckbox(className: string): HTMLInputElement {
     return this.configurationLabel(className).children[0] as HTMLInputElement;
-  }
-
-  private configurationButton(className: string): HTMLButtonElement {
-    return this.findElement(
-      `.pacioli-controls-configuration ${className}`
-    ) as HTMLButtonElement;
   }
 }
 

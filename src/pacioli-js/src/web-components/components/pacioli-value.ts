@@ -21,15 +21,31 @@
  */
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { DOM } from "../../dom/dom";
+import type { PacioliValue } from "../../values/pacioli-value";
+
+/**
+ * Options for Pacioli's value component.
+ */
+export interface ValueOptions {
+  decimals: number;
+
+  zero?: string;
+
+  nozerorows: boolean;
+
+  totals: boolean;
+
+  ignoredecimals: boolean;
+}
 
 /**
  * Attribues supported by the Pacioli value component
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
-  booleans: ["nozeros"],
+  booleans: ["nozerorows", "ignoredecimals", "totals"],
   numbers: ["decimals"],
 };
 
@@ -37,8 +53,7 @@ const SUPPORTED_ATTRIBUTES = {
  * Style sheet for the Pacioli value component
  */
 const STYLES = `
-.pacioli-matrix {
-
+.pacioli-table {
 
 border-spacing: 0;
 border-collapse: collapse;
@@ -47,23 +62,14 @@ tr {
    height: 28px;
 }
 
-td, th {
-  NOborder: solid lightgrey;
-  border: solid white;
-}
-
 td {
-  background-color: $table-bg;
   border-bottom: solid lightgrey;
 }
 
 th {
-  font-weight: normal;
   border-width: 1px 1px 1px 1px;
-  background-color: $app-toolbar-color;
-  Nocolor: white;
   padding-left: 1em;
-  padding-right: 1em;
+  text-align: left;
 }
 
 td.key {
@@ -87,75 +93,74 @@ td.unit {
 }
 
 td.total {
-  padding-left: 1em;
-  border-width: 1px 0px 1px 1px;
-  text-align: right;
   font-weight: bold;
 }
-
-
-  NOwidth: 100%;
-
-  th.key {
-    text-align: left;
-  }
-
-  th.value {
-    text-align: center;
-  }
-
-  td.value {
-    text-align: right;
-    // padding-right: 0.25em;
-  }
-
-  td.unit {
-    text-align: left;
-    padding-left: 0pt;  
-  }
-
-} `;
+}
+`;
 
 /**
  * Web component for a Pacioli value. A wrapper around the DOM function.
  */
 export class PacioliValueComponent extends PacioliShadowTreeComponent {
+  /**
+   * The Pacioli value displayed in the table.
+   */
+  data?: PacioliValue;
+
   constructor() {
     super();
     this.adoptStyles(STYLES);
   }
 
   /**
-   * Pacioli web component life-cycle event.
+   * Web component field.
    */
-  override parametersChanged(): void {
-    try {
-      // Compute the data using the new parameter values
-      const data = this.fetchData();
+  static observedAttributes = [
+    "definition",
+    "decimals",
+    "ignoredecimals",
+    "totals",
+    "nozeros",
+  ];
 
-      // Refresh the html
-      this.clearContent();
-      this.contentParent().appendChild(DOM(data));
-    } catch (err: any) {
-      this.displayError(err);
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
+    try {
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
+
+        this.drawTable(this.data);
+      }
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
   /**
-   * Creates an options for the value from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
+   * Pacioli web component life-cycle event.
    */
-  chartOptions(): Partial<{
-    decimals?: number;
-    zero?: string;
-    zeroRows?: boolean;
-  }> {
-    return optionsFromAttributes<{
-      decimals?: number;
-      zero?: string;
-      zeroRows?: boolean;
-    }>(this, SUPPORTED_ATTRIBUTES);
+  override parametersChanged(): void {
+    this.data = this.fetchData();
+
+    this.drawTable(this.data);
+  }
+
+  drawTable(value: PacioliValue) {
+    this.clearContent();
+    this.clearErrors();
+
+    const options = {
+      ...optionsFromScript<ValueOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<ValueOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    this.contentParent().appendChild(DOM(value, options));
   }
 }
 

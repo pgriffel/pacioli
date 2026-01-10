@@ -33,16 +33,18 @@ export class DimNum {
   /**
    * The multiplicative unit
    */
-  public static ONE = new DimNum(new BigNumber(1), UOM.ONE);
+  // Why does this give problems with webpack?
+  // public static ONE = new DimNum(new BigNumber(1), SIUnit.ONE);
+  public static ONE = new DimNum(new BigNumber(1), new UOM(new Map()));
 
   /**
    * Constructs a dimensionless number.
    *
    * @param factor The number
-   * @returns A dimensioned number with unit UOM.ONE
+   * @returns A dimensioned number with unit SIUnit.ONE
    */
   static dimless(factor: BigNumber): DimNum {
-    return new DimNum(factor, UOM.ONE);
+    return new DimNum(factor, SIUnit.ONE);
   }
 
   /**
@@ -55,11 +57,11 @@ export class DimNum {
     return new DimNum(new BigNumber(1), unit);
   }
 
-  static fromNumber(magnitude: number, unit: SIUnit = UOM.ONE): DimNum {
+  static fromNumber(magnitude: number, unit: SIUnit = SIUnit.ONE): DimNum {
     return new DimNum(new BigNumber(magnitude), unit);
   }
 
-  static fromString(magnitude: string, unit: SIUnit = UOM.ONE): DimNum {
+  static fromString(magnitude: string, unit: SIUnit = SIUnit.ONE): DimNum {
     return new DimNum(new BigNumber(magnitude), unit);
   }
 

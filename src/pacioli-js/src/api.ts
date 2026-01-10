@@ -20,21 +20,30 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { DimNum, SIUnit, UOM, parseDimNum as uomParseDimNum } from "uom-ts";
+import type { DimNum } from "uom-ts";
+import { SIUnit } from "uom-ts";
+import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
-import { PacioliUnit, PacioliVector } from "./type";
-import { PacioliContext } from "./context";
+import type {
+  PacioliType,
+  PacioliUnit,
+  PacioliVector,
+} from "./types/pacioli-type";
+import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
-import { MatrixType, PacioliIndex } from "./types/matrix";
-import { boxRawValue, PacioliValue, typeFromValue } from "./boxing";
+import type { PacioliIndex } from "./types/matrix";
+import { MatrixType } from "./types/matrix";
+import type { PacioliValue } from "./values/pacioli-value";
+import { boxRawValue, typeFromValue } from "./values/pacioli-value";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { GenericType } from "./types/generic";
-import BigNumber from "bignumber.js";
+import type BigNumber from "bignumber.js";
+import type { RawValue } from "./raw-values/raw-value";
 
 // -----------------------------------------------------------------------------
 // New
@@ -60,8 +69,8 @@ export function value(
   context: PacioliContext = defaultContext
 ): PacioliValue {
   return boxRawValue(
-    lookupItem(module + "_" + name, context),
-    lookupItem("u_" + module + "_" + name, context),
+    lookupItem<RawValue>(module + "_" + name, context),
+    lookupItem<PacioliType>("u_" + module + "_" + name, context),
     context
   );
 }
@@ -72,14 +81,14 @@ export function fun(
   name: string,
   context: PacioliContext = defaultContext
 ): PacioliFunction {
-  const type = lookupItem("u_" + module + "_" + name, context);
-  const value = lookupItem(module + "_" + name, context);
+  const type = lookupItem<PacioliType>("u_" + module + "_" + name, context);
+  const value = lookupItem<RawValue>(module + "_" + name, context);
   const box = boxRawValue(value, type, context);
   if (box instanceof PacioliFunction) {
     return box;
   } else {
     throw new Error(
-      `Expected a PacioliFunction when creating fun ${module}_${name} but got ${box}`
+      `Expected a PacioliFunction when creating fun ${module}_${name} but got a '${box.kind}'`
     );
   }
 }
@@ -107,7 +116,11 @@ export function unit(name: string): SIUnit {
 
 // Used in generated code
 export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
-  return UOM.fromBase(new SIBaseType(name2 ? name1 : "", name2 ?? name1));
+  return UOM.fromBase(
+    name2 === undefined
+      ? new SIBaseType("", name1)
+      : new SIBaseType(name1, name2)
+  );
 }
 
 // Used only by VectorBase. In asJs method.
@@ -134,9 +147,9 @@ export function typeFromVarName(varName: string): TypeVar {
 
 export function num(
   num: string | number,
-  unit: SIUnit = UOM.ONE
+  unit: SIUnit = SIUnit.ONE
 ): PacioliMatrix {
-  const shape = MatrixShape.scalar(unit === undefined ? UOM.ONE : unit);
+  const shape = MatrixShape.scalar(unit);
   const numbers = initialNumbers(1, 1, [
     [0, 0, typeof num === "string" ? parseFloat(num) : num],
   ]);
@@ -156,7 +169,8 @@ export function parseUnit(
 
 export function stringifyUnit(unit: SIUnit): string {
   return unit.fold(
-    (base, power) => (power === 1 ? base.name : `${base.name}^${power}`),
+    (base, power) =>
+      power === 1 ? base.name : `${base.name}^${power.toString()}`,
     (x, y) => x + "*" + y,
     ""
   );
@@ -188,7 +202,7 @@ export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
   }
-  var vList = array.map(function (elt) {
+  const vList = array.map(function (elt) {
     return elt; //.value;
   });
   return new PacioliList(

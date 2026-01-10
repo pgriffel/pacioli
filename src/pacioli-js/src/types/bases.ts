@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { UOMBase } from "uom-ts";
+import type { UOMBase } from "uom-ts";
 
 export interface PacioliBase extends UOMBase {
   readonly isVar: boolean;
@@ -53,7 +53,7 @@ export class VectorBaseType implements PacioliBase {
   constructor(public readonly name: string, public readonly position: number) {}
 
   public toText(): string {
-    return this.name + "$" + this.position;
+    return this.name + "$" + this.position.toString();
   }
 
   public shift(delta: number): VectorBaseType {

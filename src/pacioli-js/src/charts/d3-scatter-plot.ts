@@ -22,7 +22,7 @@
 
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
-import { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
@@ -30,10 +30,12 @@ import {
   displayChartError,
   parseMargin,
 } from "./chart-utils";
-import { LinearChartData, linearChartData } from "./chart-data";
-import { PacioliContext } from "./../context";
-import { PacioliCoordinates } from "../values/coordinates";
-import { DefaultChartOptions, ToolTip } from "./chart-utils";
+import type { LinearChartData } from "./chart-data";
+import { linearChartData } from "./chart-data";
+import type { PacioliContext } from "./../context";
+import type { PacioliCoordinates } from "../values/coordinates";
+import type { DefaultChartOptions } from "./chart-utils";
+import { ToolTip } from "./chart-utils";
 import { parseUnit } from "../api";
 
 /**
@@ -42,7 +44,7 @@ import { parseUnit } from "../api";
 export interface ScatterPlotOptions extends DefaultChartOptions {
   xunit?: string;
   yunit?: string;
-  convert?: boolean;
+  convert: boolean;
   xlower?: number;
   xupper?: number;
   ylower?: number;
@@ -54,13 +56,13 @@ export interface ScatterPlotOptions extends DefaultChartOptions {
   radius: number;
   trendline: boolean;
   decimals: number;
-  onclick: (data: {
+  onclick?: (data: {
     x: DimNum;
     y: DimNum;
     options: ScatterPlotOptions;
     element?: PacioliCoordinates;
   }) => void;
-  tooltip: (
+  tooltip?: (
     valueX: DimNum,
     valueY: DimNum,
     options: ScatterPlotOptions,
@@ -117,18 +119,18 @@ export class ScatterPlot {
   public draw(parent: HTMLElement) {
     try {
       // Determine the data
-      var data = linearChartData(
+      const data = linearChartData(
         this.context,
         this.data,
-        this.options.convert && this.options.xunit
+        this.options.convert && this.options.xunit !== undefined
           ? parseUnit(this.options.xunit)
           : undefined,
-        this.options.convert && this.options.yunit
+        this.options.convert && this.options.yunit !== undefined
           ? parseUnit(this.options.yunit)
           : undefined
       );
 
-      var margin = combineMargins(
+      const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
@@ -156,7 +158,7 @@ export class ScatterPlot {
           .append("g")
           .attr(
             "transform",
-            "translate(" + margin.left + "," + margin.top + ")"
+            `translate(${margin.left.toString()},${margin.top.toString()})`
           );
 
         appendScatterPlot(group, data, width, height, this.options);
@@ -187,7 +189,7 @@ function scatterPlotTooltip(
   const yNum = y.toFixed(options.decimals);
 
   // If the input came from a vector we display the clicked entry's coordinate
-  const eltText = element ? `${element.names}:<br>` : "";
+  const eltText = element ? `${element.names.join(",")}:<br>` : "";
 
   return `${eltText}${options.xlabel} = ${xNum}
     <br>
@@ -205,7 +207,7 @@ function scatterPlotClickHandler(input: {
   const yNum = input.y.toText();
 
   // If the input came from a vector we display the clicked entry's coordinate
-  const eltText = input.element ? `${input.element.names}\n` : "";
+  const eltText = input.element ? `${input.element.names.join(",")}\n` : "";
 
   alert(
     `${eltText}${input.options.xlabel} = ${xNum}\n${input.options.ylabel} = ${yNum}`
@@ -235,14 +237,10 @@ function appendScatterPlot(
   const values = data.values;
 
   // Determine the chart's bounds
-  const lowerX =
-    options.xlower === undefined ? (data.xLower as number) : options.xlower;
-  const upperX =
-    options.xupper === undefined ? (data.xUpper as number) : options.xupper;
-  const lowerY =
-    options.ylower === undefined ? (data.yLower as number) : options.ylower;
-  const upperY =
-    options.yupper === undefined ? (data.yUpper as number) : options.yupper;
+  const lowerX = options.xlower === undefined ? data.xLower : options.xlower;
+  const upperX = options.xupper === undefined ? data.xUpper : options.xupper;
+  const lowerY = options.ylower === undefined ? data.yLower : options.ylower;
+  const upperY = options.yupper === undefined ? data.yUpper : options.yupper;
 
   // Create x and y scales mapping the scatterplot layout to the drawing dimensions
   const xScale = d3.scaleLinear().domain([lowerX, upperX]).range([0, width]);
@@ -255,7 +253,7 @@ function appendScatterPlot(
   // Add the x axis
   const xAxisElt = group
     .append("g")
-    .attr("transform", "translate(0," + height + ")")
+    .attr("transform", `translate(0,${height.toString()})`)
     .attr("class", "x axis");
 
   xAxisElt.append("g").call(xAxis);
@@ -267,7 +265,7 @@ function appendScatterPlot(
     .attr("x", width)
     .attr("y", 32)
     .style("text-anchor", "end")
-    .text(labelX + " [" + unitX.toText() + "] (n=" + values.length + ")");
+    .text(`${labelX} [${unitX.toText()}] (n=${values.length.toString()})`);
 
   // Add the y axis
   const labelY = options.ylabel;
@@ -307,9 +305,10 @@ function appendScatterPlot(
     })
     .on("click", (_, d) => {
       tooltip.hide();
-      if (options.onclick) {
+      const handler = options.onclick;
+      if (handler) {
         setTimeout(() => {
-          options.onclick!({
+          handler({
             x: DimNum.fromNumber(d.x, unitX),
             y: DimNum.fromNumber(d.y, unitY),
             options: options,
@@ -318,7 +317,7 @@ function appendScatterPlot(
         }, 0);
       }
     })
-    .on("mouseover", (event, d) => {
+    .on("mouseover", (event: MouseEvent, d) => {
       if (options.tooltip) {
         tooltip.show(
           options.tooltip(

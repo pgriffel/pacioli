@@ -25,11 +25,10 @@ import {
   addParametersObserver,
   setParameterNodes,
 } from "./utils";
-import { PacioliValue } from "../boxing";
-import {
+import type { PacioliValue } from "../values/pacioli-value";
+import type {
   Callable,
   ErrorOutput,
-  Followed,
   PacioliWebComponentBase,
 } from "./interfaces";
 
@@ -57,14 +56,8 @@ TEMPLATE.innerHTML = `
  */
 export abstract class PacioliWebComponent
   extends HTMLElement
-  implements PacioliWebComponentBase, Callable, Followed, ErrorOutput
+  implements PacioliWebComponentBase, Callable, ErrorOutput
 {
-  /**
-   * List of registered callbacks. The callback mechanism is used by connected controls and
-   * input elements to get informed about relevant changes.
-   */
-  private callbacks: (() => void)[] = [];
-
   set definition(value: string) {
     this.setStringAttribute("definition", value);
   }
@@ -105,29 +98,45 @@ export abstract class PacioliWebComponent
     return this.getNumberAttribute("decimals", 0);
   }
 
+  set ignoreDecimals(value: boolean) {
+    this.setBooleAttribute("ignoredecimals", value);
+  }
+
+  get ignoreDecimals(): boolean {
+    return this.getBooleAttribute("ignoredecimals");
+  }
+
   /**
    * Web component life-cycle event.
    */
   connectedCallback() {
-    // Add the content
-    this.rootElement().appendChild(TEMPLATE.content.cloneNode(true));
+    try {
+      // Add the content
+      this.rootElement().appendChild(TEMPLATE.content.cloneNode(true));
 
-    // Make the close button close the error pane
-    this.closeErrorOutputButton().addEventListener("click", () =>
-      this.clearErrors()
-    );
+      // Make the close button close the error pane
+      this.errorCloseButton().addEventListener("click", () => {
+        this.clearErrors();
+      });
 
-    // Make sure the error output pane is hidden
-    this.clearErrors();
+      // Make sure the error output pane is hidden
+      this.clearErrors();
 
-    // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
-    // We need the children so we can get the parameter values.
-    setTimeout(() => {
-      this.parametersChanged();
+      // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
+      // We need the children so we can get the parameter values.
+      setTimeout(() => {
+        try {
+          this.parametersChanged();
 
-      // Add an observer that calls 'parametersChanged' when a parameter child node changes.
-      addParametersObserver(this);
-    }, 1); // On FireFox 0 is sufficient. Chrome requires > 0.
+          // Add an observer that calls 'parametersChanged' when a parameter child node changes.
+          addParametersObserver(this);
+        } catch (err: unknown) {
+          this.displayError(err instanceof Error ? err.message : String(err));
+        }
+      }, 1); // On FireFox 0 is sufficient. Chrome requires > 0.
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   /**
@@ -140,7 +149,13 @@ export abstract class PacioliWebComponent
    * Implementation of the PacioliWebComponent api.
    */
   contentParent(): HTMLElement {
-    return this.rootElement().querySelector(".content")!;
+    const element = this.rootElement().querySelector(".content");
+
+    if (element === null) {
+      throw Error(`Cannot find content parent`);
+    }
+
+    return element as HTMLElement;
   }
 
   /**
@@ -157,7 +172,13 @@ export abstract class PacioliWebComponent
    *Implementation for PacioliWebComponentBase
    */
   findElement(selectors: string): HTMLElement {
-    return this.rootElement().querySelector(selectors)!;
+    const element = this.rootElement().querySelector(selectors);
+
+    if (element === null) {
+      throw Error(`Cannot find element '${selectors}'`);
+    }
+
+    return element as HTMLElement;
   }
 
   /**
@@ -170,7 +191,11 @@ export abstract class PacioliWebComponent
    */
   setParameters(values: string[]) {
     setParameterNodes(this, values);
-    this.parametersChanged();
+    try {
+      this.parametersChanged();
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   /**
@@ -178,29 +203,6 @@ export abstract class PacioliWebComponent
    */
   fetchData(): PacioliValue {
     return computeWebComponentValue(this);
-  }
-
-  /**
-   * Implementation of the Followed api.
-   */
-  registerCallback(callback: () => void) {
-    this.callbacks.push(callback);
-  }
-
-  /**
-   * Implementation of the Followed api.
-   */
-  unregisterCallback(callback: () => void) {
-    this.callbacks = this.callbacks.filter((obj) => obj !== callback);
-  }
-
-  /**
-   * Implementation of the Followed api.
-   */
-  callCallbacks() {
-    for (let callback of this.callbacks) {
-      callback();
-    }
   }
 
   /**
@@ -214,17 +216,18 @@ export abstract class PacioliWebComponent
    * Implementation of the ErrorOutput api.
    */
   displayError(message: string) {
-    const root = this.errorRoot();
-    const content = this.errorContentParent();
+    try {
+      const root = this.errorRoot();
+      const content = this.errorContentParent();
 
-    if (root) {
       root.hidden = false;
-    }
-
-    if (content) {
       content.innerText = message + "\n\n" + content.innerText;
-    } else {
-      console.log(message);
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+
+      console.log(
+        `Error: ${message}.\n\nThe error is displayed in the console because of the following: ${errMessage}`
+      );
     }
   }
 
@@ -232,20 +235,47 @@ export abstract class PacioliWebComponent
    * Implementation of the ErrorOutput api.
    */
   clearErrors() {
-    this.errorContentParent().innerText = "";
-    this.errorRoot().hidden = true;
+    try {
+      this.errorContentParent().innerText = "";
+      this.errorRoot().hidden = true;
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+
+      console.log(`Error while clearing the errors: ${errMessage}`);
+    }
   }
 
   private errorRoot(): HTMLElement {
-    return this.rootElement().querySelector(".error-root")!;
+    const root = this.rootElement().querySelector(".error-root");
+
+    if (root === null) {
+      throw Error("Error root element does not exist");
+    } else {
+      // If it exists, we know it is an HTMLElement
+      return root as HTMLElement;
+    }
   }
 
   private errorContentParent(): HTMLElement {
-    return this.rootElement().querySelector(".error-content")!;
+    const content = this.rootElement().querySelector(".error-content");
+
+    if (content === null) {
+      throw Error("Error content element does not exist");
+    } else {
+      // If it exists, we know it is an HTMLElement
+      return content as HTMLElement;
+    }
   }
 
-  private closeErrorOutputButton(): HTMLElement {
-    return this.rootElement().querySelector(".close-button")!;
+  private errorCloseButton(): HTMLButtonElement {
+    const element = this.rootElement().querySelector(".close-button");
+
+    if (element === null) {
+      throw Error("Error close button element does not exist");
+    } else {
+      // If it exists, we know it is an HTMLButtonElement
+      return element as HTMLButtonElement;
+    }
   }
 
   /**
@@ -258,7 +288,7 @@ export abstract class PacioliWebComponent
     if (value === undefined) {
       this.removeAttribute(attribute);
     } else {
-      this.setAttribute(attribute, Number(value).toString());
+      this.setAttribute(attribute, value.toString());
     }
   }
 
@@ -287,7 +317,7 @@ export abstract class PacioliWebComponent
   }
 
   protected setBooleAttribute(attribute: string, value: boolean | undefined) {
-    if (Boolean(value)) {
+    if (value === true) {
       this.setAttribute(attribute, "");
     } else {
       this.removeAttribute(attribute);

@@ -26,4 +26,3 @@ include mesh;
 include path;
 include light;
 include scene;
-include parametric_plots;

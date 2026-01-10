@@ -21,8 +21,12 @@
  */
 
 import { PacioliWebController } from "../pacioli-web-controller";
-import { addButtonEventListener, addInputEventListener } from "../utils";
-import { PacioliHistogramComponent } from "./pacioli-histogram";
+import {
+  addButtonEventListener,
+  addInputEventListener,
+  attachedPacioliWebComponent,
+} from "../utils";
+import type { PacioliHistogramComponent } from "./pacioli-histogram";
 
 const TEMPLATE = document.createElement("template");
 
@@ -92,7 +96,9 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
     // Set the inputs initially to the values from the heuristic. After initial
     // construction we don't touch the users input. Delay the call to make sure
     // the inputs exist.
-    setTimeout(() => this.updateInputs(), 1);
+    setTimeout(() => {
+      this.updateInputs();
+    }, 1);
   }
 
   /**
@@ -102,7 +108,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
    * @returns The connected histogram, or undefined if no connected histogram exists.
    */
   histogramElement(): PacioliHistogramComponent | undefined {
-    const component = this.attachedComponent();
+    const component = attachedPacioliWebComponent(this);
     return component ? (component as PacioliHistogramComponent) : undefined;
   }
 
@@ -183,11 +189,11 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
   }
 
   private inputElement(className: string): HTMLInputElement {
-    return this.findElement(`${className}`) as HTMLInputElement;
+    return this.findElement(className) as HTMLInputElement;
   }
 
   private buttonElement(className: string): HTMLButtonElement {
-    return this.findElement(` ${className}`) as HTMLButtonElement;
+    return this.findElement(className) as HTMLButtonElement;
   }
 }
 

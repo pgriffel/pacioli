@@ -21,15 +21,33 @@
  */
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
+import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { DOMTable } from "../../dom/dom";
+import type { PacioliTuple } from "../../values/tuple";
+import type { PacioliValue } from "../../values/pacioli-value";
+import type { PacioliMatrix } from "../../values/matrix";
+
+/**
+ * Options for Pacioli's table component.
+ */
+export interface TableOptions {
+  decimals: number;
+
+  zero?: string;
+
+  nozerorows: boolean;
+
+  totals: boolean;
+
+  ignoredecimals: boolean;
+}
 
 /**
  * Attribues supported by the table component
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
-  booleans: ["nozeros", "totals"],
+  booleans: ["nozerorows", "ignoredecimals", "totals"],
   numbers: ["decimals"],
 };
 
@@ -37,6 +55,7 @@ const SUPPORTED_ATTRIBUTES = {
  * Style sheet for the table component
  */
 const STYLES = ` 
+.pacioli-table {
 
 border-spacing: 0;
 border-collapse: collapse;
@@ -45,23 +64,14 @@ tr {
    height: 28px;
 }
 
-td, th {
-  NOborder: solid lightgrey;
-  border: solid white;
-}
-
 td {
-  background-color: $table-bg;
   border-bottom: solid lightgrey;
 }
 
 th {
-  font-weight: normal;
   border-width: 1px 1px 1px 1px;
-  background-color: $app-toolbar-color;
-  Nocolor: white;
   padding-left: 1em;
-  padding-right: 1em;
+  text-align: left;
 }
 
 td.key {
@@ -85,65 +95,225 @@ td.unit {
 }
 
 td.total {
-  padding-left: 1em;
-  border-width: 1px 0px 1px 1px;
-  text-align: right;
   font-weight: bold;
-} 
+}
+}
 `;
 
 /**
  * Web component for a table. A wrapper around the DOMTable function.
  */
 export class PacioliTableComponent extends PacioliShadowTreeComponent {
+  /**
+   * Is a total row added?
+   */
+  get totals(): string {
+    return this.getStringAttribute("totals");
+  }
+
+  set totals(value: string) {
+    this.setStringAttribute("totals", value);
+  }
+
+  /**
+   * Is a total row added?
+   */
+  get nozerorows(): boolean {
+    return this.getBooleAttribute("nozerorows");
+  }
+
+  set nozerorows(value: boolean) {
+    this.setBooleAttribute("nozerorows", value);
+  }
+
+  /**
+   * The Pacioli value displayed in the table.
+   */
+  data?: PacioliValue;
+
   constructor() {
     super();
     this.adoptStyles(STYLES);
   }
 
   /**
-   * Pacioli web component life-cycle event.
+   * Web component field.
    */
-  override parametersChanged(): void {
-    try {
-      // Compute the data using the new parameter values
-      const data = this.fetchData();
+  static observedAttributes = [
+    "definition",
+    "decimals",
+    "totals",
+    "nozerorows",
+    "ignoredecimals",
+  ];
 
-      if (data.kind === "tuple") {
-        const items = data as any;
-        // Refresh the table
-        this.clearContent();
-        const columns = items.map((item: any) => ({
-          title: item[0].value,
-          value: item[1],
-          decimals: 2,
-        }));
-        this.contentParent().appendChild(DOMTable(columns));
-      } else {
-        throw Error(`Expected a list of columns.`);
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
+    try {
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
+
+        this.drawTable(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
   /**
-   * Creates an options for the table from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
+   * Pacioli web component life-cycle event.
    */
-  chartOptions(): Partial<{
-    decimals: number;
-    zero?: string;
-    zeroRows: boolean;
-    totalsRow?: boolean;
-  }> {
-    return optionsFromAttributes<{
-      decimals: number;
-      zero?: string;
-      zeroRows: boolean;
-      totalsRow?: boolean;
-    }>(this, SUPPORTED_ATTRIBUTES);
+  override parametersChanged(): void {
+    this.data = this.fetchData();
+
+    this.drawTable(this.data);
+  }
+
+  drawTable(value: PacioliValue) {
+    this.clearContent();
+    this.clearErrors();
+
+    const options = {
+      ...optionsFromScript<TableOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<TableOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    const columns = columnsFromValue(value);
+
+    this.contentParent().appendChild(DOMTable(columns, options));
+  }
+}
+
+/**
+ * Converts a PacioliValue into a list of columns options for the DOMTable function.
+ *
+ * TODO: create pacioli-column component and read the columns from HTML!?
+ *
+ * @param value
+ * @returns
+ */
+function columnsFromValue(value: PacioliValue): {
+  title: string;
+  value: PacioliMatrix;
+  decimals?: number;
+  showTotal?: boolean;
+  total?: PacioliMatrix;
+}[] {
+  if (value.kind === "tuple") {
+    const columns = value.map((item: PacioliValue) => {
+      if (item.kind === "tuple") {
+        return columnData(item);
+      } else {
+        throw Error(`Invalid column. Expected a tuple, got a '${item.kind}'`);
+      }
+    });
+    return columns;
+  } else {
+    throw Error(`Expected a tuple of columns, got a '${value.kind}'`);
+  }
+}
+
+/**
+ * Helper for columnsFromValue. Converts a single column spec.
+ */
+function columnData(value: PacioliTuple): {
+  title: string;
+  value: PacioliMatrix;
+  decimals?: number;
+  showTotal?: boolean;
+  total?: PacioliMatrix;
+} {
+  if (value.length >= 2 && value.length <= 5) {
+    if (value[0].kind !== "string") {
+      throw Error(
+        `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`
+      );
+    }
+
+    const title: string = value[0].value;
+
+    if (value[1].kind !== "matrix") {
+      throw Error(
+        `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`
+      );
+    }
+
+    let decimals = undefined;
+    let showTotal = undefined;
+    let total = undefined;
+
+    if (value.length >= 3) {
+      if (value[2].kind === "matrix") {
+        decimals = value[2].getNum(0, 0);
+      } else if (value[2].kind === "maybe") {
+        const val = value[2].value;
+        if (val === undefined || val.kind === "matrix") {
+          decimals = val?.getNum(0, 0);
+        } else {
+          throw Error(
+            `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
+          );
+        }
+      } else {
+        throw Error(
+          `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`
+        );
+      }
+    }
+
+    if (value.length >= 4) {
+      if (value[3].kind === "maybe") {
+        const val = value[3].value;
+        if (val === undefined || val.kind === "boole") {
+          showTotal = val?.value;
+        } else {
+          throw Error(
+            `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`
+          );
+        }
+      } else if (value[3].kind === "boole") {
+        showTotal = value[3].value;
+      } else {
+        throw Error(
+          `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`
+        );
+      }
+    }
+
+    if (value.length >= 5) {
+      if (value[4].kind === "maybe") {
+        const val = value[4].value;
+        if (val === undefined || val.kind === "matrix") {
+          total = val;
+        } else {
+          throw Error(
+            `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
+          );
+        }
+      } else {
+        throw Error(
+          `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`
+        );
+      }
+    }
+
+    return {
+      title: value[0].value,
+      value: value[1],
+      decimals,
+      showTotal,
+      total,
+    };
+  } else {
+    throw Error(
+      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`
+    );
   }
 }
 

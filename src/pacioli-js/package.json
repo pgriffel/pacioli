@@ -9,9 +9,11 @@
   ],
   "scripts": {
     "test": "tsc --project tsconfig.test.json && jasmine",
+    "lint": "npx eslint src",
     "build": "node esbuild.js && tsc --emitDeclarationOnly",
     "build:tsc": "tsc",
     "bundle": "npm run build:tsc && webpack",
+    "bundle:dev": "del \"dist\\pacioli-0.5.1.bundle.js\" && npm run build:tsc && webpack --env mode=development && copy \"dist\\pacioli-0.5.1.bundle.js\" \"D:\\code\\pacioli\\js\\pacioli-0.5.1.bundle.js\"",
     "bundle:esbuild": "node esbundle.js",
     "package": "npm run build && npm pack",
     "package:tsc": "npm run build:tsc && npm pack"
@@ -27,6 +29,7 @@
     "uom-ts": "file:uom-ts-0.0.2.tgz"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/d3": "^7.1.0",
     "@types/d3-cloud": "^1.2.5",
     "@types/jasmine": "^4.3.1",
@@ -35,12 +38,14 @@
     "@types/three": "^0.181.0",
     "@types/webpack": "^5.28.0",
     "esbuild": "~0.25.8",
+    "eslint": "^9.39.2",
     "fast-check": "^2.20.0",
     "jasmine": "^4.6.0",
     "jasmine-spec-reporter": "^7.0.0",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.4.0",
     "typescript": "^5.8.3",
+    "typescript-eslint": "^8.50.1",
     "webpack": "^5.76.2",
     "webpack-cli": "^5.0.1"
   }

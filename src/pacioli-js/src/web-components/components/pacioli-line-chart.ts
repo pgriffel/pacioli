@@ -20,11 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { LineChart, LineChartOptions } from "../../charts/d3-line-chart";
+import type { LineChartOptions } from "../../charts/d3-line-chart";
+import { LineChart } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
-import { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../values/pacioli-value";
 
 /**
  * Attribues supported by the histogram component
@@ -87,7 +88,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): String {
+  get unit(): string {
     return this.getStringAttribute("unit");
   }
 
@@ -99,7 +100,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement in the x direction. Is derived from the data if no
    * unit attribute is given.
    */
-  get xunit(): String {
+  get xunit(): string {
     return this.getStringAttribute("xunit");
   }
 
@@ -111,7 +112,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement in the y direction. Is derived from the data if no
    * unit attribute is given.
    */
-  get yunit(): String {
+  get yunit(): string {
     return this.getStringAttribute("yunit");
   }
 
@@ -184,17 +185,17 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      // Reload the data if the definition changes. The initial load is done in
-      // parametersChanged.
-      if (name === "definition" && this.data !== undefined) {
-        this.data = this.fetchData();
-      }
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
 
-      if (this.contentParent() && this.data) {
         this.drawChart(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -202,13 +203,9 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    try {
-      this.data = this.fetchData();
+    this.data = this.fetchData();
 
-      this.drawChart(this.data);
-    } catch (err: any) {
-      this.displayError(err);
-    }
+    this.drawChart(this.data);
   }
 
   private drawChart(data: PacioliValue) {

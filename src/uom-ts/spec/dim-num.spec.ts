@@ -28,6 +28,7 @@ import { arbitraryUOM } from "./uom.spec";
 import BigNumber from "bignumber.js";
 import { testContext } from "./arbitraries";
 import { describe, it } from "vitest";
+import { SIUnit } from "../src/context";
 
 // fc.configureGlobal({
 //   numRuns: 100000,
@@ -72,7 +73,7 @@ describe("DimNum", () => {
           const dimNum = DimNum.dimless(factor);
 
           // then the number should have the empty unit
-          expect(dimNum.unit.equals(UOM.ONE)).to.equal(true);
+          expect(dimNum.unit.equals(SIUnit.ONE)).to.equal(true);
 
           // and the factor should be the given factor
           expect(dimNum.magnitude.comparedTo(factor)).to.equal(0);

@@ -20,30 +20,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { typeFromValue, rawValueFromValue, boxRawValue } from "../boxing";
-import { FunctionType } from "../types/function";
-import { PacioliValue } from "../boxing";
-import { PacioliContext } from "../context";
-import { GenericType } from "../types/generic";
+import { typeFromValue, rawValueFromValue, boxRawValue } from "./pacioli-value";
+import type { FunctionType } from "../types/function";
+import type { PacioliValue } from "./pacioli-value";
+import type { PacioliContext } from "../context";
+import type { GenericType } from "../types/generic";
+import type { RawValue } from "../raw-values/raw-value";
 
 export class PacioliFunction {
   readonly kind = "function";
   constructor(
-    public fun: Function,
+    public fun: (...args: RawValue[]) => RawValue,
     public type: FunctionType,
     private context: PacioliContext
   ) {}
 
   apply(args: PacioliValue[]): PacioliValue {
     const types = args.map(typeFromValue);
-    const values: any[] = args.map(rawValueFromValue);
+    const values: RawValue[] = args.map(rawValueFromValue);
     const expectedNrArgs = (this.type.from as GenericType).items.length;
     if (args.length === expectedNrArgs) {
       const type = this.type.apply(types);
-      return boxRawValue(this.fun.apply(this, values), type, this.context);
+      return boxRawValue(this.fun(...values), type, this.context);
     } else {
       throw Error(
-        `Number of arguments do not match. Expected ${expectedNrArgs}, but got ${args.length}`
+        `Number of arguments do not match. Expected ${expectedNrArgs.toString()}, but got ${args.length.toString()}`
       );
     }
   }

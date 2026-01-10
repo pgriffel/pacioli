@@ -20,16 +20,44 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliWebController } from "../pacioli-web-controller";
-import { PacioliParameter, parameterNodes, parseParameterNode } from "../utils";
+import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import type { PacioliParameter } from "../utils";
+import {
+  attachedPacioliWebComponent,
+  parameterNodes,
+  parseParameterNode,
+} from "../utils";
 
 const TEMPLATE = document.createElement("template");
 
 TEMPLATE.innerHTML = `
   <style>
+
+    :host {
+      display: block;
+    }
+    
+    .content {
+      padding: 8pt;
+    }
+
+    .apply {
+      width: 80pt;
+      margin-top: 8pt;
+    }
+
+    tr {
+      padding: 4pt;
+    }
+
+    td {
+      white-space: nowrap
+    }
   </style>
-  <table class="parameters"></table>
-  <button class="apply">Apply</button>
+
+  <table class="parameters" part="parameters"></table>
+
+  <button class="apply" part="apply">Apply</button>
 `;
 
 /**
@@ -43,7 +71,7 @@ TEMPLATE.innerHTML = `
  *
  * <pacioli-inputs for="my_scene"></pacioli-inputs>
  */
-export class PacioliInputsComponent extends PacioliWebController {
+export class PacioliInputsComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
@@ -60,20 +88,20 @@ export class PacioliInputsComponent extends PacioliWebController {
   /**
    * Web component life-cycle event.
    */
-  attributeChangedCallback(name: string, _: string | null, next: string) {
+  attributeChangedCallback(
+    name: string,
+    _oldValue: string | null,
+    _newValue: string
+  ) {
     switch (name) {
       case "for": {
         // Only handle changes after the initial construction. Initial
         // construction is done in connectedCallback.
         if (this.isConnected) {
-          // Detach from previous component. No harm if we were not following.
-          this.unfollow();
           this.removeTableRows();
 
-          // Attach to new component. Same sequence as in connectedCallback.
+          // Attach to new component. Same as in connectedCallback.
           this.createAndAppendTableRows();
-          this.follow(next, () => this.updateControls());
-          this.updateControls();
         }
         break;
       }
@@ -87,26 +115,22 @@ export class PacioliInputsComponent extends PacioliWebController {
     super.connectedCallback();
 
     // Set the CSS class name for styling
-    this.contentParent().className = "pacioli-inputs-content";
+    this.contentParent().className = "content";
 
     // Create the content from the template
     this.contentParent().appendChild(TEMPLATE.content.cloneNode(true));
 
-    // Connect the apply button handler
-    this.findElement("button").addEventListener("click", () =>
-      this.applyButtonClicked()
-    );
-
     // Add input rows to the parameter table and follow the attached component
-    if (this.attachedComponent()) {
-      this.createAndAppendTableRows();
+    setTimeout(() => {
+      // Connect the apply button handler
+      this.findElement(".apply").addEventListener("click", () => {
+        this.applyButtonClicked();
+      });
 
-      // We need to keep the state of the buttons synchronized with the component state.
-      this.followAttached(() => this.updateControls());
-
-      // Make sure the proper buttons are shown and enabled
-      this.updateControls();
-    }
+      if (attachedPacioliWebComponent(this)) {
+        this.createAndAppendTableRows();
+      }
+    }, 1);
   }
 
   /**
@@ -141,12 +165,14 @@ export class PacioliInputsComponent extends PacioliWebController {
     parameter: PacioliParameter;
     element: HTMLInputElement;
   }[] {
-    const scene = this.attachedComponent();
+    const scene = attachedPacioliWebComponent(this); //this.attachedComponent();
     if (scene) {
       return createParameterInputs(
         parameterNodes(scene).map(parseParameterNode),
         !this.hasAttribute("calm"),
-        () => this.applyButtonClicked()
+        () => {
+          this.applyButtonClicked();
+        }
       );
     } else {
       return [];
@@ -157,7 +183,7 @@ export class PacioliInputsComponent extends PacioliWebController {
    * Handler for the apply button
    */
   private applyButtonClicked() {
-    const scene = this.attachedComponent();
+    const scene = attachedPacioliWebComponent(this);
     if (scene && this.inputs) {
       try {
         scene.clearErrors();
@@ -170,29 +196,24 @@ export class PacioliInputsComponent extends PacioliWebController {
               : input.element.value
           )
         );
-        this.updateControls();
-      } catch (error: any) {
-        scene.displayError(error);
+      } catch (error: unknown) {
+        scene.displayError(
+          error instanceof Error ? error.message : String(error)
+        );
       }
     }
-  }
-
-  /**
-   * Set the disabled and hidden state of the buttons.
-   */
-  private updateControls() {
-    const scene = this.attachedComponent();
-    this.applyButton().disabled = scene ? scene.isBusy() : true;
   }
 
   private tableElement(): HTMLTableElement {
     return this.findElement(`.parameters`) as HTMLTableElement;
   }
-
-  private applyButton(): HTMLButtonElement {
-    return this.findElement(`button`) as HTMLButtonElement;
-  }
 }
+
+/**
+ * Does the enter key on a pacioli-inputs web-component trigger a
+ * setParameters call on the connected scene?
+ */
+const FLAG_ENABLE_WEB_COMPONENT_INPUT_ENTER_KEY: boolean = true;
 
 /**
  * Create HTML input elements for the PacioliSceneComponent parameters
@@ -228,7 +249,7 @@ function createParameterInputs(
       // the animation.
       if (booleansImmediate && parameter.type === "boole") {
         inputElement.addEventListener("change", (event) => {
-          if (true) {
+          if (FLAG_ENABLE_WEB_COMPONENT_INPUT_ENTER_KEY) {
             event.preventDefault();
             enterKeyCallback();
           }

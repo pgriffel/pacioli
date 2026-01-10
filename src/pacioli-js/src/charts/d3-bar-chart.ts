@@ -22,18 +22,18 @@
 
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
-import { PacioliValue } from "../boxing";
-import { PacioliContext } from "../context";
+import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliContext } from "../context";
+import type { DefaultChartOptions, Margin } from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  DefaultChartOptions,
   displayChartError,
-  Margin,
   parseMargin,
 } from "./chart-utils";
-import { BandChartData, bandChartData } from "./chart-data";
+import type { BandChartData } from "./chart-data";
+import { bandChartData } from "./chart-data";
 import { ToolTip } from "./chart-utils";
 import { parseUnit } from "../api";
 
@@ -167,12 +167,12 @@ export class BarChart {
   public draw(parent: HTMLElement): void {
     try {
       const unit =
-        this.options.unit && this.options.unit !== ""
+        this.options.unit !== undefined && this.options.unit !== ""
           ? parseUnit(this.options.unit)
           : undefined;
 
       // Transform the data to a usable format
-      var input = bandChartData(
+      const input = bandChartData(
         this.context,
         this.data,
         this.options.zeros,
@@ -185,7 +185,7 @@ export class BarChart {
       }
 
       // Add an svg element
-      var svg = d3
+      const svg = d3
         .select(parent)
         .append("svg")
         .attr("width", this.options.width)
@@ -193,16 +193,16 @@ export class BarChart {
       // .attr("class", "pacioli chart bar-chart");
 
       if (input !== null) {
-        var inner = svg.append("g");
+        const inner = svg.append("g");
 
-        var margin = combineMargins(
+        const margin = combineMargins(
           DEFAULT_CHART_MARGIN,
           parseMargin(this.options.margin)
         );
 
         inner.attr(
           "transform",
-          "translate(" + margin.left + "," + margin.top + ")"
+          `translate(${margin.left.toString()},${margin.top.toString()})`
         );
 
         appendBarChart(inner, input, margin, this.options);
@@ -213,11 +213,10 @@ export class BarChart {
       // Add the caption above all other elements
       appendChartCaption(svg, this.options);
     } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing bar chart '" + this.options.caption + "':",
-        err
-      );
+      const labelText =
+        this.options.caption === undefined ? "" : ` '${this.options.caption}'`;
+
+      displayChartError(parent, `While drawing bar chart${labelText}:`, err);
     }
   }
 }
@@ -238,28 +237,28 @@ function appendBarChart(
   margin: Margin,
   options: BarChartOptions
 ): void {
-  var width = options.width - margin.left - margin.right;
-  var height = options.height - margin.top - margin.bottom;
+  const width = options.width - margin.left - margin.right;
+  const height = options.height - margin.top - margin.bottom;
 
   // Determine the min and max data values. Cannot be undefined because data is not empty.
   // TODO: why do data.min and data.max not work? Bars get shifted.
-  var yMin = Math.min(
+  const yMin = Math.min(
     0,
-    options.ylower ||
+    options.ylower ??
       (d3.min(data.entries, function (d) {
         return d.value;
       }) as number)
   );
-  var yMax = Math.max(
+  const yMax = Math.max(
     0,
-    options.yupper ||
+    options.yupper ??
       (d3.max(data.entries, function (d) {
         return d.value;
       }) as number)
   );
 
   // Create the x and y scales
-  var x = d3.scaleBand();
+  const x = d3.scaleBand();
 
   // TODO: Without rangeRound we get artifacts (the bars get ugly) if the number of bars gets large. But with
   // rangeRound gaps appear on the left and the right side of the bars. Can we round ourselves below?
@@ -272,20 +271,20 @@ function appendBarChart(
       })
     );
 
-  var y = d3.scaleLinear();
+  const y = d3.scaleLinear();
   y.range([height, 0]).domain([yMin, yMax]); // related to above todo: why end at 0?
 
   // Create an x and y axis for the inner group
-  var xAxis = d3.axisBottom(x);
+  const xAxis = d3.axisBottom(x);
 
-  var yAxis = d3.axisLeft(y);
+  const yAxis = d3.axisLeft(y);
   yAxis.ticks(5);
 
   // Add the x axis to the inner group
   const xAxisElt = inner
     .append("g")
     // .attr("class", "x axis")
-    .attr("transform", "translate(0," + height + ")")
+    .attr("transform", `translate(0,${height.toString()})`)
     .attr("shape-rendering", "crispEdges");
 
   const rotation = 0;
@@ -297,7 +296,7 @@ function appendBarChart(
     // do this if rotation != 0?
     // .style("text-anchor", "end")
     .attr("transform", function (_) {
-      return `rotate(${rotation})`;
+      return `rotate(${rotation.toString()})`;
     });
 
   const xlabel =
@@ -326,9 +325,9 @@ function appendBarChart(
     .append("rect")
     .attr("class", "bar")
     .attr("x", (d) => {
-      return x(d.label)!;
+      return x(d.label) ?? 0;
     })
-    .attr("width", x.bandwidth)
+    .attr("width", x.bandwidth())
     .attr("y", (d) => {
       return Math.min(y(0), y(d.value)); // related to above todo: why min with 0?
     })
@@ -336,19 +335,18 @@ function appendBarChart(
       return Math.abs(y(0) - y(d.value)); // idem
     })
     .on("click", (_, d) => {
-      if (options.onclick) {
+      const handler = options.onclick;
+
+      if (handler) {
         tooltip.hide();
+
         // Without the timeout the display: none does not have an effect
         setTimeout(() => {
-          options.onclick!(
-            DimNum.fromNumber(d.value, data.unit),
-            d.label,
-            options
-          );
+          handler(DimNum.fromNumber(d.value, data.unit), d.label, options);
         }, 0);
       }
     })
-    .on("mouseover", (event, d) => {
+    .on("mouseover", (event: MouseEvent, d) => {
       if (options.tooltip) {
         tooltip.show(
           options.tooltip(
@@ -361,14 +359,18 @@ function appendBarChart(
         );
       }
     })
-    .on("mouseout", () => tooltip.hide());
+    .on("mouseout", () => {
+      tooltip.hide();
+    });
 
   // Add the y axis label to the inner group
-  const yUnitText = data.unit.toText();
+  const labelText = options.ylabel === undefined ? "" : `${options.ylabel} `;
+  const yUnitText = `[${data.unit.toText()}]`;
+
   yAxisElt
     .append("text")
     .attr("x", -16)
     .attr("y", -16)
     .style("text-anchor", "start")
-    .text(options.ylabel + (yUnitText === "1" ? "" : " [" + yUnitText + "]"));
+    .text(labelText + yUnitText);
 }

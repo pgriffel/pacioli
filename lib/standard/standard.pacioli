@@ -22,6 +22,7 @@ include list;
 include matrix;
 include map;
 include io;
+include column;
 
 export
     pi,

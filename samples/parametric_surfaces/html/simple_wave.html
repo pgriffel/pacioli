@@ -7,6 +7,23 @@
 
     <title>Wave</title>
 
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
     <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
@@ -23,97 +40,13 @@
         Plot of a surface built from the cosine function.
 
     <p>
-        <math>
-            <mi>f</mi>
-            <mo>(</mo>
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            <mo>)</mo>
-            <mo>=</mo>
-            <msup>
-                <mrow>
-                    <mo>(</mo>
-                    <mi>x</mi>
-                    <mo>,</mo>
-                    <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    <mo>)</mo>
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        with
+        $f(u, v) = (x, y, z)^T$ with
     <ul>
-        <li>
-            <math>
-                <mi>x</mi>
-                <mo>=</mo>
-                <mi>u</mi>
-            </math>
-        </li>
-        <li>
-            <math>
-                <mi>y</mi>
-                <mo>=</mo>
-                <mi>v</mi>
-            </math>
-        </li>
-        <li>
-            <math>
-                <mi>z</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <mi>cos</mi>
-                <mo>(</mo>
-                <mi>r</mi>
-                <mi>c</mi>
-                <mo>)</mo>
-            </math>
-        </li>
+        <li>$x = u$</li>
+        <li>$y = v$</li>
+        <li>$z = a\cos(vc)$</li>
     </ul>
-    where
-    <math>
-        <mi>r</mi>
-        <mo>=</mo>
-        <msqrt>
-            <msup>
-                <mi>u</mi>
-                <mn>2</mn>
-            </msup>
-            <mo>+</mo>
-            <msup>
-                <mi>v</mi>
-                <mn>2</mn>
-            </msup>
-        </msqrt>
-    </math>
-    ,
-    <math>
-        <mi>a</mi>
-    </math>
-    and
-    <math>
-        <mi>c</mi>
-    </math>
-    are scaling factors,
-    <math>
-        <mn>-8</mn>
-        <mo>&le;</mo>
-        <mi>u</mi>
-        <mo>&le;</mo>
-        <mn>8</mn>
-    </math>
-    , and
-    <math>
-        <mn>-8</mn>
-        <mo>&le;</mo>
-        <mi>v</mi>
-        <mo>&le;</mo>
-        <mn>8</mn>
-    </math>
-
+    where $a$ and $c$ are scaling factors, $-8 \le u \le 8$, and $-8 \le v \le 8$.
 
     <p>
     <div class="example">
@@ -136,9 +69,6 @@
 
     </div>
 
-
-
 </body>
-
 
 </html>

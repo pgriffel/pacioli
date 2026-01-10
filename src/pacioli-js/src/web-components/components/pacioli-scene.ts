@@ -20,13 +20,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { Space, SpaceOptions } from "../../graphics/space";
-import { PacioliValue } from "../../boxing";
+import type { SIUnit } from "uom-ts";
+import type { SpaceOptions } from "../../graphics/space";
+import { Space } from "../../graphics/space";
+import type { PacioliValue } from "../../values/pacioli-value";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
-import {
+import type {
   PacioliScene,
   StatefulAnimation,
   Animation,
@@ -62,6 +63,12 @@ const SUPPORTED_ATTRIBUTES = {
     "secondsPerRotation",
   ],
 };
+
+/**
+ * Style sheet for the bar chart
+ */
+const STYLES = ` 
+  .content{ display: inline; }`;
 
 /**
  * Web component for a 3D Pacioli space. A wrapper around the Space class.
@@ -104,11 +111,19 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   static observedAttributes = ["unit", "unitx", "unity", "unitz"];
 
+  constructor() {
+    super();
+    this.adoptStyles(STYLES);
+  }
+
   /**
    * Web component life-cycle event.
    */
   connectedCallback() {
     super.connectedCallback();
+
+    // Set the CSS styles
+    // this.contentParent().className = "content";
 
     // Create the Space
     this.space = new Space(this.contentParent(), this.spaceOptions());
@@ -137,22 +152,19 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
           break;
         }
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
   /**
    * Pacioli web component life-cycle event.
    */
-  parametersChanged() {
-    try {
-      if (this.space) {
-        this.fetchedData = this.fetchData();
-        this.loadData(this.space);
-      }
-    } catch (err: any) {
-      this.displayError(err);
+  override parametersChanged() {
+    if (this.space !== undefined) {
+      this.fetchedData = this.fetchData();
+
+      this.loadData(this.space);
     }
   }
 
@@ -162,7 +174,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    *
    * @returns The scene kind
    */
-  sceneKind(): "scene" | "animation" | "stateful-animation" {
+  kind(): "scene" | "animation" | "stateful-animation" {
     const kindAttribute = this.getAttribute("kind");
 
     if (kindAttribute === null) {
@@ -180,6 +192,11 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
         );
       }
     }
+  }
+
+  isAnimation(): boolean {
+    const kind = this.kind();
+    return kind === "animation" || kind === "stateful-animation";
   }
 
   /**
@@ -234,7 +251,6 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   setRunning(running: boolean) {
     if (this.space) {
       this.space.setRunning(running);
-      this.callCallbacks();
     }
   }
 
@@ -258,23 +274,17 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    * @param name Optional name for the download file
    */
   openImage(name?: string) {
-    const canvas: HTMLCanvasElement = this.findElement(
-      "canvas"
-    ) as HTMLCanvasElement;
+    const canvas = this.findElement("canvas") as HTMLCanvasElement;
 
-    if (canvas) {
-      const dataURL = canvas.toDataURL("image/png");
+    const dataURL = canvas.toDataURL("image/png");
 
-      if (name) {
-        const link = document.createElement("a");
-        link.href = dataURL;
-        link.download = `${name}.png`;
-        link.click();
-      } else {
-        window.open(dataURL, "_blank");
-      }
+    if (name !== undefined) {
+      const link = document.createElement("a");
+      link.href = dataURL;
+      link.download = `${name}.png`;
+      link.click();
     } else {
-      throw Error("Cannot create image of scene, no canvas found");
+      window.open(dataURL, "_blank");
     }
   }
 
@@ -284,13 +294,10 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   private loadData(space: Space) {
     if (this.fetchedData) {
       // Load the computed data into the space
-      loadSpaceData(space, this.fetchedData, this.sceneKind());
+      loadSpaceData(space, this.fetchedData, this.kind());
 
       // Update the screen to show the loaded data
       space.draw();
-
-      // Synchronize any connected controls and inputs
-      this.callCallbacks();
     }
   }
 }

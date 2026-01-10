@@ -20,14 +20,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliString } from "../values/string";
-import { PacioliFunction } from "../values/function";
-import { PacioliValue } from "../boxing";
-import { PacioliArrow } from "./arrow";
-import { AmbientLight, PacioliSpotLight } from "./lights";
-import { PacioliMesh } from "./mesh";
-import { PacioliPath } from "./path";
-import { PacioliLabel } from "./text";
+import type { PacioliString } from "../values/string";
+import type { PacioliFunction } from "../values/function";
+import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliArrow } from "./arrow";
+import type { AmbientLight, PacioliSpotLight } from "./lights";
+import type { PacioliMesh } from "./mesh";
+import type { PacioliPath } from "./path";
+import type { PacioliLabel } from "./text";
 
 /**
  * Matches the Scene type from the graphics Pacioli library

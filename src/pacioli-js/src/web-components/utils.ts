@@ -20,14 +20,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliString } from "../values/string";
-import { PacioliMatrix } from "../values/matrix";
+import type { SIUnit } from "uom-ts";
+import type { PacioliString } from "../values/string";
+import type { PacioliMatrix } from "../values/matrix";
 import { num, parseDimNum, value } from "../api";
 import { PacioliFunction } from "../values/function";
-import { PacioliValue } from "../boxing";
-import { PacioliWebComponent } from "./pacioli-web-component";
-import { PacioliBoole, pacioliFalse, pacioliTrue } from "../values/boole";
+import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliWebComponent } from "./pacioli-web-component";
+import type { PacioliBoole } from "../values/boole";
+import { pacioliFalse, pacioliTrue } from "../values/boole";
 import { string } from "../cache";
 
 /**
@@ -130,12 +131,13 @@ export function parameterNodes(element: HTMLElement): HTMLElement[] {
 export function setParameterNodes(element: HTMLElement, values: string[]) {
   const children = parameterNodes(element);
 
-  if (children.length === values.length) {
-  } else {
+  if (children.length !== values.length) {
     const definition = element.getAttribute("definition");
 
     throw Error(
-      `invalid number of arugments for definition '${definition}'. Expected ${children.length}, but got ${values.length}.`
+      `invalid number of arugments for definition '${
+        definition ?? "unknown"
+      }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`
     );
   }
 
@@ -155,7 +157,12 @@ export function addParametersObserver(
   element: PacioliWebComponent
 ): MutationObserver {
   const observer = new MutationObserver(() => {
-    element.parametersChanged();
+    // element.parametersChanged();
+    try {
+      element.parametersChanged();
+    } catch (err: unknown) {
+      element.displayError(err instanceof Error ? err.message : String(err));
+    }
   });
 
   observer.observe(element, { childList: true, subtree: true });
@@ -173,9 +180,9 @@ export function addParametersObserver(
 export function parseParameterNode(
   parameterNode: HTMLElement
 ): PacioliParameter {
-  const label = parameterNode.getAttribute("label") || "n/a";
-  const type = parameterNode.getAttribute("type") || "number";
-  const unit = parameterNode.getAttribute("unit") || "1";
+  const label = parameterNode.getAttribute("label") ?? "n/a";
+  const type = parameterNode.getAttribute("type") ?? "number";
+  const unit = parameterNode.getAttribute("unit") ?? "1";
   const value = parameterNode.innerText;
 
   try {
@@ -227,9 +234,11 @@ export function parseParameterNode(
         );
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw Error(
-      `cannot read value ${value} for ${type} parameter ${label}:\n\n ${error}.`
+      `cannot read value ${value} for ${type} parameter ${label}:\n\n ${
+        error instanceof Error ? error.message : String(error)
+      }.`
     );
   }
 }
@@ -245,7 +254,7 @@ export function attachedPacioliWebComponent(
   element: HTMLElement
 ): PacioliWebComponent | null {
   const elementId = element.getAttribute("for");
-  return elementId ? getPacioliWebComponentById(elementId) : null;
+  return elementId !== null ? getPacioliWebComponentById(elementId) : null;
 }
 
 /**
@@ -340,6 +349,11 @@ export function optionalBooleanAttributes(
   return object;
 }
 
+/**
+ * Unfinished experiment to check the validity of encountered web-component attributes.
+ */
+const FLAG_EXPERIMENT_CHECK_ATTRIBUTES: boolean = false;
+
 export function optionsFromAttributes<Options>(
   element: HTMLElement,
   supportedAttributes: {
@@ -348,16 +362,20 @@ export function optionsFromAttributes<Options>(
     numbers: string[];
   }
 ): Partial<Options> {
-  const SYSTEM_ATTRIBUTES = ["id", "definition"];
-  element.getAttributeNames().forEach((attribute) => {
-    if (
-      !SYSTEM_ATTRIBUTES.includes(attribute) &&
-      !supportedAttributes.strings.includes(attribute) &&
-      !supportedAttributes.booleans.includes(attribute) &&
-      !supportedAttributes.numbers.includes(attribute)
-    )
-      console.warn(`Skipping unknown attribute ${attribute}`);
-  });
+  if (FLAG_EXPERIMENT_CHECK_ATTRIBUTES) {
+    const SYSTEM_ATTRIBUTES = ["id", "definition"];
+
+    element.getAttributeNames().forEach((attribute) => {
+      if (
+        !SYSTEM_ATTRIBUTES.includes(attribute) &&
+        !supportedAttributes.strings.includes(attribute) &&
+        !supportedAttributes.booleans.includes(attribute) &&
+        !supportedAttributes.numbers.includes(attribute)
+      ) {
+        console.warn(`Skipping unknown attribute ${attribute}`);
+      }
+    });
+  }
 
   return {
     ...optionalStringAttributes(element, supportedAttributes.strings),
@@ -379,11 +397,11 @@ export function optionsFromScript<Options>(
   }
 
   const optionValue = computeWebComponentValue(element, "options");
+  // TODO: accept tuples?! Zie random_vec_histogram_options in web_components.pacioli
   if (optionValue.kind === "list") {
-    const items = optionValue as any;
     const table = new Map<string, string | null>();
 
-    items.forEach((item: any) => {
+    optionValue.forEach((item: PacioliValue) => {
       if (item.kind !== "tuple") {
         throw Error(
           `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
@@ -423,17 +441,20 @@ export function optionsFromScript<Options>(
 
     supportedAttributes.numbers.forEach((attribute) => {
       if (table.has(attribute)) {
-        const num = Number(table.get(attribute));
+        const value = table.get(attribute);
+        const num = Number(value);
         if (Number.isFinite(num)) {
           object = { ...object, [attribute]: num };
           table.set(attribute, null);
         } else {
-          throw Error(`invalid number ${value} for attritube ${attribute}`);
+          throw Error(
+            `invalid number ${num.toString()} for attritube ${attribute}`
+          );
         }
       }
     });
 
-    for (let key of table.keys()) {
+    for (const key of table.keys()) {
       if (table.get(key) !== null) {
         console.warn(`Ignoring unknown chart option '${key}'`);
       }

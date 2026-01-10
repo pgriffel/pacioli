@@ -20,12 +20,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
+import { SIUnit } from "uom-ts";
+import { UOM } from "uom-ts";
 import { PacioliCoordinates } from "./coordinates";
 import { MatrixDimension } from "./matrix-dimension";
-import { VectorBase } from "./vector-base";
+import type { VectorBase } from "./vector-base";
 
-export type SIVector = UOM<VectorBase>;
+export class SIVector extends UOM<VectorBase> {
+  public static ONE: UOM<VectorBase> = new UOM(new Map());
+}
 
 export class MatrixShape {
   readonly kind = "matrixshape";
@@ -33,9 +36,9 @@ export class MatrixShape {
     return new MatrixShape(
       unit,
       MatrixDimension.empty(),
-      UOM.ONE,
+      SIVector.ONE,
       MatrixDimension.empty(),
-      UOM.ONE
+      SIVector.ONE
     );
   }
 
@@ -48,9 +51,9 @@ export class MatrixShape {
   ) {}
 
   public toText() {
-    var text = "(" + this.multiplier.toText() + "|";
-    text += this.rowDimension + "|";
-    text += this.columnDimension + "|";
+    let text = "(" + this.multiplier.toText() + "|";
+    text += "TODO: this.rowDimension.toText()" + "|";
+    text += "TODO: this.columnDimension.toText()" + "|";
     text += this.rowUnit.toText() + "|";
     text += this.columnUnit.toText() + "|";
     text += ")";
@@ -76,7 +79,9 @@ export class MatrixShape {
   }
 
   public isScalar() {
-    return this.rowDimension.order() == 0 && this.columnDimension.order() == 0;
+    return (
+      this.rowDimension.order() === 0 && this.columnDimension.order() === 0
+    );
   }
 
   public mult(other: MatrixShape) {
@@ -102,11 +107,11 @@ export class MatrixShape {
       !this.columnDimension.equals(other.rowDimension) &&
       this.columnUnit.equals(other.rowUnit)
     ) {
-      throw (
+      throw Error(
         "Shape " +
-        this.toText() +
-        " is not compatible for dot product with shape " +
-        other.toText()
+          this.toText() +
+          " is not compatible for dot product with shape " +
+          other.toText()
       );
     }
     return new MatrixShape(
@@ -233,11 +238,11 @@ export class MatrixShape {
 
   public dimensionless() {
     return new MatrixShape(
-      UOM.ONE,
+      SIUnit.ONE,
       this.rowDimension,
-      UOM.ONE,
+      SIVector.ONE,
       this.columnDimension,
-      UOM.ONE
+      SIVector.ONE
     );
   }
 
@@ -262,16 +267,16 @@ export class MatrixShape {
   //   }
 
   public nrRows() {
-    var count = 1;
-    for (var i = 0; i < this.rowOrder(); i++) {
+    let count = 1;
+    for (let i = 0; i < this.rowOrder(); i++) {
       count *= this.rowDimension.indexSets[i].items.length;
     }
     return count;
   }
 
   public nrColumns() {
-    var count = 1;
-    for (var i = 0; i < this.columnOrder(); i++) {
+    let count = 1;
+    for (let i = 0; i < this.columnOrder(); i++) {
       count *= this.columnDimension.indexSets[i].items.length;
     }
     return count;
@@ -316,15 +321,15 @@ export class MatrixShape {
   //     return new Pacioli.Coordinates(position, this.columnSets);
   //   }
 
-  public findRowUnit(row: number) {
+  public findRowUnit(row: number): SIUnit {
     return this.rowCoordinates(row).findIndividualUnit(this.rowUnit);
   }
 
-  public findColumnUnit(column: number) {
+  public findColumnUnit(column: number): SIUnit {
     return this.columnCoordinates(column).findIndividualUnit(this.columnUnit);
   }
 
-  public unitAt(row: number, column: number) {
+  public unitAt(row: number, column: number): SIUnit {
     return this.multiplier
       .mult(this.findRowUnit(row))
       .div(this.findColumnUnit(column));

@@ -20,8 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliValue } from "../../boxing";
-import { ScatterPlot, ScatterPlotOptions } from "../../charts/d3-scatter-plot";
+import type { PacioliValue } from "../../values/pacioli-value";
+import type { ScatterPlotOptions } from "../../charts/d3-scatter-plot";
+import { ScatterPlot } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
@@ -176,17 +177,17 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      // Reload the data if the definition changes. The initial load is done in
-      // parametersChanged.
-      if (name === "definition" && this.data !== undefined) {
-        this.data = this.fetchData();
-      }
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.fetchData();
+        }
 
-      if (this.contentParent() && this.data) {
         this.drawChart(this.data);
       }
-    } catch (err: any) {
-      this.displayError(err);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -194,13 +195,9 @@ export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    try {
-      this.data = this.fetchData();
+    this.data = this.fetchData();
 
-      this.drawChart(this.data);
-    } catch (err: any) {
-      this.displayError(err);
-    }
+    this.drawChart(this.data);
   }
 
   drawChart(data: PacioliValue): void {

@@ -20,9 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { RawValue, RawList, tagList, tagTuple, RawCoordinates } from "../value";
+import type { RawValue, RawList } from "../raw-values/raw-value";
+import { stringifyRawValue, tagList } from "../raw-values/raw-value";
 import { RawMaybe } from "./maybe";
-import { VOID, PacioliVoid } from "./void";
+import type { PacioliVoid } from "./void";
+import { VOID } from "./void";
 
 export class PacioliMap {
   readonly kind = "map";
@@ -30,9 +32,8 @@ export class PacioliMap {
   valueMap = new Map<string, RawValue>();
   keyMap = new Map<string, RawValue>();
 
-  constructor() {}
-
   public store(key: RawValue, value: RawValue): PacioliVoid {
+    // TODO: stringifyRawValue gebruiken!
     const effKey = uniqueMapKey(key);
     this.valueMap.set(effKey, value);
     this.keyMap.set(effKey, key);
@@ -40,6 +41,7 @@ export class PacioliMap {
   }
 
   public lookup(key: RawValue): RawMaybe {
+    // TODO: stringifyRawValue gebruiken!
     const effKey = uniqueMapKey(key);
     if (this.keyMap.has(effKey)) {
       return new RawMaybe(this.valueMap.get(effKey));
@@ -49,28 +51,31 @@ export class PacioliMap {
   }
 
   public keys(): RawList {
-    let keys: RawValue[] = [];
-    for (let key of this.keyMap.values()) {
+    const keys: RawValue[] = [];
+    for (const key of this.keyMap.values()) {
       keys.push(key);
     }
     return tagList(keys);
   }
 
-  toString(): string {
-    return (
-      "[" +
-      this.keys()
-        .map((key) => tagTuple([key, this.lookup(key).value!]))
-        .join(", ") +
-      "]"
-    );
-  }
+  // toString(): string {
+  //   return (
+  //     "[" +
+  //     this.keys()
+  //       .map((key) => tagTuple([key, this.lookup(key).value!]))
+  //       .join(", ") +
+  //     "]"
+  //   );
+  // }
 }
 
 function uniqueMapKey(value: RawValue): string {
-  if ((value as RawCoordinates).kind === "coordinates") {
-    return (value as RawCoordinates).position.toString();
-  } else {
-    return value.toString();
-  }
+  return stringifyRawValue(value);
+  // if (typeof value === "object" && value.kind === "coordinates") {
+  //   return value.position.toString();
+  // } else {
+  //   // TODO: finish this. Finish toText and use that instead of toString?
+  //   // TODO: stringifyRawValue gebruiken! See above.
+  //   return value.toString();
+  // }
 }

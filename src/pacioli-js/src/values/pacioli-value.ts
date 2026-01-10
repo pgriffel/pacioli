@@ -20,36 +20,51 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit, UOM } from "uom-ts";
-import { PacioliType, PacioliUnit, PacioliVector } from "./type";
-import { IndexType, MatrixType, PacioliIndex } from "./types/matrix";
-import {
-  NOTHING,
+import type { SIUnit } from "uom-ts";
+import { UOM } from "uom-ts";
+import type {
+  PacioliType,
+  PacioliUnit,
+  PacioliVector,
+} from "../types/pacioli-type";
+import type { PacioliIndex } from "../types/matrix";
+import { IndexType, MatrixType } from "../types/matrix";
+import type {
+  RawArray,
   RawCoordinates,
   RawList,
-  RawMatrix,
   RawTuple,
   RawValue,
-} from "./value";
-import { PacioliBoole, pacioliFalse, pacioliTrue } from "./values/boole";
-import { PacioliFunction } from "./values/function";
-import { PacioliMatrix } from "./values/matrix";
-import { MatrixDimension } from "./values/matrix-dimension";
-import { MatrixShape, SIVector } from "./values/matrix-shape";
-import { PacioliString } from "./values/string";
-import { VectorBase } from "./values/vector-base";
-import { PacioliVoid, VOID } from "./values/void";
-import { GenericType } from "./types/generic";
-import { SIBaseType, VectorBaseType } from "./types/bases";
-import { PacioliMaybe, RawMaybe } from "./values/maybe";
-import { PacioliContext } from "./context";
-import { PacioliCoordinates } from "./values/coordinates";
-import { fetchIndex, fetchUnit, fetchUnitVector } from "./cache";
-import { PacioliTuple } from "./values/tuple";
-import { PacioliList } from "./values/list";
-import { PacioliArray } from "./values/array";
-import { PacioliRef } from "./values/ref";
-import { PacioliMap } from "./values/map";
+} from "../raw-values/raw-value";
+import {
+  NOTHING,
+  rawValueLabel,
+  tagList,
+  tagTuple,
+} from "../raw-values/raw-value";
+import type { PacioliBoole } from "./boole";
+import { pacioliFalse, pacioliTrue } from "./boole";
+import { PacioliFunction } from "./function";
+import { PacioliMatrix } from "./matrix";
+import { MatrixDimension } from "./matrix-dimension";
+import type { SIVector } from "./matrix-shape";
+import { MatrixShape } from "./matrix-shape";
+import { PacioliString } from "./string";
+import { VectorBase } from "./vector-base";
+import type { PacioliVoid } from "./void";
+import { VOID } from "./void";
+import { GenericType } from "../types/generic";
+import { SIBaseType, VectorBaseType } from "../types/bases";
+import { PacioliMaybe, RawMaybe } from "./maybe";
+import type { PacioliContext } from "../context";
+import { PacioliCoordinates } from "./coordinates";
+import { fetchIndex, fetchUnit, fetchUnitVector } from "../cache";
+import { PacioliTuple } from "./tuple";
+import { PacioliList } from "./list";
+import { PacioliArray } from "./array";
+import type { PacioliRef } from "./ref";
+import type { PacioliMap } from "./map";
+import type { RawMatrix } from "../raw-values/raw-matrix";
 
 export type PacioliValue =
   | PacioliMatrix
@@ -86,8 +101,8 @@ export function boxRawValue(
     case "generic": {
       if (type.name === "Tuple") {
         const values = value as RawTuple;
-        var tuple = new PacioliTuple();
-        for (var i = 0; i < values.length; i++) {
+        const tuple = new PacioliTuple();
+        for (let i = 0; i < values.length; i++) {
           tuple.push(boxRawValue(values[i], type.items[i], context));
         }
         return tuple;
@@ -96,7 +111,7 @@ export function boxRawValue(
           return value ? pacioliTrue : pacioliFalse;
         } else {
           throw new Error(
-            `Expected a boolean instead of ${value} when boxing raw boolean value`
+            `Expected a boolean instead of ${typeof value} when boxing raw boolean value`
           );
         }
       } else if (type.name === "String") {
@@ -104,7 +119,7 @@ export function boxRawValue(
           return new PacioliString(value);
         } else {
           throw new Error(
-            `Expected a string instead of ${value} when boxing raw string value`
+            `Expected a string instead of ${typeof value} when boxing raw string value`
           );
         }
       } else if (type.name === "Void") {
@@ -113,23 +128,43 @@ export function boxRawValue(
         const val = (value as RawMaybe).value;
         return new PacioliMaybe(
           type,
-          val ? boxRawValue(val, type.items[0], context) : undefined
+          val === undefined
+            ? undefined
+            : boxRawValue(val, type.items[0], context)
         );
       } else if (type.name === "List") {
-        if (typeof value === "object") {
+        // TODO: This is called with value.kind undefined. Does generated code not tag lists?
+        // Or is it better to be permissive here?
+        // if (Array.isArray(value) && value.kind === "list") {
+        if (Array.isArray(value)) {
           const values = value as RawList;
-          var list = new PacioliList(type);
-          for (var i = 0; i < values.length; i++) {
+          const list = new PacioliList(type);
+          for (let i = 0; i < values.length; i++) {
             list.push(boxRawValue(values[i], type.items[0], context));
           }
           return list;
         } else {
           throw new Error(
-            `Expected an array object instead of ${value} when boxing raw list value`
+            `Expected an array object instead of ${typeof value} when boxing raw list value`
+          );
+        }
+      } else if (type.name === "Array") {
+        if (Array.isArray(value)) {
+          const values = value as RawArray;
+          const array = new PacioliArray();
+          for (let i = 0; i < values.length; i++) {
+            array.push(boxRawValue(values[i], type.items[0], context));
+          }
+          return array;
+        } else {
+          throw new Error(
+            `Expected an array object instead of ${typeof value} when boxing raw array value`
           );
         }
       } else {
-        throw new Error(`Unxpected type '${type.name}' for value ${value} `);
+        throw new Error(
+          `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
+        );
       }
     }
     case "function": {
@@ -137,7 +172,7 @@ export function boxRawValue(
         return new PacioliFunction(value, type, context);
       } else {
         throw new Error(
-          `Expected a function instead of ${value} when boxing raw function value`
+          `Expected a function instead of ${typeof value} when boxing raw function value`
         );
       }
     }
@@ -149,9 +184,9 @@ export function boxRawValue(
     }
     case "typevar": {
       throw Error(
-        `Unxpected typevar '${
-          type.kind
-        }' for type ${typeof value} with value ${value} `
+        `Unxpected typevar '${type.kind}' for type ${typeof value} with value ${
+          type.name
+        } `
       );
     }
     case "index": {
@@ -199,7 +234,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
     }
     case "list": {
       // TODO: fix any
-      return (value as any).type;
+      return value.type;
     }
     case "tuple": {
       const valueList = value as unknown as PacioliValue[];
@@ -215,21 +250,21 @@ export function typeFromValue(value: PacioliValue): PacioliType {
       return new GenericType("Boole", []);
     }
     default: {
-      throw new Error(`Unexpected value kind ${value.kind} in value ${value}`);
+      throw new Error(`Unexpected value kind ${value.kind}`);
     }
   }
 }
 
-export function rawValueFromValue(value: PacioliValue): any {
+export function rawValueFromValue(value: PacioliValue): RawValue {
   switch (value.kind) {
     case "matrix": {
       return value.numbers;
     }
     case "tuple": {
-      return value.map(rawValueFromValue);
+      return tagTuple(value.map(rawValueFromValue));
     }
     case "list": {
-      return value.map(rawValueFromValue);
+      return tagList(value.map(rawValueFromValue));
     }
     case "string": {
       return value.value;
@@ -245,10 +280,9 @@ export function rawValueFromValue(value: PacioliValue): any {
         ? NOTHING
         : new RawMaybe(rawValueFromValue(value.value));
     }
+    // TODO:  "coordinates" | "array" | "ref" | "map" | "void"
     default: {
-      throw new Error(
-        `unexpected value kind ${value.kind} in Pacioli value ${value}`
-      );
+      throw new Error(`unexpected value kind ${value.kind}`);
     }
   }
 }
@@ -259,15 +293,7 @@ function matrixDimensionFromIndex(
 ): MatrixDimension {
   if (index.kind === "index") {
     return new MatrixDimension(
-      index.sets.map((name) => {
-        const set = fetchIndex(name, context);
-        if (set) return set;
-        else {
-          throw new Error(
-            "index set " + name + " unknown when transforming type to shape"
-          );
-        }
-      })
+      index.sets.map((name) => fetchIndex("index_" + name, context))
     );
   } else {
     throw new Error("index kind " + index.kind + " unexpected");
@@ -293,14 +319,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
     if (base.isVar) {
       throw new Error("cannot have variable");
     } else {
-      const siUnit = fetchUnit(base.prefix, base.base, context);
-      if (siUnit) {
-        return siUnit;
-      } else {
-        throw new Error(
-          "unit " + unit.toText() + " unknown when transforming type to shape"
-        );
-      }
+      return fetchUnit(base.prefix, base.base, context);
     }
   });
 }
@@ -330,31 +349,18 @@ function internUnitVector(
 ): SIVector {
   const siUnit: SIVector = unit.map((base) => {
     if (base.isVar) {
-      throw new Error("cannot have variable");
+      throw new Error("cannot intern a unit containing a unit variable");
     } else {
       const unitVector = fetchUnitVector(
         base.name,
         dimension.indexSets[base.position],
         context
       );
-      if (unitVector !== undefined) {
-        const siUnitVec: SIVector = UOM.fromBase(
-          new VectorBase(unitVector, base.position, base.name)
-        );
-        return siUnitVec;
-      } else {
-        throw new Error("invalid unit vector " + base.toText());
-      }
+      return UOM.fromBase(new VectorBase(unitVector, base.position, base.name));
     }
   });
 
-  if (siUnit) {
-    return siUnit;
-  } else {
-    throw new Error(
-      "unit " + unit.toText() + " unknown when transforming type to shape"
-    );
-  }
+  return siUnit;
 }
 
 /**

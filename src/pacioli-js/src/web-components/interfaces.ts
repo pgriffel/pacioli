@@ -20,8 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliValue } from "../boxing";
-import { PacioliWebComponent } from "./pacioli-web-component";
+import type { PacioliValue } from "../values/pacioli-value";
 
 /**
  * Base API for all Pacioli web components. This includes input components (controls) or
@@ -31,12 +30,12 @@ export interface PacioliWebComponentBase {
   /**
    * The web component root element. Use the contentParent to append content.
    */
-  rootElement(): HTMLElement;
+  rootElement(): HTMLElement | null;
 
   /**
    * Element to append content.
    */
-  contentParent(): HTMLElement;
+  contentParent(): HTMLElement | null;
 
   /**
    * Makes the content parent element (not the root element) empty.
@@ -44,7 +43,12 @@ export interface PacioliWebComponentBase {
   clearContent(): void;
 
   /**
-   * Convenience method to find elements in the component's tree.
+   * Convenience method to find an HTMLElement in the component's element tree that is
+   * expected to exist.
+   *
+   * Throws an error if the element does not exist.
+   *
+   * The selector must yield a HTMLElement (and not simply a Element).
    *
    * @param selectors A query selector string
    */
@@ -67,12 +71,16 @@ export interface Callable {
 
   /**
    * Called when the parameters are changed. Also initially after construction.
+   *
+   * Calls to parametersChanged are surrounded by a try-catch that displays the
+   * error. No need to add a try-catch unless this standard behaviour must be
+   * overridden.
    */
   parametersChanged(): void;
 
   /**
-   * Computes the value or function identified by the 'script' and the 'definition'
-   * attributes. For a function the current parameter values are used as arugments.
+   * Computes the value or function identified by the 'definition' attribute.
+   * For a function the current parameter values are used as arugments.
    *
    * @returns A PacioliValue
    */
@@ -95,78 +103,4 @@ export interface ErrorOutput {
    * Clears the text of the error output and hides the error element.
    */
   clearErrors(): void;
-}
-
-/**
- * Facilities to synchronize inputs and controls with a web component.
- *
- * Is the counterpart of the Followed interface.
- */
-export interface Follower {
-  /**
-   * Finds the Pacioli web component whose identifier matches this
-   * element's 'for' field. Returns null if it is not found. Throws
-   * an error if an element is found, but it is not a Pacioli
-   * web component.
-   */
-  attachedComponent(): PacioliWebComponent | null;
-
-  /**
-   * Registers a callback with the attached Pacioli web component.
-   *
-   * Unfollows any previously followed component.
-   *
-   * @param callback The callback to register
-   */
-  followAttached(callback: () => void): void;
-
-  /**
-   * Registers a callback with the Pacioli web component with the given id.
-   *
-   * Unfollows any previously followed component.
-   *
-   * @param id The element id of the Pacioli web component
-   * @param callback The callback to register
-   */
-  follow(id: string, callback: () => void): void;
-
-  /**
-   * Unregisters a previously registered callback. If no callback was
-   * registered it does nothing.
-   */
-  unfollow(): void;
-}
-
-/**
- * Facilities to synchronize inputs and controls with a web component.
- *
- * Is the counterpart of the Follower interface.
- *
- * The followed component is responsible for calling the callbacks when
- * relevant changes occur.
- */
-export interface Followed {
-  /**
-   * Register a callback. Called by followers.
-   *
-   * @param callback
-   */
-  registerCallback(callback: () => void): void;
-
-  /**
-   * Unregister a callback. Called by followers.
-   *
-   * @param callback
-   */
-  unregisterCallback(callback: () => void): void;
-
-  /**
-   * Call all registered callbacks.
-   */
-  callCallbacks(): void;
-
-  /**
-   * Is the element busy? Followers can use it as a hint to display status.
-   */
-  isBusy(): boolean;
 }

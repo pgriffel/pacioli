@@ -21,11 +21,12 @@
  */
 
 import * as fc from "fast-check";
-import { SIBase, Prefix, Context as UOMContext, UOM } from "uom-ts";
+import type { SIBase, Prefix, Context as UOMContext } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { MatrixDimension } from "../src/values/matrix-dimension";
-import { PacioliContext } from "./../src/context";
+import type { PacioliContext } from "./../src/context";
 import { pickOne } from "./util";
-import { MatrixShape } from "../src/values/matrix-shape";
+import { MatrixShape, SIVector } from "../src/values/matrix-shape";
 
 export function arbitraryUOM(
   context: PacioliContext
@@ -33,7 +34,7 @@ export function arbitraryUOM(
   return fc
     .array(arbitraryBase(context.unitContext))
     .map((terms) =>
-      terms.map(UOM.fromBase).reduce((x, y) => x.mult(y), UOM.ONE)
+      terms.map(UOM.fromBase).reduce((x, y) => x.mult(y), SIUnit.ONE)
     );
 }
 
@@ -70,9 +71,9 @@ export function arbitraryShape(
             new MatrixShape(
               record.multiplier,
               new MatrixDimension(indexSets.row),
-              UOM.ONE,
+              SIVector.ONE,
               new MatrixDimension(indexSets.column),
-              UOM.ONE
+              SIVector.ONE
             )
         );
     });

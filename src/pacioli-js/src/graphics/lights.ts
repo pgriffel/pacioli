@@ -20,11 +20,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
+import type { SIUnit } from "uom-ts";
+import type { PacioliMatrix } from "../values/matrix";
+import type { PacioliString } from "../values/string";
 import { vector2THREE } from "./threejs";
-import { getNumber } from "../values/numbers";
+import { getNumber } from "../raw-values/raw-matrix";
 import * as THREE from "three";
 
 /**
@@ -47,7 +47,7 @@ export type AmbientLight = [
 ];
 
 export function addSpotLight(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   spotlight: PacioliSpotLight,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {

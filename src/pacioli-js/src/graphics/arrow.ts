@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
+import type { SIUnit } from "uom-ts";
+import type { PacioliMatrix } from "../values/matrix";
+import type { PacioliString } from "../values/string";
 import {
   makeCanvasLabelObject,
   updateCanvasLabelObject,
@@ -52,7 +52,7 @@ export function arrowName(arrow: PacioliArrow): string {
 }
 
 export function addArrow(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   arrow: PacioliArrow,
   options: {
     labelColor: string;
@@ -74,7 +74,7 @@ export function addArrow(
 }
 
 export function updateArrow(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   pacioliArrow: PacioliArrow,
   options: {
     unitX: SIUnit;
@@ -88,7 +88,9 @@ export function updateArrow(
 
   if (name.value !== "") {
     // Update the arrow helper
-    const arrow = body.getObjectByName(name.value) as THREE.ArrowHelper;
+    const arrow = body.getObjectByName(name.value) as
+      | THREE.ArrowHelper
+      | undefined;
 
     if (arrow) {
       const [dirVec, vectorLength] = arrowDirectionAndLength(to, options);
@@ -102,10 +104,9 @@ export function updateArrow(
     }
 
     // Update the label
-    const labelObj = body.getObjectByName(name.value + "_label") as THREE.Mesh<
-      THREE.PlaneGeometry,
-      THREE.MeshBasicMaterial
-    >;
+    const labelObj = body.getObjectByName(name.value + "_label") as
+      | THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
+      | undefined;
 
     if (labelObj) {
       const labelPos = vector2THREE(from, options).add(
@@ -133,7 +134,7 @@ function createTHREEArrowHelper(
   const from = vector2THREE(origin, options);
   const [dirVec, vectorLength] = arrowDirectionAndLength(vector, options);
 
-  let arr = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
+  const arr = new THREE.ArrowHelper(dirVec, from, vectorLength, vectorColor);
 
   if (name.value !== "") {
     arr.name = name.value;

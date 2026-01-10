@@ -21,18 +21,19 @@
  */
 
 import * as d3 from "d3";
-import { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
+import type { DefaultChartOptions } from "./chart-utils";
 import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  DefaultChartOptions,
   displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import { LinearChartData, linearChartData } from "./chart-data";
-import { PacioliContext } from "./../context";
+import type { LinearChartData } from "./chart-data";
+import { linearChartData } from "./chart-data";
+import type { PacioliContext } from "./../context";
 import { DimNum } from "uom-ts";
 import { parseUnit } from "../api";
 
@@ -105,22 +106,22 @@ export class LineChart {
   public draw(parent: HTMLElement) {
     try {
       const unit =
-        this.options.unit && this.options.unit !== ""
+        this.options.unit !== undefined && this.options.unit !== ""
           ? parseUnit(this.options.unit)
           : undefined;
 
       const xunit =
-        this.options.xunit && this.options.xunit !== ""
+        this.options.xunit !== undefined && this.options.xunit !== ""
           ? parseUnit(this.options.xunit)
           : undefined;
 
       const yunit =
-        this.options.yunit && this.options.yunit !== ""
+        this.options.yunit !== undefined && this.options.yunit !== ""
           ? parseUnit(this.options.yunit)
           : undefined;
 
       // Transform the data to a usable format
-      var data = linearChartData(
+      const data = linearChartData(
         this.context,
         this.data,
         xunit || unit,
@@ -133,13 +134,13 @@ export class LineChart {
       }
 
       // Define dimensions of graph
-      var m = combineMargins(
+      const m = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
 
-      var w = this.options.width - m.left - m.right;
-      var h = this.options.height - m.top - m.bottom;
+      const w = this.options.width - m.left - m.right;
+      const h = this.options.height - m.top - m.bottom;
 
       // Add an SVG element with the desired dimensions and margin.
       const svg = d3
@@ -155,7 +156,10 @@ export class LineChart {
           .append("g")
           .attr("width", w)
           .attr("height", h)
-          .attr("transform", "translate(" + m.left + "," + m.top + ")");
+          .attr(
+            "transform",
+            `translate(${m.left.toString()},${m.top.toString()})`
+          );
 
         appendLineChart(group, data, w, h, this.options);
       } else {
@@ -165,7 +169,6 @@ export class LineChart {
       // Add the caption above all other elements
       appendChartCaption(svg, this.options);
     } catch (err) {
-      console.log(err);
       displayChartError(
         parent,
         "While drawing line chart '" + this.options.ylabel + "':",
@@ -228,10 +231,10 @@ function appendLineChart(
   h: number,
   options: LineChartOptions
 ) {
-  var yMin = options.ylower !== undefined ? options.ylower : data.yLower;
-  var yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
-  var xMin = data.xLower;
-  var xMax = data.xUpper;
+  const yMin = options.ylower !== undefined ? options.ylower : data.yLower;
+  const yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
+  const xMin = data.xLower;
+  const xMax = data.xUpper;
 
   // Determine data ranges
   const xScale = d3.scaleLinear([xMin, xMax], [0, w]);
@@ -251,11 +254,11 @@ function appendLineChart(
   const xElt = group
     .append("g")
     .attr("class", "x axis")
-    .attr("transform", "translate(0," + h + ")");
+    .attr("transform", `translate(0,${h.toString()})`);
 
   xElt.append("g").call(xAxis);
 
-  if (options.rotate) {
+  if (options.rotate === true) {
     xElt
       .selectAll("text")
       .style("text-anchor", "end")
@@ -271,16 +274,13 @@ function appendLineChart(
     .attr("dy", "0.71em")
     .style("text-anchor", "end")
     .text(
-      options.xlabel +
-        " [" +
-        data.xUnit.toText() +
-        "] (n=" +
-        data.values.length +
-        ")"
+      `${
+        options.xlabel
+      } [${data.xUnit.toText()}] (n=${data.values.length.toString()})`
     );
 
   // create y axis
-  var yAxisLeft = d3.axisLeft(yScale).ticks(options.yticks);
+  const yAxisLeft = d3.axisLeft(yScale).ticks(options.yticks);
 
   const yAxisElt = group
     .append("g")
@@ -298,8 +298,8 @@ function appendLineChart(
 
   // Add a norm line if requested
   const norm = options.norm;
-  if (norm && data !== null) {
-    var normline = d3
+  if (norm !== undefined) {
+    const normline = d3
       .line()
       .x(([i, _]) => {
         // return xScale(data.labels[i]) || 0;
@@ -322,7 +322,7 @@ function appendLineChart(
     .y(([_, d]) => yScale(d));
 
   // Make the line smooth if requested
-  if (options.smooth) {
+  if (options.smooth === true) {
     line.curve(d3.curveCardinal);
   }
 
@@ -364,12 +364,15 @@ function appendLineChart(
     .style("pointer-events", "all")
     // .style("display", "none")
     .on("click", (_, entry) => {
-      if (options.onclick) {
+      const handler = options.onclick;
+
+      if (handler) {
         tooltip.hide();
         tooltipDot.style("display", "none");
-        // Without the timeout the display: none does not have an effect
+
+        // Without the timeout the tooltip.hide and display: none do not have an effect
         setTimeout(() => {
-          options.onclick!(
+          handler(
             DimNum.fromNumber(entry.x, data.xUnit),
             DimNum.fromNumber(entry.y, data.yUnit),
             options
@@ -377,7 +380,7 @@ function appendLineChart(
         }, 0);
       }
     })
-    .on("mouseover", (event, entry) => {
+    .on("mouseover", (event: MouseEvent, entry) => {
       if (options.tooltip) {
         // Call the tooltip callback to get the HTML to display
         tooltip.show(

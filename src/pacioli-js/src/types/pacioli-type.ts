@@ -20,12 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { UOM } from "uom-ts";
-import { IndexType, MatrixType } from "./types/matrix";
-import { GenericType } from "./types/generic";
-import { FunctionType } from "./types/function";
-import { TypeVar, UnitVar } from "./types/variables";
-import { SIBaseType, VectorBaseType } from "./types/bases";
+import type { UOM } from "uom-ts";
+import type { IndexType, MatrixType } from "./matrix";
+import type { GenericType } from "./generic";
+import type { FunctionType } from "./function";
+import type { TypeVar, UnitVar } from "./variables";
+import type { SIBaseType, VectorBaseType } from "./bases";
 
 /**
  * The type of a Pacioli value.

@@ -20,188 +20,277 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliMatrix } from "../values/matrix";
-import { getNumber, getFullNumbers } from "../values/numbers";
-import { firstDefined, locale, toFixed, unitToText } from "./utils";
+import { DimNum } from "uom-ts";
+import type { PacioliCoordinates } from "../values/coordinates";
+import type { IndexSet } from "../values/index-set";
+import type { PacioliMatrix } from "../values/matrix";
+import type { MatrixShape } from "../values/matrix-shape";
+import { getFullNumbers } from "../raw-values/numbers";
 
 /**
- * Collection of columns for use in a DOM Pacioli table. See api function DOMTable.
+ * Generic abstract TableData class.
  *
- * TODO: check if it works for row vectors. The code handles columns order > 0, but
- * do we want that? And does it work?
+ * The TableData is an intermediate form between matrices and tabular output
+ * that avoids duplication of funcionality. A recurring issue is displaying one
+ * or more matrices in table form. The output can be ascii or html or any other
+ * medium. The intermediate form handles common issues besides collecting the
+ * data:
+ *
+ * - transforming to strings in the right number of decimals
+ * - adding totals, automatic and custom
+ * - filtering zero rows
+ * - custom output for zero (e.g. "-" instead of "0")
+ *
+ * Typical usage is a chain like:
+ *
+ * One or more matrices -> TableData -> StringifiedTableData -> Ascii or DOM
+ *
+ * Various options are available at each step in this chain.
+ *
+ * The GenericTableData assumes a collection of matrices/tensors with the same index
+ * sets. The table structure consists of an index column for each index set in the
+ * matrices' index sets, and a value column for each matrix.
  */
-export class DOMTableColumns {
-  constructor(
-    public readonly columns: {
-      title: string;
-      value: PacioliMatrix;
-      decimals: number;
-      zero?: string;
+class GenericTableData<Header, Coordinates, Num> {
+  public constructor(
+    /**
+     * The headers for the index columns
+     *
+     * row.length is the row order and column.length is the column order.
+     */
+    public readonly indexHeaders: { row: Header[]; column: Header[] },
+
+    /**
+     * The index columns.
+     *
+     * index.length equals values.length
+     */
+    public readonly index: {
+      row: Coordinates;
+      column: Coordinates;
     }[],
-    public readonly options?: {
-      decimals: number;
-      zero?: string;
-      zeroRows: boolean;
-      totalsRow?: boolean;
-    }
-  ) {
-    // TODO: check the columns! Is not type checked!!! All columns must have the same shape
-    this.columns = columns;
-    this.options = options;
-  }
 
-  // TODO: reduce the result types to just one!?
-  toDOM(): HTMLElement | DocumentFragment | Text {
-    return createDOMTable(this.columns, this.options);
-  }
+    /**
+     * Headers for the value columns
+     */
+    public readonly valueHeaders: string[],
 
-  toClipboardText(): string {
-    const n = this.columns.length;
+    /**
+     * The value columns
+     *
+     * index.length equals values.length
+     * for all i: values[i].row.length === valueHeaders.length
+     */
+    public readonly values: { row: Num[]; isZero: boolean }[],
 
-    if (n === 0) {
-      return "";
-    }
+    /**
+     * Total row
+     *
+     * totals.length equals valueHeaders.length
+     */
+    public readonly totals: (Num | undefined)[]
+  ) {}
 
-    // Use the first column for the shape.
-    const matrix = this.columns[0].value;
-    const shape = matrix.shape;
-
-    const rowOrder = shape.rowOrder();
-    const columnOrder = shape.columnOrder();
-
-    // nonsense?
-    if (rowOrder === 0 && columnOrder === 0) {
-      return getNumber(matrix.numbers, 0, 0).toLocaleString(locale);
-    }
-
-    let text = "";
-
-    if (0 < rowOrder) {
-      text += shape.rowName();
-    }
-    if (0 < columnOrder) {
-      text += shape.columnName();
-    }
-
-    // Add a header for each column
-    for (let i = 0; i < n; i++) {
-      text += "\t" + this.columns[i].title;
-    }
-
-    // Note that the full number might explode on tensors with many dimensions. TODO:
-    // a more efficient alternative with COO numbers
-    const numbers = this.columns.map((record) =>
-      getFullNumbers(record.value.numbers)
+  /**
+   * Does the table data represent a single scalar value?
+   *
+   * @returns True if the index sets are empty and there is one value column.
+   */
+  isSingleScalar(): boolean {
+    return (
+      this.indexHeaders.row.length === 0 &&
+      this.indexHeaders.column.length === 0 &&
+      this.valueHeaders.length <= 1
     );
-    // const shapes = this.columns.map((record) => record.value.shape);
-
-    // For COO numbers
-    // var rows = numbers.map(trip => trip[0])
-    // var columns = numbers.map(trip => trip[1])
-    // var values = numbers.map(trip => trip[2])
-
-    const nrRows = shape.nrRows();
-    const nrColumns = shape.nrColumns();
-
-    if (nrRows === 0 || nrColumns == 0) {
-      // Kan dit??? Copied from above
-      return "0";
-    } else {
-      // Add the data rows
-      for (let i = 0; i < nrRows; i++) {
-        text += "\n";
-
-        for (let j = 0; j < nrColumns; j++) {
-          // Add the index
-          if (0 < rowOrder) {
-            const idx = shape.rowCoordinates(i).names.toString();
-            text += idx;
-          }
-          if (0 < columnOrder) {
-            const idx = shape.columnCoordinates(j).names.toString();
-            text += idx;
-          }
-
-          // Add the value for each colulmn
-          for (let k = 0; k < n; k++) {
-            const num = numbers[k][i][j];
-            // text += "\t" + num.toLocaleString(locale);
-            text += "\t" + num.toString();
-          }
-        }
-      }
-    }
-    return text;
   }
 }
 
 /**
- * Creates an HTML table element from a list of columns. All column values
- * must be a vector with the same index sets.
- *
- * @param columns A properties object for every column
- * @returns A 'table' HTML element
+ * A GenericTableData with all coordinates, numbers and units as objects.
  */
-function createDOMTable(
-  columns: {
-    title: string;
-    value: PacioliMatrix;
-    decimals: number;
-    zero?: string;
-  }[],
-  options?: {
-    decimals: number;
-    zero?: string;
-    zeroRows: boolean;
-    totalsRow?: boolean;
+export class TableData extends GenericTableData<
+  IndexSet,
+  PacioliCoordinates,
+  DimNum
+> {
+  static from(
+    matrix: PacioliMatrix,
+    header: string,
+    showTotal: boolean,
+    total?: PacioliMatrix
+  ) {
+    return tableDataFromMatrix(matrix, header, showTotal, total);
   }
-): HTMLElement | DocumentFragment | Text {
-  const n = columns.length;
+
+  public stringify(
+    zero: string | undefined,
+    decimals: number[],
+    ignoreDecimals: boolean
+  ): StringifiedTableData {
+    return stringifyTableData(this, zero, decimals, ignoreDecimals);
+  }
+
+  public clipboardText(): string {
+    return toClipboardText(this);
+  }
+
+  public merge(other: TableData) {
+    return mergeTableData(this, other);
+  }
+}
+
+/**
+ * Same as TableData, but all coordinates, numbers and units are stringified.
+ */
+export class StringifiedTableData extends GenericTableData<
+  string,
+  string[],
+  { magnitude: string; unit: string }
+> {
+  public dom(showTotals: boolean): HTMLElement {
+    return domFromTableData(this, showTotals);
+  }
+
+  public ascii(): string {
+    return asciiFromTableData(this);
+  }
+}
+
+/**
+ * Convenience function to merge a list of TableDatas in one call.
+ *
+ * It is an error if the list is empty.
+ *
+ * @param datas The TableData objects to merge
+ * @returns The merged TableData
+ */
+export function mergeTableDatas(datas: TableData[]): TableData {
+  if (datas.length === 0) {
+    throw Error("Cannot merge an empty list of table data");
+  } else {
+    let merged = datas[0];
+    for (let i = 1; i < datas.length; i++) {
+      merged = mergeTableData(merged, datas[i]);
+    }
+    return merged;
+  }
+}
+
+function asciiFromTableData(
+  data: StringifiedTableData,
+  showZeroRows: boolean = true
+) {
+  const zero = "0";
+
+  const n = data.valueHeaders.length;
 
   if (n === 0) {
-    return document.createTextNode("-");
+    return "";
   }
 
-  // Use the first column for the shape. TODO: check the rest! Is not type checked!!!
-  const matrix = columns[0].value;
-  const shape = matrix.shape;
+  if (data.isSingleScalar()) {
+    if (data.values.length > 0) {
+      const value = data.values[0];
+      return value.row[0].magnitude + value.row[0].unit;
+    } else {
+      return zero;
+    }
+  }
 
-  const rowOrder = shape.rowOrder();
-  const columnOrder = shape.columnOrder();
+  const maxColumnWidths: number[] = [];
+  const alignRight: boolean[] = [];
+  const headers: string[] = [];
 
-  if (rowOrder === 0 && columnOrder === 0) {
-    const value = getNumber(matrix.numbers, 0, 0);
-    const unit = shape.unitAt(0, 0);
+  data.indexHeaders.row.forEach((indexSet) => {
+    headers.push(indexSet);
+    maxColumnWidths.push(indexSet.length);
+    alignRight.push(false);
+  });
+  data.indexHeaders.column.forEach((indexSet) => {
+    headers.push(indexSet);
+    maxColumnWidths.push(indexSet.length);
+    alignRight.push(false);
+  });
 
-    const fragment = document.createDocumentFragment();
+  const nrValues = data.valueHeaders.length;
+  // Add a header for each column
+  for (let i = 0; i < nrValues; i++) {
+    headers.push(data.valueHeaders[i]);
+    headers.push(""); // unit column
+    maxColumnWidths.push(data.valueHeaders[i].length);
+    alignRight.push(true);
+    alignRight.push(false);
+  }
 
-    fragment.appendChild(
-      document.createTextNode(
-        toFixed(
-          value,
-          firstDefined(columns[0].decimals, options?.decimals, 2)!,
-          firstDefined(columns[0].zero, options?.zero)
-        )
-      )
-    );
+  const text: string[][] = [];
 
-    fragment.appendChild(
-      document.createTextNode(
-        unitToText(
-          unit,
-          value === 0 &&
-            (typeof columns[0].zero === "string" ||
-              typeof options?.zero === "string")
-        )
-      )
-    );
+  text.push(headers);
 
-    //fragment.normalize()
-    return fragment;
+  const nrRows = data.index.length;
+
+  // Add the data rows
+  for (let i = 0; i < nrRows; i++) {
+    const index = data.index[i];
+    const values = data.values[i];
+
+    if (showZeroRows || !values.isZero) {
+      // Create a new row
+      const row: string[] = [];
+
+      // Add the index
+      index.row.concat(index.column).forEach((idx) => {
+        row.push(idx);
+      });
+
+      values.row.forEach((value) => {
+        row.push(value.magnitude);
+        row.push(value.unit);
+      });
+
+      text.push(row);
+
+      for (let j = 0; j < row.length; j++) {
+        maxColumnWidths[j] = Math.max(maxColumnWidths[j], row[j].length);
+      }
+    }
+  }
+
+  let output = "";
+  text.forEach((line) => {
+    const row = [];
+    for (let i = 0; i < line.length; i++) {
+      const cell = line[i];
+      const l = maxColumnWidths[i];
+      const txt = alignRight[i] ? cell.padStart(l) : cell.padEnd(l);
+      row.push(txt);
+    }
+    output += row.join(" ");
+    output += "\n";
+  });
+
+  return output;
+}
+
+function domFromTableData(
+  data: StringifiedTableData,
+  showTotals: boolean,
+  showZeroRows: boolean = true
+): HTMLElement {
+  const zero = "0";
+
+  if (data.isSingleScalar()) {
+    const span = document.createElement("span");
+    if (data.values.length > 0) {
+      const value = data.values[0];
+      span.textContent = value.row[0].magnitude + value.row[0].unit;
+    } else {
+      span.textContent = zero;
+    }
+    return span;
   }
 
   const table = document.createElement("table");
-  table.className = "pacioli-tab";
+  table.className = "pacioli-table";
   //    table.style = "width: auto"
 
   // Create the table
@@ -214,24 +303,25 @@ function createDOMTable(
   const row = document.createElement("tr");
 
   // Add the index headers
-  if (0 < rowOrder) {
+  data.indexHeaders.row.forEach((text) => {
     const header = document.createElement("th");
     header.className = "key";
-    header.innerHTML = shape.rowName();
+    header.innerHTML = text;
     row.appendChild(header);
-  }
-  if (0 < columnOrder) {
+  });
+  data.indexHeaders.column.forEach((text) => {
     const header = document.createElement("th");
     header.className = "key";
-    header.innerHTML = shape.columnName();
+    header.innerHTML = text;
     row.appendChild(header);
-  }
+  });
 
+  const nrValues = data.valueHeaders.length;
   // Add a header for each column
-  for (let i = 0; i < n; i++) {
-    let header = document.createElement("th");
+  for (let i = 0; i < nrValues; i++) {
+    const header = document.createElement("th");
     header.className = "value";
-    header.innerHTML = columns[i].title;
+    header.innerHTML = data.valueHeaders[i];
     header.colSpan = 2;
     row.appendChild(header);
 
@@ -243,123 +333,290 @@ function createDOMTable(
   // Add the header row to the table
   thead.appendChild(row);
 
-  // Note that the full number might explode on tensors with many dimensions. TODO:
-  // a more efficient alternative with COO numbers
-  const numbers = columns.map((record) => getFullNumbers(record.value.numbers));
-  const shapes = columns.map((record) => record.value.shape);
+  const nrRows = data.index.length;
 
-  // For COO numbers
-  // var rows = numbers.map(trip => trip[0])
-  // var columns = numbers.map(trip => trip[1])
-  // var values = numbers.map(trip => trip[2])
+  // const totals: Array<number> = new Array(n).fill(0);
+
+  // Add the data rows
+  for (let i = 0; i < nrRows; i++) {
+    const index = data.index[i];
+    const values = data.values[i];
+
+    if (showZeroRows || !values.isZero) {
+      // Create a new row
+      const row = document.createElement("tr");
+
+      // Add the index
+      index.row.concat(index.column).forEach((idx) => {
+        const cell = document.createElement("td");
+        cell.className = "key";
+        cell.innerHTML = idx;
+        row.appendChild(cell);
+      });
+
+      values.row.forEach((value) => {
+        let cell = document.createElement("td");
+        cell.className = "value";
+        cell.innerHTML = value.magnitude;
+        row.appendChild(cell);
+
+        cell = document.createElement("td");
+        cell.className = "unit";
+        cell.appendChild(document.createTextNode(value.unit));
+
+        row.appendChild(cell);
+      });
+
+      tbody.appendChild(row);
+    }
+  }
+
+  // Add a total row if asked
+  const indexWidth =
+    data.indexHeaders.row.length + data.indexHeaders.column.length;
+
+  if (showTotals && indexWidth > 0) {
+    const totalRow = document.createElement("tr");
+
+    const cell = document.createElement("td");
+    cell.className = "total key";
+    cell.innerHTML = "Total";
+    totalRow.appendChild(cell);
+
+    for (let i = 1; i < indexWidth; i++) {
+      const cell = document.createElement("td");
+      cell.className = "key";
+      cell.innerHTML = "";
+      totalRow.appendChild(cell);
+    }
+
+    data.totals.forEach((value) => {
+      let cell = document.createElement("td");
+      cell.className = "total value";
+      cell.innerHTML = value ? value.magnitude : "";
+      totalRow.appendChild(cell);
+
+      cell = document.createElement("td");
+      cell.className = "total unit";
+      cell.appendChild(document.createTextNode(value ? value.unit : ""));
+
+      totalRow.appendChild(cell);
+    });
+
+    tbody.appendChild(totalRow);
+  }
+
+  return table;
+}
+
+function stringifyTableData(
+  data: TableData,
+  zero: string | undefined,
+  decimals: number[],
+  ignoreDecimals: boolean
+): StringifiedTableData {
+  // Interpret the options
+  const zeroString = zero;
+  const omitDecimals = ignoreDecimals || decimals.length === 0;
+  const decimalsPerColumn = omitDecimals
+    ? []
+    : data.valueHeaders.map((_, col) => decimals[col % decimals.length]);
+
+  const indexHeaders = {
+    row: data.indexHeaders.row.map((header) => header.name),
+    column: data.indexHeaders.column.map((header) => header.name),
+  };
+  const index = data.index.map((entry) => {
+    return {
+      row: entry.row.names,
+      column: entry.column.names,
+    };
+  });
+  const values = data.values.map((value) => {
+    return {
+      row: value.row.map((cell, col) => {
+        return {
+          magnitude:
+            cell.magnitude.isZero() && zeroString !== undefined
+              ? zeroString
+              : omitDecimals
+              ? cell.magnitude.toFixed()
+              : cell.magnitude.toFixed(decimalsPerColumn[col]),
+          unit: cell.unit.toText(),
+        };
+      }),
+      isZero: value.isZero,
+    };
+  });
+  const totals = data.totals.map((cell, col) => {
+    if (cell === undefined) {
+      return undefined;
+    }
+    return {
+      magnitude:
+        cell.magnitude.isZero() && zeroString !== undefined
+          ? zeroString
+          : omitDecimals
+          ? cell.magnitude.toFixed()
+          : cell.magnitude.toFixed(decimalsPerColumn[col]),
+      unit: cell.unit.toText(),
+    };
+  });
+  return new StringifiedTableData(
+    indexHeaders,
+    index,
+    data.valueHeaders,
+    values,
+    totals
+  );
+}
+
+function tableDataFromMatrix(
+  matrix: PacioliMatrix,
+  header: string,
+  showTotal: boolean,
+  total?: PacioliMatrix
+): TableData {
+  const indexSets = {
+    row: matrix.rowIndexSets(),
+    column: matrix.columnIndexSets(),
+  };
+  const index: {
+    row: PacioliCoordinates;
+    column: PacioliCoordinates;
+  }[] = [];
+  const columnHeaders: string[] = [header];
+  const columns: { row: DimNum[]; isZero: boolean }[] = [];
+
+  const shape: MatrixShape = matrix.shape;
 
   const nrRows = shape.nrRows();
   const nrColumns = shape.nrColumns();
 
-  if (nrRows === 0 || nrColumns == 0) {
-    // Kan dit??? Copied from above
-    return document.createTextNode("0");
+  let effectiveTotal =
+    showTotal && total !== undefined ? total.getDimNum(0, 0) : undefined;
+
+  if (nrRows === 0 || nrColumns === 0) {
+    throw new Error("No rows and columns?");
   } else {
-    const totals: Array<number> = new Array(n).fill(0);
+    let deriveTotal = showTotal && total === undefined;
+
+    const numbers = getFullNumbers(matrix.numbers);
 
     // Add the data rows
     for (let i = 0; i < nrRows; i++) {
       for (let j = 0; j < nrColumns; j++) {
-        // Create a new row
-        const row = document.createElement("tr");
-        let allZero = true;
+        const indexEntry = {
+          row: shape.rowCoordinates(i),
+          column: shape.columnCoordinates(j),
+        };
 
-        // Add the index
-        if (0 < rowOrder) {
-          const cell = document.createElement("td");
-          cell.className = "key";
-          cell.innerHTML = shape.rowCoordinates(i).names.toString();
-          row.appendChild(cell);
-        }
-        if (0 < columnOrder) {
-          const cell = document.createElement("td");
-          cell.className = "key";
-          cell.innerHTML = shape.columnCoordinates(j).names.toString();
-          row.appendChild(cell);
-        }
+        index.push(indexEntry);
 
-        // Add the value for each colulmn
-        const nrDecs = firstDefined(columns[j].decimals, options?.decimals, 2)!;
-        const zero = firstDefined(columns[j].zero, options?.zero);
-        for (let k = 0; k < n; k++) {
-          let cell = document.createElement("td");
-          cell.className = "value";
-          const num = numbers[k][i][j];
-          allZero = allZero && num === 0;
-          cell.innerHTML = toFixed(num, nrDecs, zero);
-          row.appendChild(cell);
+        const num = numbers[i][j];
 
-          totals[k] += num;
+        const dimNum = DimNum.fromNumber(num, shape.unitAt(i, j));
+        columns.push({ row: [dimNum], isZero: num === 0 });
 
-          cell = document.createElement("td");
-          cell.className = "unit";
-          const un =
-            0 < rowOrder ? shapes[k].unitAt(i, j) : shapes[k].unitAt(i, j);
-          cell.appendChild(
-            document.createTextNode(
-              unitToText(un, num === 0 && typeof zero === "string")
-            )
-          );
-
-          row.appendChild(cell);
-        }
-
-        if (!allZero) {
-          tbody.appendChild(row);
+        if (deriveTotal) {
+          if (effectiveTotal === undefined) {
+            effectiveTotal = dimNum;
+          } else if (effectiveTotal.unit.equals(dimNum.unit)) {
+            effectiveTotal = effectiveTotal.sum(dimNum);
+          } else {
+            deriveTotal = false;
+            effectiveTotal = undefined;
+          }
         }
       }
-    }
-
-    // Add a total row if asked
-    if (options?.totalsRow) {
-      const row = document.createElement("tr");
-
-      // Add the index
-      if (0 < rowOrder) {
-        const cell = document.createElement("td");
-        cell.className = "key";
-        cell.innerHTML = "Totaal";
-        row.appendChild(cell);
-      }
-      if (0 < columnOrder) {
-        const cell = document.createElement("td");
-        cell.className = "key";
-        cell.innerHTML = "";
-        row.appendChild(cell);
-      }
-
-      // Add the totals cells
-      const nrDecs = 2; // TODO
-      const zero = "-";
-      for (let k = 0; k < n; k++) {
-        let cell = document.createElement("td");
-        cell.className = "total";
-        const num = totals[k];
-        cell.innerHTML = toFixed(num, nrDecs, zero);
-        row.appendChild(cell);
-
-        // TODO: handle units
-        cell = document.createElement("td");
-        cell.className = "unit";
-        // const un =
-        // 0 < rowOrder ? shapes[k].unitAt(i, j) : shapes[k].unitAt(i, j);
-        cell.appendChild(
-          document.createTextNode(
-            "" // unitToText(un, num === 0 && typeof zero === "string")
-          )
-        );
-
-        row.appendChild(cell);
-      }
-
-      // Add the totals row
-      tbody.appendChild(row);
     }
   }
-  return table;
+
+  return new TableData(indexSets, index, columnHeaders, columns, [
+    effectiveTotal,
+  ]);
+}
+
+function tableDataHeadersEqual(left: TableData, right: TableData): boolean {
+  return left === right || true; // TODO: implement this
+}
+
+function mergeTableData(left: TableData, right: TableData): TableData {
+  if (!tableDataHeadersEqual(left, right)) {
+    throw Error("Headers not equal when merging table data");
+  }
+
+  // For now assume no sparse tables
+  const indexSets = left.indexHeaders;
+  const index: {
+    row: PacioliCoordinates;
+    column: PacioliCoordinates;
+  }[] = left.index;
+  const valueHeaders: string[] = left.valueHeaders.concat(right.valueHeaders);
+  const values: { row: DimNum[]; isZero: boolean }[] = [];
+  const totals = left.totals.concat(right.totals);
+
+  for (let i = 0; i < left.index.length; i++) {
+    const lft = left.values[i];
+    const rght = right.values[i];
+    values.push({
+      row: lft.row.concat(rght.row),
+      isZero: lft.isZero && rght.isZero,
+    });
+  }
+
+  return new TableData(indexSets, index, valueHeaders, values, totals);
+}
+
+function toClipboardText(data: TableData): string {
+  const n = data.valueHeaders.length;
+
+  if (n === 0) {
+    return "";
+  }
+
+  const headers: string[] = [];
+
+  data.indexHeaders.row.forEach((indexSet) => {
+    headers.push(indexSet.name);
+  });
+  data.indexHeaders.column.forEach((indexSet) => {
+    headers.push(indexSet.name);
+  });
+
+  const nrValues = data.valueHeaders.length;
+  // Add a header for each column
+  for (let i = 0; i < nrValues; i++) {
+    headers.push(data.valueHeaders[i]);
+  }
+
+  let text = "";
+
+  text += headers.join("\t");
+
+  const nrRows = data.index.length;
+
+  // Add the data rows
+  for (let i = 0; i < nrRows; i++) {
+    const index = data.index[i];
+    const values = data.values[i];
+
+    text += "\n";
+
+    // Create a new row
+    const row: string[] = [];
+
+    // Add the index
+    index.row.names.concat(index.column.names).forEach((idx) => {
+      row.push(idx);
+    });
+
+    values.row.forEach((value) => {
+      row.push(value.magnitude.toString());
+    });
+
+    text += row.join("\t");
+  }
+
+  return text;
 }

@@ -20,8 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliUnit, PacioliVector } from "../type";
-import { IndexVar } from "./variables";
+import type { PacioliUnit, PacioliVector } from "./pacioli-type";
+import type { IndexVar } from "./variables";
 
 export type PacioliIndex = IndexType | IndexVar;
 
@@ -38,9 +38,5 @@ export class MatrixType {
     public rowUnit: PacioliVector,
     public columnIndex: PacioliIndex,
     public columnUnit: PacioliVector
-  ) {
-    if (!multiplier) {
-      throw new Error("k");
-    }
-  }
+  ) {}
 }

@@ -7,6 +7,23 @@
 
     <title>Ellipsoid</title>
 
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
     <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
@@ -23,88 +40,13 @@
         Parametrization of an ellipsoid surface.
 
     <p>
-        <math>
-            <mi>f</mi>
-            (
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            )
-            <mo>=</mo>
-            <msup>
-                <mrow>
-                    (
-                    <mi>x</mi>
-                    <mo>,</mo>
-                    <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    )
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        with
+        $f(u, v) = (x, y, z)^T$ with
     <ul>
-        <li>
-            <math>
-                <mi>x</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <mi>sin</mi>
-                (<mi>u</mi>)
-                <mi>cos</mi>
-                (<mi>v</mi>)
-            </math>
-        </li>
-        <li>
-            <math>
-                <mi>y</mi>
-                <mo>=</mo>
-                <mi>b</mi>
-                <mi>sin</mi>
-                (<mi>u</mi>)
-                <mi>sin</mi>
-                (<mi>v</mi>)
-            </math>
-        </li>
-        <li>
-            <math>
-                <mi>z</mi>
-                <mo>=</mo>
-                <mi>c</mi>
-                <mi>cos</mi>
-                (<mi>u</mi>)
-            </math>
-        </li>
+        <li>$x = a\sin u\cos v$</li>
+        <li>$y = b\sin u\sin v$</li>
+        <li>$z = c\cos u$</li>
     </ul>
-    where
-    <math>
-        <mi>a</mi>
-    </math>,
-    <math>
-        <mi>b</mi>
-    </math>,
-    and
-    <math>
-        <mi>c</mi>
-    </math>
-    are scaling factors in the three dimensions,
-    <math>
-        <mn>0</mn>
-        <mo>&le;</mo>
-        <mi>u</mi>
-        <mo>&le;</mo>
-        <mn>&pi;</mn>
-    </math>
-    , and
-    <math>
-        <mn>0</mn>
-        <mo>&le;</mo>
-        <mi>v</mi>
-        <mo>&le;</mo>
-        <mn>2&pi;</mn>
-    </math>
+    where $a$, $b$ and $c$ are scaling factors in the three dimensions, $0 \le u \le \pi$, and $0 \le v \le 2\pi$.
 
     <p>
     <div class="example">

@@ -1,5 +1,6 @@
 import geometry;
 import graphics;
+import graphics/parametric_plots;
 
 define NORMAL_COLOR = make_color("green");
 define DELTA_COLOR = make_color("red");
@@ -14,13 +15,13 @@ define MATERIAL = "Normal";
 
 define plane_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
-        f(x, y) = 
-            vector3d(x, y, a + b*x + c*y),
+        f(u, v) = 
+            vector3d(u, v, a + b*u + c*v),
 
         range = 
             make_range(
-                -8 * |metre|, 8 * |metre|,
-                -8 * |metre|, 8 * |metre|),
+                -8*|metre|, 8*|metre|,
+                -8*|metre|, 8*|metre|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -32,15 +33,15 @@ define plane_scene(a, b, c, n, m, d, grid, surface, wireframe, parts, total, nor
 
 define simple_wave_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
-        f(x, y) = 
-            let r = sqrt(x^2 + y^2) in
-                vector3d(x, y, a * cos(y * c))
+        f(u, v) = 
+            let r = sqrt(u^2 + v^2) in
+                vector3d(u, v, a * cos(v * c))
             end,
 
         range = 
             make_range(
-                -8 * |metre|, 8 * |metre|,
-                -8 * |metre|, 8 * |metre|),
+                -8*|metre|, 8*|metre|,
+                -8*|metre|, 8*|metre|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -52,15 +53,15 @@ define simple_wave_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, 
 
 define circular_wave_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
-        f(x, y) = 
-            let r = sqrt(x^2 + y^2) in
-                vector3d(x, y, a * cos(r * c))
+        f(u, v) = 
+            let r = sqrt(u^2 + v^2) in
+                vector3d(u, v, a * cos(r * c))
             end,
 
         range = 
             make_range(
-                -8 * |metre|, 8 * |metre|,
-                -8 * |metre|, 8 * |metre|),
+                -8*|metre|, 8*|metre|,
+                -8*|metre|, 8*|metre|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -73,7 +74,7 @@ define circular_wave_scene(a, c, n, m, d, grid, surface, wireframe, parts, total
 define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
-            make_zsquared(u*cos(v), u*sin(v), a * u^2),
+            vector3d(u*cos(v), u*sin(v), a * u^2),
             
         range = 
             make_range(
@@ -91,12 +92,12 @@ define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, norm
 define saddle_scene(a, b, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
-            make_zsquared(u, v, a*u^2 + b*v^2),
+            vector3d(u, v, a*u^2 + b*v^2),
 
         range = 
             make_range(
-                -5 * |metre|, 5 * |metre|,
-                -5 * |metre|, 5 * |metre|),
+                -5*|metre|, 5*|metre|,
+                -5*|metre|, 5*|metre|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -137,8 +138,8 @@ define torus_scene(major, minor, n, m, d, grid, surface, wireframe, parts, total
 
         range = 
             make_range(
-                0 * |radian|, 2 * pi * |radian|,
-                0 * |radian|, 2 * pi * |radian|),
+                0*|radian|, 2*pi*|radian|,
+                0*|radian|, 2*pi*|radian|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -159,7 +160,7 @@ define cone_scene(h, r, n, m, d, grid, surface, wireframe, parts, total, normals
         range = 
             make_range(
                 0*h, 2*h,
-                0 * pi * |radian|, 2 * pi * |radian|),
+                0*pi*|radian|, 2*pi*|radian|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -178,8 +179,8 @@ define moebius_scene(a, c, n, m, d, grid, surface, wireframe, parts, total, norm
                 a * sin(u / 2) * v),
         range = 
             make_range(
-                -pi * |radian|, pi * |radian|,
-                -0.5 * |metre|, 0.5 * |metre|),
+                -pi*|radian|, pi*|radian|,
+                -0.5*|metre|, 0.5*|metre|),
 
         options =
             let arrows = surface or grid in
@@ -234,8 +235,8 @@ define flower_scene(a, b, c, k, n, m, d, grid, surface, wireframe, parts, total,
 
         range = 
             make_range(
-                0 * pi * |radian|, 2 * pi * |radian|,
-                0 * pi * |radian|, 2 * pi * |radian|),
+                0*pi*|radian|, 2*pi*|radian|,
+                0*pi*|radian|, 2*pi*|radian|),
 
         options =
             tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
@@ -322,19 +323,3 @@ declare make_center_spot_light ::
 
 define make_center_spot_light(position, intensity) =
     make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
-
-# ------------------------------------------------------------------------------
-# Unit Geom3!zsquared
-# ------------------------------------------------------------------------------
-
-defunit Geom3!zsquared = {
-    x: metre,
-    y: metre,
-    z: metre^2
-};
-
-declare make_zsquared ::
-    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
-
-define make_zsquared(a, b, c) = 
-    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;

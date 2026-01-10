@@ -20,9 +20,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliValue } from "../boxing";
-import { PacioliType } from "../type";
-import { RawValue } from "../value";
+import type { PacioliValue } from "./pacioli-value";
+import type { PacioliType } from "../types/pacioli-type";
+import type { RawValue } from "../raw-values/raw-value";
 
 export class PacioliMaybe {
   readonly kind = "maybe";
@@ -35,7 +35,7 @@ export class RawMaybe {
 
   constructor(public value?: RawValue) {}
 
-  toString(): string {
-    return this.value === undefined ? "nothing" : this.value.toString();
-  }
+  // toString(): string {
+  //   return this.value === undefined ? "nothing" : this.value.toString();
+  // }
 }

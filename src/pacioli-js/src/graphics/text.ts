@@ -20,12 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { PacioliMatrix } from "../values/matrix";
-import { PacioliString } from "../values/string";
+import type { SIUnit } from "uom-ts";
+import type { PacioliMatrix } from "../values/matrix";
+import type { PacioliString } from "../values/string";
 import { makeCanvasLabelObject, moveObject } from "./threejs";
-import { getNumber } from "../values/numbers";
-import * as THREE from "three";
+import { getNumber } from "../raw-values/raw-matrix";
+import type * as THREE from "three";
 
 /**
  * Matches the Label type from the graphics Pacioli library.
@@ -39,7 +39,7 @@ export type PacioliLabel = [
 ];
 
 export function addLabel(
-  body: THREE.Object3D<THREE.Object3DEventMap>,
+  body: THREE.Object3D,
   pacioliLabel: PacioliLabel,
   options: {
     labelColor: string;

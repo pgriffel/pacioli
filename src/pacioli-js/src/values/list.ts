@@ -20,8 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliValue } from "../boxing";
-import { PacioliType } from "../type";
+import type { PacioliValue } from "./pacioli-value";
+import type { PacioliType } from "../types/pacioli-type";
 
 export class PacioliList extends Array<PacioliValue> {
   readonly kind = "list";

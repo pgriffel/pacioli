@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
+import type { SIUnit } from "uom-ts";
 
 export const locale = "nl-NL";
 
@@ -40,13 +40,4 @@ export function toFixed(
 
 export function unitToText(unit: SIUnit, empty: boolean): string {
   return empty || unit.isDimensionless() ? " " : unit.toText();
-}
-
-export function firstDefined<T>(...args: T[]): T | undefined {
-  for (const arg of args) {
-    if (arg !== undefined && arg !== null) {
-      return arg;
-    }
-  }
-  return undefined;
 }

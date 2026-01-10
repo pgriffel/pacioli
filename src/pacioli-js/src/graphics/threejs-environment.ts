@@ -20,16 +20,18 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { getNumber } from "../values/numbers";
+import type { SIUnit } from "uom-ts";
+import { getNumber } from "../raw-values/raw-matrix";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { createGridHelper, makeCanvasLabelObject } from "./threejs";
-import { addMesh, disposeMesh, PacioliMesh, updateMesh } from "./mesh";
-import { addPath, disposePath, PacioliPath } from "./path";
+import type { PacioliMesh } from "./mesh";
+import { addMesh, disposeMesh, updateMesh } from "./mesh";
+import type { PacioliPath } from "./path";
+import { addPath, disposePath } from "./path";
 import { addArrow, updateArrow } from "./arrow";
-import { SpaceOptions } from "./space";
-import { PacioliScene } from "./scene";
+import type { SpaceOptions } from "./space";
+import type { PacioliScene } from "./scene";
 import { addSpotLight } from "./lights";
 import { addLabel } from "./text";
 
@@ -40,13 +42,13 @@ import { addLabel } from "./text";
  */
 export class ThreeJsEnvironment {
   // Element to attach to the DOM. Container for the threejs renderers.
-  private readonly root: HTMLDivElement;
+  private readonly root: HTMLCanvasElement;
 
   // Fixed Three.js elements
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene: THREE.Scene;
   private readonly camera: THREE.Camera;
-  private readonly body: THREE.Object3D<THREE.Object3DEventMap>;
+  private readonly body: THREE.Object3D;
   private readonly controls: OrbitControls;
 
   // Dynamic Three.js elements
@@ -68,7 +70,8 @@ export class ThreeJsEnvironment {
   constructor(public readonly options: SpaceOptions) {
     // Create the root element and attach a renderer
     this.renderer = createWebGLRenderer(options.width, options.height);
-    this.root = createRootElement(this.renderer.domElement);
+    // this.root = createRootElement(this.renderer.domElement);
+    this.root = this.renderer.domElement;
 
     // Create the remaining elements
     this.scene = new THREE.Scene();
@@ -137,8 +140,8 @@ export class ThreeJsEnvironment {
     // Don't overrule light that is set via options. This allows
     // the web components to change the ambient light.
     this.setAmbientLight(
-      this.options.ambientColor || ambientLight[0].value,
-      this.options.ambientIntensity || getNumber(ambientLight[1].numbers, 0, 0)
+      this.options.ambientColor ?? ambientLight[0].value,
+      this.options.ambientIntensity ?? getNumber(ambientLight[1].numbers, 0, 0)
     );
   }
 
@@ -291,7 +294,7 @@ export class ThreeJsEnvironment {
   }
 
   hasAxisLabels() {
-    this.axisLabels.length > 0;
+    return this.axisLabels.length > 0;
   }
 
   showAxisLabels() {
@@ -426,15 +429,15 @@ export class ThreeJsEnvironment {
   }
 }
 
-function createRootElement(webGLElement: HTMLElement) {
-  const renderersDiv = document.createElement("div");
+// function createRootElement(webGLElement: HTMLElement) {
+//   const renderersDiv = document.createElement("div");
 
-  renderersDiv.style.position = "relative";
+//   renderersDiv.style.position = "relative";
 
-  renderersDiv.appendChild(webGLElement);
+//   renderersDiv.appendChild(webGLElement);
 
-  return renderersDiv;
-}
+//   return renderersDiv;
+// }
 
 function createWebGLRenderer(
   width: number,
@@ -453,7 +456,7 @@ function createWebGLRenderer(
 function createOrbitControls(
   camera: THREE.Camera,
   domElement: HTMLElement,
-  _options: {}
+  _options: object
 ) {
   const controls = new OrbitControls(camera, domElement);
 

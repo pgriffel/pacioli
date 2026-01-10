@@ -21,16 +21,16 @@
  */
 
 import * as d3 from "d3";
-import {
-  combineMargins,
-  DefaultChartOptions,
-  displayChartError,
-  parseMargin,
-} from "./chart-utils";
+import type { DefaultChartOptions } from "./chart-utils";
+import { combineMargins, displayChartError, parseMargin } from "./chart-utils";
 import cloud from "d3-cloud";
 
 export interface WordCloudOptions extends DefaultChartOptions {
-  onclick?: (data: any) => void;
+  onclick?: (data: {
+    value: string;
+    size: number;
+    options: WordCloudOptions;
+  }) => void;
 }
 
 const DEFAULT_CHART_MARGIN = { left: 40, top: 20, right: 20, bottom: 50 };
@@ -40,15 +40,16 @@ export class WordCloud {
     width: number;
     height: number;
     margin?: string;
-    onclick: (data: any) => void;
+    onclick?: (data: {
+      value: string;
+      size: number;
+      options: WordCloudOptions;
+    }) => void;
   };
 
   readonly defaultOptions = {
     width: 640,
     height: 360,
-    onclick: (data: any) => {
-      alert("Todo: word cloud click " + data);
-    },
   };
 
   constructor(
@@ -60,12 +61,14 @@ export class WordCloud {
 
   public draw(parent: HTMLElement) {
     try {
+      const options = this.options;
+
       // Make the parent node empty
       while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
       }
 
-      var words = this.data.map(function (d: any) {
+      const words = this.data.map(function (d: [string, number]) {
         return {
           text: d[0],
           size: d[1],
@@ -73,28 +76,31 @@ export class WordCloud {
       });
 
       // Determine the drawing dimensions
-      var margin = combineMargins(
+      const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
         parseMargin(this.options.margin)
       );
 
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+      const width = this.options.width - margin.left - margin.right;
+      const height = this.options.height - margin.top - margin.bottom;
 
-      var w = width + margin.left + margin.right;
-      var h = height + margin.top + margin.bottom;
+      const w = width + margin.left + margin.right;
+      const h = height + margin.top + margin.bottom;
 
       // Create an svg element under the parent
-      var svg = d3
+      const svg = d3
         .select(parent)
         .append("svg")
         .attr("width", w)
         .attr("height", h)
         .attr("class", "pacioli wordcloud")
         .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`
+        );
 
-      var layout = cloud<{ text: string; size: number }>()
+      const layout = cloud<{ text: string; size: number }>()
         .size([w, h])
         .words(
           /*[
@@ -116,7 +122,16 @@ export class WordCloud {
 
       layout.start();
 
-      function draw(words: any[]) {
+      function draw(
+        // Can this type be imported?
+        words: {
+          size: number;
+          text: string;
+          x: number;
+          y: number;
+          rotate: number;
+        }[]
+      ) {
         //          d3.select("body").append("svg")
         //              .attr("width", layout.size()[0])
         //              .attr("height", layout.size()[1])
@@ -125,29 +140,39 @@ export class WordCloud {
           .append("g")
           .attr(
             "transform",
-            "translate(" +
-              layout.size()[0] / 2 +
-              "," +
-              layout.size()[1] / 2 +
-              ")"
+            `translate(${(layout.size()[0] / 2).toString()},${(
+              layout.size()[1] / 2
+            ).toString()})`
           )
           .selectAll("text")
           .data(words)
           .enter()
           .append("text")
           .style("font-size", function (d) {
-            return d.size + "px";
+            return d.size.toString() + "px";
           })
           .style("font-family", "Impact")
           .attr("text-anchor", "middle")
           .attr("transform", function (d) {
-            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+            return `translate(${d.x.toString()},${d.y.toString()})rotate(${d.rotate.toString()})`;
           })
           .text(function (d) {
             return d.text;
+          })
+          .on("click", (_, d) => {
+            const handler = options.onclick;
+            if (handler) {
+              setTimeout(() => {
+                handler({
+                  value: d.text,
+                  size: d.size,
+                  options: options,
+                });
+              }, 0);
+            }
           });
       }
-    } catch (err) {
+    } catch (err: unknown) {
       displayChartError(parent, "While drawing word cloud:", err);
     }
   }

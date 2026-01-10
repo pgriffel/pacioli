@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { PacioliType } from "../type";
+import type { PacioliType } from "./pacioli-type";
 
 export class GenericType {
   readonly kind = "generic";

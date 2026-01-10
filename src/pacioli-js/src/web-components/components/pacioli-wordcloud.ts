@@ -20,12 +20,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { WordCloud, WordCloudOptions } from "../../charts/d3-wordcloud";
-import { PacioliMatrix } from "../../values/matrix";
-import { getNumber } from "../../values/numbers";
+import type { WordCloudOptions } from "../../charts/d3-wordcloud";
+import { WordCloud } from "../../charts/d3-wordcloud";
+import type { PacioliMatrix } from "../../values/matrix";
+import { getNumber } from "../../raw-values/raw-matrix";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
-import { PacioliString } from "../../values/string";
+import type { PacioliString } from "../../values/string";
 
 /**
  * Attribues supported by the word cloud component
@@ -64,17 +65,13 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged() {
-    try {
-      // Compute the words.
-      const words = wordData(this.fetchData() as unknown as WordCloudData);
+    // Compute the words.
+    const words = wordData(this.fetchData() as unknown as WordCloudData);
 
-      // Add a new word cloud to the content parent
-      this.clearContent();
-      this.chart = new WordCloud(words, this.chartOptions());
-      this.chart.draw(this.contentParent());
-    } catch (err: any) {
-      this.displayError(err);
-    }
+    // Add a new word cloud to the content parent
+    this.clearContent();
+    this.chart = new WordCloud(words, this.chartOptions());
+    this.chart.draw(this.contentParent());
   }
 
   /**
