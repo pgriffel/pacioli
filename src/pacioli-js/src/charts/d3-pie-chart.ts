@@ -22,7 +22,7 @@
 
 import * as d3 from "d3";
 import type { PieArcDatum } from "d3";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliContext } from "../context";
 import type { DefaultChartOptions } from "./chart-utils";
 import {

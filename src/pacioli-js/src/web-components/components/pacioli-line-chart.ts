@@ -25,7 +25,7 @@ import { LineChart } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
-import type { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../values/pacioli-value";
 
 /**
  * Attribues supported by the histogram component

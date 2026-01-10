@@ -20,20 +20,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { StringifiedTableData } from "./dom/table";
-import { NR_DECIMALS } from "./primitives";
-import type { PacioliCoordinates } from "./values/coordinates";
-import type { PacioliMap } from "./values/map";
-import type { MatrixShape } from "./values/matrix-shape";
-import { RawMaybe } from "./values/maybe";
-import type {
-  NumericFullMatrix,
-  numericCCSMatrix,
-  NumericCOOMatrix,
-  NumericDOKMatrix,
-} from "./values/numbers";
-import { getFullNumbers } from "./values/numbers";
-import type { PacioliVoid } from "./values/void";
+import type { PacioliCoordinates } from "../values/coordinates";
+import type { PacioliMap } from "../values/map";
+import { RawMaybe } from "../values/maybe";
+import type { NUMERIC_MATRIX } from "./numbers";
+import type { PacioliVoid } from "../values/void";
+import {
+  tableDataFromRawMatrix,
+  type RawMatrix,
+  type RawMatrixStorage,
+} from "./raw-matrix";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -52,20 +48,6 @@ export type RawValue =
   | RawMap
   | RawMaybe
   | RawVoid;
-
-// export type MatrixStorage = 0 | 1 | 2 | 3; // Full, DOK, COO or CCS
-
-// export const STORAGE_FULL = 0;
-// export const STORAGE_DOK = 1;
-// export const STORAGE_COO = 2;
-// export const STORAGE_CCS = 3;
-
-export type RawMatrixStorage = "full" | "1" | "2" | "3"; // Full, DOK, COO or CCS
-
-export const STORAGE_FULL = "full";
-export const STORAGE_DOK = "1";
-export const STORAGE_COO = "2";
-export const STORAGE_CCS = "3";
 
 /**
  * The RawValue kind is not complete. It is undefined for strings, booleans and functions.
@@ -185,112 +167,6 @@ export function stringifyRawValue(value: RawValue): string {
   }
 }
 
-export function tableDataFromRawMatrix(
-  matrix: RawMatrix,
-  header: string,
-  _showTotal: boolean,
-  total?: string
-): StringifiedTableData {
-  const indexSets = {
-    row: matrix.nrRows === 1 ? [] : ["row"],
-    column: matrix.nrColumns === 1 ? [] : ["column"],
-  };
-  const index: {
-    row: string[];
-    column: string[];
-  }[] = [];
-  const columnHeaders: string[] = [header];
-  const columns: {
-    row: { magnitude: string; unit: string }[];
-    isZero: boolean;
-  }[] = [];
-
-  const nrRows = matrix.nrRows;
-  const nrColumns = matrix.nrColumns;
-
-  let effectiveTotal = 0;
-
-  if (nrRows === 0 || nrColumns === 0) {
-    throw new Error("No rows and columns?");
-  } else {
-    const numbers = getFullNumbers(matrix);
-
-    // Add the data rows
-    for (let i = 0; i < nrRows; i++) {
-      for (let j = 0; j < nrColumns; j++) {
-        const indexEntry = {
-          row: [i.toString()],
-          column: [j.toString()],
-        };
-
-        index.push(indexEntry);
-
-        const num = numbers[i][j];
-
-        const dimNum = { magnitude: num.toFixed(NR_DECIMALS), unit: "" };
-
-        columns.push({ row: [dimNum], isZero: num === 0 });
-
-        effectiveTotal += num;
-      }
-    }
-  }
-
-  return new StringifiedTableData(indexSets, index, columnHeaders, columns, [
-    {
-      magnitude: total === undefined ? effectiveTotal.toString() : total,
-      unit: "",
-    },
-  ]);
-}
-
-/**
- * Type of an unboxed matrix. Implemented as a nested array of numbers with some
- * extra properties (nr rows, nr columns, and storage kind). The meaning of the
- * numbers depends on the storage kind.
- */
-export interface RawFullMatrix extends NumericFullMatrix {
-  kind: "matrix";
-  nrRows: number;
-  nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
-  // storage: "0" | "1" | "2" | "3";
-  // storage: "0" | "2" | "3";
-  storage: "full";
-}
-
-// export type RawMatrix = RestMatrix | DOKMatrix;
-// export type RawMatrix = RestMatrix;
-export type RawMatrix =
-  | RawFullMatrix
-  | RawDOKMatrix
-  | RawCOOMatrix
-  | RawCCSMatrix;
-
-export interface RawDOKMatrix extends NumericDOKMatrix {
-  kind: "matrix";
-  nrRows: number;
-  nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "1";
-}
-
-export interface RawCOOMatrix extends NumericCOOMatrix {
-  kind: "matrix";
-  nrRows: number;
-  nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "2";
-}
-
-export interface RawCCSMatrix extends numericCCSMatrix {
-  kind: "matrix";
-  nrRows: number;
-  nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
-  storage: "3";
-}
-
 /**
  * Type of an unboxed Pacioli tuple. A javascript array tagged with kind 'tuple'.
  */
@@ -368,6 +244,22 @@ export type RawBoole = boolean;
  * Pacioli's nothing value.
  */
 export const NOTHING = new RawMaybe();
+
+export function tagMatrix(
+  numbers: NUMERIC_MATRIX,
+  nrRows: number,
+  nrColumns: number,
+  storage: RawMatrixStorage
+): RawMatrix {
+  const matrix = numbers as RawMatrix;
+
+  matrix.nrRows = nrRows;
+  matrix.nrColumns = nrColumns;
+  matrix.storage = storage;
+  matrix.kind = "matrix";
+
+  return matrix;
+}
 
 export function tagList(value: Array<RawValue>): RawList {
   (value as RawList).kind = "list";

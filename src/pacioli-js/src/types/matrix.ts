@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { PacioliUnit, PacioliVector } from "../type";
+import type { PacioliUnit, PacioliVector } from "./pacioli-type";
 import type { IndexVar } from "./variables";
 
 export type PacioliIndex = IndexType | IndexVar;

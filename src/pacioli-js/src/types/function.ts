@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { PacioliType } from "../type";
+import type { PacioliType } from "./pacioli-type";
 import { matchTypes, subs } from "../type-solver";
 import { GenericType } from "./generic";
 

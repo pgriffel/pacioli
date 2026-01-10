@@ -21,11 +21,11 @@
  */
 
 import type { UOM } from "uom-ts";
-import type { IndexType, MatrixType } from "./types/matrix";
-import type { GenericType } from "./types/generic";
-import type { FunctionType } from "./types/function";
-import type { TypeVar, UnitVar } from "./types/variables";
-import type { SIBaseType, VectorBaseType } from "./types/bases";
+import type { IndexType, MatrixType } from "./matrix";
+import type { GenericType } from "./generic";
+import type { FunctionType } from "./function";
+import type { TypeVar, UnitVar } from "./variables";
+import type { SIBaseType, VectorBaseType } from "./bases";
 
 /**
  * The type of a Pacioli value.

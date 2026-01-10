@@ -20,278 +20,149 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { ccsFull, ccsGather, ccsScatter, ccsSparse, sscatter } from "numeric";
-import type { RawDOKMatrix, RawMatrixStorage, RawMatrix } from "../value";
-import { STORAGE_CCS, STORAGE_COO, STORAGE_DOK, STORAGE_FULL } from "../value";
+import { StringifiedTableData } from "../dom/table";
+import { NR_DECIMALS } from "../primitives";
+import type { MatrixShape } from "../values/matrix-shape";
+import type {
+  NumericFullMatrix,
+  numericCCSMatrix,
+  NumericCOOMatrix,
+  NumericDOKMatrix,
+} from "./numbers";
+import { getCOONumbers, getFullNumbers } from "./numbers";
+import { tagMatrix } from "./raw-value";
 
-// Match the types from numeric
-export type NumericFullMatrix = number[][];
-export type NumericDOKMatrix = (number | undefined)[][];
-export type NumericCOOMatrix = [number[], number[], number[]];
-export type numericCCSMatrix = [number[], number[], number[]];
-export type NUMERIC_MATRIX =
-  | NumericFullMatrix
-  | NumericDOKMatrix
-  | NumericCOOMatrix
-  | numericCCSMatrix;
+// export type MatrixStorage = 0 | 1 | 2 | 3; // Full, DOK, COO or CCS
 
-// -----------------------------------------------------------------------------
-// Matrix Numbers
-//
-// See http://numericjs.com/wordpress/?p=66
-//
-// Full - Completely filled two-dimensional JavaScript array
-// DOK (Dictionary Of Keys format) - Sparse two-dimensional JavaScript array
-// COO (Coordinate format) - Triple of lists
-// CCS (Column Compressed Storage format) - Triple of lists
-//
-// numeric has two flavours of functions, i) functions that operate on Full
-// matrices and ii) functions that operate on CCS matrices
-//
-// For case i) the primitives call getFullNumbers
-// For case ii) the primitives call getCCSNumbers
-//
-// Currently both variants are used. Function $base_matrix_mmult uses CCS. Other
-// CCS calls are disabled by checking === 13 instead of === 3.
-// -----------------------------------------------------------------------------
+// export const STORAGE_FULL = 0;
+// export const STORAGE_DOK = 1;
+// export const STORAGE_COO = 2;
+// export const STORAGE_CCS = 3;
 
-// Array.prototype.toString = function () {
-//   const array = this as RawMatrix | RawTuple | RawList;
-//   if (array.kind === "matrix") {
-//     if (array.nrRows === 1 && array.nrColumns === 1) {
-//       return getNumber(array, 0, 0).toString();
-//     } else {
-//       const nums = getFullNumbers(array) as number[][];
-//       return (
-//         "[" + nums.map((row) => "[" + row.join(", ") + "]").join(", ") + "]"
-//       );
-//     }
-//   } else if (array.kind === "tuple") {
-//     return "(" + array.map((x) => x.toString()).join(", ") + ")";
-//   } else if (array.kind === "list") {
-//     return "[" + array.map((x) => x.toString()).join(", ") + "]";
-//   }
-//   return this.map((x) => x.toString()).join(",");
-// };
+export type RawMatrixStorage = "full" | "1" | "2" | "3"; // Full, DOK, COO or CCS
 
-export function tagNumbers(
-  numbers: NUMERIC_MATRIX,
-  nrRows: number,
-  nrColumns: number,
-  storage: RawMatrixStorage
-): RawMatrix {
-  const matrix = numbers as RawMatrix;
+export const STORAGE_FULL = "full";
+export const STORAGE_DOK = "1";
+export const STORAGE_COO = "2";
+export const STORAGE_CCS = "3";
 
-  matrix.nrRows = nrRows;
-  matrix.nrColumns = nrColumns;
-  matrix.storage = storage;
-  matrix.kind = "matrix";
-
-  return matrix;
-}
-
-export function getFullNumbers(numbers: RawMatrix): NumericFullMatrix {
-  const m = numbers.nrRows;
-  const n = numbers.nrColumns;
-
-  const fullFromDOK = function (
-    nums: RawDOKMatrix | NumericDOKMatrix
-  ): NumericFullMatrix {
-    const array = new Array(m) as NumericFullMatrix;
-    for (let i = 0; i < m; i++) {
-      const inner = new Array<number>(n);
-      for (let j = 0; j < n; j++) {
-        const rowi = nums[i];
-        inner[j] = rowi ? rowi[j] || 0 : 0;
-      }
-      array[i] = inner;
-    }
-    // return tagNumbers(array, m, n, STORAGE_FULL);
-    return array;
+/**
+ * By using StringifiedTableData we don't duplicate code and have uniform output.
+ *
+ * @param matrix
+ * @param header
+ * @param _showTotal
+ * @param total
+ * @returns
+ */
+export function tableDataFromRawMatrix(
+  matrix: RawMatrix,
+  header: string,
+  _showTotal: boolean,
+  total?: string
+): StringifiedTableData {
+  const indexSets = {
+    row: matrix.nrRows === 1 ? [] : ["row"],
+    column: matrix.nrColumns === 1 ? [] : ["column"],
   };
+  const index: {
+    row: string[];
+    column: string[];
+  }[] = [];
+  const columnHeaders: string[] = [header];
+  const columns: {
+    row: { magnitude: string; unit: string }[];
+    isZero: boolean;
+  }[] = [];
 
-  switch (numbers.storage) {
-    case STORAGE_FULL: {
-      return numbers;
-    }
-    case STORAGE_DOK: {
-      return fullFromDOK(numbers);
-    }
-    case STORAGE_COO: {
-      return fullFromDOK(sscatter(numbers) as NumericDOKMatrix);
-    }
-    // or:
-    // return numeric.ccsFull(numeric.ccsScatter(this.numbers))
-    case STORAGE_CCS: {
-      // Let numeric create a full matrix, although it might be too small
-      const full = ccsFull(numbers as unknown as numericCCSMatrix);
+  const nrRows = matrix.nrRows;
+  const nrColumns = matrix.nrColumns;
 
-      // Fill the missing rows and columns with zeros
-      for (let i = full.length; i < m; i++) {
-        full[i] = [];
-        for (let j = 0; j < n; j++) {
-          full[i][j] = 0;
-        }
+  let effectiveTotal = 0;
+
+  if (nrRows === 0 || nrColumns === 0) {
+    throw new Error("No rows and columns?");
+  } else {
+    const numbers = getFullNumbers(matrix);
+
+    // Add the data rows
+    for (let i = 0; i < nrRows; i++) {
+      for (let j = 0; j < nrColumns; j++) {
+        const indexEntry = {
+          row: [i.toString()],
+          column: [j.toString()],
+        };
+
+        index.push(indexEntry);
+
+        const num = numbers[i][j];
+
+        const dimNum = { magnitude: num.toFixed(NR_DECIMALS), unit: "" };
+
+        columns.push({ row: [dimNum], isZero: num === 0 });
+
+        effectiveTotal += num;
       }
-      for (let j = full[0].length; j < n; j++) {
-        for (let i = 0; i < m; i++) {
-          full[i][j] = 0;
-        }
-      }
-
-      // return tagNumbers(full, m, n, STORAGE_FULL);
-      return full;
     }
   }
+
+  return new StringifiedTableData(indexSets, index, columnHeaders, columns, [
+    {
+      magnitude: total === undefined ? effectiveTotal.toString() : total,
+      unit: "",
+    },
+  ]);
 }
 
-// Pacioli.getDOKNumbers = function (numbers) {
-
-//     const m = numbers.nrRows
-//     const n = numbers.nrColumns
-
-//     sparseDOK = function (nums) {
-//         const array = []
-//         for (const i = 0; i < m; i++) {
-//             const inner = nums[i]
-//             for (const j = 0; j < n; j++) {
-//                 if (inner[j] !== 0) {
-//                     if (array[i] === undefined) {
-//                         array[i] = []
-//                     }
-//                     array[i][j] = inner[j]
-//                 }
-//             }
-//         }
-//         return Pacioli.tagNumbers(array, m, n, 1)
-//     }
-
-//     switch (numbers.storage) {
-//     case 0:
-//         return sparseDOK(numbers)
-//     case 1:
-//         return numbers
-//     case 2:
-//         return Pacioli.tagNumbers(numeric.sscatter(numbers), m, n, 1)
-//     case 3:
-//         return Pacioli.tagNumbers(numeric.sscatter(numeric.ccsGather(numbers)), m, n, 1)
-//     }
-// }
-
-export function getCOONumbers(numbers: RawMatrix): NumericCOOMatrix {
-  switch (numbers.storage) {
-    case STORAGE_FULL: {
-      return DOK2COO(numbers);
-    }
-    case STORAGE_DOK: {
-      return DOK2COO(numbers);
-    }
-    case STORAGE_COO: {
-      return numbers as unknown as NumericCOOMatrix;
-    }
-    case STORAGE_CCS: {
-      const ccsNumbers = ccsGather(numbers as unknown as numericCCSMatrix);
-      const rows = ccsNumbers[0];
-      const columns = ccsNumbers[1];
-      const values = ccsNumbers[2];
-      const tmp: NumericDOKMatrix = [];
-      for (let i = 0; i < rows.length; i++) {
-        if (tmp[rows[i]] === undefined) tmp[rows[i]] = [];
-        tmp[rows[i]][columns[i]] = values[i];
-      }
-      return DOK2COO(tmp);
-    }
-    default:
-      throw new Error("unknown number kind");
-  }
+/**
+ * Type of an unboxed matrix. Implemented as a nested array of numbers with some
+ * extra properties (nr rows, nr columns, and storage kind). The meaning of the
+ * numbers depends on the storage kind.
+ */
+export interface RawFullMatrix extends NumericFullMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  // storage: "0" | "1" | "2" | "3";
+  // storage: "0" | "2" | "3";
+  storage: "full";
 }
 
-export function getCCSNumbers(numbers: RawMatrix): numericCCSMatrix {
-  let ccsNumbers: numericCCSMatrix;
-  switch (numbers.storage) {
-    case STORAGE_FULL: {
-      ccsNumbers = ccsSparse(numbers);
-      break;
-    }
-    case STORAGE_DOK: {
-      const gathered = DOK2COO(numbers);
-      if (gathered[0].length === 0) {
-        ccsNumbers = ccsScatter([[0], [0], [0]]);
-      } else {
-        ccsNumbers = ccsScatter(gathered);
-      }
-      break;
-    }
-    case STORAGE_COO: {
-      if (numbers[0].length === 0) {
-        ccsNumbers = ccsScatter([[0], [0], [0]]);
-      } else {
-        ccsNumbers = ccsScatter(numbers as unknown as NumericCOOMatrix);
-      }
-      break;
-    }
-    case STORAGE_CCS: {
-      return numbers as unknown as numericCCSMatrix;
-    }
-    default: {
-      throw new Error("unknown number kind");
-    }
-  }
-  return ccsNumbers; // tagNumbers(ccsNumbers, numbers.nrRows, numbers.nrColumns, STORAGE_CCS);
+// export type RawMatrix = RestMatrix | DOKMatrix;
+// export type RawMatrix = RestMatrix;
+export type RawMatrix =
+  | RawFullMatrix
+  | RawDOKMatrix
+  | RawCOOMatrix
+  | RawCCSMatrix;
+
+export interface RawDOKMatrix extends NumericDOKMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  storage: "1";
 }
 
-function DOK2COO(numbers: RawDOKMatrix | NumericDOKMatrix): NumericCOOMatrix {
-  const rows = [];
-  const columns = [];
-  const values = [];
-  const tmp: [number, number, number][] = [];
-  for (const x in numbers) {
-    if (Object.prototype.hasOwnProperty.call(numbers, x)) {
-      const parsedX = parseInt(x);
-      //if (typeof parsedX === "number") {
-      if (isFinite(parsedX) && !isNaN(parsedX)) {
-        const row = numbers[parsedX];
-        for (const y in row) {
-          if (Object.prototype.hasOwnProperty.call(row, y)) {
-            const parsedY = parseInt(y);
-            //if (typeof parsedY === "number") {
-            if (isFinite(parsedY) && !isNaN(parsedY)) {
-              const value = row[parsedY];
-              if (value !== undefined && value !== 0) {
-                tmp.push([parsedX, parsedY, value]);
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  tmp.sort((a: [number, number, number], b: [number, number, number]) => {
-    if (a[0] > b[0]) return 1;
-    if (a[0] < b[0]) return -1;
-    if (a[1] > b[1]) return 1;
-    if (a[1] < b[1]) return -1;
-    return 0;
-  });
+export interface RawCOOMatrix extends NumericCOOMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  storage: "2";
+}
 
-  for (let i = 0; i < tmp.length; i++) {
-    rows.push(tmp[i][0]);
-    columns.push(tmp[i][1]);
-    values.push(tmp[i][2]);
-  }
-
-  // // TODO: drop the tagNumbers
-  // return tagNumbers(
-  //   [rows, columns, values],
-  //   numbers.nrRows,
-  //   numbers.nrColumns,
-  //   STORAGE_COO
-  // ) as unknown as COO_MATRIX;
-  return [rows, columns, values];
+export interface RawCCSMatrix extends numericCCSMatrix {
+  kind: "matrix";
+  nrRows: number;
+  nrColumns: number;
+  shape?: MatrixShape; // see oneNumbersFromShape
+  storage: "3";
 }
 
 export function get(numbers: RawMatrix, i: number, j: number) {
-  return tagNumbers([[getNumber(numbers, i, j)]], 1, 1, STORAGE_FULL);
+  return tagMatrix([[getNumber(numbers, i, j)]], 1, 1, STORAGE_FULL);
 }
 
 export function set(
@@ -396,7 +267,7 @@ export function unaryNumbers(
   fun: (val: number) => number
 ): RawMatrix {
   const coo = getCOONumbers(numbers);
-  return tagNumbers(
+  return tagMatrix(
     [coo[0], coo[1], coo[2].map(fun)],
     numbers.nrRows,
     numbers.nrColumns,
@@ -475,7 +346,7 @@ export function elementWiseNumbers(
     py++;
   }
 
-  return tagNumbers(
+  return tagMatrix(
     [rows, columns, values],
     xNumbers.nrRows,
     xNumbers.nrColumns,

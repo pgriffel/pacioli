@@ -23,7 +23,7 @@
 import type { SIUnit } from "uom-ts";
 import type { SpaceOptions } from "../../graphics/space";
 import { Space } from "../../graphics/space";
-import type { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../values/pacioli-value";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";

@@ -22,8 +22,8 @@
 
 import { SIUnit } from "uom-ts";
 import type { PacioliContext } from "../context";
-import { getNumber } from "../values/numbers";
-import type { PacioliValue } from "../boxing";
+import { getNumber } from "../raw-values/raw-matrix";
+import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliMatrix } from "../values/matrix";
 import type { PacioliCoordinates } from "../values/coordinates";
 import type { PacioliTuple } from "../values/tuple";

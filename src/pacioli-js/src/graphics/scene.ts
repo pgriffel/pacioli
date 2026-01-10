@@ -22,7 +22,7 @@
 
 import type { PacioliString } from "../values/string";
 import type { PacioliFunction } from "../values/function";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliArrow } from "./arrow";
 import type { AmbientLight, PacioliSpotLight } from "./lights";
 import type { PacioliMesh } from "./mesh";

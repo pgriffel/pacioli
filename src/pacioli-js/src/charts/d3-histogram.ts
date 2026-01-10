@@ -30,7 +30,7 @@ import {
 } from "./chart-utils";
 import type { SIUnit } from "uom-ts";
 import { DimNum } from "uom-ts";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliContext } from "../context";
 import { displayChartError } from "./chart-utils";
 import type { BandChartData } from "./chart-data";

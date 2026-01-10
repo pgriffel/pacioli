@@ -25,13 +25,17 @@ import { SIUnit } from "uom-ts";
 import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
-import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
+import type {
+  PacioliType,
+  PacioliUnit,
+  PacioliVector,
+} from "./types/pacioli-type";
 import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import type { PacioliIndex } from "./types/matrix";
 import { MatrixType } from "./types/matrix";
-import type { PacioliValue } from "./boxing";
-import { boxRawValue, typeFromValue } from "./boxing";
+import type { PacioliValue } from "./values/pacioli-value";
+import { boxRawValue, typeFromValue } from "./values/pacioli-value";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
@@ -39,7 +43,7 @@ import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { GenericType } from "./types/generic";
 import type BigNumber from "bignumber.js";
-import type { RawValue } from "./value";
+import type { RawValue } from "./raw-values/raw-value";
 
 // -----------------------------------------------------------------------------
 // New

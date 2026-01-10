@@ -23,7 +23,7 @@
 import type { SIUnit } from "uom-ts";
 import { conversionFactor } from "../api";
 import type { PacioliMatrix } from "../values/matrix";
-import { getNumber } from "../values/numbers";
+import { getNumber } from "../raw-values/raw-matrix";
 import * as THREE from "three";
 import type { PacioliTuple } from "../values/tuple";
 

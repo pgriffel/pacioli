@@ -21,7 +21,11 @@
  */
 
 import { UOM } from "uom-ts";
-import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
+import type {
+  PacioliType,
+  PacioliUnit,
+  PacioliVector,
+} from "./types/pacioli-type";
 import type { IndexType, PacioliIndex } from "./types/matrix";
 import { MatrixType } from "./types/matrix";
 import { GenericType } from "./types/generic";

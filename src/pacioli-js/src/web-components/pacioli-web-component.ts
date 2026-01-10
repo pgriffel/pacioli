@@ -25,7 +25,7 @@ import {
   addParametersObserver,
   setParameterNodes,
 } from "./utils";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import type {
   Callable,
   ErrorOutput,

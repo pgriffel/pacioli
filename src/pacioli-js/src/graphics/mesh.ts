@@ -25,7 +25,7 @@ import type { SIUnit } from "uom-ts";
 import type { PacioliBoole } from "../values/boole";
 import type { PacioliMatrix } from "../values/matrix";
 import type { PacioliMaybe } from "../values/maybe";
-import { getNumber } from "../values/numbers";
+import { getNumber } from "../raw-values/raw-matrix";
 import type { PacioliString } from "../values/string";
 import type { PacioliTuple } from "../values/tuple";
 import { moveObject, rotateObject, vector2THREE } from "./threejs";

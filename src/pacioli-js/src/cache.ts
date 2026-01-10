@@ -23,15 +23,17 @@
 import type { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { IndexSet } from "./values/index-set";
-import { set, tagNumbers } from "./values/numbers";
-import type { PacioliUnit } from "./type";
+import { set } from "./raw-values/raw-matrix";
+import type { PacioliUnit } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
-import type { RawCoordinates, RawMatrix, RawValue } from "./value";
-import { STORAGE_DOK, stringifyRawValue } from "./value";
-import { internUnit, matrixShapeFromType } from "./boxing";
+import type { RawCoordinates, RawValue } from "./raw-values/raw-value";
+import { stringifyRawValue, tagMatrix } from "./raw-values/raw-value";
+import { internUnit, matrixShapeFromType } from "./values/pacioli-value";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
+import type { RawMatrix } from "./raw-values/raw-matrix";
+import { STORAGE_DOK } from "./raw-values/raw-matrix";
 
 export const defaultContext = PacioliContext.empty();
 
@@ -71,12 +73,12 @@ export function createCoordinates(
 // }
 
 export function zeroNumbers(m: number, n: number): RawMatrix {
-  return tagNumbers([], m, n, STORAGE_DOK);
+  return tagMatrix([], m, n, STORAGE_DOK);
 }
 
 // No longer needs to export this since oneNumbersFromShape is used.
 export function oneNumbers(m: number, n: number): RawMatrix {
-  const numbers = tagNumbers([], m, n, STORAGE_DOK);
+  const numbers = tagMatrix([], m, n, STORAGE_DOK);
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
       set(numbers, i, j, 1);
@@ -114,7 +116,7 @@ export function initialNumbers(
 ): RawMatrix {
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
-  const numbers = tagNumbers([], m, n, STORAGE_DOK);
+  const numbers = tagMatrix([], m, n, STORAGE_DOK);
   for (let i = 0; i < data.length; i++) {
     set(numbers, data[i][0], data[i][1], data[i][2]);
   }

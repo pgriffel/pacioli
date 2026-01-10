@@ -20,8 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { RawValue, RawList } from "../value";
-import { stringifyRawValue, tagList } from "../value";
+import type { RawValue, RawList } from "../raw-values/raw-value";
+import { stringifyRawValue, tagList } from "../raw-values/raw-value";
 import { RawMaybe } from "./maybe";
 import type { PacioliVoid } from "./void";
 import { VOID } from "./void";

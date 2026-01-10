@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../values/pacioli-value";
 import type { ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { ScatterPlot } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";

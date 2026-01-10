@@ -22,15 +22,11 @@
 
 import { DimNum } from "uom-ts";
 import type { Context, SIUnit } from "uom-ts";
-import {
-  getCOONumbers,
-  getFullNumbers,
-  getNumber,
-  tagNumbers,
-} from "./numbers";
+import { getCOONumbers, getFullNumbers } from "../raw-values/numbers";
 import { MatrixShape } from "./matrix-shape";
-import type { RawCoordinates, RawMatrix } from "../value";
-import { STORAGE_COO } from "../value";
+import { tagMatrix, type RawCoordinates } from "../raw-values/raw-value";
+import type { RawMatrix } from "../raw-values/raw-matrix";
+import { getNumber, STORAGE_COO } from "../raw-values/raw-matrix";
 import type { IndexSet } from "./index-set";
 import { TableData } from "../dom/table";
 
@@ -216,7 +212,7 @@ export function filter_matrix(
       filteredValues.push(values[i]);
     }
   }
-  return tagNumbers(
+  return tagMatrix(
     [filteredRows, filteredColumns, filteredValues],
     m,
     n,
@@ -252,5 +248,5 @@ export function convert_unit(
     );
     convertedValues.push(values[i] * factor.toNumber());
   }
-  return tagNumbers([rows, columns, convertedValues], m, n, STORAGE_COO);
+  return tagMatrix([rows, columns, convertedValues], m, n, STORAGE_COO);
 }

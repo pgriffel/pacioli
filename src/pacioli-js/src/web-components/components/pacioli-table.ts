@@ -24,7 +24,7 @@ import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { DOMTable } from "../../dom/dom";
 import type { PacioliTuple } from "../../values/tuple";
-import type { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliMatrix } from "../../values/matrix";
 
 /**

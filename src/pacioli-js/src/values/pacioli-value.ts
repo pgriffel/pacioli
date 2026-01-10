@@ -22,40 +22,49 @@
 
 import type { SIUnit } from "uom-ts";
 import { UOM } from "uom-ts";
-import type { PacioliType, PacioliUnit, PacioliVector } from "./type";
-import type { PacioliIndex } from "./types/matrix";
-import { IndexType, MatrixType } from "./types/matrix";
+import type {
+  PacioliType,
+  PacioliUnit,
+  PacioliVector,
+} from "../types/pacioli-type";
+import type { PacioliIndex } from "../types/matrix";
+import { IndexType, MatrixType } from "../types/matrix";
 import type {
   RawArray,
   RawCoordinates,
   RawList,
-  RawMatrix,
   RawTuple,
   RawValue,
-} from "./value";
-import { NOTHING, rawValueLabel, tagList, tagTuple } from "./value";
-import type { PacioliBoole } from "./values/boole";
-import { pacioliFalse, pacioliTrue } from "./values/boole";
-import { PacioliFunction } from "./values/function";
-import { PacioliMatrix } from "./values/matrix";
-import { MatrixDimension } from "./values/matrix-dimension";
-import type { SIVector } from "./values/matrix-shape";
-import { MatrixShape } from "./values/matrix-shape";
-import { PacioliString } from "./values/string";
-import { VectorBase } from "./values/vector-base";
-import type { PacioliVoid } from "./values/void";
-import { VOID } from "./values/void";
-import { GenericType } from "./types/generic";
-import { SIBaseType, VectorBaseType } from "./types/bases";
-import { PacioliMaybe, RawMaybe } from "./values/maybe";
-import type { PacioliContext } from "./context";
-import { PacioliCoordinates } from "./values/coordinates";
-import { fetchIndex, fetchUnit, fetchUnitVector } from "./cache";
-import { PacioliTuple } from "./values/tuple";
-import { PacioliList } from "./values/list";
-import { PacioliArray } from "./values/array";
-import type { PacioliRef } from "./values/ref";
-import type { PacioliMap } from "./values/map";
+} from "../raw-values/raw-value";
+import {
+  NOTHING,
+  rawValueLabel,
+  tagList,
+  tagTuple,
+} from "../raw-values/raw-value";
+import type { PacioliBoole } from "./boole";
+import { pacioliFalse, pacioliTrue } from "./boole";
+import { PacioliFunction } from "./function";
+import { PacioliMatrix } from "./matrix";
+import { MatrixDimension } from "./matrix-dimension";
+import type { SIVector } from "./matrix-shape";
+import { MatrixShape } from "./matrix-shape";
+import { PacioliString } from "./string";
+import { VectorBase } from "./vector-base";
+import type { PacioliVoid } from "./void";
+import { VOID } from "./void";
+import { GenericType } from "../types/generic";
+import { SIBaseType, VectorBaseType } from "../types/bases";
+import { PacioliMaybe, RawMaybe } from "./maybe";
+import type { PacioliContext } from "../context";
+import { PacioliCoordinates } from "./coordinates";
+import { fetchIndex, fetchUnit, fetchUnitVector } from "../cache";
+import { PacioliTuple } from "./tuple";
+import { PacioliList } from "./list";
+import { PacioliArray } from "./array";
+import type { PacioliRef } from "./ref";
+import type { PacioliMap } from "./map";
+import type { RawMatrix } from "../raw-values/raw-matrix";
 
 export type PacioliValue =
   | PacioliMatrix

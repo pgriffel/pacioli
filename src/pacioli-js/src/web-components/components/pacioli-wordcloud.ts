@@ -23,7 +23,7 @@
 import type { WordCloudOptions } from "../../charts/d3-wordcloud";
 import { WordCloud } from "../../charts/d3-wordcloud";
 import type { PacioliMatrix } from "../../values/matrix";
-import { getNumber } from "../../values/numbers";
+import { getNumber } from "../../raw-values/raw-matrix";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes } from "../utils";
 import type { PacioliString } from "../../values/string";

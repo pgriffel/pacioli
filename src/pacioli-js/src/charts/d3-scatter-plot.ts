@@ -22,7 +22,7 @@
 
 import * as d3 from "d3";
 import { DimNum } from "uom-ts";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import {
   appendChartCaption,
   appendEmptyChartMessage,

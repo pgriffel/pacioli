@@ -22,7 +22,7 @@
 
 import type { SIUnit, UOMBase } from "uom-ts";
 import type { UnitVector } from "./unit-vector";
-import type { ToText } from "../boxing";
+import type { ToText } from "./pacioli-value";
 
 export class VectorBase implements UOMBase, ToText {
   constructor(

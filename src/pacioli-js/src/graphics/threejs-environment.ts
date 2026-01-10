@@ -21,7 +21,7 @@
  */
 
 import type { SIUnit } from "uom-ts";
-import { getNumber } from "../values/numbers";
+import { getNumber } from "../raw-values/raw-matrix";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { createGridHelper, makeCanvasLabelObject } from "./threejs";

@@ -22,7 +22,7 @@
 
 import { SIUnit } from "uom-ts";
 import type { IndexSet } from "./index-set";
-import type { ToText } from "../boxing";
+import type { ToText } from "./pacioli-value";
 
 export class UnitVector implements ToText {
   constructor(

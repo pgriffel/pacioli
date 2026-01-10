@@ -23,7 +23,7 @@
 import type { PacioliMatrix } from "../values/matrix";
 import { mergeTableDatas, TableData } from "./table";
 import { NR_DECIMALS } from "../primitives";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 
 /**
  * Creates HTML for any PacioliValue.

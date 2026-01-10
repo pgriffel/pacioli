@@ -21,7 +21,7 @@
  */
 
 import * as d3 from "d3";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import type { DefaultChartOptions } from "./chart-utils";
 import {
   appendChartCaption,

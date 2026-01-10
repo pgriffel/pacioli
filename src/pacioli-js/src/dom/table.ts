@@ -25,7 +25,7 @@ import type { PacioliCoordinates } from "../values/coordinates";
 import type { IndexSet } from "../values/index-set";
 import type { PacioliMatrix } from "../values/matrix";
 import type { MatrixShape } from "../values/matrix-shape";
-import { getFullNumbers } from "../values/numbers";
+import { getFullNumbers } from "../raw-values/numbers";
 
 /**
  * Generic abstract TableData class.

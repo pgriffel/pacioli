@@ -24,7 +24,7 @@ import type { SIUnit } from "uom-ts";
 import type { PacioliMatrix } from "../values/matrix";
 import type { PacioliString } from "../values/string";
 import { makeCanvasLabelObject, moveObject } from "./threejs";
-import { getNumber } from "../values/numbers";
+import { getNumber } from "../raw-values/raw-matrix";
 import type * as THREE from "three";
 
 /**

@@ -20,7 +20,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "./pacioli-value";
 
 export class PacioliTuple extends Array<PacioliValue> {
   readonly kind = "tuple";

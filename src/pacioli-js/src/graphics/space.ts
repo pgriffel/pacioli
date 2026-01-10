@@ -23,7 +23,7 @@
 import { SIUnit } from "uom-ts";
 import { num, unit } from "../api";
 import type { PacioliFunction } from "../values/function";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliScene, StatefulAnimation, Animation } from "./scene";
 import { ThreeJsEnvironment } from "./threejs-environment";
 import type { PacioliPath } from "./path";

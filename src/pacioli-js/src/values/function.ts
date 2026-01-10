@@ -20,12 +20,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { typeFromValue, rawValueFromValue, boxRawValue } from "../boxing";
+import { typeFromValue, rawValueFromValue, boxRawValue } from "./pacioli-value";
 import type { FunctionType } from "../types/function";
-import type { PacioliValue } from "../boxing";
+import type { PacioliValue } from "./pacioli-value";
 import type { PacioliContext } from "../context";
 import type { GenericType } from "../types/generic";
-import type { RawValue } from "../value";
+import type { RawValue } from "../raw-values/raw-value";
 
 export class PacioliFunction {
   readonly kind = "function";

@@ -23,7 +23,7 @@
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { DOM } from "../../dom/dom";
-import type { PacioliValue } from "../../boxing";
+import type { PacioliValue } from "../../values/pacioli-value";
 
 /**
  * Options for Pacioli's value component.
