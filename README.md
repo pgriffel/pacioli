@@ -25,7 +25,8 @@ After the extension is installed VS Code will recognize .pacioli files. No other
 
 ## Command line
 
-The compiler is a Java application that compiles and runs Pacioli programs. See also the [installation][install] and [building from source][build] pages.
+The compiler is a Java application that compiles and runs Pacioli programs.
+See also the [installation][install] and [building from source][build] pages.
 
 [install]: install
 [build]: build
