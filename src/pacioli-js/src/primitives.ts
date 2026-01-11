@@ -29,13 +29,13 @@ import {
   getCOONumbers,
   getFullNumbers,
 } from "./raw-values/numbers";
+import { RawMap } from "./raw-values/raw-value";
 import type {
   RawArray,
   RawBoole,
   RawCoordinates,
   RawFunction,
   RawList,
-  RawMap,
   RawRef,
   RawString,
   RawTuple,
@@ -54,7 +54,6 @@ import {
 import type { PacioliVoid } from "./values/void";
 import { VOID } from "./values/void";
 import { PacioliMatrix } from "./values/matrix";
-import { PacioliMap } from "./values/map";
 import { RawMaybe } from "./values/maybe";
 import { SingularValueDecomposition } from "./linear-algebra/singular-value-decomposition";
 import { CholeskyDecomposition } from "./linear-algebra/cholesky-decomposition";
@@ -1654,8 +1653,7 @@ export function $base_array_array_size(arr: RawArray): RawMatrix {
 }
 
 export function $base_map_empty_map(): RawMap {
-  // return tagMap(new Map<RawValue, RawValue>());
-  return new PacioliMap();
+  return new RawMap();
 }
 
 export function $base_map_lookup(key: RawValue, map: RawMap): RawValue {

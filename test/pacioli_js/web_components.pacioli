@@ -94,9 +94,11 @@ define pair_list() = [
 define test_array() = 
     begin 
         array := make_array(3);
-        array_put(array, 0, Geom3@x);
-        array_put(array, 1, Geom3@y);
-        array_put(array, 2, Geom3@z);
+        map := empty_map();
+        store("foo", 12, map);
+        array_put(array, 0, tuple(Geom3@x, true, (_) -> 1, begin a := 1; end, empty_map()));
+        array_put(array, 1, tuple(Geom3@y, false, (_) -> 2, begin a := 1; end, map));
+        array_put(array, 2, tuple(Geom3@z, false, (_) -> 3, begin a := 1; end, map));
         return array;
     end;
 

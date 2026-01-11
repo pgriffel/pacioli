@@ -21,10 +21,9 @@
  */
 
 import type { PacioliCoordinates } from "../values/coordinates";
-import type { PacioliMap } from "../values/map";
 import { RawMaybe } from "../values/maybe";
 import type { NumericMatrix } from "./numbers";
-import type { PacioliVoid } from "../values/void";
+import { VOID, type PacioliVoid } from "../values/void";
 import {
   tableDataFromRawMatrix,
   type RawMatrix,
@@ -69,11 +68,6 @@ export interface RawList extends Array<RawValue> {
 export interface RawArray extends Array<RawValue> {
   kind: "array";
 }
-
-/**
- * Type of an unboxed Pacioli map. The same as a non-raw map.
- */
-export type RawMap = PacioliMap;
 
 /**
  * Type of raw Void. The same as the non-raw type.
@@ -278,5 +272,39 @@ export function stringifyRawValue(value: RawValue): string {
         ? "Nothing"
         : `just<${stringifyRawValue(value.value)}>`;
     }
+  }
+}
+
+/**
+ * Unboxed Pacioli map.
+ */
+export class RawMap {
+  readonly kind = "map";
+
+  valueMap = new Map<string, RawValue>();
+  keyMap = new Map<string, RawValue>();
+
+  public store(key: RawValue, value: RawValue): PacioliVoid {
+    const effKey = stringifyRawValue(key);
+    this.valueMap.set(effKey, value);
+    this.keyMap.set(effKey, key);
+    return VOID;
+  }
+
+  public lookup(key: RawValue): RawMaybe {
+    const effKey = stringifyRawValue(key);
+    if (this.keyMap.has(effKey)) {
+      return new RawMaybe(this.valueMap.get(effKey));
+    } else {
+      return new RawMaybe();
+    }
+  }
+
+  public keys(): RawList {
+    const keys: RawValue[] = [];
+    for (const key of this.keyMap.values()) {
+      keys.push(key);
+    }
+    return tagList(keys);
   }
 }

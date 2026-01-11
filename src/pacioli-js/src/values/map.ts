@@ -20,62 +20,56 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import type { RawValue, RawList } from "../raw-values/raw-value";
-import { stringifyRawValue, tagList } from "../raw-values/raw-value";
-import { RawMaybe } from "./maybe";
-import type { PacioliVoid } from "./void";
-import { VOID } from "./void";
+import type { PacioliContext } from "../context";
+import { DOM } from "../dom/dom";
+import type { RawMap } from "../raw-values/raw-value";
+import type { PacioliType } from "../types/pacioli-type";
+import { boxRawValue } from "./pacioli-value";
 
 export class PacioliMap {
   readonly kind = "map";
 
-  valueMap = new Map<string, RawValue>();
-  keyMap = new Map<string, RawValue>();
+  // The context is necessary because boxRawValue is delayed.
+  constructor(
+    public srcType: PacioliType,
+    public dstType: PacioliType,
+    public rawMap: RawMap,
+    private context: PacioliContext
+  ) {}
 
-  public store(key: RawValue, value: RawValue): PacioliVoid {
-    // TODO: stringifyRawValue gebruiken!
-    const effKey = uniqueMapKey(key);
-    this.valueMap.set(effKey, value);
-    this.keyMap.set(effKey, key);
-    return VOID;
+  /**
+   * Currently the only use for PacioliMap
+   */
+  dom(): HTMLElement {
+    return mapAsDOM(this, this.srcType, this.dstType, this.context);
   }
-
-  public lookup(key: RawValue): RawMaybe {
-    // TODO: stringifyRawValue gebruiken!
-    const effKey = uniqueMapKey(key);
-    if (this.keyMap.has(effKey)) {
-      return new RawMaybe(this.valueMap.get(effKey));
-    } else {
-      return new RawMaybe();
-    }
-  }
-
-  public keys(): RawList {
-    const keys: RawValue[] = [];
-    for (const key of this.keyMap.values()) {
-      keys.push(key);
-    }
-    return tagList(keys);
-  }
-
-  // toString(): string {
-  //   return (
-  //     "[" +
-  //     this.keys()
-  //       .map((key) => tagTuple([key, this.lookup(key).value!]))
-  //       .join(", ") +
-  //     "]"
-  //   );
-  // }
 }
 
-function uniqueMapKey(value: RawValue): string {
-  return stringifyRawValue(value);
-  // if (typeof value === "object" && value.kind === "coordinates") {
-  //   return value.position.toString();
-  // } else {
-  //   // TODO: finish this. Finish toText and use that instead of toString?
-  //   // TODO: stringifyRawValue gebruiken! See above.
-  //   return value.toString();
-  // }
+function mapAsDOM(
+  map: PacioliMap,
+  srcType: PacioliType,
+  dstType: PacioliType,
+  context: PacioliContext
+): HTMLElement {
+  const keyMap = map.rawMap.keyMap;
+  const valueMap = map.rawMap.valueMap;
+
+  const element = document.createElement("ul");
+
+  for (const key of keyMap.keys()) {
+    const k = keyMap.get(key);
+    const v = valueMap.get(key);
+
+    if (k !== undefined && v !== undefined) {
+      const item = document.createElement("li");
+
+      item.appendChild(DOM(boxRawValue(k, srcType, context)));
+      item.appendChild(document.createTextNode(": "));
+      item.appendChild(DOM(boxRawValue(v, dstType, context)));
+
+      element.appendChild(item);
+    }
+  }
+
+  return element;
 }

@@ -33,6 +33,7 @@ import type {
   RawArray,
   RawCoordinates,
   RawList,
+  RawMap,
   RawTuple,
   RawValue,
 } from "../raw-values/raw-value";
@@ -63,7 +64,7 @@ import { PacioliTuple } from "./tuple";
 import { PacioliList } from "./list";
 import { PacioliArray } from "./array";
 import type { PacioliRef } from "./ref";
-import type { PacioliMap } from "./map";
+import { PacioliMap } from "./map";
 import type { RawMatrix } from "../raw-values/raw-matrix";
 
 export type PacioliValue =
@@ -161,6 +162,13 @@ export function boxRawValue(
             `Expected an array object instead of ${typeof value} when boxing raw array value`
           );
         }
+      } else if (type.name === "Map") {
+        return new PacioliMap(
+          type.items[0],
+          type.items[1],
+          value as RawMap,
+          context
+        );
       } else {
         throw new Error(
           `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `

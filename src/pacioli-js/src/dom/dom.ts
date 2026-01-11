@@ -123,9 +123,21 @@ export function DOM(
           ? DOM(x.value, options)
           : document.createTextNode("Nothing");
       }
-      //   PacioliRef | PacioliBoole | PacioliFunction | PacioliMap | PacioliVoid
-      default:
-        return document.createTextNode(x.toString());
+      case "map": {
+        return x.dom();
+      }
+      case "boole": {
+        return document.createTextNode(x.value ? "true" : "false");
+      }
+      case "ref": {
+        return DOM(x.element);
+      }
+      case "function": {
+        return document.createTextNode("|closure|");
+      }
+      case "void": {
+        return document.createTextNode("|void|");
+      }
     }
   }
 }
