@@ -153,14 +153,14 @@ export function matrixKeyValueList(
     const values = coo[2];
 
     // Fill the list with all non-zero values
-    for (let i = 0; i < rows.length; i++) {
+    for (const [i, row] of rows.entries()) {
       if (values[i] !== 0) {
         kvList.push({
-          row: matrix.shape.rowCoordinates(rows[i]).names,
+          row: matrix.shape.rowCoordinates(row).names,
           column: matrix.shape.columnCoordinates(columns[i]).names,
           value: DimNum.fromNumber(
             values[i],
-            matrix.shape.unitAt(rows[i], columns[i])
+            matrix.shape.unitAt(row, columns[i])
           ),
         });
       }
@@ -195,10 +195,10 @@ export function filter_matrix(
   const filteredColumns = [];
   const filteredValues = [];
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     const rowCoords = {
       kind: "coordinates" as const,
-      position: rows[i],
+      position: row,
       size: m,
     };
     const columnCoords = {
@@ -207,7 +207,7 @@ export function filter_matrix(
       size: n,
     };
     if (predicate(values[i], rowCoords, columnCoords)) {
-      filteredRows.push(rows[i]);
+      filteredRows.push(row);
       filteredColumns.push(columns[i]);
       filteredValues.push(values[i]);
     }
@@ -241,9 +241,9 @@ export function convert_unit(
 
   const convertedValues = [];
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     const factor = context.conversionFactor(
-      shape.unitAt(rows[i], columns[i]),
+      shape.unitAt(row, columns[i]),
       unit
     );
     convertedValues.push(values[i] * factor.toNumber());

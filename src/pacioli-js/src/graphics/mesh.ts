@@ -177,8 +177,8 @@ function mesh2THREE(
   // Not used at the moment.
   const normals = [];
 
-  for (let i = 0; i < vertices.length; i++) {
-    const vec = vector2THREE(vertices[i][0], options);
+  for (const [i, vertex] of vertices.entries()) {
+    const vec = vector2THREE(vertex[0], options);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
@@ -186,8 +186,7 @@ function mesh2THREE(
     normals.push(vec.x, vec.y, vec.z);
   }
 
-  for (let i = 0; i < faces.length; i++) {
-    const face = faces[i];
+  for (const [i, face] of faces.entries()) {
     indices[i * 3 + 0] = getNumber(face[0].numbers, 0, 0);
     indices[i * 3 + 1] = getNumber(face[1].numbers, 0, 0);
     indices[i * 3 + 2] = getNumber(face[2].numbers, 0, 0);
@@ -199,8 +198,8 @@ function mesh2THREE(
   const colors = [];
   const color = new THREE.Color();
 
-  for (let i = 0; i < vertices.length; i++) {
-    color.set(vertices[i][1].value);
+  for (const vertex of vertices) {
+    color.set(vertex[1].value);
 
     // define the same color for each vertex of a triangle
     colors.push(color.r, color.g, color.b);

@@ -180,8 +180,8 @@ export function getCOONumbers(numbers: RawMatrix): NumericCOOMatrix {
       const columns = ccsNumbers[1];
       const values = ccsNumbers[2];
       const tmp: NumericDOKMatrix = [];
-      for (let i = 0; i < rows.length; i++) {
-        let row = tmp[rows[i]];
+      for (const [i, entry] of rows.entries()) {
+        let row = tmp[entry];
         if (row === undefined) row = [];
         row[columns[i]] = values[i];
       }
@@ -274,10 +274,10 @@ function DOK2COO(numbers: RawDOKMatrix | NumericDOKMatrix): NumericCOOMatrix {
   const columns = [];
   const values = [];
 
-  for (let i = 0; i < tripleArray.length; i++) {
-    rows.push(tripleArray[i][0]);
-    columns.push(tripleArray[i][1]);
-    values.push(tripleArray[i][2]);
+  for (const element of tripleArray) {
+    rows.push(element[0]);
+    columns.push(element[1]);
+    values.push(element[2]);
   }
 
   return [rows, columns, values];

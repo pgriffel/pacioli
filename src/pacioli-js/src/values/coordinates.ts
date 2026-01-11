@@ -55,9 +55,9 @@ export class PacioliCoordinates {
   public project(cols: number[]): PacioliCoordinates {
     const names = [];
     const indexSets = [];
-    for (let i = 0; i < cols.length; i++) {
-      names.push(this.names[cols[i]]);
-      indexSets.push(this.indexSets[cols[i]]);
+    for (const col of cols) {
+      names.push(this.names[col]);
+      indexSets.push(this.indexSets[col]);
     }
     return new PacioliCoordinates(names, indexSets);
   }

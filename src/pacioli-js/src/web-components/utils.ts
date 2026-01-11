@@ -141,8 +141,8 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
     );
   }
 
-  for (let i = 0; i < children.length; i++) {
-    children[i].innerText = values[i];
+  for (const [i, child] of children.entries()) {
+    child.innerText = values[i];
   }
 }
 

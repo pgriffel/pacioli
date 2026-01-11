@@ -249,8 +249,8 @@ function asciiFromTableData(
 
       text.push(row);
 
-      for (let j = 0; j < row.length; j++) {
-        maxColumnWidths[j] = Math.max(maxColumnWidths[j], row[j].length);
+      for (const [j, element] of row.entries()) {
+        maxColumnWidths[j] = Math.max(maxColumnWidths[j], element.length);
       }
     }
   }
@@ -258,8 +258,7 @@ function asciiFromTableData(
   let output = "";
   text.forEach((line) => {
     const row = [];
-    for (let i = 0; i < line.length; i++) {
-      const cell = line[i];
+    for (const [i, cell] of line.entries()) {
       const l = maxColumnWidths[i];
       const txt = alignRight[i] ? cell.padStart(l) : cell.padEnd(l);
       row.push(txt);

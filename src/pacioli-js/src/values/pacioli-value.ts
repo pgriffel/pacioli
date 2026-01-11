@@ -103,8 +103,8 @@ export function boxRawValue(
       if (type.name === "Tuple") {
         const values = value as RawTuple;
         const tuple = new PacioliTuple();
-        for (let i = 0; i < values.length; i++) {
-          tuple.push(boxRawValue(values[i], type.items[i], context));
+        for (const [i, entry] of values.entries()) {
+          tuple.push(boxRawValue(entry, type.items[i], context));
         }
         return tuple;
       } else if (type.name === "Boole") {
@@ -140,8 +140,8 @@ export function boxRawValue(
         if (Array.isArray(value)) {
           const values = value as RawList;
           const list = new PacioliList(type);
-          for (let i = 0; i < values.length; i++) {
-            list.push(boxRawValue(values[i], type.items[0], context));
+          for (const value_ of values) {
+            list.push(boxRawValue(value_, type.items[0], context));
           }
           return list;
         } else {
@@ -153,8 +153,8 @@ export function boxRawValue(
         if (Array.isArray(value)) {
           const values = value as RawArray;
           const array = new PacioliArray();
-          for (let i = 0; i < values.length; i++) {
-            array.push(boxRawValue(values[i], type.items[0], context));
+          for (const value_ of values) {
+            array.push(boxRawValue(value_, type.items[0], context));
           }
           return array;
         } else {

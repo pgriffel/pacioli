@@ -299,15 +299,15 @@ function pairsFromLists(
 }
 
 function pairsFromListofScalars(
-  items: PacioliValue[],
+  items: PacioliMatrix[],
   includeZeros: boolean = true
 ): LinearChartData {
   const values: LinearChartEntry[] = [];
   let min;
   let max;
 
-  for (let i = 0; i < items.length; i++) {
-    const value = (items[i] as PacioliMatrix).getNum(0, 0);
+  for (const [i, item] of items.entries()) {
+    const value = item.getNum(0, 0);
 
     if (includeZeros || value !== 0) {
       values.push({ x: i, y: value });
@@ -324,7 +324,7 @@ function pairsFromListofScalars(
     yLower: min ?? 0, // todo
     yUpper: max ?? 1, // todo
     xUnit: SIUnit.ONE,
-    yUnit: (items[0] as PacioliMatrix).getUnit(0, 0), // assume uniform units
+    yUnit: items[0].getUnit(0, 0), // assume uniform units
   };
 }
 
@@ -376,8 +376,8 @@ export function bandChartDataFromList(
   const content = items[0];
 
   if (content.kind === "matrix") {
-    for (let i = 0; i < items.length; i++) {
-      const mat = conv(items[i] as PacioliMatrix);
+    for (const [i, item] of items.entries()) {
+      const mat = conv(item as PacioliMatrix);
       const value = getNumber(mat.numbers, 0, 0);
 
       if (includeZeros || value !== 0) {
@@ -396,8 +396,8 @@ export function bandChartDataFromList(
       label: "", // TODO? Is this used?
     };
   } else if (content.kind === "tuple") {
-    for (let i = 0; i < items.length; i++) {
-      const tup = items[i] as PacioliTuple;
+    for (const [i, item] of items.entries()) {
+      const tup = item as PacioliTuple;
 
       if (tup[1].kind !== "matrix") {
         throw Error(

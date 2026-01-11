@@ -252,8 +252,8 @@ export function $base_io_print(x: RawValue): PacioliVoid {
 
 export function $base_matrix_is_zero(x: RawMatrix): RawBoole {
   const values = getCOONumbers(x)[2];
-  for (let i = 0; i < values.length; i++) {
-    if (values[i] !== 0) return false;
+  for (const value of values) {
+    if (value !== 0) return false;
   }
   return true;
 }
@@ -276,8 +276,8 @@ export function $base_matrix_row(
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i] === row) {
+  for (const [i, entry] of rows.entries()) {
+    if (entry === row) {
       set(matrix, 0, columns[i], values[i]);
     }
   }
@@ -350,12 +350,8 @@ export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
     RawMatrix
   ];
   const numbers = zeroNumbers(first[0].size, first[1].size);
-  for (let i = 0; i < tuples.length; i++) {
-    const tup = tuples[i] as unknown as [
-      RawCoordinates,
-      RawCoordinates,
-      RawMatrix
-    ];
+  for (const tuple of tuples) {
+    const tup = tuple as unknown as [RawCoordinates, RawCoordinates, RawMatrix];
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
   return numbers;
@@ -401,8 +397,7 @@ export function $base_matrix_top(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let l = 0; l < rows.length; l++) {
-    const i = rows[l];
+  for (const [l, i] of rows.entries()) {
     const j = columns[l];
     const val = values[l]; //Pacioli.getNumber(x, i, j)
     if (count < n) {
@@ -443,8 +438,7 @@ export function $base_matrix_bottom(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let l = 0; l < rows.length; l++) {
-    const i = rows[l];
+  for (const [l, i] of rows.entries()) {
     const j = columns[l];
     const val = values[l];
     if (count < n) {
@@ -497,8 +491,8 @@ export function $base_matrix_transpose(x: RawMatrix): RawMatrix {
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let i = 0; i < rows.length; i++) {
-    set(result, columns[i], rows[i], values[i]);
+  for (const [i, row] of rows.entries()) {
+    set(result, columns[i], row, values[i]);
   }
   return result;
 }
@@ -656,8 +650,8 @@ export function $base_matrix_scale_down(x: RawMatrix, y: RawMatrix): RawMatrix {
 export function $base_matrix_total(x: RawMatrix): RawMatrix {
   const values = getCOONumbers(x)[2];
   let total = 0;
-  for (let i = 0; i < values.length; i++) {
-    total += values[i];
+  for (const value of values) {
+    total += value;
   }
   const result = zeroNumbers(1, 1);
   set(result, 0, 0, total);
@@ -1221,16 +1215,16 @@ export function $base_matrix_ranking(x: RawMatrix): RawMatrix {
   const values = numbers[2];
 
   const tmp = [];
-  for (let i = 0; i < rows.length; i++) {
-    tmp[i] = [rows[i], columns[i], values[i]];
+  for (const [i, row] of rows.entries()) {
+    tmp[i] = [row, columns[i], values[i]];
   }
   tmp.sort(function (a, b) {
     if (a[2] > b[2]) return 1;
     if (a[2] < b[2]) return -1;
     return 0;
   });
-  for (let i = 0; i < tmp.length; i++) {
-    set(result, tmp[i][0], tmp[i][1], i + 1);
+  for (const [i, element] of tmp.entries()) {
+    set(result, element[0], element[1], i + 1);
   }
   return result;
 }
@@ -1242,11 +1236,11 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
   const columns = numbers[1];
   const values = numbers[2];
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     // Again the fun arg to fun.call. See apply
     set(
       result,
-      rows[i],
+      row,
       columns[i],
       getNumber(
         fun.call(fun, tagMatrix([[values[i]]], 1, 1, "full")) as RawMatrix,
@@ -1268,8 +1262,8 @@ export function $base_list_zip(x: RawList, y: RawList): RawList {
 
 export function $base_list_map_list(fun: RawFunction, items: RawList): RawList {
   const list = tagList(new Array<RawValue>(items.length));
-  for (let i = 0; i < items.length; i++) {
-    list[i] = fun(items[i]);
+  for (const [i, item] of items.entries()) {
+    list[i] = fun(item);
   }
   return tagList(list);
 }
@@ -1318,8 +1312,8 @@ export function $base_list_loop_list(
   list: RawList
 ): RawValue {
   let accu: RawValue = init;
-  for (let i = 0; i < list.length; i++) {
-    accu = fun.apply(fun, [accu, list[i]]);
+  for (const element of list) {
+    accu = fun.apply(fun, [accu, element]);
   }
   return accu;
 }

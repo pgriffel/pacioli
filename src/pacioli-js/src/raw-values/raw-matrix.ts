@@ -146,9 +146,9 @@ export function getNumber(
       const rows = numbers[0];
       const columns = numbers[1];
       const values = numbers[2];
-      for (let i = 0; i < rows.length; i++) {
-        if (row < rows[i]) return 0;
-        if (row === rows[i]) {
+      for (const [i, entry] of rows.entries()) {
+        if (row < entry) return 0;
+        if (row === entry) {
           if (column < columns[i]) return 0;
           if (column === columns[i]) return values[i];
         }

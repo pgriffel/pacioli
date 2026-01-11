@@ -359,9 +359,9 @@ function appendScatterPlot(
     const ys = [];
     let max = values[0].x;
     let min = values[0].y;
-    for (let i = 0; i < values.length; i++) {
-      const xi = values[i].x;
-      const yi = values[i].y;
+    for (const value of values) {
+      const xi = value.x;
+      const yi = value.y;
       xs.push(xi);
       ys.push(yi);
       if (max < xi) max = xi;
@@ -395,12 +395,12 @@ function linearRegression(x: number[], y: number[]) {
   let sum_xx = 0;
   let sum_yy = 0;
 
-  for (let i = 0; i < y.length; i++) {
+  for (const [i, element] of y.entries()) {
     sum_x += x[i];
-    sum_y += y[i];
-    sum_xy += x[i] * y[i];
+    sum_y += element;
+    sum_xy += x[i] * element;
     sum_xx += x[i] * x[i];
-    sum_yy += y[i] * y[i];
+    sum_yy += element * element;
   }
 
   const slope = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x);

@@ -24,8 +24,8 @@ export class IndexSet {
   // TODO: is an id and name needed?
   public static fromItems(id: string, name: string, items: string[]) {
     const index = new Map<string, number>();
-    for (let i = 0; i < items.length; i++) {
-      index.set(items[i], i);
+    for (const [i, item] of items.entries()) {
+      index.set(item, i);
     }
     return new IndexSet(id, name, items, index);
   }

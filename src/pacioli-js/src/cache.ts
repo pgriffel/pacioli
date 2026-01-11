@@ -51,9 +51,9 @@ export function createCoordinates(
 ): RawCoordinates {
   const names = [];
   const indexSets = [];
-  for (let i = 0; i < pairs.length; i++) {
-    names[i] = pairs[i][0];
-    indexSets[i] = fetchIndex(pairs[i][1], context);
+  for (const [i, pair] of pairs.entries()) {
+    names[i] = pair[0];
+    indexSets[i] = fetchIndex(pair[1], context);
   }
   const coords = new PacioliCoordinates(names, indexSets);
   // added coords for b_Matrix_make_matrix
@@ -116,8 +116,8 @@ export function initialNumbers(
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
   const numbers = tagMatrix([], m, n, "DOK");
-  for (let i = 0; i < data.length; i++) {
-    set(numbers, data[i][0], data[i][1], data[i][2]);
+  for (const datum of data) {
+    set(numbers, datum[0], datum[1], datum[2]);
   }
   return numbers;
 }
