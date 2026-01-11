@@ -24,7 +24,15 @@ import { UOM } from "./uom";
 import { UOMBase } from "./uom-base";
 
 export function unitFromJSON<T extends UOMBase>(
-  json: any,
+  json: {
+    powers: {
+      base: {
+        prefix?: string;
+        name: string;
+      };
+      power?: number;
+    }[];
+  },
   baseCallback: (prefix: string, name: string) => UOM<T> | undefined
 ): UOM<T> {
   // Check that the powers field is present

@@ -93,7 +93,7 @@ export class PacioliContext {
     return this.unitContext.lookupScaledUnit(prefix, name);
   }
 
-  public addIndexSet(indexSet: IndexSet): PacioliContext {
+  public addIndexSet(indexSet: IndexSet): this {
     this.indexSets.set(indexSet.id, indexSet);
     return this;
   }
@@ -109,7 +109,18 @@ export class PacioliContext {
   public addUnitVectorFromJSON(
     name: string,
     index: string,
-    units: { name: string; unit: any }[]
+    units: {
+      name: string;
+      unit: {
+        powers: {
+          base: {
+            prefix: string;
+            name: string;
+          };
+          power: number;
+        }[];
+      };
+    }[]
   ): UnitVector {
     const indexSet = this.findIndexSet(index);
     if (indexSet) {
@@ -127,7 +138,7 @@ export class PacioliContext {
     }
   }
 
-  public addUnitVector(vector: UnitVector): PacioliContext {
+  public addUnitVector(vector: UnitVector): this {
     this.unitVectors.set(vector.name, vector);
     return this;
   }
