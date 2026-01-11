@@ -4,7 +4,8 @@ The compiler is completely written in Java and compiled to a single jar file.
 
 ## Building from source
 
-Three artifacts are build from the sources, a .jar file for the compiler, a javascript bundle for running in the browser, and a .vsix extension installation file.
+Three artifacts are build from the sources, a .jar file for the compiler, a JavaScript bundle
+for running in the browser, and a .vsix extension installation file.
 
 ### Building the compiler
 
@@ -24,7 +25,7 @@ See the readme in the src/pacioli-js directory.
 
 ### Building the extension
 
-This requires nodejs version 18 or above.
+This requires Node.js version 18 or above.
 
 1. Clone the sources
 
