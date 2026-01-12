@@ -166,7 +166,9 @@ export class PieChart {
         .attr("width", this.options.width)
         .attr("height", this.options.height);
 
-      if (input !== null) {
+      if (input === null) {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      } else {
         const group = svg
           .append("g")
           .attr(
@@ -175,8 +177,6 @@ export class PieChart {
           );
 
         appendPieChart(group, input, width, height, this.options);
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
       }
 
       // Add the caption above all other elements

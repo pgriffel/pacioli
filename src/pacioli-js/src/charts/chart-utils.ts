@@ -69,7 +69,7 @@ export function parseMargin(text: string | undefined): {
       right: nums[2 % n],
       bottom: nums[3 % n],
     };
-  } catch (_) {
+  } catch {
     return ZERO_MARGIN;
   }
 }

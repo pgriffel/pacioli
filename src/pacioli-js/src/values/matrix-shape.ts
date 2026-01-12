@@ -107,7 +107,7 @@ export class MatrixShape {
       !this.columnDimension.equals(other.rowDimension) &&
       this.columnUnit.equals(other.rowUnit)
     ) {
-      throw Error(
+      throw new Error(
         "Shape " +
           this.toText() +
           " is not compatible for dot product with shape " +
@@ -162,17 +162,19 @@ export class MatrixShape {
   }
 
   public kron(other: MatrixShape) {
-    const mapper = function (order: number) {
-      return function (base: VectorBase) {
-        return UOM.fromBase(base.shift(order));
-      };
-    };
+    const rowOrder = this.rowOrder();
+    const columnOrder = this.columnOrder();
+
     return new MatrixShape(
       this.multiplier.mult(other.multiplier),
       this.rowDimension.kronecker(other.rowDimension),
-      this.rowUnit.mult(other.rowUnit.map(mapper(this.rowOrder()))),
+      this.rowUnit.mult(
+        other.rowUnit.map((base) => UOM.fromBase(base.shift(rowOrder)))
+      ),
       this.columnDimension.kronecker(other.columnDimension),
-      this.columnUnit.mult(other.columnUnit.map(mapper(this.columnOrder())))
+      this.columnUnit.mult(
+        other.columnUnit.map((base) => UOM.fromBase(base.shift(columnOrder)))
+      )
     );
   }
 

@@ -89,7 +89,7 @@ export function computeWebComponentValue(
       script = parts[0];
       definition = parts[1];
     } else {
-      throw Error(
+      throw new Error(
         `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`
       );
     }
@@ -108,7 +108,7 @@ export function computeWebComponentValue(
   if (pacioliValue instanceof PacioliFunction) {
     // If it is a function then we need the parameter values
     const params = parameterNodes(element)
-      .map(parseParameterNode)
+      .map((element) => parseParameterNode(element))
       .map((p) => p.pacioliValue);
 
     // Call the function with the parameters
@@ -123,7 +123,7 @@ export function computeWebComponentValue(
  * The element's DOM children. They contain the parameters for the scene function.
  */
 export function parameterNodes(element: HTMLElement): HTMLElement[] {
-  return Array.from(element.childNodes).filter(
+  return [...element.children].filter(
     (child) => child.nodeName === "PARAMETER"
   ) as HTMLElement[];
 }
@@ -134,7 +134,7 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
   if (children.length !== values.length) {
     const definition = element.getAttribute("definition");
 
-    throw Error(
+    throw new Error(
       `invalid number of arugments for definition '${
         definition ?? "unknown"
       }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`
@@ -201,7 +201,7 @@ export function parseParameterNode(
         // Browsers give an empty string on invalid input. This gives a
         // unclear error message in si.parseDimNum below.
         if (value === "") {
-          throw Error(`invalid value for ${type} parameter ${label}`);
+          throw new Error(`invalid value for ${type} parameter ${label}`);
         }
 
         // Parse the number and the unit
@@ -235,7 +235,7 @@ export function parseParameterNode(
       }
     }
   } catch (error: unknown) {
-    throw Error(
+    throw new Error(
       `cannot read value ${value} for ${type} parameter ${label}:\n\n ${
         error instanceof Error ? error.message : String(error)
       }.`
@@ -254,7 +254,7 @@ export function attachedPacioliWebComponent(
   element: HTMLElement
 ): PacioliWebComponent | null {
   const elementId = element.getAttribute("for");
-  return elementId !== null ? getPacioliWebComponentById(elementId) : null;
+  return elementId === null ? null : getPacioliWebComponentById(elementId);
 }
 
 /**
@@ -273,7 +273,7 @@ export function getPacioliWebComponentById(
     if ("setParameters" in element) {
       return element as PacioliWebComponent;
     } else {
-      throw Error(
+      throw new Error(
         `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`
       );
     }
@@ -295,12 +295,12 @@ export function optionalStringAttributes(
   attributes: string[]
 ) {
   let object = {};
-  attributes.forEach((attribute) => {
+  for (const attribute of attributes) {
     const value = element.getAttribute(attribute);
     if (value !== null) {
       object = { ...object, [attribute]: value };
     }
-  });
+  }
   return object;
 }
 
@@ -317,17 +317,17 @@ export function optionalNumberAttributes(
   attributes: string[]
 ) {
   let object = {};
-  attributes.forEach((attribute) => {
+  for (const attribute of attributes) {
     const value = element.getAttribute(attribute);
     if (value !== null) {
       const num = Number(value);
       if (Number.isFinite(num)) {
         object = { ...object, [attribute]: num };
       } else {
-        throw Error(`Invalid number ${value} for attritube ${attribute}`);
+        throw new Error(`Invalid number ${value} for attritube ${attribute}`);
       }
     }
-  });
+  }
   return object;
 }
 
@@ -343,9 +343,9 @@ export function optionalBooleanAttributes(
   attributes: string[]
 ) {
   let object = {};
-  attributes.forEach((attribute) => {
+  for (const attribute of attributes) {
     object = { ...object, [attribute]: element.hasAttribute(attribute) };
-  });
+  }
   return object;
 }
 
@@ -365,7 +365,7 @@ export function optionsFromAttributes<Options>(
   if (FLAG_EXPERIMENT_CHECK_ATTRIBUTES) {
     const SYSTEM_ATTRIBUTES = ["id", "definition"];
 
-    element.getAttributeNames().forEach((attribute) => {
+    for (const attribute of element.getAttributeNames()) {
       if (
         !SYSTEM_ATTRIBUTES.includes(attribute) &&
         !supportedAttributes.strings.includes(attribute) &&
@@ -374,7 +374,7 @@ export function optionsFromAttributes<Options>(
       ) {
         console.warn(`Skipping unknown attribute ${attribute}`);
       }
-    });
+    }
   }
 
   return {
@@ -401,17 +401,17 @@ export function optionsFromScript<Options>(
   if (optionValue.kind === "list") {
     const table = new Map<string, string | null>();
 
-    optionValue.forEach((item: PacioliValue) => {
+    for (const item of optionValue) {
       if (item.kind !== "tuple") {
-        throw Error(
+        throw new Error(
           `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
         );
       }
       if (item[0].kind !== "string") {
-        throw Error(`chart option key must be a string, got a ${item[0].kind}`);
+        throw new Error(`chart option key must be a string, got a ${item[0].kind}`);
       }
       if (item[1].kind !== "string") {
-        throw Error(
+        throw new Error(
           `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`
         );
       }
@@ -421,25 +421,25 @@ export function optionsFromScript<Options>(
       const key = item[0].value;
       const value = item[1].value;
       table.set(key, value);
-    });
+    }
 
     let object = {};
 
-    supportedAttributes.strings.forEach((attribute) => {
+    for (const attribute of supportedAttributes.strings) {
       if (table.has(attribute)) {
         object = { ...object, [attribute]: table.get(attribute) };
         table.set(attribute, null);
       }
-    });
+    }
 
-    supportedAttributes.booleans.forEach((attribute) => {
+    for (const attribute of supportedAttributes.booleans) {
       if (table.has(attribute)) {
         object = { ...object, [attribute]: table.get(attribute) === "true" };
         table.set(attribute, null);
       }
-    });
+    }
 
-    supportedAttributes.numbers.forEach((attribute) => {
+    for (const attribute of supportedAttributes.numbers) {
       if (table.has(attribute)) {
         const value = table.get(attribute);
         const num = Number(value);
@@ -447,12 +447,12 @@ export function optionsFromScript<Options>(
           object = { ...object, [attribute]: num };
           table.set(attribute, null);
         } else {
-          throw Error(
+          throw new Error(
             `invalid number ${num.toString()} for attritube ${attribute}`
           );
         }
       }
-    });
+    }
 
     for (const key of table.keys()) {
       if (table.get(key) !== null) {
@@ -462,7 +462,7 @@ export function optionsFromScript<Options>(
 
     return object;
   } else {
-    throw Error(`attribute options must be a list, got a ${optionValue.kind}`);
+    throw new Error(`attribute options must be a list, got a ${optionValue.kind}`);
   }
 }
 

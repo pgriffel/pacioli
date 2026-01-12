@@ -162,12 +162,16 @@ export function updateCanvasLabelObject(
 ) {
   const texture = labelObj.material.map;
 
-  if (texture !== null) {
+  if (texture === null) {
+    console.log("no texture");
+  } else {
     const canvas = texture.source.data as HTMLCanvasElement;
 
     let context = canvas.getContext("2d");
 
-    if (context !== null) {
+    if (context === null) {
+      console.log("no context");
+    } else {
       const width = 1.1 * Math.ceil(context.measureText(text).width);
       const height = canvas.height;
 
@@ -180,14 +184,14 @@ export function updateCanvasLabelObject(
         // Resizing the canvas invalidates the context. We need to get a new context.
         const newContext = canvas.getContext("2d");
 
-        if (newContext !== null) {
+        if (newContext === null) {
+          console.log("no context");
+        } else {
           newContext.textAlign = "center";
           newContext.font = font;
           newContext.textBaseline = "middle";
 
           context = newContext;
-        } else {
-          console.log("no context");
         }
       } else {
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -196,10 +200,6 @@ export function updateCanvasLabelObject(
       context.fillText(text, width / 2, height / 2);
 
       texture.needsUpdate = true;
-    } else {
-      console.log("no context");
     }
-  } else {
-    console.log("no texture");
   }
 }

@@ -76,9 +76,9 @@ export function getFullNumbers(numbers: RawMatrix): NumericFullMatrix {
   const fullFromDOK = function (
     nums: RawDOKMatrix | NumericDOKMatrix
   ): NumericFullMatrix {
-    const array = new Array(m) as NumericFullMatrix;
+    const array = Array.from({ length: m }) as NumericFullMatrix;
     for (let i = 0; i < m; i++) {
-      const inner = new Array<number>(n);
+      const inner = Array.from<number>({ length: n });
       for (let j = 0; j < n; j++) {
         const rowi = nums[i];
         inner[j] = rowi ? rowi[j] ?? 0 : 0;
@@ -187,8 +187,9 @@ export function getCOONumbers(numbers: RawMatrix): NumericCOOMatrix {
       }
       return DOK2COO(tmp);
     }
-    default:
+    default: {
       throw new Error("unknown number kind");
+    }
   }
 }
 

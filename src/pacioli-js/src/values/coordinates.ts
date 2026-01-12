@@ -67,7 +67,7 @@ export class PacioliCoordinates {
     if (n === 0) {
       return "_";
     } else {
-      const names = new Array(n) as string[];
+      const names = Array.from<string>({ length: n });
       for (let i = 0; i < n; i++) {
         names[i] = this.indexSets[i].name + "@" + this.names[i];
       }

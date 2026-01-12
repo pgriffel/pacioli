@@ -43,15 +43,15 @@ export class IndexSet {
 
   public position(name: string): number {
     const pos = this.index.get(name);
-    if (pos !== undefined) {
-      return pos;
-    } else {
+    if (pos === undefined) {
       throw new Error(
         "Element " +
           name +
           " not found when looking for position in index set " +
           this.name
       );
+    } else {
+      return pos;
     }
   }
 }

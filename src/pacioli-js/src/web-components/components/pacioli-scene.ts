@@ -187,7 +187,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
       ) {
         return kindAttribute;
       } else {
-        throw Error(
+        throw new Error(
           `cannot set kind '${kindAttribute}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
         );
       }
@@ -278,13 +278,13 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
 
     const dataURL = canvas.toDataURL("image/png");
 
-    if (name !== undefined) {
+    if (name === undefined) {
+      window.open(dataURL, "_blank");
+    } else {
       const link = document.createElement("a");
       link.href = dataURL;
       link.download = `${name}.png`;
       link.click();
-    } else {
-      window.open(dataURL, "_blank");
     }
   }
 

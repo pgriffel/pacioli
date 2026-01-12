@@ -107,8 +107,8 @@ export function linearChartData(
         }
 
         return pairsFromLists(
-          (left as PacioliMatrix[]).map(xConv),
-          (right as PacioliMatrix[]).map(yConv)
+          (left as PacioliMatrix[]).map((element) => xConv(element)),
+          (right as PacioliMatrix[]).map((element) => yConv(element))
         );
       }
 
@@ -124,7 +124,9 @@ export function linearChartData(
       const firstElt = data[0];
 
       if (firstElt.kind === "matrix") {
-        return pairsFromListofScalars((data as PacioliMatrix[]).map(yConv));
+        return pairsFromListofScalars(
+          (data as PacioliMatrix[]).map((element) => yConv(element))
+        );
       }
 
       if (firstElt.kind === "tuple") {
@@ -195,14 +197,17 @@ export function bandChartData(
     : (x: PacioliMatrix) => x;
 
   switch (data.kind) {
-    case "list":
+    case "list": {
       return bandChartDataFromList(data, includeZeros, convert);
-    case "matrix":
+    }
+    case "matrix": {
       return bandChartDataFromVector(convert(data), includeZeros);
-    default:
+    }
+    default: {
       throw Error(
         "exptected a vector or a list of numbers but got a " + data.kind
       );
+    }
   }
 }
 

@@ -43,7 +43,7 @@ export class MatrixDimension {
   }
 
   public kronecker(other: MatrixDimension): MatrixDimension {
-    return new MatrixDimension(this.indexSets.concat(other.indexSets));
+    return new MatrixDimension([...this.indexSets, ...other.indexSets]);
   }
 
   public order(): number {

@@ -70,7 +70,7 @@ export abstract class PacioliWebController extends PacioliWebComponent {
     const element = this.rootElement().querySelector(selectors);
 
     if (element === null) {
-      throw Error(`Cannot find element '${selectors}'`);
+      throw new Error(`Cannot find element '${selectors}'`);
     }
 
     return element as HTMLElement;

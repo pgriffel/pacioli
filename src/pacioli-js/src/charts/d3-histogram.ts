@@ -151,7 +151,9 @@ export class Histogram {
         .attr("height", height + margin.top + margin.bottom)
         .attr("class", "pacioli chart histogram");
 
-      if (data !== null) {
+      if (data === null) {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      } else {
         const group = svg
           .append("g")
           .attr(
@@ -179,13 +181,13 @@ export class Histogram {
           : binSize(data.entries, lower, upper, this.options.heuristic);
 
         if (nrBins <= 0) {
-          throw Error(
+          throw new Error(
             `number of bins ${nrBins.toString()} must be a positive number`
           );
         }
 
         if (upper < lower) {
-          throw Error(
+          throw new Error(
             `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`
           );
         }
@@ -208,8 +210,6 @@ export class Histogram {
           data.unit,
           this.options
         );
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
       }
 
       // Add the caption above all other elements
@@ -440,7 +440,7 @@ function binSize(
       return Math.max(sturges(values), freedmanDiaconis(values, lower, upper));
     }
     default: {
-      throw Error(
+      throw new Error(
         `bin size heuristic '${heuristic}' unknown. Expected one of 'd3', 'sturges', 'freedman-diaconis', or 'seaborn'`
       );
     }
@@ -462,7 +462,7 @@ function freedmanDiaconis(
     const h = (2 * (perc75 - perc25)) / values.length ** (1 / 3);
     return h === 0 ? 1 : Math.ceil((upper - lower) / h);
   } else {
-    throw Error("cannot compute Freedman-Diaconis. Is the data valid?");
+    throw new Error("cannot compute Freedman-Diaconis. Is the data valid?");
   }
 }
 

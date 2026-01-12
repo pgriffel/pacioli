@@ -153,7 +153,9 @@ export class ScatterPlot {
         .attr("class", "pacioli chart scatter-plot");
 
       // Append the scatterplot
-      if (data !== null) {
+      if (data === null) {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      } else {
         const group = svg
           .append("g")
           .attr(
@@ -162,8 +164,6 @@ export class ScatterPlot {
           );
 
         appendScatterPlot(group, data, width, height, this.options);
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
       }
 
       // Add the caption above all other elements

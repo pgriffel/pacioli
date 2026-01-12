@@ -180,7 +180,7 @@ export class ThreeJsEnvironment {
    * Removes all body elements that have been loaded previously.
    */
   clear() {
-    while (0 < this.body.children.length) {
+    while (this.body.children.length > 0) {
       const child = this.body.children[0];
 
       // Free used resources
@@ -305,13 +305,17 @@ export class ThreeJsEnvironment {
         this.options
       );
 
-      this.axisLabels.forEach((label) => this.scene.add(label));
+      for (const label of this.axisLabels) {
+        this.scene.add(label);
+      }
       this.updateLabelOrientations();
     }
   }
 
   hideAxisLabels() {
-    this.axisLabels.forEach((label) => this.scene.remove(label));
+    for (const label of this.axisLabels) {
+      this.scene.remove(label);
+    }
     this.axisLabels = [];
   }
 
@@ -499,7 +503,7 @@ function createCamera(options: {
       );
     }
     default: {
-      throw Error(`Camera kind $kind unknown`);
+      throw new Error(`Camera kind $kind unknown`);
     }
   }
 }
@@ -551,9 +555,7 @@ function createAxisLabels(
   labelZ.position.set(0, offset, 0);
   labelY.position.set(0, 0, offset);
 
-  axisLabels.push(labelX);
-  axisLabels.push(labelY);
-  axisLabels.push(labelZ);
+  axisLabels.push(labelX, labelY, labelZ);
 
   return axisLabels;
 }

@@ -103,7 +103,7 @@ export class PacioliContext {
   }
 
   public getIndexSets(): IndexSet[] {
-    return Array.from(this.indexSets.values());
+    return [...this.indexSets.values()];
   }
 
   public addUnitVectorFromJSON(
@@ -114,10 +114,10 @@ export class PacioliContext {
       unit: {
         powers: {
           base: {
-            prefix: string;
+            prefix?: string;
             name: string;
           };
-          power: number;
+          power?: number;
         }[];
       };
     }[]
@@ -125,9 +125,9 @@ export class PacioliContext {
     const indexSet = this.findIndexSet(index);
     if (indexSet) {
       const unitMap = new Map<string, SIUnit>();
-      units.forEach((item) => {
+      for (const item of units) {
         unitMap.set(item.name, this.unitContext.parseSIUnit(item.unit));
-      });
+      }
       const vector = UnitVector.fromMap(name, indexSet, unitMap);
       this.addUnitVector(vector);
       return vector;

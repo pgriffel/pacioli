@@ -192,7 +192,9 @@ export class BarChart {
         .attr("height", this.options.height);
       // .attr("class", "pacioli chart bar-chart");
 
-      if (input !== null) {
+      if (input === null) {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      } else {
         const inner = svg.append("g");
 
         const margin = combineMargins(
@@ -206,8 +208,6 @@ export class BarChart {
         );
 
         appendBarChart(inner, input, margin, this.options);
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
       }
 
       // Add the caption above all other elements

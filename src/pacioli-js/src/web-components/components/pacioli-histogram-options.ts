@@ -124,7 +124,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
 
     // Add event handlers to the inputs. Update the chart's attributes
     // from the new input values.
-    inputElements.forEach(([className, attribute]) => {
+    for (const [className, attribute] of inputElements) {
       addInputEventListener(this.inputElement(className), (value) => {
         if (value === "") {
           this.histogramElement()?.removeAttribute(attribute);
@@ -132,7 +132,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
           this.histogramElement()?.setAttribute(attribute, value);
         }
       });
-    });
+    }
 
     // Add an event handler to the custom button. It sets or unsets
     // the 'bins' attribute. The bounds don't need to be set, because
@@ -154,12 +154,12 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
 
     // Add an event handler to the heuristic buttons. It must remove
     // the 'bins' attribute, otherwise it would have no effect.
-    heuristics.forEach(([className, heuristic]) => {
+    for (const [className, heuristic] of heuristics) {
       addButtonEventListener(this.buttonElement(className), () => {
         this.histogramElement()?.removeAttribute("bins");
         this.histogramElement()?.setAttribute("heuristic", heuristic);
       });
-    });
+    }
   }
 
   /**

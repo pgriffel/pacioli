@@ -35,7 +35,7 @@ export class SIBaseType implements PacioliBase {
     if (typeof prefix !== "string") {
       throw new Error("prefix error");
     }
-    if (base.indexOf(":") >= 0) {
+    if (base.includes(":")) {
       throw new Error(`Double colon: prefix=${prefix} name=${base}`);
     }
     this.name = prefix.length === 0 ? base : prefix + ":" + base;

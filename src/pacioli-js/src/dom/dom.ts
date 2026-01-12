@@ -75,9 +75,9 @@ export function DOM(
       return arrayElementsToDOM("ul", x, options);
     }
     case "maybe": {
-      return x.value !== undefined
-        ? DOM(x.value, options)
-        : document.createTextNode("Nothing");
+      return x.value === undefined
+        ? document.createTextNode("Nothing")
+        : DOM(x.value, options);
     }
     case "map": {
       return x.dom();

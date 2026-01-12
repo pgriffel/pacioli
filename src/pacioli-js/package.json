@@ -10,6 +10,7 @@
   "scripts": {
     "test": "tsc --project tsconfig.test.json && jasmine",
     "lint": "npx eslint src",
+    "lint:fix": "npx eslint src --fix",
     "build": "node esbuild.js && tsc --emitDeclarationOnly",
     "build:tsc": "tsc",
     "bundle": "npm run build:tsc && webpack",
@@ -40,6 +41,7 @@
     "@types/webpack": "^5.28.0",
     "esbuild": "~0.25.8",
     "eslint": "^9.39.2",
+    "eslint-plugin-unicorn": "^62.0.0",
     "fast-check": "^2.20.0",
     "jasmine": "^4.6.0",
     "jasmine-spec-reporter": "^7.0.0",

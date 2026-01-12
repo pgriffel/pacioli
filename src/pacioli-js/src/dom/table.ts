@@ -166,7 +166,7 @@ export class StringifiedTableData extends GenericTableData<
  */
 export function mergeTableDatas(datas: TableData[]): TableData {
   if (datas.length === 0) {
-    throw Error("Cannot merge an empty list of table data");
+    throw new Error("Cannot merge an empty list of table data");
   } else {
     let merged = datas[0];
     for (let i = 1; i < datas.length; i++) {
@@ -201,30 +201,26 @@ function asciiFromTableData(
   const alignRight: boolean[] = [];
   const headers: string[] = [];
 
-  data.indexHeaders.row.forEach((indexSet) => {
+  for (const indexSet of data.indexHeaders.row) {
     headers.push(indexSet);
     maxColumnWidths.push(indexSet.length);
     alignRight.push(false);
-  });
-  data.indexHeaders.column.forEach((indexSet) => {
+  }
+  for (const indexSet of data.indexHeaders.column) {
     headers.push(indexSet);
     maxColumnWidths.push(indexSet.length);
     alignRight.push(false);
-  });
+  }
 
   const nrValues = data.valueHeaders.length;
   // Add a header for each column
   for (let i = 0; i < nrValues; i++) {
-    headers.push(data.valueHeaders[i]);
-    headers.push(""); // unit column
+    headers.push(data.valueHeaders[i], ""); // unit column
     maxColumnWidths.push(data.valueHeaders[i].length);
-    alignRight.push(true);
-    alignRight.push(false);
+    alignRight.push(true, false);
   }
 
-  const text: string[][] = [];
-
-  text.push(headers);
+  const text: string[][] = [headers];
 
   const nrRows = data.index.length;
 
@@ -238,14 +234,13 @@ function asciiFromTableData(
       const row: string[] = [];
 
       // Add the index
-      index.row.concat(index.column).forEach((idx) => {
+      for (const idx of [...index.row, ...index.column]) {
         row.push(idx);
-      });
+      }
 
-      values.row.forEach((value) => {
-        row.push(value.magnitude);
-        row.push(value.unit);
-      });
+      for (const value of values.row) {
+        row.push(value.magnitude, value.unit);
+      }
 
       text.push(row);
 
@@ -256,7 +251,7 @@ function asciiFromTableData(
   }
 
   let output = "";
-  text.forEach((line) => {
+  for (const line of text) {
     const row = [];
     for (const [i, cell] of line.entries()) {
       const l = maxColumnWidths[i];
@@ -265,7 +260,7 @@ function asciiFromTableData(
     }
     output += row.join(" ");
     output += "\n";
-  });
+  }
 
   return output;
 }
@@ -302,18 +297,18 @@ function domFromTableData(
   const row = document.createElement("tr");
 
   // Add the index headers
-  data.indexHeaders.row.forEach((text) => {
+  for (const text of data.indexHeaders.row) {
     const header = document.createElement("th");
     header.className = "key";
     header.innerHTML = text;
     row.appendChild(header);
-  });
-  data.indexHeaders.column.forEach((text) => {
+  }
+  for (const text of data.indexHeaders.column) {
     const header = document.createElement("th");
     header.className = "key";
     header.innerHTML = text;
     row.appendChild(header);
-  });
+  }
 
   const nrValues = data.valueHeaders.length;
   // Add a header for each column
@@ -346,14 +341,14 @@ function domFromTableData(
       const row = document.createElement("tr");
 
       // Add the index
-      index.row.concat(index.column).forEach((idx) => {
+      for (const idx of [...index.row, ...index.column]) {
         const cell = document.createElement("td");
         cell.className = "key";
         cell.innerHTML = idx;
         row.appendChild(cell);
-      });
+      }
 
-      values.row.forEach((value) => {
+      for (const value of values.row) {
         let cell = document.createElement("td");
         cell.className = "value";
         cell.innerHTML = value.magnitude;
@@ -364,7 +359,7 @@ function domFromTableData(
         cell.appendChild(document.createTextNode(value.unit));
 
         row.appendChild(cell);
-      });
+      }
 
       tbody.appendChild(row);
     }
@@ -389,7 +384,7 @@ function domFromTableData(
       totalRow.appendChild(cell);
     }
 
-    data.totals.forEach((value) => {
+    for (const value of data.totals) {
       let cell = document.createElement("td");
       cell.className = "total value";
       cell.innerHTML = value ? value.magnitude : "";
@@ -400,7 +395,7 @@ function domFromTableData(
       cell.appendChild(document.createTextNode(value ? value.unit : ""));
 
       totalRow.appendChild(cell);
-    });
+    }
 
     tbody.appendChild(totalRow);
   }
@@ -425,12 +420,14 @@ function stringifyTableData(
     row: data.indexHeaders.row.map((header) => header.name),
     column: data.indexHeaders.column.map((header) => header.name),
   };
+
   const index = data.index.map((entry) => {
     return {
       row: entry.row.names,
       column: entry.column.names,
     };
   });
+
   const values = data.values.map((value) => {
     return {
       row: value.row.map((cell, col) => {
@@ -447,20 +444,21 @@ function stringifyTableData(
       isZero: value.isZero,
     };
   });
+
   const totals = data.totals.map((cell, col) => {
-    if (cell === undefined) {
-      return undefined;
-    }
-    return {
-      magnitude:
-        cell.magnitude.isZero() && zeroString !== undefined
-          ? zeroString
-          : omitDecimals
-          ? cell.magnitude.toFixed()
-          : cell.magnitude.toFixed(decimalsPerColumn[col]),
-      unit: cell.unit.toText(),
-    };
+    return cell === undefined
+      ? undefined
+      : {
+          magnitude:
+            cell.magnitude.isZero() && zeroString !== undefined
+              ? zeroString
+              : omitDecimals
+              ? cell.magnitude.toFixed()
+              : cell.magnitude.toFixed(decimalsPerColumn[col]),
+          unit: cell.unit.toText(),
+        };
   });
+
   return new StringifiedTableData(
     indexHeaders,
     index,
@@ -542,7 +540,7 @@ function tableDataHeadersEqual(left: TableData, right: TableData): boolean {
 
 function mergeTableData(left: TableData, right: TableData): TableData {
   if (!tableDataHeadersEqual(left, right)) {
-    throw Error("Headers not equal when merging table data");
+    throw new Error("Headers not equal when merging table data");
   }
 
   // For now assume no sparse tables
@@ -551,15 +549,15 @@ function mergeTableData(left: TableData, right: TableData): TableData {
     row: PacioliCoordinates;
     column: PacioliCoordinates;
   }[] = left.index;
-  const valueHeaders: string[] = left.valueHeaders.concat(right.valueHeaders);
+  const valueHeaders: string[] = [...left.valueHeaders, ...right.valueHeaders];
   const values: { row: DimNum[]; isZero: boolean }[] = [];
-  const totals = left.totals.concat(right.totals);
+  const totals = [...left.totals, ...right.totals];
 
   for (let i = 0; i < left.index.length; i++) {
     const lft = left.values[i];
     const rght = right.values[i];
     values.push({
-      row: lft.row.concat(rght.row),
+      row: [...lft.row, ...rght.row],
       isZero: lft.isZero && rght.isZero,
     });
   }
@@ -576,12 +574,12 @@ function toClipboardText(data: TableData): string {
 
   const headers: string[] = [];
 
-  data.indexHeaders.row.forEach((indexSet) => {
+  for (const indexSet of data.indexHeaders.row) {
     headers.push(indexSet.name);
-  });
-  data.indexHeaders.column.forEach((indexSet) => {
+  }
+  for (const indexSet of data.indexHeaders.column) {
     headers.push(indexSet.name);
-  });
+  }
 
   const nrValues = data.valueHeaders.length;
   // Add a header for each column
@@ -606,13 +604,13 @@ function toClipboardText(data: TableData): string {
     const row: string[] = [];
 
     // Add the index
-    index.row.names.concat(index.column.names).forEach((idx) => {
+    for (const idx of [...index.row.names, ...index.column.names]) {
       row.push(idx);
-    });
+    }
 
-    values.row.forEach((value) => {
+    for (const value of values.row) {
       row.push(value.magnitude.toString());
-    });
+    }
 
     text += row.join("\t");
   }

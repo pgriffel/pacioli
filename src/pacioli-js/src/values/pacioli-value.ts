@@ -191,7 +191,7 @@ export function boxRawValue(
       );
     }
     case "typevar": {
-      throw Error(
+      throw new Error(
         `Unxpected typevar '${type.kind}' for type ${typeof value} with value ${
           type.name
         } `
@@ -246,7 +246,10 @@ export function typeFromValue(value: PacioliValue): PacioliType {
     }
     case "tuple": {
       const valueList = value as unknown as PacioliValue[];
-      return new GenericType("Tuple", valueList.map(typeFromValue));
+      return new GenericType(
+        "Tuple",
+        valueList.map((element) => typeFromValue(element))
+      );
     }
     case "string": {
       return new GenericType("String", []);
@@ -269,10 +272,10 @@ export function rawValueFromValue(value: PacioliValue): RawValue {
       return value.numbers;
     }
     case "tuple": {
-      return tagTuple(value.map(rawValueFromValue));
+      return tagTuple(value.map((element) => rawValueFromValue(element)));
     }
     case "list": {
-      return tagList(value.map(rawValueFromValue));
+      return tagList(value.map((element) => rawValueFromValue(element)));
     }
     case "string": {
       return value.value;

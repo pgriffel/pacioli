@@ -150,7 +150,9 @@ export class LineChart {
         .attr("height", h + m.top + m.bottom)
         .attr("class", "pacioli chart line-chart");
 
-      if (data !== null) {
+      if (data === null) {
+        appendEmptyChartMessage(svg, "No data", this.options);
+      } else {
         // Add a group to allow attr's to apply to everything in the group
         const group = svg
           .append("g")
@@ -162,8 +164,6 @@ export class LineChart {
           );
 
         appendLineChart(group, data, w, h, this.options);
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
       }
 
       // Add the caption above all other elements
@@ -231,8 +231,8 @@ function appendLineChart(
   h: number,
   options: LineChartOptions
 ) {
-  const yMin = options.ylower !== undefined ? options.ylower : data.yLower;
-  const yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
+  const yMin = options.ylower === undefined ? data.yLower : options.ylower;
+  const yMax = options.yupper === undefined ? data.yUpper : options.yupper;
   const xMin = data.xLower;
   const xMax = data.xUpper;
 

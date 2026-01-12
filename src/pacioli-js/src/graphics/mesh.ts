@@ -69,7 +69,7 @@ export function updateMesh(
   mesh: PacioliMesh,
   units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
 ) {
-  const [, , position, rotations, name] = mesh;
+  const [_vertices, _faces, position, rotations, name] = mesh;
 
   if (name.value !== "") {
     const object = body.getObjectByName(name.value);
@@ -79,12 +79,12 @@ export function updateMesh(
         if (position.value.kind === "matrix") {
           moveObject(object, position.value, units);
         } else {
-          throw Error("Mesh position must be a matrix");
+          throw new Error("Mesh position must be a matrix");
         }
       }
       rotateObject(object, rotations);
     } else {
-      throw Error(`Mesh with name ${name.value} not found`);
+      throw new Error(`Mesh with name ${name.value} not found`);
     }
   }
 }
@@ -147,7 +147,7 @@ function createTHREEMesh(
     if (pos.value.kind === "matrix") {
       moveObject(meshObject, pos.value, options);
     } else {
-      throw Error("Mesh position must be a matrix");
+      throw new Error("Mesh position must be a matrix");
     }
   }
 

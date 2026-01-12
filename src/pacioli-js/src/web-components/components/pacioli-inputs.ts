@@ -168,7 +168,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
     const scene = attachedPacioliWebComponent(this); //this.attachedComponent();
     if (scene) {
       return createParameterInputs(
-        parameterNodes(scene).map(parseParameterNode),
+        parameterNodes(scene).map((element) => parseParameterNode(element)),
         !this.hasAttribute("calm"),
         () => {
           this.applyButtonClicked();

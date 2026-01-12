@@ -93,7 +93,7 @@ export const prefix = {
   deci: { symbol: "d", factor: Math.pow(10, -1) },
   centi: { symbol: "c", factor: Math.pow(10, -2) },
   milli: { symbol: "m", factor: Math.pow(10, -3) },
-  micro: { symbol: "\xB5", factor: Math.pow(10, -6) },
+  micro: { symbol: "\u00B5", factor: Math.pow(10, -6) },
   nano: { symbol: "n", factor: Math.pow(10, -9) },
   pico: { symbol: "p", factor: Math.pow(10, -12) },
   femto: { symbol: "f", factor: Math.pow(10, -15) },
@@ -130,7 +130,7 @@ export function $base_base__new_ref(value: RawValue): RawRef {
 }
 
 export function $base_base__empty_ref(): RawRef {
-  return tagRef(new Array<RawValue>(1));
+  return tagRef(Array.from({ length: 1 }));
 }
 
 export function $base_base__ref_set(ref: RawRef, value: RawValue): RawRef {
@@ -290,7 +290,7 @@ export function $base_matrix_row_unit(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_row_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrRows;
-  const domain = new Array<RawCoordinates>(n);
+  const domain = Array.from<RawCoordinates>({ length: n });
   for (let i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
@@ -316,7 +316,7 @@ export function $base_matrix_column(
 
 export function $base_matrix_column_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrColumns;
-  const domain = new Array<RawValue>(n);
+  const domain = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
@@ -566,7 +566,7 @@ export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_divide(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
-    return b !== 0 ? a / b : 0;
+    return b === 0 ? 0 : a / b;
   });
 }
 
@@ -1253,7 +1253,7 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
 }
 
 export function $base_list_zip(x: RawList, y: RawList): RawList {
-  const list = new Array<RawValue>(Math.min(x.length, y.length));
+  const list = Array.from<RawValue>({ length: Math.min(x.length, y.length) });
   for (let i = 0; i < list.length; i++) {
     list[i] = tagTuple([x[i], y[i]]);
   }
@@ -1261,7 +1261,7 @@ export function $base_list_zip(x: RawList, y: RawList): RawList {
 }
 
 export function $base_list_map_list(fun: RawFunction, items: RawList): RawList {
-  const list = tagList(new Array<RawValue>(items.length));
+  const list = tagList(Array.from({ length: items.length }));
   for (const [i, item] of items.entries()) {
     list[i] = fun(item);
   }
@@ -1274,15 +1274,15 @@ export function $base_system__add_mut(list: RawList, item: RawValue): RawList {
 }
 
 export function $base_list_append(x: RawList, y: RawList): RawList {
-  return tagList(x.concat(y));
+  return tagList([...x, ...y]);
 }
 
 export function $base_list_reverse(x: RawList): RawList {
-  return tagList(x.slice(0).reverse());
+  return tagList([...x].reverse());
 }
 
 export function $base_list_tail(x: RawList): RawList {
-  const array = new Array<RawValue>(x.length - 1);
+  const array = Array.from<RawValue>({ length: x.length - 1 });
   for (let i = 0; i < array.length; i++) {
     array[i] = x[i + 1];
   }
@@ -1299,7 +1299,7 @@ export function $base_list_nth(x: RawMatrix, y: RawList): RawValue {
 
 export function $base_list_naturals(num: RawMatrix): RawList {
   const n = getNumber(num, 0, 0);
-  const list = new Array<RawValue>(n);
+  const list = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
     list[i] = initialNumbers(1, 1, [[0, 0, i]]);
   }
@@ -1342,7 +1342,7 @@ export function $base_list_fold_list(
 
 export function $base_list_sort_list(list: RawList, fun: RawFunction): RawList {
   return tagList(
-    list.slice(0).sort(function (a: RawValue, b: RawValue) {
+    [...list].sort(function (a: RawValue, b: RawValue) {
       return getNumber(fun.apply(fun, [a, b]) as RawMatrix, 0, 0);
     })
   );
@@ -1436,7 +1436,7 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
           let size: number | null;
           try {
             size = match[1] === "" ? null : parseInt(match[1]);
-          } catch (_: unknown) {
+          } catch {
             size = null;
           }
 
@@ -1460,14 +1460,14 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
             let nrDecs: number;
             try {
               nrDecs = match[3] === "" ? NR_DECIMALS : parseInt(match[3]);
-            } catch (_: unknown) {
+            } catch {
               nrDecs = NR_DECIMALS;
             }
 
             let size: number | null;
             try {
               size = match[1] === "" ? null : parseInt(match[1]);
-            } catch (_: unknown) {
+            } catch {
               size = null;
             }
 
@@ -1576,7 +1576,7 @@ export function $base_string_concatenate(
   x: RawString,
   y: RawString
 ): RawString {
-  return x.concat(y);
+  return x + y;
 }
 
 export function $base_string_split_string(x: RawString, y: RawString): RawList {
@@ -1626,7 +1626,7 @@ export function $base_system__system_time(): RawMatrix {
 }
 
 export function $base_array_make_array(n: RawMatrix): RawArray {
-  return tagArray(new Array<RawValue>(getNumber(n, 0, 0)));
+  return tagArray(Array.from({ length: getNumber(n, 0, 0) }));
 }
 
 export function $base_array_array_get(arr: RawArray, pos: RawMatrix): RawValue {

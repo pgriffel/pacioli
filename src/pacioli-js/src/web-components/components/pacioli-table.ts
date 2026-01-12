@@ -210,12 +210,12 @@ function columnsFromValue(value: PacioliValue): {
       if (item.kind === "tuple") {
         return columnData(item);
       } else {
-        throw Error(`Invalid column. Expected a tuple, got a '${item.kind}'`);
+        throw new Error(`Invalid column. Expected a tuple, got a '${item.kind}'`);
       }
     });
     return columns;
   } else {
-    throw Error(`Expected a tuple of columns, got a '${value.kind}'`);
+    throw new Error(`Expected a tuple of columns, got a '${value.kind}'`);
   }
 }
 
@@ -231,7 +231,7 @@ function columnData(value: PacioliTuple): {
 } {
   if (value.length >= 2 && value.length <= 5) {
     if (value[0].kind !== "string") {
-      throw Error(
+      throw new Error(
         `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`
       );
     }
@@ -239,7 +239,7 @@ function columnData(value: PacioliTuple): {
     const title: string = value[0].value;
 
     if (value[1].kind !== "matrix") {
-      throw Error(
+      throw new Error(
         `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`
       );
     }
@@ -256,12 +256,12 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "matrix") {
           decimals = val?.getNum(0, 0);
         } else {
-          throw Error(
+          throw new Error(
             `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
           );
         }
       } else {
-        throw Error(
+        throw new Error(
           `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`
         );
       }
@@ -273,14 +273,14 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "boole") {
           showTotal = val?.value;
         } else {
-          throw Error(
+          throw new Error(
             `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`
           );
         }
       } else if (value[3].kind === "boole") {
         showTotal = value[3].value;
       } else {
-        throw Error(
+        throw new Error(
           `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`
         );
       }
@@ -292,12 +292,12 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "matrix") {
           total = val;
         } else {
-          throw Error(
+          throw new Error(
             `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
           );
         }
       } else {
-        throw Error(
+        throw new Error(
           `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`
         );
       }
@@ -311,7 +311,7 @@ function columnData(value: PacioliTuple): {
       total,
     };
   } else {
-    throw Error(
+    throw new Error(
       `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`
     );
   }

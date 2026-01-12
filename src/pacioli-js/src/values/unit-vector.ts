@@ -37,9 +37,9 @@ export class UnitVector implements ToText {
     elements: Map<string, SIUnit>
   ) {
     const units: SIUnit[] = [];
-    indexSet.items.forEach((element) => {
+    for (const element of indexSet.items) {
       units.push(elements.get(element) ?? SIUnit.ONE);
-    });
+    }
     return new UnitVector(name, indexSet, units);
   }
 

@@ -238,16 +238,24 @@ export function stringifyRawValue(value: RawValue): string {
       // )} ${value.storage.toString()}`;
     }
     case "list": {
-      return `[${value.map(stringifyRawValue).join(", ")}]`;
+      return `[${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}]`;
     }
     case "tuple": {
-      return `[${value.map(stringifyRawValue).join(", ")}]`;
+      return `[${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}]`;
     }
     case "array": {
-      return `<${value.map(stringifyRawValue).join(", ")}>`;
+      return `<${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}>`;
     }
     case "ref": {
-      return `<${value.map(stringifyRawValue).join(", ")}>`;
+      return `<${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}>`;
     }
     case "coordinates": {
       return `${value.size.toString()}@${value.position.toString()}`;

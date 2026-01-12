@@ -94,7 +94,7 @@ export function set(
     }
     case "DOK": {
       if (numbers[row] === undefined) {
-        numbers[row] = new Array(numbers.nrColumns);
+        numbers[row] = Array.from({ length: numbers.nrColumns });
       }
       numbers[row][column] = value;
       break;
@@ -124,7 +124,7 @@ export function set(
       break;
     }
     case "CCS": {
-      throw Error("Set not implemented for CCS storage");
+      throw new Error("Set not implemented for CCS storage");
     }
   }
 }
@@ -185,7 +185,7 @@ export function unaryNumbers(
 ): RawMatrix {
   const coo = getCOONumbers(numbers);
   return tagMatrix(
-    [coo[0], coo[1], coo[2].map(fun)],
+    [coo[0], coo[1], coo[2].map((element) => fun(element))],
     numbers.nrRows,
     numbers.nrColumns,
     "COO"

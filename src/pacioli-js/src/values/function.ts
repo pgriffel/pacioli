@@ -36,14 +36,16 @@ export class PacioliFunction {
   ) {}
 
   apply(args: PacioliValue[]): PacioliValue {
-    const types = args.map(typeFromValue);
-    const values: RawValue[] = args.map(rawValueFromValue);
+    const types = args.map((element) => typeFromValue(element));
+    const values: RawValue[] = args.map((element) =>
+      rawValueFromValue(element)
+    );
     const expectedNrArgs = (this.type.from as GenericType).items.length;
     if (args.length === expectedNrArgs) {
       const type = this.type.apply(types);
       return boxRawValue(this.fun(...values), type, this.context);
     } else {
-      throw Error(
+      throw new Error(
         `Number of arguments do not match. Expected ${expectedNrArgs.toString()}, but got ${args.length.toString()}`
       );
     }
