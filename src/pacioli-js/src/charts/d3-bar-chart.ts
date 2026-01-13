@@ -29,7 +29,6 @@ import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  displayChartError,
   parseMargin,
 } from "./chart-utils";
 import type { BandChartData } from "./chart-data";
@@ -165,59 +164,52 @@ export class BarChart {
    * @param parent The element to which the chart is appended
    */
   public draw(parent: HTMLElement): void {
-    try {
-      const unit =
-        this.options.unit !== undefined && this.options.unit !== ""
-          ? parseUnit(this.options.unit)
-          : undefined;
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      // Transform the data to a usable format
-      const input = bandChartData(
-        this.context,
-        this.data,
-        this.options.zeros,
-        unit
+    // Transform the data to a usable format
+    const input = bandChartData(
+      this.context,
+      this.data,
+      this.options.zeros,
+      unit
+    );
+
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
+    }
+
+    // Add an svg element
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", this.options.width)
+      .attr("height", this.options.height);
+    // .attr("class", "pacioli chart bar-chart");
+
+    if (input === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      const inner = svg.append("g");
+
+      const margin = combineMargins(
+        DEFAULT_CHART_MARGIN,
+        parseMargin(this.options.margin)
       );
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+      inner.attr(
+        "transform",
+        `translate(${margin.left.toString()},${margin.top.toString()})`
+      );
 
-      // Add an svg element
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", this.options.width)
-        .attr("height", this.options.height);
-      // .attr("class", "pacioli chart bar-chart");
-
-      if (input === null) {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      } else {
-        const inner = svg.append("g");
-
-        const margin = combineMargins(
-          DEFAULT_CHART_MARGIN,
-          parseMargin(this.options.margin)
-        );
-
-        inner.attr(
-          "transform",
-          `translate(${margin.left.toString()},${margin.top.toString()})`
-        );
-
-        appendBarChart(inner, input, margin, this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      const labelText =
-        this.options.caption === undefined ? "" : ` '${this.options.caption}'`;
-
-      displayChartError(parent, `While drawing bar chart${labelText}:`, err);
+      appendBarChart(inner, input, margin, this.options);
     }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 }
 

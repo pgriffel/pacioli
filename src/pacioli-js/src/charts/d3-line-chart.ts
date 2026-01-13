@@ -27,7 +27,6 @@ import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
@@ -104,77 +103,69 @@ export class LineChart {
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      const unit =
-        this.options.unit !== undefined && this.options.unit !== ""
-          ? parseUnit(this.options.unit)
-          : undefined;
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      const xunit =
-        this.options.xunit !== undefined && this.options.xunit !== ""
-          ? parseUnit(this.options.xunit)
-          : undefined;
+    const xunit =
+      this.options.xunit !== undefined && this.options.xunit !== ""
+        ? parseUnit(this.options.xunit)
+        : undefined;
 
-      const yunit =
-        this.options.yunit !== undefined && this.options.yunit !== ""
-          ? parseUnit(this.options.yunit)
-          : undefined;
+    const yunit =
+      this.options.yunit !== undefined && this.options.yunit !== ""
+        ? parseUnit(this.options.yunit)
+        : undefined;
 
-      // Transform the data to a usable format
-      const data = linearChartData(
-        this.context,
-        this.data,
-        xunit || unit,
-        yunit || unit
-      );
+    // Transform the data to a usable format
+    const data = linearChartData(
+      this.context,
+      this.data,
+      xunit || unit,
+      yunit || unit
+    );
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
-
-      // Define dimensions of graph
-      const m = combineMargins(
-        DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
-      );
-
-      const w = this.options.width - m.left - m.right;
-      const h = this.options.height - m.top - m.bottom;
-
-      // Add an SVG element with the desired dimensions and margin.
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", w + m.left + m.right)
-        .attr("height", h + m.top + m.bottom)
-        .attr("class", "pacioli chart line-chart");
-
-      if (data === null) {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      } else {
-        // Add a group to allow attr's to apply to everything in the group
-        const group = svg
-          .append("g")
-          .attr("width", w)
-          .attr("height", h)
-          .attr(
-            "transform",
-            `translate(${m.left.toString()},${m.top.toString()})`
-          );
-
-        appendLineChart(group, data, w, h, this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing line chart '" + this.options.ylabel + "':",
-        err
-      );
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
     }
+
+    // Define dimensions of graph
+    const m = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin)
+    );
+
+    const w = this.options.width - m.left - m.right;
+    const h = this.options.height - m.top - m.bottom;
+
+    // Add an SVG element with the desired dimensions and margin.
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", w + m.left + m.right)
+      .attr("height", h + m.top + m.bottom)
+      .attr("class", "pacioli chart line-chart");
+
+    if (data === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      // Add a group to allow attr's to apply to everything in the group
+      const group = svg
+        .append("g")
+        .attr("width", w)
+        .attr("height", h)
+        .attr(
+          "transform",
+          `translate(${m.left.toString()},${m.top.toString()})`
+        );
+
+      appendLineChart(group, data, w, h, this.options);
+    }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 }
 

@@ -27,7 +27,6 @@ import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  displayChartError,
   parseMargin,
 } from "./chart-utils";
 import type { LinearChartData } from "./chart-data";
@@ -117,64 +116,56 @@ export class ScatterPlot {
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      // Determine the data
-      const data = linearChartData(
-        this.context,
-        this.data,
-        this.options.convert && this.options.xunit !== undefined
-          ? parseUnit(this.options.xunit)
-          : undefined,
-        this.options.convert && this.options.yunit !== undefined
-          ? parseUnit(this.options.yunit)
-          : undefined
-      );
+    // Determine the data
+    const data = linearChartData(
+      this.context,
+      this.data,
+      this.options.convert && this.options.xunit !== undefined
+        ? parseUnit(this.options.xunit)
+        : undefined,
+      this.options.convert && this.options.yunit !== undefined
+        ? parseUnit(this.options.yunit)
+        : undefined
+    );
 
-      const margin = combineMargins(
-        DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
-      );
+    const margin = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin)
+    );
 
-      // Determine the drawing dimensions
-      const width = this.options.width - margin.left - margin.right;
-      const height = this.options.height - margin.top - margin.bottom;
+    // Determine the drawing dimensions
+    const width = this.options.width - margin.left - margin.right;
+    const height = this.options.height - margin.top - margin.bottom;
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
-
-      // Create an svg element under the parent
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("class", "pacioli chart scatter-plot");
-
-      // Append the scatterplot
-      if (data === null) {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      } else {
-        const group = svg
-          .append("g")
-          .attr(
-            "transform",
-            `translate(${margin.left.toString()},${margin.top.toString()})`
-          );
-
-        appendScatterPlot(group, data, width, height, this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing scatter plot '" + this.options.xlabel + "':",
-        err
-      );
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
     }
+
+    // Create an svg element under the parent
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .attr("class", "pacioli chart scatter-plot");
+
+    // Append the scatterplot
+    if (data === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      const group = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`
+        );
+
+      appendScatterPlot(group, data, width, height, this.options);
+    }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 }
 

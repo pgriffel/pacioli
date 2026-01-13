@@ -103,23 +103,6 @@ export interface DefaultChartOptions {
   decimals?: number;
 }
 
-export function displayChartError(
-  parent: HTMLElement,
-  message: string,
-  err: unknown
-) {
-  while (parent.firstChild) {
-    parent.removeChild(parent.firstChild);
-  }
-  parent.appendChild(document.createTextNode(message));
-  const par = document.createElement("p");
-  par.style.color = "red";
-  parent.appendChild(par);
-  par.appendChild(
-    document.createTextNode(err instanceof Error ? err.message : String(err))
-  );
-}
-
 // Tooltips in d3:
 // https://observablehq.com/@d3/learn-d3-interaction?collection=@d3/learn-d3
 // https://stackoverflow.com/questions/24827589/d3-appending-html-to-nodes

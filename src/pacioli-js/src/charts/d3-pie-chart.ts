@@ -29,7 +29,6 @@ import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
@@ -133,60 +132,53 @@ export class PieChart {
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      const unit =
-        this.options.unit !== undefined && this.options.unit !== ""
-          ? parseUnit(this.options.unit)
-          : undefined;
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      const input = bandChartData(
-        this.context,
-        this.data,
-        this.options.zeros,
-        unit
-      );
+    const input = bandChartData(
+      this.context,
+      this.data,
+      this.options.zeros,
+      unit
+    );
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
-
-      const margin = combineMargins(
-        DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
-      );
-
-      const width = this.options.width - margin.left - margin.right;
-      const height = this.options.height - margin.top - margin.bottom;
-
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("class", "pacioli chart pie-chart")
-        .attr("width", this.options.width)
-        .attr("height", this.options.height);
-
-      if (input === null) {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      } else {
-        const group = svg
-          .append("g")
-          .attr(
-            "transform",
-            `translate(${margin.left.toString()},${margin.top.toString()})`
-          );
-
-        appendPieChart(group, input, width, height, this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      const labelText =
-        this.options.label === undefined ? "" : ` '${this.options.label}'`;
-
-      displayChartError(parent, `While drawing pie chart${labelText}:`, err);
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.removeChild(parent.firstChild);
     }
+
+    const margin = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin)
+    );
+
+    const width = this.options.width - margin.left - margin.right;
+    const height = this.options.height - margin.top - margin.bottom;
+
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("class", "pacioli chart pie-chart")
+      .attr("width", this.options.width)
+      .attr("height", this.options.height);
+
+    if (input === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      const group = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`
+        );
+
+      appendPieChart(group, input, width, height, this.options);
+    }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 }
 
