@@ -290,6 +290,10 @@ function computeItem(full: string): { symbol: string; definition?: DimNum } {
   )();
 }
 
+declare global {
+  var Pacioli: object;
+}
+
 /**
  * Finds the generated javascript code for a PacioliValue.
  *
@@ -301,8 +305,9 @@ function computeItem(full: string): { symbol: string; definition?: DimNum } {
  * @returns
  */
 function findFunction<T>(name: string): () => T {
-  if ("Pacioli" in window) {
-    const nameSpace = window["Pacioli"] as object;
+  const nameSpace = globalThis.Pacioli;
+  if ("Pacioli" in globalThis) {
+    // const nameSpace = globalThis.Pacioli;
 
     // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
     const fun = nameSpace[name] as undefined | (() => T);

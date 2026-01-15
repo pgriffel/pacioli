@@ -32,6 +32,7 @@ import { GenericType } from "./types/generic";
 import { FunctionType } from "./types/function";
 import type { IndexVar, PacioliVar } from "./types/variables";
 import type { PacioliBase } from "./types/bases";
+import { PacioliError } from "./pacioli-error";
 
 type PacioliEquation =
   | TypeEquation
@@ -188,7 +189,10 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
   // fail or return the empty map
   if (varBases.length === 0) {
     if (fixedBases.length > 0) {
-      throw Error("Contradiction in unit match: 1 = " + unit.toText());
+      throw new PacioliError(
+        "Contradiction while matching units. Expected equal units, but after simplifying the following remains: 1 = " +
+          unit.toText()
+      );
     }
     return map;
   }
@@ -204,7 +208,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
     for (const base of fixedBases) {
       const fixedPower = unit.power(base);
       if (fixedPower % power !== 0)
-        throw Error("unit error in unit " + unit.toText());
+        throw new Error("unit error in unit " + unit.toText());
       rest = rest.mult(UOM.fromBase(base).expt(-fixedPower / power));
     }
 
@@ -280,7 +284,9 @@ export function collectTypeEquations(
     // eqs.push(new TypeEquation(x.from, y.from), new TypeEquation(x.to, y.to));
     // return eqs;
   }
-  throw Error("cannot match: kind " + x.kind + " and " + y.kind);
+  throw new PacioliError(
+    `cannot match a type of kind '${x.kind}' with a type of kind '${y.kind}'`
+  );
 }
 
 function subsIndex(

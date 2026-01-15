@@ -69,6 +69,7 @@ import {
   set,
   unaryNumbers,
 } from "./raw-values/raw-matrix";
+import { PacioliError } from "./pacioli-error";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -147,7 +148,7 @@ export function $base_base_just(value: RawValue): RawValue {
 }
 
 export function $base_base_error(value: RawString): unknown {
-  throw Error(value);
+  throw new PacioliError(value);
 }
 
 /**
@@ -506,9 +507,6 @@ export function $base_matrix_dim_div(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
-  if (x.nrColumns !== y.nrRows) {
-    throw Error("Invalid mmult");
-  }
   // Currently the only function that uses CCS. The others have been disabled with
   // the === 13 hack. See note in numbers.ts
   return tagMatrix(
@@ -1539,16 +1537,20 @@ export function $base_system__set_precision(num: RawMatrix): PacioliVoid {
 
 export function $base_string_unit2string(unit: RawMatrix): RawString {
   const shape = unit.shape;
+
   if (shape === undefined) {
-    throw Error("shape undefined");
+    throw new Error("shape undefined in unit2string");
   }
+
   const rowOrder = shape.rowOrder();
   const columnOrder = shape.columnOrder();
 
   if (rowOrder === 0 && columnOrder === 0) {
     return shape.unitAt(0, 0).toText();
   } else {
-    throw Error("unit2string is not implemented for non-scalars");
+    throw new PacioliError(
+      "unit2string is only implemented for scalars, not for vectors and matrices"
+    );
   }
 }
 
@@ -1559,7 +1561,7 @@ export function $base_system__num2string(
 ): RawString {
   const shape = unit.shape;
   if (shape === undefined) {
-    throw Error("shape undefined");
+    throw new Error("shape undefined");
   }
   const matrix = new PacioliMatrix(shape, num);
   return matrix.toDecimal(getNumber(decimals, 0, 0));
