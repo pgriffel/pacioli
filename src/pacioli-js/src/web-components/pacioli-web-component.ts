@@ -43,7 +43,7 @@ TEMPLATE.innerHTML = `
     }
   </style>
   <div class="error-root">
-    <div class="error-content"></div>
+    <pre class="error-content"></pre>
     <button class="close-button">Close</button>
   </div>
   <div class="content">
@@ -152,7 +152,7 @@ export abstract class PacioliWebComponent
     const element = this.rootElement().querySelector(".content");
 
     if (element === null) {
-      throw Error(`Cannot find content parent`);
+      throw new Error(`Cannot find content parent`);
     }
 
     return element as HTMLElement;
@@ -175,7 +175,7 @@ export abstract class PacioliWebComponent
     const element = this.rootElement().querySelector(selectors);
 
     if (element === null) {
-      throw Error(`Cannot find element '${selectors}'`);
+      throw new Error(`Cannot find element '${selectors}'`);
     }
 
     return element as HTMLElement;
@@ -249,7 +249,7 @@ export abstract class PacioliWebComponent
     const root = this.rootElement().querySelector(".error-root");
 
     if (root === null) {
-      throw Error("Error root element does not exist");
+      throw new Error("Error root element does not exist");
     } else {
       // If it exists, we know it is an HTMLElement
       return root as HTMLElement;
@@ -260,7 +260,7 @@ export abstract class PacioliWebComponent
     const content = this.rootElement().querySelector(".error-content");
 
     if (content === null) {
-      throw Error("Error content element does not exist");
+      throw new Error("Error content element does not exist");
     } else {
       // If it exists, we know it is an HTMLElement
       return content as HTMLElement;
@@ -271,7 +271,7 @@ export abstract class PacioliWebComponent
     const element = this.rootElement().querySelector(".close-button");
 
     if (element === null) {
-      throw Error("Error close button element does not exist");
+      throw new Error("Error close button element does not exist");
     } else {
       // If it exists, we know it is an HTMLButtonElement
       return element as HTMLButtonElement;

@@ -24,7 +24,7 @@ import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
   addButtonEventListener,
   addCheckBoxEventListener,
-  attachedPacioliWebComponent,
+  attachedPacioliWebComponents,
 } from "../utils";
 import type { PacioliSceneComponent } from "./pacioli-scene";
 
@@ -167,8 +167,11 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * @returns The connected PacioliScene, or undefined if no connected scene exists.
    */
   sceneElement(): PacioliSceneComponent | undefined {
-    const component = attachedPacioliWebComponent(this);
-    return component ? (component as PacioliSceneComponent) : undefined;
+    // TODO: handle multiple histograms
+    const components = attachedPacioliWebComponents(this);
+    return components.length > 0
+      ? (components[0] as PacioliSceneComponent)
+      : undefined;
   }
 
   /**

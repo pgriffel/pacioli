@@ -30,6 +30,7 @@ import type { PacioliWebComponent } from "./pacioli-web-component";
 import type { PacioliBoole } from "../values/boole";
 import { pacioliFalse, pacioliTrue } from "../values/boole";
 import { string } from "../cache";
+import { PacioliError } from "../pacioli-error";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -250,11 +251,26 @@ export function parseParameterNode(
  * @param element The element with the 'for' attribute
  * @returns The referenced element, or undefined if it is not found.
  */
-export function attachedPacioliWebComponent(
+export function attachedPacioliWebComponents(
   element: HTMLElement
-): PacioliWebComponent | null {
+): PacioliWebComponent[] {
   const elementId = element.getAttribute("for");
-  return elementId === null ? null : getPacioliWebComponentById(elementId);
+  if (elementId === null) {
+    return [];
+  } else {
+    const components: PacioliWebComponent[] = [];
+
+    for (const id of elementId.split(",")) {
+      const trimmed = id.trim();
+      const component = getPacioliWebComponentById(trimmed);
+      if (component === null) {
+        throw new PacioliError(`Count not find element ${trimmed}`);
+      } else {
+        components.push(component);
+      }
+    }
+    return components;
+  }
 }
 
 /**
@@ -408,7 +424,9 @@ export function optionsFromScript<Options>(
         );
       }
       if (item[0].kind !== "string") {
-        throw new Error(`chart option key must be a string, got a ${item[0].kind}`);
+        throw new Error(
+          `chart option key must be a string, got a ${item[0].kind}`
+        );
       }
       if (item[1].kind !== "string") {
         throw new Error(
@@ -462,7 +480,9 @@ export function optionsFromScript<Options>(
 
     return object;
   } else {
-    throw new Error(`attribute options must be a list, got a ${optionValue.kind}`);
+    throw new Error(
+      `attribute options must be a list, got a ${optionValue.kind}`
+    );
   }
 }
 

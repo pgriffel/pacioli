@@ -47,6 +47,24 @@
 
     <p>
         <pacioli-table definition="web_components:commodity_columns" totals nozerorows ignoredecimals zero="">
+            <column definition="web_components:amount" header="Amount"></column>
+            <column definition="web_components:sales" header="Sales"></column>
+        </pacioli-table>
+
+    <p>
+        <pacioli-table definition="web_components:dynamic_columns" totals nozerorows ignoredecimals zero="">
+            <parameter>1.1</parameter>
+            <column definition="web_components:scaled_amount">
+                Amount
+                <parameter>1.1</parameter>
+            </column>
+            <column definition="web_components:scaled_sales">
+                Sales
+                <parameter>1.1</parameter>
+            </column>
+        </pacioli-table>
+
+        <pacioli-table definition="web_components:commodity_columns" totals nozerorows ignoredecimals zero="">
         </pacioli-table>
 
 

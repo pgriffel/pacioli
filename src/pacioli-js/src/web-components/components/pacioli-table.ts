@@ -21,25 +21,34 @@
  */
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  computeWebComponentValue,
+  optionsFromAttributes,
+  optionsFromScript,
+} from "../utils";
 import { DOMTable } from "../../dom/dom";
 import type { PacioliTuple } from "../../values/tuple";
 import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliMatrix } from "../../values/matrix";
+import { PacioliError } from "../../pacioli-error";
 
 /**
  * Options for Pacioli's table component.
  */
 export interface TableOptions {
   decimals: number;
-
   zero?: string;
-
   nozerorows: boolean;
-
   totals: boolean;
-
   ignoredecimals: boolean;
+}
+
+interface ColumnData {
+  title: string;
+  value: PacioliMatrix;
+  decimals?: number;
+  showTotal?: boolean;
+  total?: PacioliMatrix;
 }
 
 /**
@@ -50,6 +59,19 @@ const SUPPORTED_ATTRIBUTES = {
   booleans: ["nozerorows", "ignoredecimals", "totals"],
   numbers: ["decimals"],
 };
+
+function pacioliTableError(message: string): PacioliError {
+  return new PacioliError(
+    `Unexpected data for table. ${message}\n\n${VALID_TABLE_DATA_MESSAGE}`
+  );
+}
+
+const VALID_TABLE_DATA_MESSAGE = `Valid chart data for a table is 
+  - a list of (number, number) pairs
+  - a pair of number lists
+  - a pair of number vectors
+  - a vector
+  - a list of numbers`;
 
 /**
  * Style sheet for the table component
@@ -129,7 +151,8 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   /**
    * The Pacioli value displayed in the table.
    */
-  data?: PacioliValue;
+  // data?: PacioliValue;
+  columns?: ColumnData[];
 
   constructor() {
     super();
@@ -152,14 +175,14 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      if (this.data !== undefined) {
+      if (this.columns !== undefined) {
         // Reload the data if the definition changes. The initial load is done in
         // parametersChanged.
         if (name === "definition") {
-          this.data = this.fetchData();
+          this.columns = this.collectColumns();
         }
 
-        this.drawTable(this.data);
+        this.drawTable(this.columns);
       }
     } catch (err: unknown) {
       this.displayError(err instanceof Error ? err.message : String(err));
@@ -170,23 +193,118 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    this.data = this.fetchData();
+    this.columns = this.collectColumns();
 
-    this.drawTable(this.data);
+    this.drawTable(this.columns);
   }
 
-  drawTable(value: PacioliValue) {
+  collectColumns(): ColumnData[] {
+    return [
+      ...columnDataFromDefinition(this),
+      ...columnDataFromChildElements(this),
+    ];
+  }
+
+  // fetchColumns(): PacioliValue {
+  //   const data = this.fetchData();
+
+  //   const res = [];
+
+  //   for (const child of this.children) {
+  //     if (child.nodeName === "COLUMN") {
+  //       const element = child as HTMLElement;
+
+  //       // const def = element.getAttribute("definition");
+  //       const header = element.innerText;
+
+  //       const value = computeWebComponentValue(element);
+
+  //       res.push({
+  //         title: header,
+  //         value: value as PacioliMatrix,
+  //       });
+  //     }
+  //   }
+
+  //   DOMTable(res, {});
+
+  //   const columnNodes = Array.from(this.childNodes).filter(
+  //     (child) => child.nodeName === "COLUMN"
+  //   ) as HTMLElement[];
+
+  //   console.log(
+  //     "columns",
+  //     columnNodes.map((col) => col.getAttribute("definition"))
+  //   );
+
+  //   console.log(
+  //     "columns 2",
+  //     columnNodes.map((col) => col.innerText)
+  //   );
+
+  //   const columnValues = Array.from(this.childNodes)
+  //     .filter((child) => child.nodeName === "COLUMN")
+  //     .map((x) => computeWebComponentValue(x as HTMLElement));
+
+  //   console.log("columns 3", columnValues);
+
+  //   const cols = columnValues.map((v) => {
+  //     return {
+  //       title: "todo",
+  //       value: v as PacioliMatrix,
+  //     };
+  //   });
+
+  //   this.contentParent().appendChild(DOMTable(cols, {}));
+
+  //   return data;
+  // }
+
+  drawTable(columns: ColumnData[]) {
     this.clearContent();
     this.clearErrors();
+
+    // this.fetchColumns();
 
     const options = {
       ...optionsFromScript<TableOptions>(this, SUPPORTED_ATTRIBUTES),
       ...optionsFromAttributes<TableOptions>(this, SUPPORTED_ATTRIBUTES),
     };
 
-    const columns = columnsFromValue(value);
+    // const columns = columnsFromValue(value);
 
     this.contentParent().appendChild(DOMTable(columns, options));
+  }
+}
+
+function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
+  const columns: ColumnData[] = [];
+
+  for (const child of element.children) {
+    if (child.nodeName === "COLUMN") {
+      const element = child as HTMLElement;
+
+      // const def = element.getAttribute("definition");
+      // const header = element.innerText;
+      const header = element.getAttribute("header") ?? "No 'header' attribute";
+
+      const value = computeWebComponentValue(element);
+
+      columns.push({
+        title: header,
+        value: value as PacioliMatrix,
+      });
+    }
+  }
+
+  return columns;
+}
+
+function columnDataFromDefinition(element: HTMLElement): ColumnData[] {
+  if (element.hasAttribute("definition")) {
+    return columnsFromValue(computeWebComponentValue(element));
+  } else {
+    return [];
   }
 }
 
@@ -198,40 +316,32 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
  * @param value
  * @returns
  */
-function columnsFromValue(value: PacioliValue): {
-  title: string;
-  value: PacioliMatrix;
-  decimals?: number;
-  showTotal?: boolean;
-  total?: PacioliMatrix;
-}[] {
+function columnsFromValue(value: PacioliValue): ColumnData[] {
   if (value.kind === "tuple") {
     const columns = value.map((item: PacioliValue) => {
       if (item.kind === "tuple") {
         return columnData(item);
       } else {
-        throw new Error(`Invalid column. Expected a tuple, got a '${item.kind}'`);
+        throw pacioliTableError(
+          `Invalid column. Expected a tuple, got a '${item.kind}'`
+        );
       }
     });
     return columns;
   } else {
-    throw new Error(`Expected a tuple of columns, got a '${value.kind}'`);
+    throw pacioliTableError(
+      `Expected a tuple of columns, got a '${value.kind}'`
+    );
   }
 }
 
 /**
  * Helper for columnsFromValue. Converts a single column spec.
  */
-function columnData(value: PacioliTuple): {
-  title: string;
-  value: PacioliMatrix;
-  decimals?: number;
-  showTotal?: boolean;
-  total?: PacioliMatrix;
-} {
+function columnData(value: PacioliTuple): ColumnData {
   if (value.length >= 2 && value.length <= 5) {
     if (value[0].kind !== "string") {
-      throw new Error(
+      throw pacioliTableError(
         `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`
       );
     }
@@ -239,7 +349,7 @@ function columnData(value: PacioliTuple): {
     const title: string = value[0].value;
 
     if (value[1].kind !== "matrix") {
-      throw new Error(
+      throw pacioliTableError(
         `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`
       );
     }
@@ -256,12 +366,12 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "matrix") {
           decimals = val?.getNum(0, 0);
         } else {
-          throw new Error(
+          throw pacioliTableError(
             `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
           );
         }
       } else {
-        throw new Error(
+        throw pacioliTableError(
           `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`
         );
       }
@@ -273,14 +383,14 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "boole") {
           showTotal = val?.value;
         } else {
-          throw new Error(
+          throw pacioliTableError(
             `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`
           );
         }
       } else if (value[3].kind === "boole") {
         showTotal = value[3].value;
       } else {
-        throw new Error(
+        throw pacioliTableError(
           `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`
         );
       }
@@ -292,12 +402,12 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "matrix") {
           total = val;
         } else {
-          throw new Error(
+          throw pacioliTableError(
             `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
           );
         }
       } else {
-        throw new Error(
+        throw pacioliTableError(
           `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`
         );
       }
@@ -311,7 +421,7 @@ function columnData(value: PacioliTuple): {
       total,
     };
   } else {
-    throw new Error(
+    throw pacioliTableError(
       `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`
     );
   }

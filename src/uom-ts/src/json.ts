@@ -23,16 +23,23 @@
 import { UOM } from "./uom";
 import { UOMBase } from "./uom-base";
 
+/**
+ *
+ */
+export type UoMTermJson = {
+  base: {
+    prefix?: string;
+    name: string;
+  };
+  power?: number;
+};
+
+export interface UoMJSON {
+  powers: UoMTermJson[];
+}
+
 export function unitFromJSON<T extends UOMBase>(
-  json: {
-    powers: {
-      base: {
-        prefix?: string;
-        name: string;
-      };
-      power?: number;
-    }[];
-  },
+  json: { powers: UoMTermJson[] },
   baseCallback: (prefix: string, name: string) => UOM<T> | undefined
 ): UOM<T> {
   // Check that the powers field is present

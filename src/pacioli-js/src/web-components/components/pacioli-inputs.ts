@@ -23,7 +23,7 @@
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import type { PacioliParameter } from "../utils";
 import {
-  attachedPacioliWebComponent,
+  attachedPacioliWebComponents,
   parameterNodes,
   parseParameterNode,
 } from "../utils";
@@ -127,7 +127,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
         this.applyButtonClicked();
       });
 
-      if (attachedPacioliWebComponent(this)) {
+      if (attachedPacioliWebComponents(this)) {
         this.createAndAppendTableRows();
       }
     }, 1);
@@ -165,42 +165,57 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
     parameter: PacioliParameter;
     element: HTMLInputElement;
   }[] {
-    const scene = attachedPacioliWebComponent(this); //this.attachedComponent();
-    if (scene) {
-      return createParameterInputs(
-        parameterNodes(scene).map((element) => parseParameterNode(element)),
+    const scenes = attachedPacioliWebComponents(this); //this.attachedComponent();
+
+    const inputs: {
+      parameter: PacioliParameter;
+      element: HTMLInputElement;
+    }[] = [];
+
+    for (const scene of scenes) {
+      const parameters: PacioliParameter[] = parameterNodes(scene).map(
+        (element) => parseParameterNode(element)
+      );
+
+      const parameterInputs = createParameterInputs(
+        parameters,
         !this.hasAttribute("calm"),
         () => {
           this.applyButtonClicked();
         }
       );
-    } else {
-      return [];
+
+      for (const input of parameterInputs) {
+        inputs.push(input);
+      }
     }
+
+    return inputs;
   }
 
   /**
    * Handler for the apply button
    */
   private applyButtonClicked() {
-    const scene = attachedPacioliWebComponent(this);
-    if (scene && this.inputs) {
-      try {
-        scene.clearErrors();
-        scene.setParameters(
-          this.inputs.map((input) =>
-            input.parameter.type === "boole"
-              ? input.element.checked
-                ? "true"
-                : "false"
-              : input.element.value
-          )
-        );
-      } catch (error: unknown) {
-        scene.displayError(
-          error instanceof Error ? error.message : String(error)
-        );
+    try {
+      if (this.inputs) {
+        const scenes = attachedPacioliWebComponents(this);
+
+        for (const scene of scenes) {
+          scene.clearErrors();
+          scene.setParameters(
+            this.inputs.map((input) =>
+              input.parameter.type === "boole"
+                ? input.element.checked
+                  ? "true"
+                  : "false"
+                : input.element.value
+            )
+          );
+        }
       }
+    } catch (error: unknown) {
+      this.displayError(error instanceof Error ? error.message : String(error));
     }
   }
 

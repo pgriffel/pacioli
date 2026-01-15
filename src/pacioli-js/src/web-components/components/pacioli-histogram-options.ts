@@ -24,7 +24,7 @@ import { PacioliWebController } from "../pacioli-web-controller";
 import {
   addButtonEventListener,
   addInputEventListener,
-  attachedPacioliWebComponent,
+  attachedPacioliWebComponents,
 } from "../utils";
 import type { PacioliHistogramComponent } from "./pacioli-histogram";
 
@@ -108,8 +108,11 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
    * @returns The connected histogram, or undefined if no connected histogram exists.
    */
   histogramElement(): PacioliHistogramComponent | undefined {
-    const component = attachedPacioliWebComponent(this);
-    return component ? (component as PacioliHistogramComponent) : undefined;
+    // TODO: handle multiple histograms
+    const components = attachedPacioliWebComponents(this);
+    return components.length > 0
+      ? (components[0] as PacioliHistogramComponent)
+      : undefined;
   }
 
   /**
