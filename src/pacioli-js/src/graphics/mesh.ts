@@ -46,7 +46,7 @@ export type PacioliMesh = [
   PacioliTuple, // rotations
   PacioliString, // name
   PacioliBoole, // wireframe
-  PacioliString // material
+  PacioliString, // material
 ];
 
 export function addMesh(
@@ -115,14 +115,25 @@ function createTHREEMesh(
   };
 
   let mat;
-  if (material === "normal") {
-    mat = new THREE.MeshNormalMaterial(props);
-  } else if (material === "lambert") {
-    mat = new THREE.MeshLambertMaterial(props);
-  } else if (material === "phong") {
-    mat = new THREE.MeshPhongMaterial(props);
-  } else {
-    mat = new THREE.MeshBasicMaterial(props);
+  switch (material) {
+    case "normal": {
+      mat = new THREE.MeshNormalMaterial(props);
+
+      break;
+    }
+    case "lambert": {
+      mat = new THREE.MeshLambertMaterial(props);
+
+      break;
+    }
+    case "phong": {
+      mat = new THREE.MeshPhongMaterial(props);
+
+      break;
+    }
+    default: {
+      mat = new THREE.MeshBasicMaterial(props);
+    }
   }
 
   // Create a mesh object with the material and add it to the body
@@ -160,7 +171,7 @@ function createTHREEMesh(
 function mesh2THREE(
   mesh: [
     [PacioliMatrix, PacioliString][],
-    [PacioliMatrix, PacioliMatrix, PacioliMatrix][]
+    [PacioliMatrix, PacioliMatrix, PacioliMatrix][],
   ],
   material: THREE.Material,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },

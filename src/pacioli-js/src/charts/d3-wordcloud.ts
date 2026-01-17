@@ -54,7 +54,7 @@ export class WordCloud {
 
   constructor(
     public data: [string, number][],
-    options: Partial<WordCloudOptions>
+    options: Partial<WordCloudOptions>,
   ) {
     this.options = { ...this.defaultOptions, ...options };
   }
@@ -64,7 +64,7 @@ export class WordCloud {
 
     // Make the parent node empty
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
 
     const words = this.data.map(function (d: [string, number]) {
@@ -77,7 +77,7 @@ export class WordCloud {
     // Determine the drawing dimensions
     const margin = combineMargins(
       DEFAULT_CHART_MARGIN,
-      parseMargin(this.options.margin)
+      parseMargin(this.options.margin),
     );
 
     const width = this.options.width - margin.left - margin.right;
@@ -96,22 +96,15 @@ export class WordCloud {
       .append("g")
       .attr(
         "transform",
-        `translate(${margin.left.toString()},${margin.top.toString()})`
+        `translate(${margin.left.toString()},${margin.top.toString()})`,
       );
 
     const layout = cloud<{ text: string; size: number }>()
       .size([w, h])
-      .words(
-        /*[
-            "Hello", "world", "normally", "you", "want", "more", "words",
-            "than", "this"].map(function(d) {
-            return {text: d, size: 10 + Math.random() * 90, test: "haha"};
-          })*/
-        words
-      )
+      .words(words)
       .padding(5)
       .rotate(function () {
-        return ~~(Math.random() * 2) * 90;
+        return Math.trunc(Math.random() * 2) * 90;
       })
       .font("Impact")
       .fontSize(function (d) {
@@ -129,7 +122,7 @@ export class WordCloud {
         x: number;
         y: number;
         rotate: number;
-      }[]
+      }[],
     ) {
       //          d3.select("body").append("svg")
       //              .attr("width", layout.size()[0])
@@ -141,7 +134,7 @@ export class WordCloud {
           "transform",
           `translate(${(layout.size()[0] / 2).toString()},${(
             layout.size()[1] / 2
-          ).toString()})`
+          ).toString()})`,
         )
         .selectAll("text")
         .data(words)

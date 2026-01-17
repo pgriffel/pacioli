@@ -341,18 +341,14 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the snapshot button
    */
   private snapshotButtonClicked() {
-    const followedId = this.getAttribute("for");
+    const scenes = this.sceneElements();
 
-    for (const scene of this.sceneElements()) {
-      if (followedId !== null) {
-        scene.openImage(followedId);
-      } else {
-        if (scene) {
-          scene.displayError("No scene to take snapshot of");
-        } else {
-          alert("No scene to take snapshot of");
-        }
-      }
+    if (scenes.length === 0) {
+      alert("No scene to take snapshot of");
+    }
+
+    for (const scene of scenes) {
+      scene.openImage(scene.id);
     }
   }
 

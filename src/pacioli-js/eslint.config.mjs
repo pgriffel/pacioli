@@ -16,49 +16,22 @@ export default defineConfig([
   {
     rules: {
       "unicorn/prevent-abbreviations": "off", // meh
-      // "unicorn/throw-new-error": "off",
-      "unicorn/new-for-builtins": "off",
-      // "unicorn/prefer-type-error": "warn",
       "unicorn/catch-error-name": "off", // meh
-      "unicorn/prefer-dom-node-append": "off",
-
-      // tijdelijk uit
+      "unicorn/prefer-dom-node-append": "off", // meh
       "unicorn/no-null": "off", // meh
       "unicorn/prefer-query-selector": "off", // meh
-      // "unicorn/no-negated-condition": "off",
-      "unicorn/prefer-dom-node-text-content": "off",
-      // "unicorn/prefer-spread": "off",
-      // "unicorn/no-array-callback-reference": "off",
-      // "seleunicorn/prefer-ternarytor": "off",
+      "unicorn/prefer-dom-node-text-content": "off", // TODO: is this better?
       "unicorn/no-nested-ternary": "off", // TODO: clashes with Prettier. Prefer unicorn's opinion?
-      "unicorn/prefer-type-error": "off",
-      "unicorn/prefer-switch": "off",
-      // "unicorn/consistent-function-scoping": "off",
+      "unicorn/prefer-type-error": "off", // meh
       "unicorn/prefer-ternary": "off", // meh
-      // "unicorn/no-new-array": "off",
-      // "unicorn/prefer-includes": "off",
-      // "unicorn/switch-case-braces": "off",
       "unicorn/prefer-single-call": "off", // Sometimes okay, not always.
-      // "unicorn/no-immediate-mutation": "off",
-      // "unicorn/explicit-length-check": "off",
-      // "unicorn/no-lonely-if": "off",
-      "unicorn/prefer-set-has": "off",
-      "unicorn/prefer-dom-node-remove": "off",
-      "unicorn/prefer-number-properties": "off",
-      // "unicorn/prefer-optional-catch-binding": "off",
+      "unicorn/prefer-set-has": "off", // meh
       "unicorn/no-array-sort": "off", // Nice, but browser support for toSorted is only since 2023
       "unicorn/no-array-reverse": "off", // idem?
       "unicorn/no-zero-fractions": "off", // Why?
-      "unicorn/no-instanceof-builtins": "off",
-      // "unicorn/no-hex-escape": "off",
-      // "unicorn/prefer-global-this": "off",
-      "unicorn/numeric-separators-style": "off",
-      // "unicorn/no-unreadable-array-destructuring": "off",
+      "unicorn/numeric-separators-style": "off", // meh
       "unicorn/number-literal-case": "off", // Unicorn prefers 0xFF0000. Prettier prefers 0xff0000.
-      "unicorn/prefer-modern-math-apis": "off",
-      "unicorn/require-number-to-fixed-digits-argument": "off",
-      "unicorn/prefer-math-trunc": "off",
-      // "unicorn/no-useless-undefined": "off",
+      "unicorn/require-number-to-fixed-digits-argument": "off", // Flags BigNumber.toFixed() as incorrect, which is incorrect
     },
   },
   {
@@ -67,19 +40,8 @@ export default defineConfig([
         projectService: true,
       },
     },
-
     rules: {
-      // tijdelijk uit
-      "@typescript-eslint/no-for-in-array": "off",
-      "@typescript-eslint/no-deprecated": "off",
-      "@typescript-eslint/no-unnecessary-condition": "off",
-      "@typescript-eslint/no-unnecessary-type-parameters": "off",
-      "@typescript-eslint/no-unsafe-assignment": "off",
-      "@typescript-eslint/strict-boolean-expressions": "off",
-      "@typescript-eslint/no-unsafe-member-access": "off",
-
-      // permanent
-      // "@typescript-eslint/strict-boolean-expressions": "error",
+      "@typescript-eslint/strict-boolean-expressions": "error",
       eqeqeq: "error",
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-import-type-side-effects": "error",

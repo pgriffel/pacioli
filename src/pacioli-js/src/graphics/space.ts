@@ -448,7 +448,7 @@ export class Space {
       this.animationRequest !== undefined &&
       !this.environment.isAutoRotating()
     ) {
-      window.cancelAnimationFrame(this.animationRequest);
+      globalThis.cancelAnimationFrame(this.animationRequest);
       this.animationRequest = undefined;
     }
     this.animating = false;

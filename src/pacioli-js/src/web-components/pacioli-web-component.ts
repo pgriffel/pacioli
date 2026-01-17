@@ -164,7 +164,7 @@ export abstract class PacioliWebComponent
   clearContent() {
     const parent = this.contentParent();
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
   }
 
@@ -296,8 +296,7 @@ export abstract class PacioliWebComponent
     attribute: string,
     defaultValue: number = 0
   ): number {
-    const att = this.getAttribute(attribute);
-    return Number(att === null ? defaultValue : att);
+    return getNumberAttribute(this, attribute, defaultValue);
   }
 
   protected setStringAttribute(attribute: string, value: string | undefined) {
@@ -327,4 +326,13 @@ export abstract class PacioliWebComponent
   protected getBooleAttribute(attribute: string): boolean {
     return this.hasAttribute(attribute);
   }
+}
+
+export function getNumberAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue: number = 0
+): number {
+  const att = element.getAttribute(attribute);
+  return Number(att === null ? defaultValue : att);
 }

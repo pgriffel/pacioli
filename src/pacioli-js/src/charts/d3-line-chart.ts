@@ -97,7 +97,7 @@ export class LineChart {
   constructor(
     public readonly data: PacioliValue,
     private readonly context: PacioliContext,
-    options: Partial<LineChartOptions>
+    options: Partial<LineChartOptions>,
   ) {
     this.options = { ...DEFAULT_LINE_CHART_OPTIONS, ...options };
   }
@@ -123,18 +123,18 @@ export class LineChart {
       this.context,
       this.data,
       xunit || unit,
-      yunit || unit
+      yunit || unit,
     );
 
     // Make the parent node empty
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
 
     // Define dimensions of graph
     const m = combineMargins(
       DEFAULT_CHART_MARGIN,
-      parseMargin(this.options.margin)
+      parseMargin(this.options.margin),
     );
 
     const w = this.options.width - m.left - m.right;
@@ -158,7 +158,7 @@ export class LineChart {
         .attr("height", h)
         .attr(
           "transform",
-          `translate(${m.left.toString()},${m.top.toString()})`
+          `translate(${m.left.toString()},${m.top.toString()})`,
         );
 
       appendLineChart(group, data, w, h, this.options);
@@ -179,12 +179,12 @@ export class LineChart {
 function lineChartClickHandler(
   label: DimNum,
   number: DimNum,
-  options: LineChartOptions
+  options: LineChartOptions,
 ) {
   alert(
     `${options.xlabel} = ${label.toText()}\n${
       options.ylabel
-    } = ${number.toText()}`
+    } = ${number.toText()}`,
   );
 }
 
@@ -199,7 +199,7 @@ function lineChartClickHandler(
 function lineChartTooltip(
   label: DimNum,
   number: DimNum,
-  options: LineChartOptions
+  options: LineChartOptions,
 ) {
   return `${options.xlabel} = ${label.toFixed(options.decimals)} <br> ${
     options.ylabel
@@ -220,10 +220,10 @@ function appendLineChart(
   data: LinearChartData,
   w: number,
   h: number,
-  options: LineChartOptions
+  options: LineChartOptions,
 ) {
-  const yMin = options.ylower === undefined ? data.yLower : options.ylower;
-  const yMax = options.yupper === undefined ? data.yUpper : options.yupper;
+  const yMin = options.ylower ?? data.yLower;
+  const yMax = options.yupper ?? data.yUpper;
   const xMin = data.xLower;
   const xMax = data.xUpper;
 
@@ -267,7 +267,7 @@ function appendLineChart(
     .text(
       `${
         options.xlabel
-      } [${data.xUnit.toText()}] (n=${data.values.length.toString()})`
+      } [${data.xUnit.toText()}] (n=${data.values.length.toString()})`,
     );
 
   // create y axis
@@ -366,7 +366,7 @@ function appendLineChart(
           handler(
             DimNum.fromNumber(entry.x, data.xUnit),
             DimNum.fromNumber(entry.y, data.yUnit),
-            options
+            options,
           );
         }, 0);
       }
@@ -378,10 +378,10 @@ function appendLineChart(
           options.tooltip(
             DimNum.fromNumber(entry.x, data.xUnit),
             DimNum.fromNumber(entry.y, data.yUnit),
-            options
+            options,
           ),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
 
         // Show the dot on the graph's line

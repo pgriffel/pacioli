@@ -81,7 +81,7 @@ export function getFullNumbers(numbers: RawMatrix): NumericFullMatrix {
       const inner = Array.from<number>({ length: n });
       for (let j = 0; j < n; j++) {
         const rowi = nums[i];
-        inner[j] = rowi ? rowi[j] ?? 0 : 0;
+        inner[j] = rowi ? (rowi[j] ?? 0) : 0;
       }
       array[i] = inner;
     }
@@ -241,15 +241,15 @@ function DOK2COO(numbers: RawDOKMatrix | NumericDOKMatrix): NumericCOOMatrix {
 
   for (const x in numbers) {
     if (Object.prototype.hasOwnProperty.call(numbers, x)) {
-      const parsedX = parseInt(x);
+      const parsedX = Number.parseInt(x);
       //if (typeof parsedX === "number") {
-      if (isFinite(parsedX) && !isNaN(parsedX)) {
+      if (Number.isFinite(parsedX) && !Number.isNaN(parsedX)) {
         const row = numbers[parsedX];
         for (const y in row) {
           if (Object.prototype.hasOwnProperty.call(row, y)) {
-            const parsedY = parseInt(y);
+            const parsedY = Number.parseInt(y);
             //if (typeof parsedY === "number") {
-            if (isFinite(parsedY) && !isNaN(parsedY)) {
+            if (Number.isFinite(parsedY) && !Number.isNaN(parsedY)) {
               const value = row[parsedY];
               if (value !== undefined && value !== 0) {
                 tripleArray.push([parsedX, parsedY, value]);

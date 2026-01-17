@@ -58,7 +58,7 @@ export abstract class PacioliWebController extends PacioliWebComponent {
   clearContent(): void {
     const parent = this.contentParent();
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
   }
 

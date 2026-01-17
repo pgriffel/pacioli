@@ -28,13 +28,14 @@ import {
   appendEmptyChartMessage,
   combineMargins,
   parseMargin,
+  ToolTip,
 } from "./chart-utils";
 import type { LinearChartData } from "./chart-data";
 import { linearChartData } from "./chart-data";
 import type { PacioliContext } from "./../context";
 import type { PacioliCoordinates } from "../values/coordinates";
 import type { DefaultChartOptions } from "./chart-utils";
-import { ToolTip } from "./chart-utils";
+
 import { parseUnit } from "../api";
 
 /**
@@ -65,7 +66,7 @@ export interface ScatterPlotOptions extends DefaultChartOptions {
     valueX: DimNum,
     valueY: DimNum,
     options: ScatterPlotOptions,
-    element?: PacioliCoordinates
+    element?: PacioliCoordinates,
   ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
@@ -110,7 +111,7 @@ export class ScatterPlot {
   constructor(
     private readonly data: PacioliValue,
     private readonly context: PacioliContext,
-    options: Partial<ScatterPlotOptions>
+    options: Partial<ScatterPlotOptions>,
   ) {
     this.options = { ...DEFAULT_SCATTER_PLOT_OPTIONS, ...options };
   }
@@ -125,12 +126,12 @@ export class ScatterPlot {
         : undefined,
       this.options.convert && this.options.yunit !== undefined
         ? parseUnit(this.options.yunit)
-        : undefined
+        : undefined,
     );
 
     const margin = combineMargins(
       DEFAULT_CHART_MARGIN,
-      parseMargin(this.options.margin)
+      parseMargin(this.options.margin),
     );
 
     // Determine the drawing dimensions
@@ -139,7 +140,7 @@ export class ScatterPlot {
 
     // Make the parent node empty
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
 
     // Create an svg element under the parent
@@ -158,7 +159,7 @@ export class ScatterPlot {
         .append("g")
         .attr(
           "transform",
-          `translate(${margin.left.toString()},${margin.top.toString()})`
+          `translate(${margin.left.toString()},${margin.top.toString()})`,
         );
 
       appendScatterPlot(group, data, width, height, this.options);
@@ -173,7 +174,7 @@ function scatterPlotTooltip(
   x: DimNum,
   y: DimNum,
   options: ScatterPlotOptions,
-  element?: PacioliCoordinates
+  element?: PacioliCoordinates,
 ): string {
   // Numbers are displayed with fixed precision
   const xNum = x.toFixed(options.decimals);
@@ -201,7 +202,7 @@ function scatterPlotClickHandler(input: {
   const eltText = input.element ? `${input.element.names.join(",")}\n` : "";
 
   alert(
-    `${eltText}${input.options.xlabel} = ${xNum}\n${input.options.ylabel} = ${yNum}`
+    `${eltText}${input.options.xlabel} = ${xNum}\n${input.options.ylabel} = ${yNum}`,
   );
 }
 
@@ -221,17 +222,17 @@ function appendScatterPlot(
   data: LinearChartData,
   width: number,
   height: number,
-  options: ScatterPlotOptions
+  options: ScatterPlotOptions,
 ) {
   const unitX = data.xUnit;
   const unitY = data.yUnit;
   const values = data.values;
 
   // Determine the chart's bounds
-  const lowerX = options.xlower === undefined ? data.xLower : options.xlower;
-  const upperX = options.xupper === undefined ? data.xUpper : options.xupper;
-  const lowerY = options.ylower === undefined ? data.yLower : options.ylower;
-  const upperY = options.yupper === undefined ? data.yUpper : options.yupper;
+  const lowerX = options.xlower ?? data.xLower;
+  const upperX = options.xupper ?? data.xUpper;
+  const lowerY = options.ylower ?? data.yLower;
+  const upperY = options.yupper ?? data.yUpper;
 
   // Create x and y scales mapping the scatterplot layout to the drawing dimensions
   const xScale = d3.scaleLinear().domain([lowerX, upperX]).range([0, width]);
@@ -315,10 +316,10 @@ function appendScatterPlot(
             DimNum.fromNumber(d.x, unitX),
             DimNum.fromNumber(d.y, unitY),
             options,
-            d.coordinates
+            d.coordinates,
           ),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
       }
     })
@@ -402,7 +403,7 @@ function linearRegression(x: number[], y: number[]) {
     r2: Math.pow(
       (n * sum_xy - sum_x * sum_y) /
         Math.sqrt((n * sum_xx - sum_x * sum_x) * (n * sum_yy - sum_y * sum_y)),
-      2
+      2,
     ),
   };
 }

@@ -224,7 +224,7 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
       },
       false
     );
-  } else if (x instanceof Array && y instanceof Array) {
+  } else if (Array.isArray(x) && Array.isArray(y)) {
     const n = x.length;
     if (y.length !== n) {
       return false;
@@ -348,7 +348,7 @@ export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
   const first = tuples[0] as unknown as [
     RawCoordinates,
     RawCoordinates,
-    RawMatrix
+    RawMatrix,
   ];
   const numbers = zeroNumbers(first[0].size, first[1].size);
   for (const tuple of tuples) {
@@ -1055,7 +1055,7 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
   const svd = $base_matrix_singular_value_list(x) as unknown as [
     RawMatrix,
     RawMatrix,
-    RawMatrix
+    RawMatrix,
   ][];
 
   // Copied from SingularValueDecomposition.cs
@@ -1399,100 +1399,112 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
 
       const secondChar = formatString[i + 1];
 
-      if (secondChar === "%") {
-        out += "%";
-        i += 2;
-      } else if (secondChar === "s") {
-        // TODO: stringifyRawValue gebruiken!
-        out += stringifyRawValue(args[argumentIndex++]);
-        i += 2;
+      switch (secondChar) {
+        case "%": {
+          out += "%";
+          i += 2;
 
-        // const debugHack = false;
+          break;
+        }
+        case "s": {
+          // TODO: stringifyRawValue gebruiken!
+          out += stringifyRawValue(args[argumentIndex++]);
+          i += 2;
 
-        // const arg = args[argumentIndex++];
-        // const mat = arg as RawMatrix;
-        // if (debugHack && mat.kind === "matrix") {
-        //   out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
-        //     mat.storage
-        //   }`;
-        // }
-        // if (typeof arg === "object" && arg.kind === "coordinates") {
-        //   out += arg.position;
-        // } else {
-        //   out += arg.toString(); // TODO fix this
-        // }
-        // i += 2;
-      } else if (secondChar === "n") {
-        out += "\n";
-        i += 2;
-      } else {
-        const regex = /^%([0-9]*)d/;
+          // const debugHack = false;
 
-        const match = regex.exec(formatString.slice(i));
+          // const arg = args[argumentIndex++];
+          // const mat = arg as RawMatrix;
+          // if (debugHack && mat.kind === "matrix") {
+          //   out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
+          //     mat.storage
+          //   }`;
+          // }
+          // if (typeof arg === "object" && arg.kind === "coordinates") {
+          //   out += arg.position;
+          // } else {
+          //   out += arg.toString(); // TODO fix this
+          // }
+          // i += 2;
 
-        if (match !== null && match[0].length > 0) {
-          let size: number | null;
-          try {
-            size = match[1] === "" ? null : parseInt(match[1]);
-          } catch {
-            size = null;
-          }
+          break;
+        }
+        case "n": {
+          out += "\n";
+          i += 2;
 
-          const mat = args[argumentIndex++]; // as RawMatrix;
-
-          if (typeof mat !== "object" || mat.kind !== "matrix") {
-            throw new Error("Expected matrix for %d format argument");
-          }
-
-          // TODO: make dimensionless output for mat.
-          const txt = getNumber(mat, 0, 0).toFixed(0);
-
-          out += size === null ? txt : txt.padStart(size, " ");
-          i += match[0].length;
-        } else {
-          const regex = /^%([0-9]*)([.]?)([0-9]*)f/;
+          break;
+        }
+        default: {
+          const regex = /^%([0-9]*)d/;
 
           const match = regex.exec(formatString.slice(i));
 
           if (match !== null && match[0].length > 0) {
-            let nrDecs: number;
-            try {
-              nrDecs = match[3] === "" ? NR_DECIMALS : parseInt(match[3]);
-            } catch {
-              nrDecs = NR_DECIMALS;
-            }
-
             let size: number | null;
             try {
-              size = match[1] === "" ? null : parseInt(match[1]);
+              size = match[1] === "" ? null : Number.parseInt(match[1]);
             } catch {
               size = null;
             }
 
-            const mat = args[argumentIndex++];
+            const mat = args[argumentIndex++]; // as RawMatrix;
 
             if (typeof mat !== "object" || mat.kind !== "matrix") {
               throw new Error("Expected matrix for %d format argument");
             }
 
-            if (mat.nrRows === 1 && mat.nrColumns === 1) {
-              const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
-              out += size === null ? txt : txt.padStart(size, " ");
-            } else {
-              // // FIXME: replace this quick and dirty solution with proper matrix formatting
-              // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
-              // if (rowList === null) {
-              //   out += "Could not format matrix";
-              // } else {
-              //   out += rowList;
-              // }
-              out += stringifyRawValue(mat);
-            }
+            // TODO: make dimensionless output for mat.
+            const txt = getNumber(mat, 0, 0).toFixed(0);
 
+            out += size === null ? txt : txt.padStart(size, " ");
             i += match[0].length;
           } else {
-            out += char;
-            i++;
+            const regex = /^%([0-9]*)([.]?)([0-9]*)f/;
+
+            const match = regex.exec(formatString.slice(i));
+
+            if (match !== null && match[0].length > 0) {
+              let nrDecs: number;
+              try {
+                nrDecs =
+                  match[3] === "" ? NR_DECIMALS : Number.parseInt(match[3]);
+              } catch {
+                nrDecs = NR_DECIMALS;
+              }
+
+              let size: number | null;
+              try {
+                size = match[1] === "" ? null : Number.parseInt(match[1]);
+              } catch {
+                size = null;
+              }
+
+              const mat = args[argumentIndex++];
+
+              if (typeof mat !== "object" || mat.kind !== "matrix") {
+                throw new Error("Expected matrix for %d format argument");
+              }
+
+              if (mat.nrRows === 1 && mat.nrColumns === 1) {
+                const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+                out += size === null ? txt : txt.padStart(size, " ");
+              } else {
+                // // FIXME: replace this quick and dirty solution with proper matrix formatting
+                // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
+                // if (rowList === null) {
+                //   out += "Could not format matrix";
+                // } else {
+                //   out += rowList;
+                // }
+                out += stringifyRawValue(mat);
+              }
+
+              i += match[0].length;
+            } else {
+              out += char;
+              i++;
+            }
           }
         }
       }

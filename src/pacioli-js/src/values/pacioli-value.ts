@@ -100,79 +100,89 @@ export function boxRawValue(
 ): PacioliValue {
   switch (type.kind) {
     case "generic": {
-      if (type.name === "Tuple") {
-        const values = value as RawTuple;
-        const tuple = new PacioliTuple();
-        for (const [i, entry] of values.entries()) {
-          tuple.push(boxRawValue(entry, type.items[i], context));
-        }
-        return tuple;
-      } else if (type.name === "Boole") {
-        if (typeof value === "boolean") {
-          return value ? pacioliTrue : pacioliFalse;
-        } else {
-          throw new Error(
-            `Expected a boolean instead of ${typeof value} when boxing raw boolean value`
-          );
-        }
-      } else if (type.name === "String") {
-        if (typeof value === "string") {
-          return new PacioliString(value);
-        } else {
-          throw new Error(
-            `Expected a string instead of ${typeof value} when boxing raw string value`
-          );
-        }
-      } else if (type.name === "Void") {
-        return VOID;
-      } else if (type.name === "Maybe") {
-        const val = (value as RawMaybe).value;
-        return new PacioliMaybe(
-          type,
-          val === undefined
-            ? undefined
-            : boxRawValue(val, type.items[0], context)
-        );
-      } else if (type.name === "List") {
-        // TODO: This is called with value.kind undefined. Does generated code not tag lists?
-        // Or is it better to be permissive here?
-        // if (Array.isArray(value) && value.kind === "list") {
-        if (Array.isArray(value)) {
-          const values = value as RawList;
-          const list = new PacioliList(type);
-          for (const value_ of values) {
-            list.push(boxRawValue(value_, type.items[0], context));
+      switch (type.name) {
+        case "Tuple": {
+          const values = value as RawTuple;
+          const tuple = new PacioliTuple();
+          for (const [i, entry] of values.entries()) {
+            tuple.push(boxRawValue(entry, type.items[i], context));
           }
-          return list;
-        } else {
-          throw new Error(
-            `Expected an array object instead of ${typeof value} when boxing raw list value`
-          );
+          return tuple;
         }
-      } else if (type.name === "Array") {
-        if (Array.isArray(value)) {
-          const values = value as RawArray;
-          const array = new PacioliArray();
-          for (const value_ of values) {
-            array.push(boxRawValue(value_, type.items[0], context));
+        case "Boole": {
+          if (typeof value === "boolean") {
+            return value ? pacioliTrue : pacioliFalse;
+          } else {
+            throw new Error(
+              `Expected a boolean instead of ${typeof value} when boxing raw boolean value`
+            );
           }
-          return array;
-        } else {
-          throw new Error(
-            `Expected an array object instead of ${typeof value} when boxing raw array value`
+        }
+        case "String": {
+          if (typeof value === "string") {
+            return new PacioliString(value);
+          } else {
+            throw new Error(
+              `Expected a string instead of ${typeof value} when boxing raw string value`
+            );
+          }
+        }
+        case "Void": {
+          return VOID;
+        }
+        case "Maybe": {
+          const val = (value as RawMaybe).value;
+          return new PacioliMaybe(
+            type,
+            val === undefined
+              ? undefined
+              : boxRawValue(val, type.items[0], context)
           );
         }
-      } else if (type.name === "Map") {
-        return new PacioliMap(
-          type.items[0],
-          type.items[1],
-          value as RawMap,
-          context
-        );
-      } else {
-        throw new Error(
-          `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
-        );
+        case "List": {
+          // TODO: This is called with value.kind undefined. Does generated code not tag lists?
+          // Or is it better to be permissive here?
+          // if (Array.isArray(value) && value.kind === "list") {
+          if (Array.isArray(value)) {
+            const values = value as RawList;
+            const list = new PacioliList(type);
+            for (const value_ of values) {
+              list.push(boxRawValue(value_, type.items[0], context));
+            }
+            return list;
+          } else {
+            throw new Error(
+              `Expected an array object instead of ${typeof value} when boxing raw list value`
+            );
+          }
+        }
+        case "Array": {
+          if (Array.isArray(value)) {
+            const values = value as RawArray;
+            const array = new PacioliArray();
+            for (const value_ of values) {
+              array.push(boxRawValue(value_, type.items[0], context));
+            }
+            return array;
+          } else {
+            throw new Error(
+              `Expected an array object instead of ${typeof value} when boxing raw array value`
+            );
+          }
+        }
+        case "Map": {
+          return new PacioliMap(
+            type.items[0],
+            type.items[1],
+            value as RawMap,
+            context
+          );
+        }
+        default: {
+          throw new Error(
+            `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
+          );
+        }
       }
     }
     case "function": {

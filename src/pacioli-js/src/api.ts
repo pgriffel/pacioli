@@ -151,7 +151,7 @@ export function num(
 ): PacioliMatrix {
   const shape = MatrixShape.scalar(unit);
   const numbers = initialNumbers(1, 1, [
-    [0, 0, typeof num === "string" ? parseFloat(num) : num],
+    [0, 0, typeof num === "string" ? Number.parseFloat(num) : num],
   ]);
   return new PacioliMatrix(shape, numbers);
 }

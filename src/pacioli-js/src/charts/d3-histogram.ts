@@ -58,13 +58,13 @@ export interface HistogramOptions extends DefaultChartOptions {
     frequency: DimNum,
     lower: DimNum,
     upper: DimNum,
-    options: HistogramOptions
+    options: HistogramOptions,
   ) => void;
   tooltip?: (
     frequency: DimNum,
     lower: DimNum,
     upper: DimNum,
-    options: HistogramOptions
+    options: HistogramOptions,
   ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
@@ -106,9 +106,9 @@ export class Histogram {
   };
 
   constructor(
-    private data: PacioliValue,
-    public context: PacioliContext,
-    options: Partial<HistogramOptions>
+    private readonly data: PacioliValue,
+    public readonly context: PacioliContext,
+    options: Partial<HistogramOptions>,
   ) {
     this.options = { ...DEFAULT_HISTOGRAM_OPTIONS, ...options };
   }
@@ -124,13 +124,13 @@ export class Histogram {
       this.context,
       this.data,
       this.options.zeros,
-      unit
+      unit,
     );
 
     // Determine the drawing dimensions
     const margin = combineMargins(
       DEFAULT_CHART_MARGIN,
-      parseMargin(this.options.margin)
+      parseMargin(this.options.margin),
     );
 
     const width = this.options.width - margin.left - margin.right;
@@ -138,7 +138,7 @@ export class Histogram {
 
     // Make the parent node empty
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
 
     // Create an svg element under the parent
@@ -156,7 +156,7 @@ export class Histogram {
         .append("g")
         .attr(
           "transform",
-          `translate(${margin.left.toString()},${margin.top.toString()})`
+          `translate(${margin.left.toString()},${margin.top.toString()})`,
         );
 
       // Check the existence of options for the bin calculation.
@@ -180,13 +180,13 @@ export class Histogram {
 
       if (nrBins <= 0) {
         throw new Error(
-          `number of bins ${nrBins.toString()} must be a positive number`
+          `number of bins ${nrBins.toString()} must be a positive number`,
         );
       }
 
       if (upper < lower) {
         throw new Error(
-          `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`
+          `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`,
         );
       }
 
@@ -206,7 +206,7 @@ export class Histogram {
         upper,
         nrBins,
         data.unit,
-        this.options
+        this.options,
       );
     }
 
@@ -232,7 +232,7 @@ function histogramClickHanler(
   frequency: DimNum,
   lower: DimNum,
   upper: DimNum,
-  options: HistogramOptions
+  options: HistogramOptions,
 ) {
   const text =
     "There are " +
@@ -242,7 +242,7 @@ function histogramClickHanler(
     " to " +
     upper.toFixed(options.decimals);
   const mat = values.map(
-    (value) => `\n${value.keys.toString()}  ${value.value} `
+    (value) => `\n${value.keys.toString()}  ${value.value} `,
   );
   alert(text + mat.join(","));
 }
@@ -251,10 +251,10 @@ function histogramTooltip(
   frequency: DimNum,
   lower: DimNum,
   upper: DimNum,
-  options: HistogramOptions
+  options: HistogramOptions,
 ): string {
   return `${lower.toFixed(options.decimals)}..${upper.toFixed(
-    options.decimals
+    options.decimals,
   )}: ${frequency.toFixed(0)}`;
 }
 
@@ -267,14 +267,14 @@ function appendHistogram(
   upper: number,
   nrBins: number,
   unit: SIUnit,
-  options: HistogramOptions
+  options: HistogramOptions,
 ) {
   const dataRange = upper - lower;
 
   const binWidth = dataRange / nrBins;
 
-  const tresholds = [...Array<number>(nrBins)].map(
-    (_, i) => (i + 1) * binWidth + lower
+  const tresholds = Array.from({ length: nrBins }).map(
+    (_, i) => (i + 1) * binWidth + lower,
   );
   const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
   const binArray = histogram(data.entries.map((entry) => entry.value));
@@ -361,7 +361,7 @@ function appendHistogram(
     .attr("class", "bar")
     .attr("transform", function (d) {
       return `translate(${domain(
-        d.x0 as number
+        d.x0 as number,
       ).toString()}, ${range(d.length).toString()})`;
     })
     .append("rect")
@@ -401,7 +401,7 @@ function appendHistogram(
         tooltip.show(
           options.tooltip(dat.frequency, dat.lower, dat.upper, options),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
       }
     })
@@ -414,7 +414,7 @@ function binSize(
   entries: { label: string; value: number }[],
   lower: number,
   upper: number,
-  heuristic: string
+  heuristic: string,
 ): number {
   const values = entries.map((entry) => entry.value);
 
@@ -433,7 +433,7 @@ function binSize(
     }
     default: {
       throw new Error(
-        `bin size heuristic '${heuristic}' unknown. Expected one of 'd3', 'sturges', 'freedman-diaconis', or 'seaborn'`
+        `bin size heuristic '${heuristic}' unknown. Expected one of 'd3', 'sturges', 'freedman-diaconis', or 'seaborn'`,
       );
     }
   }
@@ -446,7 +446,7 @@ function sturges(values: number[]) {
 function freedmanDiaconis(
   values: number[],
   lower: number,
-  upper: number
+  upper: number,
 ): number {
   const perc25 = d3.quantile(values, 0.25);
   const perc75 = d3.quantile(values, 0.75);
@@ -465,7 +465,7 @@ function freedmanDiaconis(
 function binData(
   bin: d3.Bin<number, number>,
   data: BandChartData,
-  decimals: number
+  decimals: number,
 ): {
   value: { keys: string[]; value: string }[];
   frequency: DimNum;
@@ -478,11 +478,11 @@ function binData(
 
   const result: { keys: string[]; value: string }[] = [];
 
-  for (let i = 0; i < data.entries.length; i++) {
-    const num = data.entries[i].value;
+  for (const element of data.entries) {
+    const num = element.value;
     if (lower <= num && num < upper) {
       result.push({
-        keys: [data.entries[i].label],
+        keys: [element.label],
         value: num.toFixed(decimals),
       });
     }

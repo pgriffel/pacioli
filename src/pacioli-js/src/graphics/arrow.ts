@@ -38,7 +38,7 @@ export type PacioliArrow = [
   PacioliMatrix, // to
   PacioliString, // name
   PacioliString, // label
-  PacioliString // color
+  PacioliString, // color
 ];
 
 export function arrowLabel(arrow: PacioliArrow): string {
@@ -149,9 +149,7 @@ function arrowDirectionAndLength(
 ): [THREE.Vector3, number] {
   const threeVector = vector2THREE(vector, options);
 
-  const vectorLength = Math.sqrt(
-    threeVector.x ** 2 + threeVector.y ** 2 + threeVector.z ** 2
-  );
+  const vectorLength = Math.hypot(threeVector.x, threeVector.y, threeVector.z);
 
   threeVector.normalize();
 

@@ -30,10 +30,10 @@ import {
   appendEmptyChartMessage,
   combineMargins,
   parseMargin,
+  ToolTip,
 } from "./chart-utils";
 import type { BandChartData } from "./chart-data";
 import { bandChartData } from "./chart-data";
-import { ToolTip } from "./chart-utils";
 import { parseUnit } from "../api";
 
 /**
@@ -113,9 +113,9 @@ const DEFAULT_BAR_CHART_OPTIONS = {
 function barChartClickHandler(
   number: DimNum,
   label: string,
-  options: BarChartOptions
+  options: BarChartOptions,
 ) {
-  const header = options.caption === undefined ? "Bar chart" : options.caption;
+  const header = options.caption ?? "Bar chart";
 
   alert(`${header}\n\n Value for ${label} is ${number.toText()}`);
 }
@@ -123,7 +123,7 @@ function barChartClickHandler(
 function barChartTooltip(
   number: DimNum,
   label: string,
-  options: BarChartOptions
+  options: BarChartOptions,
 ) {
   return `${label}: ${number.toFixed(options.decimals)}`;
 }
@@ -148,7 +148,7 @@ export class BarChart {
   constructor(
     public data: PacioliValue,
     private context: PacioliContext,
-    options: Partial<BarChartOptions>
+    options: Partial<BarChartOptions>,
   ) {
     this.options = { ...DEFAULT_BAR_CHART_OPTIONS, ...options };
   }
@@ -174,12 +174,12 @@ export class BarChart {
       this.context,
       this.data,
       this.options.zeros,
-      unit
+      unit,
     );
 
     // Make the parent node empty
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
 
     // Add an svg element
@@ -197,12 +197,12 @@ export class BarChart {
 
       const margin = combineMargins(
         DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
+        parseMargin(this.options.margin),
       );
 
       inner.attr(
         "transform",
-        `translate(${margin.left.toString()},${margin.top.toString()})`
+        `translate(${margin.left.toString()},${margin.top.toString()})`,
       );
 
       appendBarChart(inner, input, margin, this.options);
@@ -227,7 +227,7 @@ function appendBarChart(
   inner: d3.Selection<SVGGElement, unknown, null, undefined>,
   data: BandChartData,
   margin: Margin,
-  options: BarChartOptions
+  options: BarChartOptions,
 ): void {
   const width = options.width - margin.left - margin.right;
   const height = options.height - margin.top - margin.bottom;
@@ -239,14 +239,14 @@ function appendBarChart(
     options.ylower ??
       (d3.min(data.entries, function (d) {
         return d.value;
-      }) as number)
+      }) as number),
   );
   const yMax = Math.max(
     0,
     options.yupper ??
       (d3.max(data.entries, function (d) {
         return d.value;
-      }) as number)
+      }) as number),
   );
 
   // Create the x and y scales
@@ -260,7 +260,7 @@ function appendBarChart(
     .domain(
       data.entries.map(function (d) {
         return d.label;
-      })
+      }),
     );
 
   const y = d3.scaleLinear();
@@ -291,8 +291,7 @@ function appendBarChart(
       return `rotate(${rotation.toString()})`;
     });
 
-  const xlabel =
-    options.xlabel === undefined ? data.label || "" : options.xlabel;
+  const xlabel = options.xlabel ?? data.label;
 
   inner
     .append("text")
@@ -344,10 +343,10 @@ function appendBarChart(
           options.tooltip(
             DimNum.fromNumber(d.value, data.unit),
             d.label,
-            options
+            options,
           ),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
       }
     })
