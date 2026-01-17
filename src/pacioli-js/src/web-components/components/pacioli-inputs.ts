@@ -23,9 +23,10 @@
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import type { PacioliParameter } from "../utils";
 import {
-  attachedPacioliWebComponents,
+  targetElements,
   parameterNodes,
   parseParameterNode,
+  setParameterNodes,
 } from "../utils";
 
 const TEMPLATE = document.createElement("template");
@@ -61,6 +62,27 @@ TEMPLATE.innerHTML = `
 `;
 
 /**
+ * An HTML element that is the target of a pacioli-inputs element. The target is identified
+ * with the 'for' attribute.
+ */
+type InputsTarget = {
+  /**
+   * The targeted element. The parent node of the parameter nodes. This element should
+   * contain a definition attribute.
+   */
+  element: HTMLElement;
+
+  /**
+   * The parameters derived from the parameter nodes. Contains the initial values and is
+   * not kept up to date.
+   */
+  inputs: {
+    parameter: PacioliParameter;
+    element: HTMLInputElement;
+  }[];
+};
+
+/**
  * Web component with inputs for a Pacioli web component's parameters.
  *
  * @example
@@ -78,12 +100,9 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
   static observedAttributes = ["for"];
 
   /**
-   * Inputs for the scene parameters
+   * Info about the elements that are connected via the 'for' attribute.
    */
-  private inputs?: {
-    parameter: PacioliParameter;
-    element: HTMLInputElement;
-  }[];
+  private targets?: InputsTarget[];
 
   /**
    * Web component life-cycle event.
@@ -93,18 +112,22 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
     _oldValue: string | null,
     _newValue: string
   ) {
-    switch (name) {
-      case "for": {
-        // Only handle changes after the initial construction. Initial
-        // construction is done in connectedCallback.
-        if (this.isConnected) {
-          this.removeTableRows();
+    try {
+      switch (name) {
+        case "for": {
+          // Only handle changes after the initial construction. Initial
+          // construction is done in connectedCallback.
+          if (this.isConnected) {
+            this.removeTableRows();
 
-          // Attach to new component. Same as in connectedCallback.
-          this.createAndAppendTableRows();
+            // Attach to new component. Same as in connectedCallback.
+            this.createAndAppendTableRows();
+          }
+          break;
         }
-        break;
       }
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
     }
   }
 
@@ -112,25 +135,31 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
    * Web component life-cycle event.
    */
   connectedCallback() {
-    super.connectedCallback();
+    try {
+      super.connectedCallback();
 
-    // Set the CSS class name for styling
-    this.contentParent().className = "content";
+      // Set the CSS class name for styling
+      this.contentParent().className = "content";
 
-    // Create the content from the template
-    this.contentParent().appendChild(TEMPLATE.content.cloneNode(true));
+      // Create the content from the template
+      this.contentParent().appendChild(TEMPLATE.content.cloneNode(true));
 
-    // Add input rows to the parameter table and follow the attached component
-    setTimeout(() => {
-      // Connect the apply button handler
-      this.findElement(".apply").addEventListener("click", () => {
-        this.applyButtonClicked();
-      });
+      // Add input rows to the parameter table
+      setTimeout(() => {
+        try {
+          // Connect the apply button handler
+          this.findElement(".apply").addEventListener("click", () => {
+            this.applyButtonClicked();
+          });
 
-      if (attachedPacioliWebComponents(this)) {
-        this.createAndAppendTableRows();
-      }
-    }, 1);
+          this.createAndAppendTableRows();
+        } catch (err: unknown) {
+          this.displayError(err instanceof Error ? err.message : String(err));
+        }
+      }, 1);
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   /**
@@ -138,10 +167,10 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
    */
   private createAndAppendTableRows() {
     // Remember the inputs so we can access them seperately
-    this.inputs = this.createInputs();
+    this.targets = this.createTargetsInfo();
 
     // Add the inputs to the table
-    addParameterRows(this.tableElement(), this.inputs);
+    addParameterRows(this.tableElement(), this.targets);
   }
 
   /**
@@ -153,7 +182,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
     }
 
     // Keep invariant that the inputs member and the parameter table rows match.
-    this.inputs = undefined;
+    this.targets = undefined;
   }
 
   /**
@@ -161,36 +190,28 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
    *
    * @returns List of objects with a 'paramater' and a 'element' field.
    */
-  private createInputs(): {
-    parameter: PacioliParameter;
-    element: HTMLInputElement;
-  }[] {
-    const scenes = attachedPacioliWebComponents(this); //this.attachedComponent();
+  private createTargetsInfo(): InputsTarget[] {
+    const booleansImmediate = !this.hasAttribute("calm");
 
-    const inputs: {
-      parameter: PacioliParameter;
-      element: HTMLInputElement;
-    }[] = [];
+    const targetsInfo: InputsTarget[] = [];
 
-    for (const scene of scenes) {
-      const parameters: PacioliParameter[] = parameterNodes(scene).map(
-        (element) => parseParameterNode(element)
+    for (const element of targetElements(this)) {
+      const parameters: PacioliParameter[] = parameterNodes(element).map(
+        (node) => parseParameterNode(node)
       );
 
-      const parameterInputs = createParameterInputs(
+      const inputs = createParameterInputs(
         parameters,
-        !this.hasAttribute("calm"),
+        booleansImmediate,
         () => {
           this.applyButtonClicked();
         }
       );
 
-      for (const input of parameterInputs) {
-        inputs.push(input);
-      }
+      targetsInfo.push({ element, inputs });
     }
 
-    return inputs;
+    return targetsInfo;
   }
 
   /**
@@ -198,21 +219,17 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
    */
   private applyButtonClicked() {
     try {
-      if (this.inputs) {
-        const scenes = attachedPacioliWebComponents(this);
-
-        for (const scene of scenes) {
-          scene.clearErrors();
-          scene.setParameters(
-            this.inputs.map((input) =>
-              input.parameter.type === "boole"
-                ? input.element.checked
-                  ? "true"
-                  : "false"
-                : input.element.value
-            )
-          );
-        }
+      for (const target of this.targets ?? []) {
+        setParameterNodes(
+          target.element,
+          target.inputs.map((input) =>
+            input.parameter.type === "boole"
+              ? input.element.checked
+                ? "true"
+                : "false"
+              : input.element.value
+          )
+        );
       }
     } catch (error: unknown) {
       this.displayError(error instanceof Error ? error.message : String(error));
@@ -291,49 +308,45 @@ function createParameterInputs(
  * @param table The parameter table
  * @param inputs A list of parameter/input pairs.
  */
-function addParameterRows(
-  table: HTMLTableElement,
-  inputs: {
-    parameter: PacioliParameter;
-    element: HTMLInputElement;
-  }[]
-) {
-  for (const input of inputs) {
-    // Create a row with a label, a value and a unit entry
-    const row = document.createElement("tr");
-    const labelEntry = document.createElement("td");
-    const valueEntry = document.createElement("td");
-    const unitEntry = document.createElement("td");
+function addParameterRows(table: HTMLTableElement, targets: InputsTarget[]) {
+  for (const target of targets) {
+    for (const input of target.inputs) {
+      // Create a row with a label, a value and a unit entry
+      const row = document.createElement("tr");
+      const labelEntry = document.createElement("td");
+      const valueEntry = document.createElement("td");
+      const unitEntry = document.createElement("td");
 
-    // Set the label
-    labelEntry.innerText = input.parameter.label;
+      // Set the label
+      labelEntry.innerText = input.parameter.label;
 
-    // Append the input to the value entry
-    valueEntry.appendChild(input.element);
+      // Append the input to the value entry
+      valueEntry.appendChild(input.element);
 
-    // Set the unit
-    switch (input.parameter.type) {
-      case "string": {
-        unitEntry.innerText = "";
-        break;
+      // Set the unit
+      switch (input.parameter.type) {
+        case "string": {
+          unitEntry.innerText = "";
+          break;
+        }
+        case "boole": {
+          unitEntry.innerText = "";
+          break;
+        }
+        case "number": {
+          unitEntry.innerText = input.parameter.pacioliUnit.toText();
+          break;
+        }
       }
-      case "boole": {
-        unitEntry.innerText = "";
-        break;
-      }
-      case "number": {
-        unitEntry.innerText = input.parameter.pacioliUnit.toText();
-        break;
-      }
+
+      // Append the entries to the row
+      row.appendChild(labelEntry);
+      row.appendChild(valueEntry);
+      row.appendChild(unitEntry);
+
+      // Append the row to the table
+      table.appendChild(row);
     }
-
-    // Append the entries to the row
-    row.appendChild(labelEntry);
-    row.appendChild(valueEntry);
-    row.appendChild(unitEntry);
-
-    // Append the row to the table
-    table.appendChild(row);
   }
 }
 

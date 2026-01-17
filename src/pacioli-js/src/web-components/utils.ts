@@ -245,26 +245,28 @@ export function parseParameterNode(
 }
 
 /**
- * The Pacioli web component that is referenced by an element's 'for' attribute. Returns
- * undefined if no such component is found.
+ * The HTML elements that are referenced by an element's 'for' attribute. The attribute
+ * can be a comma separated list.
  *
  * @param element The element with the 'for' attribute
- * @returns The referenced element, or undefined if it is not found.
+ * @returns The referenced elements.
  */
-export function attachedPacioliWebComponents(
-  element: HTMLElement
-): PacioliWebComponent[] {
+export function targetElements(element: HTMLElement): HTMLElement[] {
   const elementId = element.getAttribute("for");
   if (elementId === null) {
-    return [];
+    throw new PacioliError(
+      "No 'for' attribute found. Provide a 'for' attribute with the target's element id as value."
+    );
   } else {
-    const components: PacioliWebComponent[] = [];
+    const components: HTMLElement[] = [];
 
     for (const id of elementId.split(",")) {
       const trimmed = id.trim();
-      const component = getPacioliWebComponentById(trimmed);
+      const component = document.getElementById(trimmed);
       if (component === null) {
-        throw new PacioliError(`Count not find element ${trimmed}`);
+        throw new PacioliError(
+          `Could not find element '${trimmed}'. Provide a valid element id in the 'for' attribute.`
+        );
       } else {
         components.push(component);
       }
