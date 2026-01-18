@@ -9,7 +9,8 @@ test/**/*.js
 /src/uom/target/
 /src/pacioli/target/
 /src/mvm/target/
-.vscode/
+.vscode/**
+!.vscode/launch.json
 /src/pacioli-js/node_modules/
 /src/pacioli-js/dist/
 /src/pacioli-js/test/
@@ -23,6 +24,7 @@ vscode/pacioli/out/
 vscode/pacioli/node_modules/
 vscode/pacioli/*.jar
 vscode/pacioli/*.vsix
+vscode/pacioli/.vscode/**
 samples/shock_tube/
 samples/commodity/
 debug.options
