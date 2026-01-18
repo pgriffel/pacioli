@@ -97,7 +97,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = ["for"];
+  static readonly observedAttributes = ["for"];
 
   /**
    * Info about the elements that are connected via the 'for' attribute.
@@ -222,13 +222,13 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
       for (const target of this.targets ?? []) {
         setParameterNodes(
           target.element,
-          target.inputs.map((input) =>
-            input.parameter.type === "boole"
-              ? input.element.checked
-                ? "true"
-                : "false"
-              : input.element.value
-          )
+          target.inputs.map((input) => {
+            if (input.parameter.type === "boole") {
+              return input.element.checked ? "true" : "false";
+            } else {
+              return input.element.value;
+            }
+          })
         );
       }
     } catch (error: unknown) {

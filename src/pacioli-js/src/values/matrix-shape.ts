@@ -20,14 +20,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { PacioliCoordinates } from "./coordinates";
 import { MatrixDimension } from "./matrix-dimension";
 import type { VectorBase } from "./vector-base";
 
 export class SIVector extends UOM<VectorBase> {
-  public static ONE: UOM<VectorBase> = new UOM(new Map());
+  public static readonly ONE: UOM<VectorBase> = new UOM(new Map());
 }
 
 export class MatrixShape {
@@ -304,7 +303,7 @@ export class MatrixShape {
   public rowName(): string {
     return this.rowNames().reduce(function (x, y) {
       return x + "%" + y;
-    });
+    }, "");
   }
 
   public columnNames(): string[] {
@@ -316,12 +315,8 @@ export class MatrixShape {
   public columnName(): string {
     return this.columnNames().reduce(function (x, y) {
       return x + "%" + y;
-    });
+    }, "");
   }
-
-  // Pacioli.Shape.prototype.columnCoordinates = function (position) {
-  //     return new Pacioli.Coordinates(position, this.columnSets);
-  //   }
 
   public findRowUnit(row: number): SIUnit {
     return this.rowCoordinates(row).findIndividualUnit(this.rowUnit);

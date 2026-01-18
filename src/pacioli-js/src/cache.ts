@@ -24,7 +24,7 @@ import type { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { IndexSet } from "./values/index-set";
 import { set } from "./raw-values/raw-matrix";
-import type { PacioliUnit } from "./types/pacioli-type";
+import type { PacioliType, PacioliUnit } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
 import type { RawCoordinates, RawValue } from "./raw-values/raw-value";
@@ -61,7 +61,7 @@ export function createCoordinates(
     kind: "coordinates",
     position: coords.position(),
     size: coords.size(),
-    coords: coords,
+    coords: coords
   };
 }
 
@@ -152,11 +152,10 @@ export function initialNumbers(
 export function printValue(x: RawValue) {
   const cons = document.getElementById("console");
   if (cons) {
-    const body = stringifyRawValue(x);
-    // const body = DOM(x);
     const elt = document.createElement("pre");
-    // elt.appendChild(body);
-    elt.innerText = body;
+
+    elt.innerText = stringifyRawValue(x);
+
     cons.appendChild(elt);
   } else {
     console.log(x);
@@ -176,7 +175,7 @@ export function string(value: string): PacioliString {
 // 1. The Store
 // -----------------------------------------------------------------------------
 
-const cache: object = {};
+const cache: Map<string, PacioliType | RawValue> = new Map();
 
 export function fetchValue(
   home: string,
@@ -259,26 +258,31 @@ export function fetchUnitVector(
  * @param _context
  * @returns
  */
+// TODO Remove this disable if the type of this function is fixed. Two functions? And
+// two caches?
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function lookupItem<T>(
   full: string,
   _context: PacioliContext = defaultContext
 ): T {
-  // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-  if (cache[full] === undefined) {
+  if (cache.get(full) === undefined) {
     // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
-    const asValue = window["Pacioli"][full];
+    const asValue = window["Pacioli"][full] as
+      | PacioliType
+      | RawValue
+      | undefined;
 
-    if (asValue) {
-      // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-      cache[full] = asValue;
+    if (asValue === undefined) {
+      cache.set(
+        full,
+        findFunction<T>("compute_" + full)() as PacioliType | RawValue
+      );
     } else {
-      // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-      cache[full] = findFunction<T>("compute_" + full)();
+      cache.set(full, asValue);
     }
   }
 
-  // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-  return cache[full] as T;
+  return cache.get(full) as T;
 }
 
 /**
@@ -304,27 +308,21 @@ declare global {
  * @param name
  * @returns
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function findFunction<T>(name: string): () => T {
   const nameSpace = globalThis.Pacioli;
-  if ("Pacioli" in globalThis) {
-    // const nameSpace = globalThis.Pacioli;
 
-    // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
-    const fun = nameSpace[name] as undefined | (() => T);
+  // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
+  const fun = nameSpace[name] as (() => T) | undefined;
 
-    if (fun === undefined) {
-      throw new Error(`No function found to compute Pacioli item '${name}'`);
-    }
-    if (typeof fun === "function") {
-      return fun;
-    } else {
-      throw new Error(
-        `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
-      );
-    }
+  if (fun === undefined) {
+    throw new Error(`No function found to compute Pacioli item '${name}'`);
+  }
+  if (typeof fun === "function") {
+    return fun;
   } else {
     throw new Error(
-      `No 'Pacioli' namespace found, cannot compute Pacioli item '${name}'`
+      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
     );
   }
 }

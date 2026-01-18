@@ -162,7 +162,7 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
+  static readonly observedAttributes = [
     "definition",
     "decimals",
     "totals",

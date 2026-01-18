@@ -119,7 +119,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   /**
    * Auto-rotation speed
    */
-  static SECONDS_PER_ROTATION = 30;
+  static readonly SECONDS_PER_ROTATION = 30;
 
   /**
    * Web component life-cycle event.

@@ -21,7 +21,7 @@ export default defineConfig([
       "unicorn/no-null": "off", // meh
       "unicorn/prefer-query-selector": "off", // meh
       "unicorn/prefer-dom-node-text-content": "off", // TODO: is this better?
-      "unicorn/no-nested-ternary": "off", // TODO: clashes with Prettier. Prefer unicorn's opinion?
+      // "unicorn/no-nested-ternary": "off", // TODO: clashes with Prettier. Prefer unicorn's opinion?
       "unicorn/prefer-type-error": "off", // meh
       "unicorn/prefer-ternary": "off", // meh
       "unicorn/prefer-single-call": "off", // Sometimes okay, not always.
@@ -41,8 +41,11 @@ export default defineConfig([
       },
     },
     rules: {
-      "@typescript-eslint/strict-boolean-expressions": "error",
       eqeqeq: "error",
+      "@typescript-eslint/no-for-in-array": "off",
+      "@typescript-eslint/no-deprecated": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/strict-boolean-expressions": "error",
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-import-type-side-effects": "error",
       "@typescript-eslint/no-unused-vars": [

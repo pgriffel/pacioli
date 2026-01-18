@@ -312,7 +312,7 @@ export abstract class PacioliWebComponent
     defaultValue: string = ""
   ): string {
     const att = this.getAttribute(attribute);
-    return att === null ? defaultValue : att;
+    return att ?? defaultValue;
   }
 
   protected setBooleAttribute(attribute: string, value: boolean | undefined) {
@@ -334,5 +334,5 @@ export function getNumberAttribute(
   defaultValue: number = 0
 ): number {
   const att = element.getAttribute(attribute);
-  return Number(att === null ? defaultValue : att);
+  return Number(att ?? defaultValue);
 }

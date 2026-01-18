@@ -131,7 +131,7 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
+  static readonly observedAttributes = [
     "definition",
     "decimals",
     "xlabel",

@@ -78,7 +78,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
   /**
    * Web component field.
    */
-  static observedAttributes = ["for"];
+  static readonly observedAttributes = ["for"];
 
   /**
    * Web component life-cycle event.

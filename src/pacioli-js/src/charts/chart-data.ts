@@ -91,7 +91,7 @@ export function linearChartData(
 
   switch (data.kind) {
     case "tuple": {
-      if (data.length !== 2 || 1 + 1 === 2) {
+      if (data.length !== 2) {
         throw linearChartError(
           `When the data is a tuple it must be a pair. Got a tuple of length ${data.length.toString()}.`
         );
@@ -264,7 +264,7 @@ function pairsFromMatrices(
       vals.push({
         x: leftNumber,
         y: rightNumber,
-        coordinates: leftCoord,
+        coordinates: leftCoord
       });
 
       xLower = Math.min(xLower, leftNumber);
@@ -281,7 +281,7 @@ function pairsFromMatrices(
       xLower,
       xUpper,
       yLower,
-      yUpper,
+      yUpper
     };
   }
 }
@@ -325,7 +325,7 @@ function pairsFromLists(
       xLower,
       xUpper,
       yLower,
-      yUpper,
+      yUpper
     };
   }
 }
@@ -356,7 +356,7 @@ function pairsFromListofScalars(
     yLower: min ?? 0, // todo
     yUpper: max ?? 1, // todo
     xUnit: SIUnit.ONE,
-    yUnit: items[0].getUnit(0, 0), // assume uniform units
+    yUnit: items[0].getUnit(0, 0) // assume uniform units
   };
 }
 
@@ -388,7 +388,7 @@ function pairsFromVector(
     yLower: min ?? 0, // todo
     yUpper: max ?? 1, // todo
     xUnit: SIUnit.ONE,
-    yUnit: shape.unitAt(0, 0),
+    yUnit: shape.unitAt(0, 0)
   };
 }
 
@@ -425,7 +425,7 @@ export function bandChartDataFromList(
       unit: conv(content).getUnit(0, 0),
       max: max ?? 0,
       min: min ?? 0,
-      label: "", // TODO? Is this used?
+      label: "" // TODO? Is this used?
     };
   } else if (content.kind === "tuple") {
     for (const [i, item] of items.entries()) {
@@ -463,7 +463,7 @@ export function bandChartDataFromList(
       unit: conv(content[1] as PacioliMatrix).getUnit(0, 0),
       max: max ?? 0,
       min: min ?? 0,
-      label: "", // TODO? Is this used?
+      label: "" // TODO? Is this used?
     };
   } else {
     throw new Error(
@@ -492,7 +492,7 @@ export function bandChartDataFromVector(
       values.push({
         value,
         label: coordinates.shortText(),
-        coordinates,
+        coordinates
       });
 
       if (max === undefined || max < value) max = value;
@@ -505,6 +505,6 @@ export function bandChartDataFromVector(
     unit: data.getUnit(0, 0),
     max: max ?? 0,
     min: min ?? 0,
-    label: shape.rowName(),
+    label: shape.rowName()
   };
 }

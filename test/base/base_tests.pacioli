@@ -43,6 +43,7 @@ define base_suites = [
     random_suite,
     equal_suite,
     string_length_suite,
+    compare_string_suite,
     substring_suite,
     pad_suite,
     pad_left_suite,
@@ -484,6 +485,19 @@ define string_length_suite = test_suite("Function string_length", [
  
     test("should be three for the string 'foo'", () ->
         string_length("foo") = 3)
+]);
+
+# ------------------------------------------------------------------------------
+# compare_string suite
+# ------------------------------------------------------------------------------
+
+define compare_string_suite = test_suite("Function compare_string", [
+    
+    test("should be zero for two empty strings", () ->
+        compare_string("", "") = 0),
+ 
+    test("should be 1 for strings 'a' and 'b'", () ->
+        compare_string("a", "b") = -1)
 ]);
 
 # ------------------------------------------------------------------------------

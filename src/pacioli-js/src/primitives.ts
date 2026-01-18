@@ -27,7 +27,7 @@ import type { NumericFullMatrix } from "./raw-values/numbers";
 import {
   getCCSNumbers,
   getCOONumbers,
-  getFullNumbers,
+  getFullNumbers
 } from "./raw-values/numbers";
 import { RawMap } from "./raw-values/raw-value";
 import type {
@@ -39,7 +39,7 @@ import type {
   RawRef,
   RawString,
   RawTuple,
-  RawValue,
+  RawValue
 } from "./raw-values/raw-value";
 import {
   NOTHING,
@@ -49,7 +49,7 @@ import {
   tagList,
   tagMatrix,
   tagRef,
-  tagTuple,
+  tagTuple
 } from "./raw-values/raw-value";
 import type { PacioliVoid } from "./values/void";
 import { VOID } from "./values/void";
@@ -67,7 +67,7 @@ import {
   get,
   getNumber,
   set,
-  unaryNumbers,
+  unaryNumbers
 } from "./raw-values/raw-matrix";
 import { PacioliError } from "./pacioli-error";
 
@@ -100,7 +100,7 @@ export const prefix = {
   femto: { symbol: "f", factor: Math.pow(10, -15) },
   atto: { symbol: "a", factor: Math.pow(10, -18) },
   zepto: { symbol: "z", factor: Math.pow(10, -21) },
-  yocto: { symbol: "y", factor: Math.pow(10, -24) },
+  yocto: { symbol: "y", factor: Math.pow(10, -24) }
 };
 
 // -----------------------------------------------------------------------------
@@ -348,7 +348,7 @@ export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
   const first = tuples[0] as unknown as [
     RawCoordinates,
     RawCoordinates,
-    RawMatrix,
+    RawMatrix
   ];
   const numbers = zeroNumbers(first[0].size, first[1].size);
   for (const tuple of tuples) {
@@ -360,7 +360,7 @@ export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
 
 export function $base_matrix_signum(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
-    return val < 0 ? -1 : val > 0 ? 1 : 0;
+    return Math.sign(val);
   });
 }
 
@@ -1055,7 +1055,7 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
   const svd = $base_matrix_singular_value_list(x) as unknown as [
     RawMatrix,
     RawMatrix,
-    RawMatrix,
+    RawMatrix
   ][];
 
   // Copied from SingularValueDecomposition.cs
@@ -1583,7 +1583,7 @@ export function $base_string_compare_string(
   x: RawString,
   y: RawString
 ): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, x < y ? -1 : x > y ? 1 : 0]]);
+  return initialNumbers(1, 1, [[0, 0, x.localeCompare(y)]]);
 }
 
 export function $base_string_concatenate(

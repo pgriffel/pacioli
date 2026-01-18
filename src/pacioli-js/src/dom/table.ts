@@ -418,13 +418,13 @@ function stringifyTableData(
 
   const indexHeaders = {
     row: data.indexHeaders.row.map((header) => header.name),
-    column: data.indexHeaders.column.map((header) => header.name),
+    column: data.indexHeaders.column.map((header) => header.name)
   };
 
   const index = data.index.map((entry) => {
     return {
       row: entry.row.names,
-      column: entry.column.names,
+      column: entry.column.names
     };
   });
 
@@ -432,16 +432,16 @@ function stringifyTableData(
     return {
       row: value.row.map((cell, col) => {
         return {
-          magnitude:
-            cell.magnitude.isZero() && zeroString !== undefined
-              ? zeroString
-              : omitDecimals
-              ? cell.magnitude.toFixed()
-              : cell.magnitude.toFixed(decimalsPerColumn[col]),
-          unit: cell.unit.toText(),
+          magnitude: stringifyCell(
+            cell,
+            zeroString,
+            omitDecimals,
+            decimalsPerColumn[col]
+          ),
+          unit: cell.unit.toText()
         };
       }),
-      isZero: value.isZero,
+      isZero: value.isZero
     };
   });
 
@@ -449,13 +449,13 @@ function stringifyTableData(
     return cell === undefined
       ? undefined
       : {
-          magnitude:
-            cell.magnitude.isZero() && zeroString !== undefined
-              ? zeroString
-              : omitDecimals
-              ? cell.magnitude.toFixed()
-              : cell.magnitude.toFixed(decimalsPerColumn[col]),
-          unit: cell.unit.toText(),
+          magnitude: stringifyCell(
+            cell,
+            zeroString,
+            omitDecimals,
+            decimalsPerColumn[col]
+          ),
+          unit: cell.unit.toText()
         };
   });
 
@@ -468,6 +468,21 @@ function stringifyTableData(
   );
 }
 
+function stringifyCell(
+  cell: DimNum,
+  zeroString: string | undefined,
+  omitDecimals: boolean,
+  nrDecimals: number
+): string {
+  if (cell.magnitude.isZero() && zeroString !== undefined) {
+    return zeroString;
+  } else {
+    return omitDecimals
+      ? cell.magnitude.toFixed()
+      : cell.magnitude.toFixed(nrDecimals);
+  }
+}
+
 function tableDataFromMatrix(
   matrix: PacioliMatrix,
   header: string,
@@ -476,7 +491,7 @@ function tableDataFromMatrix(
 ): TableData {
   const indexSets = {
     row: matrix.rowIndexSets(),
-    column: matrix.columnIndexSets(),
+    column: matrix.columnIndexSets()
   };
   const index: {
     row: PacioliCoordinates;
@@ -505,7 +520,7 @@ function tableDataFromMatrix(
       for (let j = 0; j < nrColumns; j++) {
         const indexEntry = {
           row: shape.rowCoordinates(i),
-          column: shape.columnCoordinates(j),
+          column: shape.columnCoordinates(j)
         };
 
         index.push(indexEntry);
@@ -530,7 +545,7 @@ function tableDataFromMatrix(
   }
 
   return new TableData(indexSets, index, columnHeaders, columns, [
-    effectiveTotal,
+    effectiveTotal
   ]);
 }
 
@@ -558,7 +573,7 @@ function mergeTableData(left: TableData, right: TableData): TableData {
     const rght = right.values[i];
     values.push({
       row: [...lft.row, ...rght.row],
-      isZero: lft.isZero && rght.isZero,
+      isZero: lft.isZero && rght.isZero
     });
   }
 
