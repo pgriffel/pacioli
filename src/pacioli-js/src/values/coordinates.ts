@@ -41,7 +41,10 @@ export class PacioliCoordinates {
     return new PacioliCoordinates(names, indexSets);
   }
 
-  constructor(public names: string[], public indexSets: IndexSet[]) {}
+  constructor(
+    public names: string[],
+    public indexSets: IndexSet[],
+  ) {}
 
   public position() {
     let position = 0;
@@ -123,7 +126,7 @@ export class PacioliCoordinates {
       new MatrixDimension(this.indexSets),
       SIVector.ONE,
       MatrixDimension.empty(),
-      SIVector.ONE
+      SIVector.ONE,
     );
   }
 
@@ -145,7 +148,7 @@ export class PacioliCoordinates {
       newUnit = newUnit.mult(
         unit.map((base) => {
           return vecBaseItem(base, i);
-        })
+        }),
       );
     }
     return newUnit;

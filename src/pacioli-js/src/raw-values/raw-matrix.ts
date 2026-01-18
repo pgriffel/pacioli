@@ -85,7 +85,7 @@ export function set(
   numbers: RawMatrix,
   row: number,
   column: number,
-  value: number
+  value: number,
 ) {
   switch (numbers.storage) {
     case "full": {
@@ -132,7 +132,7 @@ export function set(
 export function getNumber(
   numbers: RawMatrix,
   row: number,
-  column: number
+  column: number,
 ): number {
   switch (numbers.storage) {
     case "full": {
@@ -140,7 +140,7 @@ export function getNumber(
     }
     case "DOK": {
       const entry = numbers[row];
-      return entry ? entry[column] ?? 0 : 0;
+      return entry ? (entry[column] ?? 0) : 0;
     }
     case "COO": {
       const rows = numbers[0];
@@ -181,21 +181,21 @@ export function getNumber(
 
 export function unaryNumbers(
   numbers: RawMatrix,
-  fun: (val: number) => number
+  fun: (val: number) => number,
 ): RawMatrix {
   const coo = getCOONumbers(numbers);
   return tagMatrix(
     [coo[0], coo[1], coo[2].map((element) => fun(element))],
     numbers.nrRows,
     numbers.nrColumns,
-    "COO"
+    "COO",
   );
 }
 
 export function elementWiseNumbers(
   xNumbers: RawMatrix,
   yNumbers: RawMatrix,
-  fun: (x: number, y: number) => number
+  fun: (x: number, y: number) => number,
 ) {
   let px = 0;
   let py = 0;
@@ -267,7 +267,7 @@ export function elementWiseNumbers(
     [rows, columns, values],
     xNumbers.nrRows,
     xNumbers.nrColumns,
-    "COO"
+    "COO",
   );
 }
 
@@ -275,7 +275,7 @@ export function findNonZero(
   xNumbers: RawMatrix,
   yNumbers: RawMatrix,
   fun: (x: number, y: number) => boolean,
-  zero_zero_case: boolean
+  zero_zero_case: boolean,
 ) {
   let px = 0;
   let py = 0;
@@ -416,7 +416,7 @@ export function tableDataFromRawMatrix(
   matrix: RawMatrix,
   header: string,
   _showTotal: boolean,
-  total?: string
+  total?: string,
 ): StringifiedTableData {
   const indexSets = {
     row: matrix.nrRows === 1 ? [] : ["row"],

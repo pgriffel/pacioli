@@ -54,7 +54,7 @@ export function createMatrixType(
   rowSets: PacioliIndex,
   rowUnit: PacioliVector,
   columnSets: PacioliIndex,
-  columnUnit: PacioliVector
+  columnUnit: PacioliVector,
 ): MatrixType {
   return new MatrixType(multiplier, rowSets, rowUnit, columnSets, columnUnit);
 }
@@ -66,12 +66,12 @@ export function createMatrixType(
 export function value(
   module: string,
   name: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): PacioliValue {
   return boxRawValue(
     lookupItem<RawValue>(module + "_" + name, context),
     lookupItem<PacioliType>("u_" + module + "_" + name, context),
-    context
+    context,
   );
 }
 
@@ -79,7 +79,7 @@ export function value(
 export function fun(
   module: string,
   name: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): PacioliFunction {
   const type = lookupItem<PacioliType>("u_" + module + "_" + name, context);
   const value = lookupItem<RawValue>(module + "_" + name, context);
@@ -88,14 +88,14 @@ export function fun(
     return box;
   } else {
     throw new Error(
-      `Expected a PacioliFunction when creating fun ${module}_${name} but got a '${box.kind}'`
+      `Expected a PacioliFunction when creating fun ${module}_${name} but got a '${box.kind}'`,
     );
   }
 }
 
 export function convertUnit(
   matrix: PacioliMatrix,
-  unit: SIUnit
+  unit: SIUnit,
 ): PacioliMatrix {
   return matrix.convertUnit(unit, defaultContext.unitContext);
 }
@@ -119,7 +119,7 @@ export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
   return UOM.fromBase(
     name2 === undefined
       ? new SIBaseType("", name1)
-      : new SIBaseType(name1, name2)
+      : new SIBaseType(name1, name2),
   );
 }
 
@@ -127,7 +127,7 @@ export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
 export function unitVectorType(
   module: string,
   type: string,
-  position: number
+  position: number,
 ): UOM<VectorBaseType> {
   return UOM.fromBase(new VectorBaseType(module + "_" + type, position));
 }
@@ -147,7 +147,7 @@ export function typeFromVarName(varName: string): TypeVar {
 
 export function num(
   num: string | number,
-  unit: SIUnit = SIUnit.ONE
+  unit: SIUnit = SIUnit.ONE,
 ): PacioliMatrix {
   const shape = MatrixShape.scalar(unit);
   const numbers = initialNumbers(1, 1, [
@@ -158,12 +158,12 @@ export function num(
 
 export function parseUnit(
   input: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): SIUnit {
   return uomParseDimNum(
     input,
     (x) => fetchUnit("", x, context),
-    (x, y) => fetchUnit(x, y, context)
+    (x, y) => fetchUnit(x, y, context),
   ).unit;
 }
 
@@ -172,18 +172,18 @@ export function stringifyUnit(unit: SIUnit): string {
     (base, power) =>
       power === 1 ? base.name : `${base.name}^${power.toString()}`,
     (x, y) => x + "*" + y,
-    ""
+    "",
   );
 }
 
 export function parseDimNum(
   input: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): DimNum {
   return uomParseDimNum(
     input,
     (x) => fetchUnit("", x, context),
-    (x, y) => fetchUnit(x, y, context)
+    (x, y) => fetchUnit(x, y, context),
   );
 }
 
@@ -207,7 +207,7 @@ export function list(array: PacioliValue[]): PacioliValue {
   });
   return new PacioliList(
     new GenericType("List", [typeFromValue(array[0])]),
-    ...vList
+    ...vList,
   );
 
   // throw new Error("Is Pacioli.list(...) used?");

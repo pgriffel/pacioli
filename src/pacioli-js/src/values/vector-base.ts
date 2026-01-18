@@ -28,7 +28,7 @@ export class VectorBase implements UOMBase, ToText {
   constructor(
     public vector: UnitVector,
     public position: number,
-    public name: string
+    public name: string,
   ) {}
 
   getName(): string {

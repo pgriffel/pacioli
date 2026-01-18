@@ -27,7 +27,10 @@ import type { RawValue } from "../raw-values/raw-value";
 export class PacioliMaybe {
   readonly kind = "maybe";
 
-  constructor(public type: PacioliType, public value?: PacioliValue) {}
+  constructor(
+    public type: PacioliType,
+    public value?: PacioliValue,
+  ) {}
 }
 
 export class RawMaybe {

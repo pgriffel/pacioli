@@ -188,7 +188,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
         return kindAttribute;
       } else {
         throw new Error(
-          `cannot set kind '${kindAttribute}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
+          `cannot set kind '${kindAttribute}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`,
         );
       }
     }
@@ -305,7 +305,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
 function loadSpaceData(
   space: Space,
   data: PacioliValue,
-  kind: "scene" | "animation" | "stateful-animation"
+  kind: "scene" | "animation" | "stateful-animation",
 ) {
   // Cast the PacioliValue to the expected type and hope it works out at runtime.
   // TODO: Improve error handling with runtime checks on the returned value

@@ -63,7 +63,7 @@ export function addArrow(
     unitY: SIUnit;
     unitZ: SIUnit;
     scale: number;
-  }
+  },
 ) {
   body.add(createTHREEArrowHelper(arrow, options));
 
@@ -82,7 +82,7 @@ export function updateArrow(
     unitZ: SIUnit;
     scale: number;
     labelScale: number;
-  }
+  },
 ) {
   const [from, to, name, label, color] = pacioliArrow;
 
@@ -110,13 +110,13 @@ export function updateArrow(
 
     if (labelObj) {
       const labelPos = vector2THREE(from, options).add(
-        vector2THREE(to, options)
+        vector2THREE(to, options),
       );
 
       labelObj.position.set(
         labelPos.x,
         labelPos.y + 0.5 * options.labelScale,
-        labelPos.z
+        labelPos.z,
       );
 
       updateCanvasLabelObject(labelObj, label.value);
@@ -126,7 +126,7 @@ export function updateArrow(
 
 function createTHREEArrowHelper(
   arrow: PacioliArrow,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ): THREE.ArrowHelper {
   const [origin, vector, name, _, color] = arrow;
 
@@ -145,7 +145,7 @@ function createTHREEArrowHelper(
 
 function arrowDirectionAndLength(
   vector: PacioliMatrix,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ): [THREE.Vector3, number] {
   const threeVector = vector2THREE(vector, options);
 
@@ -167,20 +167,20 @@ function createTHREELabel(
     unitY: SIUnit;
     unitZ: SIUnit;
     scale: number;
-  }
+  },
 ) {
   const [origin, vector, name, label, _] = arrow;
 
   const labelObject = makeCanvasLabelObject(label.value, 0.7, options);
 
   const labelPos = vector2THREE(origin, options).add(
-    vector2THREE(vector, options)
+    vector2THREE(vector, options),
   );
 
   labelObject.position.set(
     labelPos.x,
     labelPos.y + 0.5 * options.labelScale,
-    labelPos.z
+    labelPos.z,
   );
 
   // Add a name if given, so the label can be found during an update.

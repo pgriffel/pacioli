@@ -67,7 +67,7 @@ export class PacioliContext {
     return new PacioliContext(
       UOMContext.fromDef(emptyDef),
       new Map(),
-      new Map()
+      new Map(),
     );
   }
 
@@ -78,7 +78,7 @@ export class PacioliContext {
   constructor(
     public unitContext: UOMContext,
     public unitVectors: Map<string, UnitVector> = new Map(),
-    public indexSets: Map<string, IndexSet> = new Map()
+    public indexSets: Map<string, IndexSet> = new Map(),
   ) {}
 
   public addBase(name: string, symbol: string, definition?: DimNum) {
@@ -120,7 +120,7 @@ export class PacioliContext {
           power?: number;
         }[];
       };
-    }[]
+    }[],
   ): UnitVector {
     const indexSet = this.findIndexSet(index);
     if (indexSet) {
@@ -133,7 +133,7 @@ export class PacioliContext {
       return vector;
     } else {
       throw new Error(
-        "Index set " + index + " unknown when creating unit vector " + name
+        "Index set " + index + " unknown when creating unit vector " + name,
       );
     }
   }

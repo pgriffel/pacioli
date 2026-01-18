@@ -48,7 +48,7 @@ describe("DOM", () => {
         new MatrixDimension([personSet]),
         SIVector.ONE,
         new MatrixDimension([]),
-        SIVector.ONE
+        SIVector.ONE,
       );
       const numbers = initialNumbers(personSet.size(), 1, [
         [0, 0, 1],

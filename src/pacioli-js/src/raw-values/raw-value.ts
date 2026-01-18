@@ -125,7 +125,7 @@ export function tagMatrix(
   numbers: NumericMatrix,
   nrRows: number,
   nrColumns: number,
-  storage: RawMatrixStorage
+  storage: RawMatrixStorage,
 ): RawMatrix {
   const matrix = numbers as RawMatrix;
 
@@ -166,7 +166,7 @@ export function tagRef(value: Array<RawValue>): RawRef {
  * @returns One of the labels.
  */
 export function rawValueLabel(
-  value: RawValue
+  value: RawValue,
 ):
   | "matrix"
   | "list"

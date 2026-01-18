@@ -34,7 +34,7 @@ export class PacioliMap {
     public srcType: PacioliType,
     public dstType: PacioliType,
     public rawMap: RawMap,
-    private context: PacioliContext
+    private context: PacioliContext,
   ) {}
 
   /**
@@ -49,7 +49,7 @@ function mapAsDOM(
   map: PacioliMap,
   srcType: PacioliType,
   dstType: PacioliType,
-  context: PacioliContext
+  context: PacioliContext,
 ): HTMLElement {
   const keyMap = map.rawMap.keyMap;
   const valueMap = map.rawMap.valueMap;

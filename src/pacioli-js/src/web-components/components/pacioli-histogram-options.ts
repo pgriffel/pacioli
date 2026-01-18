@@ -202,5 +202,5 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
 
 customElements.define(
   "pacioli-histogram-options",
-  PacioliHistogramOptionsComponent
+  PacioliHistogramOptionsComponent,
 );

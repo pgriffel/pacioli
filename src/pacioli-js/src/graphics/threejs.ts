@@ -30,7 +30,7 @@ import type { PacioliTuple } from "../values/tuple";
 export function createGridHelper(
   size: number,
   divisions: number,
-  color: string
+  color: string,
 ) {
   const gridColor = new THREE.Color(color);
   return new THREE.GridHelper(size, divisions, gridColor, gridColor);
@@ -46,7 +46,7 @@ export function createGridHelper(
 export function moveObject(
   object: THREE.Object3D,
   position: PacioliMatrix,
-  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const jsVector = vector2THREE(position, units);
   object.position.set(jsVector.x, jsVector.y, jsVector.z);
@@ -69,7 +69,7 @@ export function rotateObject(object: THREE.Object3D, rotations: PacioliTuple) {
  */
 export function vector2THREE(
   vector: PacioliMatrix,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const extraFactor = options.scale;
   const numbers = vector.numbers;
@@ -90,7 +90,7 @@ export function vector2THREE(
   return new THREE.Vector3(
     getNumber(numbers, 0, 0) * factorx,
     getNumber(numbers, 2, 0) * factory,
-    getNumber(numbers, 1, 0) * factorz
+    getNumber(numbers, 1, 0) * factorz,
   );
 }
 
@@ -102,7 +102,7 @@ export function makeCanvasLabelObject(
     fontSize: number;
     labelColor: string;
     labelScale: number;
-  }
+  },
 ): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
   // See https://threejs.org/manual/#en/canvas-textures
 
@@ -158,7 +158,7 @@ export function makeCanvasLabelObject(
 
 export function updateCanvasLabelObject(
   labelObj: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>,
-  text: string
+  text: string,
 ) {
   const texture = labelObj.material.map;
 

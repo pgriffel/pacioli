@@ -47,7 +47,7 @@ export function makeIndexSet(id: string, name: string, items: string[]) {
 
 export function createCoordinates(
   pairs: string[][],
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): RawCoordinates {
   const names = [];
   const indexSets = [];
@@ -61,7 +61,7 @@ export function createCoordinates(
     kind: "coordinates",
     position: coords.position(),
     size: coords.size(),
-    coords: coords
+    coords: coords,
   };
 }
 
@@ -88,7 +88,7 @@ export function oneNumbers(m: number, n: number): RawMatrix {
 
 export function oneNumbersFromShape(
   type: MatrixType,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): RawMatrix {
   const shape = matrixShapeFromType(type, context);
   const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
@@ -111,7 +111,7 @@ export function oneNumbersFromShape(
 export function initialNumbers(
   m: number,
   n: number,
-  data: number[][]
+  data: number[][],
 ): RawMatrix {
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
@@ -180,14 +180,14 @@ const cache: Map<string, PacioliType | RawValue> = new Map();
 export function fetchValue(
   home: string,
   name: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): RawValue {
   return lookupItem<RawValue>(home + "_" + name, context);
 }
 
 export function fetchIndex(
   id: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): IndexSet {
   const indexSet = context.findIndexSet(id);
   if (indexSet === undefined) {
@@ -202,7 +202,7 @@ export function fetchIndex(
 export function fetchUnit(
   prefix: string,
   base: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): SIUnit {
   const unit = context.lookupUnit(prefix, base);
   if (unit === undefined) {
@@ -212,7 +212,7 @@ export function fetchUnit(
     //   prefix.length === 0 && parts.length === 2 ? parts[0] : prefix;
 
     const def: { definition?: DimNum; symbol: string } = computeItem(
-      "sbase_" + baseName
+      "sbase_" + baseName,
     );
     // TODO
     context.addBase(baseName, def.symbol, def.definition);
@@ -226,7 +226,7 @@ export function fetchUnit(
 export function fetchUnitVector(
   id: string,
   indexSet: IndexSet,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): UnitVector {
   const vec = context.findUnitVector(id);
   if (vec === undefined) {
@@ -263,7 +263,7 @@ export function fetchUnitVector(
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function lookupItem<T>(
   full: string,
-  _context: PacioliContext = defaultContext
+  _context: PacioliContext = defaultContext,
 ): T {
   if (cache.get(full) === undefined) {
     // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
@@ -275,7 +275,7 @@ export function lookupItem<T>(
     if (asValue === undefined) {
       cache.set(
         full,
-        findFunction<T>("compute_" + full)() as PacioliType | RawValue
+        findFunction<T>("compute_" + full)() as PacioliType | RawValue,
       );
     } else {
       cache.set(full, asValue);
@@ -290,7 +290,7 @@ export function lookupItem<T>(
  */
 function computeItem(full: string): { symbol: string; definition?: DimNum } {
   return findFunction<{ symbol: string; definition?: DimNum }>(
-    "compute_" + full
+    "compute_" + full,
   )();
 }
 
@@ -322,7 +322,7 @@ function findFunction<T>(name: string): () => T {
     return fun;
   } else {
     throw new Error(
-      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
+      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`,
     );
   }
 }

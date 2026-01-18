@@ -52,7 +52,7 @@ export type PacioliMesh = [
 export function addMesh(
   body: THREE.Object3D,
   mesh: PacioliMesh,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   // Create a THREE mesh object from the Pacioli mesh and add it to the body
   const meshObject = createTHREEMesh(mesh, options);
@@ -67,7 +67,7 @@ export function addMesh(
 export function updateMesh(
   body: THREE.Object3D,
   mesh: PacioliMesh,
-  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const [_vertices, _faces, position, rotations, name] = mesh;
 
@@ -90,7 +90,7 @@ export function updateMesh(
 }
 
 export function disposeMesh(
-  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material>,
 ) {
   mesh.material.dispose();
   mesh.geometry.dispose();
@@ -98,7 +98,7 @@ export function disposeMesh(
 
 function createTHREEMesh(
   mesh: PacioliMesh,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
 
@@ -141,7 +141,7 @@ function createTHREEMesh(
     [vs, fs],
     mat,
     options,
-    hasWireframe.value
+    hasWireframe.value,
   ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
 
   if (name.value !== "") {
@@ -175,7 +175,7 @@ function mesh2THREE(
   ],
   material: THREE.Material,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
-  wireframe: boolean
+  wireframe: boolean,
 ) {
   const [vertices, faces] = mesh;
 

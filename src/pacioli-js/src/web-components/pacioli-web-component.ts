@@ -226,7 +226,7 @@ export abstract class PacioliWebComponent
       const errMessage = err instanceof Error ? err.message : String(err);
 
       console.log(
-        `Error: ${message}.\n\nThe error is displayed in the console because of the following: ${errMessage}`
+        `Error: ${message}.\n\nThe error is displayed in the console because of the following: ${errMessage}`,
       );
     }
   }
@@ -294,7 +294,7 @@ export abstract class PacioliWebComponent
 
   protected getNumberAttribute(
     attribute: string,
-    defaultValue: number = 0
+    defaultValue: number = 0,
   ): number {
     return getNumberAttribute(this, attribute, defaultValue);
   }
@@ -309,7 +309,7 @@ export abstract class PacioliWebComponent
 
   protected getStringAttribute(
     attribute: string,
-    defaultValue: string = ""
+    defaultValue: string = "",
   ): string {
     const att = this.getAttribute(attribute);
     return att ?? defaultValue;
@@ -331,7 +331,7 @@ export abstract class PacioliWebComponent
 export function getNumberAttribute(
   element: HTMLElement,
   attribute: string,
-  defaultValue: number = 0
+  defaultValue: number = 0,
 ): number {
   const att = element.getAttribute(attribute);
   return Number(att ?? defaultValue);

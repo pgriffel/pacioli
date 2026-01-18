@@ -50,7 +50,7 @@ export class SingularValueDecomposition {
     // safe than sorry, so we throw an error for now.
     if (this.m < this.n) {
       throw new Error(
-        "SVD Error: number of rows must be at least number of columns (m >= n)"
+        "SVD Error: number of rows must be at least number of columns (m >= n)",
       );
     }
 
@@ -326,11 +326,11 @@ export class SingularValueDecomposition {
               Math.max(
                 Math.max(
                   Math.max(Math.abs(this.s[p - 1]), Math.abs(this.s[p - 2])),
-                  Math.abs(e[p - 2])
+                  Math.abs(e[p - 2]),
                 ),
-                Math.abs(this.s[k])
+                Math.abs(this.s[k]),
               ),
-              Math.abs(e[k])
+              Math.abs(e[k]),
             );
             var sp = this.s[p - 1] / scale;
             var spm1 = this.s[p - 2] / scale;

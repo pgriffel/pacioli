@@ -34,7 +34,7 @@ export class IndexSet {
     public id: string,
     public name: string,
     public items: string[],
-    private index: Map<string, number>
+    private index: Map<string, number>,
   ) {}
 
   public size(): number {
@@ -48,7 +48,7 @@ export class IndexSet {
         "Element " +
           name +
           " not found when looking for position in index set " +
-          this.name
+          this.name,
       );
     } else {
       return pos;

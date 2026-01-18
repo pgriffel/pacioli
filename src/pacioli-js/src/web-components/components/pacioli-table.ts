@@ -62,7 +62,7 @@ const SUPPORTED_ATTRIBUTES = {
 
 function pacioliTableError(message: string): PacioliError {
   return new PacioliError(
-    `Unexpected data for table. ${message}\n\n${VALID_TABLE_DATA_MESSAGE}`
+    `Unexpected data for table. ${message}\n\n${VALID_TABLE_DATA_MESSAGE}`,
   );
 }
 
@@ -323,14 +323,14 @@ function columnsFromValue(value: PacioliValue): ColumnData[] {
         return columnData(item);
       } else {
         throw pacioliTableError(
-          `Invalid column. Expected a tuple, got a '${item.kind}'`
+          `Invalid column. Expected a tuple, got a '${item.kind}'`,
         );
       }
     });
     return columns;
   } else {
     throw pacioliTableError(
-      `Expected a tuple of columns, got a '${value.kind}'`
+      `Expected a tuple of columns, got a '${value.kind}'`,
     );
   }
 }
@@ -342,7 +342,7 @@ function columnData(value: PacioliTuple): ColumnData {
   if (value.length >= 2 && value.length <= 5) {
     if (value[0].kind !== "string") {
       throw pacioliTableError(
-        `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`
+        `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`,
       );
     }
 
@@ -350,7 +350,7 @@ function columnData(value: PacioliTuple): ColumnData {
 
     if (value[1].kind !== "matrix") {
       throw pacioliTableError(
-        `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`
+        `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`,
       );
     }
 
@@ -367,12 +367,12 @@ function columnData(value: PacioliTuple): ColumnData {
           decimals = val?.getNum(0, 0);
         } else {
           throw pacioliTableError(
-            `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
+            `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`,
           );
         }
       } else {
         throw pacioliTableError(
-          `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`
+          `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`,
         );
       }
     }
@@ -384,14 +384,14 @@ function columnData(value: PacioliTuple): ColumnData {
           showTotal = val?.value;
         } else {
           throw pacioliTableError(
-            `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`
+            `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`,
           );
         }
       } else if (value[3].kind === "boole") {
         showTotal = value[3].value;
       } else {
         throw pacioliTableError(
-          `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`
+          `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`,
         );
       }
     }
@@ -403,12 +403,12 @@ function columnData(value: PacioliTuple): ColumnData {
           total = val;
         } else {
           throw pacioliTableError(
-            `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
+            `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`,
           );
         }
       } else {
         throw pacioliTableError(
-          `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`
+          `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`,
         );
       }
     }
@@ -422,7 +422,7 @@ function columnData(value: PacioliTuple): ColumnData {
     };
   } else {
     throw pacioliTableError(
-      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`
+      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`,
     );
   }
 }

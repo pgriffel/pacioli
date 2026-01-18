@@ -74,7 +74,7 @@ export function getFullNumbers(numbers: RawMatrix): NumericFullMatrix {
   const n = numbers.nrColumns;
 
   const fullFromDOK = function (
-    nums: RawDOKMatrix | NumericDOKMatrix
+    nums: RawDOKMatrix | NumericDOKMatrix,
   ): NumericFullMatrix {
     const array = Array.from({ length: m }) as NumericFullMatrix;
     for (let i = 0; i < m; i++) {
@@ -268,7 +268,7 @@ function DOK2COO(numbers: RawDOKMatrix | NumericDOKMatrix): NumericCOOMatrix {
       if (a[1] > b[1]) return 1;
       if (a[1] < b[1]) return -1;
       return 0;
-    }
+    },
   );
 
   const rows = [];

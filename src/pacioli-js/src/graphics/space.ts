@@ -139,7 +139,7 @@ export class Space {
    */
   constructor(
     public readonly parent: HTMLElement,
-    options: Partial<SpaceOptions>
+    options: Partial<SpaceOptions>,
   ) {
     this.options = { ...defaultOptions, ...options };
 
@@ -482,7 +482,7 @@ export class Space {
       if (this.callback) {
         this.animationScene = this.callback.call(
           num(this.runningTime(), this.TIME_UNIT),
-          this.animationScene as unknown as PacioliValue
+          this.animationScene as unknown as PacioliValue,
         ) as unknown as PacioliScene;
       } else if (this.statefulCallback) {
         const currentState = this.animationState ?? this.initialState;
@@ -491,7 +491,7 @@ export class Space {
           const [state, scene] = this.statefulCallback.call(
             num(this.runningTime(), this.TIME_UNIT),
             currentState,
-            this.animationScene as unknown as PacioliValue
+            this.animationScene as unknown as PacioliValue,
           ) as unknown as [PacioliValue, PacioliScene];
 
           this.animationState = state;
@@ -516,7 +516,7 @@ export class Space {
       unitY: SIUnit;
       unitZ: SIUnit;
       scale: number;
-    }>
+    }>,
   ) {
     let defaultOptions = {
       unitX: this.options.unitX,
@@ -539,7 +539,7 @@ export class Space {
       unitY: SIUnit;
       unitZ: SIUnit;
       scale: number;
-    }>
+    }>,
   ) {
     let defaultOptions = {
       unitX: this.options.unitX,

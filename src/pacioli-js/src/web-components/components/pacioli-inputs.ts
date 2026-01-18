@@ -110,7 +110,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
   attributeChangedCallback(
     name: string,
     _oldValue: string | null,
-    _newValue: string
+    _newValue: string,
   ) {
     try {
       switch (name) {
@@ -197,7 +197,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
 
     for (const element of targetElements(this)) {
       const parameters: PacioliParameter[] = parameterNodes(element).map(
-        (node) => parseParameterNode(node)
+        (node) => parseParameterNode(node),
       );
 
       const inputs = createParameterInputs(
@@ -205,7 +205,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
         booleansImmediate,
         () => {
           this.applyButtonClicked();
-        }
+        },
       );
 
       targetsInfo.push({ element, inputs });
@@ -228,7 +228,7 @@ export class PacioliInputsComponent extends PacioliShadowTreeComponent {
             } else {
               return input.element.value;
             }
-          })
+          }),
         );
       }
     } catch (error: unknown) {
@@ -257,7 +257,7 @@ const FLAG_ENABLE_WEB_COMPONENT_INPUT_ENTER_KEY: boolean = true;
 function createParameterInputs(
   parsedParameters: PacioliParameter[],
   booleansImmediate: boolean,
-  enterKeyCallback?: () => void
+  enterKeyCallback?: () => void,
 ): {
   parameter: PacioliParameter;
   element: HTMLInputElement;

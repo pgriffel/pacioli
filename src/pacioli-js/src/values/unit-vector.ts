@@ -28,13 +28,13 @@ export class UnitVector implements ToText {
   constructor(
     public name: string,
     public indexSet: IndexSet,
-    public elements: SIUnit[]
+    public elements: SIUnit[],
   ) {}
 
   static fromMap(
     name: string,
     indexSet: IndexSet,
-    elements: Map<string, SIUnit>
+    elements: Map<string, SIUnit>,
   ) {
     const units: SIUnit[] = [];
     for (const element of indexSet.items) {

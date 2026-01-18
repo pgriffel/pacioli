@@ -96,7 +96,7 @@ export interface ToText {
 export function boxRawValue(
   value: RawValue,
   type: PacioliType,
-  context: PacioliContext
+  context: PacioliContext,
 ): PacioliValue {
   switch (type.kind) {
     case "generic": {
@@ -114,7 +114,7 @@ export function boxRawValue(
             return value ? pacioliTrue : pacioliFalse;
           } else {
             throw new Error(
-              `Expected a boolean instead of ${typeof value} when boxing raw boolean value`
+              `Expected a boolean instead of ${typeof value} when boxing raw boolean value`,
             );
           }
         }
@@ -123,7 +123,7 @@ export function boxRawValue(
             return new PacioliString(value);
           } else {
             throw new Error(
-              `Expected a string instead of ${typeof value} when boxing raw string value`
+              `Expected a string instead of ${typeof value} when boxing raw string value`,
             );
           }
         }
@@ -136,7 +136,7 @@ export function boxRawValue(
             type,
             val === undefined
               ? undefined
-              : boxRawValue(val, type.items[0], context)
+              : boxRawValue(val, type.items[0], context),
           );
         }
         case "List": {
@@ -152,7 +152,7 @@ export function boxRawValue(
             return list;
           } else {
             throw new Error(
-              `Expected an array object instead of ${typeof value} when boxing raw list value`
+              `Expected an array object instead of ${typeof value} when boxing raw list value`,
             );
           }
         }
@@ -166,7 +166,7 @@ export function boxRawValue(
             return array;
           } else {
             throw new Error(
-              `Expected an array object instead of ${typeof value} when boxing raw array value`
+              `Expected an array object instead of ${typeof value} when boxing raw array value`,
             );
           }
         }
@@ -175,12 +175,12 @@ export function boxRawValue(
             type.items[0],
             type.items[1],
             value as RawMap,
-            context
+            context,
           );
         }
         default: {
           throw new Error(
-            `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
+            `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `,
           );
         }
       }
@@ -190,21 +190,21 @@ export function boxRawValue(
         return new PacioliFunction(value, type, context);
       } else {
         throw new Error(
-          `Expected a function instead of ${typeof value} when boxing raw function value`
+          `Expected a function instead of ${typeof value} when boxing raw function value`,
         );
       }
     }
     case "matrix": {
       return new PacioliMatrix(
         matrixShapeFromType(type, context),
-        value as RawMatrix
+        value as RawMatrix,
       );
     }
     case "typevar": {
       throw new Error(
         `Unxpected typevar '${type.kind}' for type ${typeof value} with value ${
           type.name
-        } `
+        } `,
       );
     }
     case "index": {
@@ -226,7 +226,7 @@ export function boxRawValue(
 
 export function matrixShapeFromType(
   type: MatrixType,
-  context: PacioliContext
+  context: PacioliContext,
 ): MatrixShape {
   const rowDim = matrixDimensionFromIndex(type.rowIndex, context);
   const columnDim = matrixDimensionFromIndex(type.columnIndex, context);
@@ -235,7 +235,7 @@ export function matrixShapeFromType(
     rowDim,
     internUnitVector(rowDim, type.rowUnit, context),
     columnDim,
-    internUnitVector(columnDim, type.columnUnit, context)
+    internUnitVector(columnDim, type.columnUnit, context),
   );
 }
 
@@ -247,7 +247,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
         matrixDimensionFromIndexInv(value.shape.rowDimension),
         internUnitVectorInv(value.shape.rowUnit),
         matrixDimensionFromIndexInv(value.shape.columnDimension),
-        internUnitVectorInv(value.shape.columnUnit)
+        internUnitVectorInv(value.shape.columnUnit),
       );
     }
     case "list": {
@@ -258,7 +258,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
       const valueList = value as unknown as PacioliValue[];
       return new GenericType(
         "Tuple",
-        valueList.map((element) => typeFromValue(element))
+        valueList.map((element) => typeFromValue(element)),
       );
     }
     case "string": {
@@ -310,11 +310,11 @@ export function rawValueFromValue(value: PacioliValue): RawValue {
 
 function matrixDimensionFromIndex(
   index: PacioliIndex,
-  context: PacioliContext
+  context: PacioliContext,
 ): MatrixDimension {
   if (index.kind === "index") {
     return new MatrixDimension(
-      index.sets.map((name) => fetchIndex("index_" + name, context))
+      index.sets.map((name) => fetchIndex("index_" + name, context)),
     );
   } else {
     throw new Error("index kind " + index.kind + " unexpected");
@@ -325,7 +325,7 @@ function matrixDimensionFromIndexInv(dimension: MatrixDimension): PacioliIndex {
   return new IndexType(
     dimension.indexSets.map((set) => {
       return set.name;
-    })
+    }),
   );
 }
 
@@ -353,7 +353,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
  */
 function internUnitInv(unit: SIUnit): PacioliUnit {
   return unit.map((base) =>
-    UOM.fromBase(new SIBaseType(base.prefix.name, base.base))
+    UOM.fromBase(new SIBaseType(base.prefix.name, base.base)),
   );
 }
 
@@ -366,7 +366,7 @@ function internUnitInv(unit: SIUnit): PacioliUnit {
 function internUnitVector(
   dimension: MatrixDimension,
   unit: PacioliVector,
-  context: PacioliContext
+  context: PacioliContext,
 ): SIVector {
   const siUnit: SIVector = unit.map((base) => {
     if (base.isVar) {
@@ -375,7 +375,7 @@ function internUnitVector(
       const unitVector = fetchUnitVector(
         base.name,
         dimension.indexSets[base.position],
-        context
+        context,
       );
       return UOM.fromBase(new VectorBase(unitVector, base.position, base.name));
     }

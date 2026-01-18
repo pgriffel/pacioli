@@ -43,7 +43,7 @@ export function arbitraryCoordinates(): fc.Arbitrary<PacioliCoordinates> {
         min: 0,
         max: indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1) - 1,
       })
-      .map((n) => PacioliCoordinates.fromIndex(indexSets, n))
+      .map((n) => PacioliCoordinates.fromIndex(indexSets, n)),
   );
 }
 
@@ -51,8 +51,8 @@ function arbitraryCoordinatesParams(): fc.Arbitrary<[IndexSet[], string[]]> {
   return fc
     .array(
       arbitraryIndexSet().chain((set) =>
-        fc.tuple(fc.constant(set), arbitraryIndexSetElement(set))
-      )
+        fc.tuple(fc.constant(set), arbitraryIndexSetElement(set)),
+      ),
     )
     .map((pairs) => [pairs.map(([x, _]) => x), pairs.map(([_, y]) => y)]);
 }
@@ -68,7 +68,7 @@ describe("PacioliCoordinates", () => {
 
           // then
           expect(coordinatesA.equals(coordinatesB)).toEqual(true);
-        })
+        }),
       );
     });
 
@@ -84,12 +84,12 @@ describe("PacioliCoordinates", () => {
             } else {
               expect(
                 arrayEqual(coordinatesA.names, coordinatesB.names) &&
-                  arrayEqual(coordinatesA.indexSets, coordinatesB.indexSets)
+                  arrayEqual(coordinatesA.indexSets, coordinatesB.indexSets),
               ).toBeFalse();
               // expect(coordinatesA.indexSets).not.to.deep.equal(coordinatesB.indexSets)
             }
-          }
-        )
+          },
+        ),
       );
     });
   });
@@ -103,14 +103,14 @@ describe("PacioliCoordinates", () => {
 
           const fromPostion = PacioliCoordinates.fromIndex(
             indexSets,
-            coordinates.position()
+            coordinates.position(),
           );
 
           // console.log('yo', coordinates, fromPostion)
 
           // and the factor should be the given factor
           expect(coordinates.equals(fromPostion)).toEqual(true);
-        })
+        }),
       );
     });
   });
@@ -124,7 +124,7 @@ describe("PacioliCoordinates", () => {
 
           // and the factor should be the given factor
           expect(coordinates.order()).toEqual(elements.length);
-        })
+        }),
       );
     });
   });
@@ -137,8 +137,8 @@ describe("PacioliCoordinates", () => {
             fc.tuple(
               fc.constant(indexSets),
               fc.constant(elements),
-              fc.array(fc.integer({ min: 0, max: indexSets.length }))
-            )
+              fc.array(fc.integer({ min: 0, max: indexSets.length })),
+            ),
           ),
           ([indexSets, elements, indices]) => {
             // Given some coordinates from some index sets and some elements
@@ -152,8 +152,8 @@ describe("PacioliCoordinates", () => {
               expect(projected.names[i]).toEqual(elements[indices[i]]);
               expect(projected.indexSets[i]).toEqual(indexSets[indices[i]]);
             }
-          }
-        )
+          },
+        ),
       );
     });
   });
@@ -177,7 +177,7 @@ describe("PacioliCoordinates", () => {
 
             expect(parts.reduce((x, y) => x + "%" + y)).toEqual(text);
           }
-        })
+        }),
       );
     });
   });
@@ -196,7 +196,7 @@ describe("PacioliCoordinates", () => {
           } else {
             expect(elements.reduce((x, y) => x + "%" + y)).toEqual(text);
           }
-        })
+        }),
       );
     });
   });
@@ -209,9 +209,9 @@ describe("PacioliCoordinates", () => {
           const coordinates = new PacioliCoordinates(elements, indexSets);
 
           expect(
-            indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1)
+            indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1),
           ).toEqual(coordinates.size());
-        })
+        }),
       );
     });
   });
@@ -229,12 +229,12 @@ describe("PacioliCoordinates", () => {
           // Then the shape elements should be correct
           expect(shape.multiplier).toEqual(SIUnit.ONE);
           expect(
-            arrayEqual(shape.rowDimension.indexSets, indexSets)
+            arrayEqual(shape.rowDimension.indexSets, indexSets),
           ).toBeTrue();
           expect(shape.rowUnit).toEqual(SIUnit.ONE);
           expect(arrayEqual(shape.columnDimension.indexSets, [])).toBeTrue();
           expect(shape.columnUnit).toEqual(SIUnit.ONE);
-        })
+        }),
       );
     });
   });

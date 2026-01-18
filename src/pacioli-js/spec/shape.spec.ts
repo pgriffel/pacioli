@@ -31,7 +31,7 @@ describe("Shape", () => {
       fc.assert(
         fc.property(arbitraryShape(testContext), (shape) => {
           expect(shape).toEqual(shape);
-        })
+        }),
       );
     });
   });
@@ -50,7 +50,7 @@ describe("Shape", () => {
 
             // Then the row dimensions should be concatenated correctly
             expect(kronecker.rowOrder()).toEqual(
-              shape.rowOrder() + other.rowOrder()
+              shape.rowOrder() + other.rowOrder(),
             );
             for (let i = 0; i < kronecker.rowOrder(); i++) {
               const order = shape.rowOrder();
@@ -63,7 +63,7 @@ describe("Shape", () => {
 
             // Then the column dimensions should be concatenated correctly
             expect(kronecker.columnOrder()).toEqual(
-              shape.columnOrder() + other.columnOrder()
+              shape.columnOrder() + other.columnOrder(),
             );
             for (let i = 0; i < kronecker.columnOrder(); i++) {
               const order = shape.columnOrder();
@@ -72,8 +72,8 @@ describe("Shape", () => {
                 picked.columnDimension.indexSets[i < order ? i : i - order];
               expect(kronecker.columnDimension.indexSets[i].name === set.name);
             }
-          }
-        )
+          },
+        ),
       );
     });
   });

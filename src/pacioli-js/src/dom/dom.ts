@@ -46,7 +46,7 @@ type DOMOptions = {
  */
 export function DOM(
   x: PacioliValue,
-  options?: Partial<DOMOptions>
+  options?: Partial<DOMOptions>,
 ): HTMLElement | Text {
   switch (x.kind) {
     case "matrix": {
@@ -55,7 +55,7 @@ export function DOM(
         .stringify(
           options?.zero,
           [options?.decimals ?? NR_DECIMALS],
-          options?.ignoredecimals ?? false
+          options?.ignoredecimals ?? false,
         )
         .dom(options?.totals ?? false);
     }
@@ -103,7 +103,7 @@ export function DOM(
 function arrayElementsToDOM(
   tag: "ol" | "ul",
   items: PacioliValue[],
-  options?: Partial<DOMOptions>
+  options?: Partial<DOMOptions>,
 ): HTMLElement {
   const listElement = document.createElement(tag);
 
@@ -133,7 +133,7 @@ export function DOMTable(
     showTotal?: boolean;
     total?: PacioliMatrix;
   }[],
-  options: Partial<DOMOptions>
+  options: Partial<DOMOptions>,
 ) {
   const decs = columns.map((column) => {
     return column.decimals ?? options.decimals ?? NR_DECIMALS;
@@ -145,9 +145,9 @@ export function DOMTable(
         column.value,
         column.title,
         column.showTotal === undefined ? true : column.showTotal,
-        column.total
-      )
-    )
+        column.total,
+      ),
+    ),
   )
     .stringify(options.zero, decs, options.ignoredecimals ?? false)
     .dom(options.totals ?? false);

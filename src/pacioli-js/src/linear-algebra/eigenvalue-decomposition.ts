@@ -687,7 +687,7 @@ export class EigenvalueDecomposition {
                 x * r - z * ra + q * sa,
                 x * s - z * sa - q * ra,
                 vr,
-                vi
+                vi,
               );
               this.H[i][n - 1] = this.cdivr;
               this.H[i][n] = this.cdivi;
@@ -701,7 +701,7 @@ export class EigenvalueDecomposition {
                   -r - y * this.H[i][n - 1],
                   -s - y * this.H[i][n],
                   z,
-                  q
+                  q,
                 );
                 this.H[i + 1][n - 1] = this.cdivr;
                 this.H[i + 1][n] = this.cdivi;

@@ -76,7 +76,7 @@ export function parseMargin(text: string | undefined): {
 
 export function combineMargins(
   x: { left: number; top: number; right: number; bottom: number } | undefined,
-  y: { left: number; top: number; right: number; bottom: number } | undefined
+  y: { left: number; top: number; right: number; bottom: number } | undefined,
 ) {
   return {
     left: (x?.left ?? 0) + (y?.left ?? 0),
@@ -187,7 +187,7 @@ export class ToolTip {
 export function appendEmptyChartMessage(
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   message: string,
-  options: DefaultChartOptions
+  options: DefaultChartOptions,
 ) {
   svg
     .append("text")
@@ -209,7 +209,7 @@ export function appendEmptyChartMessage(
 export function appendChartCaption(
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   options: DefaultChartOptions,
-  caption?: string
+  caption?: string,
 ) {
   const text = caption ?? options.caption;
 

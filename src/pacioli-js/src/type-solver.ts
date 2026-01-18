@@ -42,22 +42,34 @@ type PacioliEquation =
 
 class TypeEquation {
   readonly kind = "typeeq";
-  constructor(public lhs: PacioliType, public rhs: PacioliType) {}
+  constructor(
+    public lhs: PacioliType,
+    public rhs: PacioliType,
+  ) {}
 }
 
 class UnitEquation {
   readonly kind = "uniteq";
-  constructor(public lhs: PacioliUnit, public rhs: PacioliUnit) {}
+  constructor(
+    public lhs: PacioliUnit,
+    public rhs: PacioliUnit,
+  ) {}
 }
 
 class VectorEquation {
   readonly kind = "vectoreq";
-  constructor(public lhs: PacioliVector, public rhs: PacioliVector) {}
+  constructor(
+    public lhs: PacioliVector,
+    public rhs: PacioliVector,
+  ) {}
 }
 
 class IndexEquation {
   readonly kind = "indexeq";
-  constructor(public lhs: PacioliIndex, public rhs: PacioliIndex) {}
+  constructor(
+    public lhs: PacioliIndex,
+    public rhs: PacioliIndex,
+  ) {}
 }
 
 export function matchTypes(x: PacioliType, y: PacioliType) {
@@ -85,7 +97,7 @@ function solveEquations(eqs: PacioliEquation[]) {
         const lhs = subsIndex(eq.lhs, map.indexMap);
         if (lhs.kind === "indexvar") {
           map = Binding.fromIndex(lhs, subsIndex(eq.rhs, map.indexMap)).compose(
-            map
+            map,
           );
         }
         break;
@@ -94,7 +106,7 @@ function solveEquations(eqs: PacioliEquation[]) {
         const binding = new Binding();
         binding.unitMap = matchUnits(
           subsUnit(eq.lhs, map.unitMap),
-          subsUnit(eq.rhs, map.unitMap)
+          subsUnit(eq.rhs, map.unitMap),
         );
         map = binding.compose(map);
         break;
@@ -103,7 +115,7 @@ function solveEquations(eqs: PacioliEquation[]) {
         const binding = new Binding();
         binding.vectorMap = matchUnits(
           subsUnit(eq.lhs, map.vectorMap),
-          subsUnit(eq.rhs, map.vectorMap)
+          subsUnit(eq.rhs, map.vectorMap),
         );
         map = binding.compose(map);
         break;
@@ -118,7 +130,7 @@ class Binding {
     public typeMap: Map<string, PacioliType> = new Map(),
     public indexMap: Map<string, IndexType | IndexVar> = new Map(),
     public unitMap: Map<string, PacioliUnit> = new Map(),
-    public vectorMap: Map<string, PacioliVector> = new Map()
+    public vectorMap: Map<string, PacioliVector> = new Map(),
   ) {}
 
   static fromType(variable: PacioliVar, type: PacioliType): Binding {
@@ -141,7 +153,7 @@ class Binding {
     const typeSubs = (value: PacioliType, binding: Map<string, PacioliType>) =>
       subs(
         value,
-        new Binding(binding, indexBinding, unitBinding, vectorBinding)
+        new Binding(binding, indexBinding, unitBinding, vectorBinding),
       );
     const typeBinding = mapCompose(this.typeMap, other.typeMap, typeSubs);
     return new Binding(typeBinding, indexBinding, unitBinding, vectorBinding);
@@ -151,7 +163,7 @@ class Binding {
 function mapCompose<T>(
   x: Map<string, T>,
   y: Map<string, T>,
-  subs: (value: T, binding: Map<string, T>) => T
+  subs: (value: T, binding: Map<string, T>) => T,
 ): Map<string, T> {
   const newMap = new Map<string, T>();
   for (const [key, value] of x.entries()) {
@@ -165,7 +177,7 @@ function mapCompose<T>(
 
 function matchUnits<T extends PacioliBase>(
   x: UOM<T>,
-  y: UOM<T>
+  y: UOM<T>,
 ): Map<string, UOM<T>> {
   return x.equals(y) ? new Map<string, UOM<T>>() : unitMatch(x.div(y));
 }
@@ -191,7 +203,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
     if (fixedBases.length > 0) {
       throw new PacioliError(
         "Contradiction while matching units. Expected equal units, but after simplifying the following remains: 1 = " +
-          unit.toText()
+          unit.toText(),
       );
     }
     return map;
@@ -247,7 +259,7 @@ function unitMatch<T extends PacioliBase>(unit: UOM<T>): Map<string, UOM<T>> {
  */
 export function collectTypeEquations(
   x: PacioliType,
-  y: PacioliType
+  y: PacioliType,
 ): PacioliEquation[] {
   if (x.kind === "typevar") {
     return [new TypeEquation(x, y)];
@@ -285,13 +297,13 @@ export function collectTypeEquations(
     // return eqs;
   }
   throw new PacioliError(
-    `cannot match a type of kind '${x.kind}' with a type of kind '${y.kind}'`
+    `cannot match a type of kind '${x.kind}' with a type of kind '${y.kind}'`,
   );
 }
 
 function subsIndex(
   index: PacioliIndex,
-  bindings: Map<string, PacioliIndex>
+  bindings: Map<string, PacioliIndex>,
 ): PacioliIndex {
   switch (index.kind) {
     case "index": {
@@ -312,7 +324,7 @@ function subsIndex(
  */
 function subsUnit<T extends PacioliBase>(
   unit: UOM<T>,
-  bindings: Map<string, UOM<T>>
+  bindings: Map<string, UOM<T>>,
 ): UOM<T> {
   return unit.map((base) => {
     if (base.isVar) {
@@ -334,19 +346,19 @@ export function subs(type: PacioliType, bindings: Binding): PacioliType {
         subsIndex(type.rowIndex, bindings.indexMap),
         subsUnit(type.rowUnit, bindings.vectorMap),
         subsIndex(type.columnIndex, bindings.indexMap),
-        subsUnit(type.columnUnit, bindings.vectorMap)
+        subsUnit(type.columnUnit, bindings.vectorMap),
       );
     }
     case "generic": {
       return new GenericType(
         type.name,
-        type.items.map((x) => subs(x, bindings))
+        type.items.map((x) => subs(x, bindings)),
       );
     }
     case "function": {
       return new FunctionType(
         subs(type.from, bindings),
-        subs(type.to, bindings)
+        subs(type.to, bindings),
       );
     }
     case "index": {

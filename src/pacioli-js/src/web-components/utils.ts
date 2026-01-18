@@ -75,7 +75,7 @@ export type BooleParameter = {
  */
 export function computeWebComponentValue(
   element: HTMLElement,
-  attribute: string = "definition"
+  attribute: string = "definition",
 ): PacioliValue {
   // Get the element's 'script' and 'definition' attributes
   let script = null;
@@ -91,7 +91,7 @@ export function computeWebComponentValue(
       definition = parts[1];
     } else {
       throw new Error(
-        `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`
+        `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`,
       );
     }
   }
@@ -99,7 +99,7 @@ export function computeWebComponentValue(
   // Check that they exist
   if (script === null || definition === null) {
     throw new Error(
-      `definition not found.\n\n Please give a 'definition' attribute of the form 'script:definition' with a valid value or function name.`
+      `definition not found.\n\n Please give a 'definition' attribute of the form 'script:definition' with a valid value or function name.`,
     );
   }
 
@@ -125,7 +125,7 @@ export function computeWebComponentValue(
  */
 export function parameterNodes(element: HTMLElement): HTMLElement[] {
   return [...element.children].filter(
-    (child) => child.nodeName === "PARAMETER"
+    (child) => child.nodeName === "PARAMETER",
   ) as HTMLElement[];
 }
 
@@ -138,7 +138,7 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
     throw new Error(
       `invalid number of arugments for definition '${
         definition ?? "unknown"
-      }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`
+      }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`,
     );
   }
 
@@ -155,7 +155,7 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
  * @returns the new MutationObserver
  */
 export function addParametersObserver(
-  element: PacioliWebComponent
+  element: PacioliWebComponent,
 ): MutationObserver {
   const observer = new MutationObserver(() => {
     // element.parametersChanged();
@@ -179,7 +179,7 @@ export function addParametersObserver(
  * @returns A list of parsed parameters.
  */
 export function parseParameterNode(
-  parameterNode: HTMLElement
+  parameterNode: HTMLElement,
 ): PacioliParameter {
   const label = parameterNode.getAttribute("label") ?? "n/a";
   const type = parameterNode.getAttribute("type") ?? "number";
@@ -231,7 +231,7 @@ export function parseParameterNode(
 
       default: {
         throw new Error(
-          `unexpected parameter type '${type}' for parameter '${label}'. Expected 'string', 'number', or 'boole'.`
+          `unexpected parameter type '${type}' for parameter '${label}'. Expected 'string', 'number', or 'boole'.`,
         );
       }
     }
@@ -239,7 +239,7 @@ export function parseParameterNode(
     throw new Error(
       `cannot read value ${value} for ${type} parameter ${label}:\n\n ${
         error instanceof Error ? error.message : String(error)
-      }.`
+      }.`,
     );
   }
 }
@@ -255,7 +255,7 @@ export function targetElements(element: HTMLElement): HTMLElement[] {
   const elementId = element.getAttribute("for");
   if (elementId === null) {
     throw new PacioliError(
-      "No 'for' attribute found. Provide a 'for' attribute with the target's element id as value."
+      "No 'for' attribute found. Provide a 'for' attribute with the target's element id as value.",
     );
   } else {
     const components: HTMLElement[] = [];
@@ -265,7 +265,7 @@ export function targetElements(element: HTMLElement): HTMLElement[] {
       const component = document.getElementById(trimmed);
       if (component === null) {
         throw new PacioliError(
-          `Could not find element '${trimmed}'. Provide a valid element id in the 'for' attribute.`
+          `Could not find element '${trimmed}'. Provide a valid element id in the 'for' attribute.`,
         );
       } else {
         components.push(component);
@@ -283,7 +283,7 @@ export function targetElements(element: HTMLElement): HTMLElement[] {
  * @returns The referenced element, or undefined if it is not found.
  */
 export function getPacioliWebComponentById(
-  elementId: string
+  elementId: string,
 ): PacioliWebComponent | null {
   const element = document.getElementById(elementId);
 
@@ -292,7 +292,7 @@ export function getPacioliWebComponentById(
       return element as PacioliWebComponent;
     } else {
       throw new Error(
-        `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`
+        `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`,
       );
     }
   } else {
@@ -310,7 +310,7 @@ export function getPacioliWebComponentById(
  */
 export function optionalStringAttributes(
   element: HTMLElement,
-  attributes: string[]
+  attributes: string[],
 ) {
   let object = {};
   for (const attribute of attributes) {
@@ -332,7 +332,7 @@ export function optionalStringAttributes(
  */
 export function optionalNumberAttributes(
   element: HTMLElement,
-  attributes: string[]
+  attributes: string[],
 ) {
   let object = {};
   for (const attribute of attributes) {
@@ -358,7 +358,7 @@ export function optionalNumberAttributes(
  */
 export function optionalBooleanAttributes(
   element: HTMLElement,
-  attributes: string[]
+  attributes: string[],
 ) {
   let object = {};
   for (const attribute of attributes) {
@@ -378,7 +378,7 @@ export function optionsFromAttributes<Options>(
     strings: string[];
     booleans: string[];
     numbers: string[];
-  }
+  },
 ): Partial<Options> {
   if (FLAG_EXPERIMENT_CHECK_ATTRIBUTES) {
     const SYSTEM_ATTRIBUTES = ["id", "definition"];
@@ -408,7 +408,7 @@ export function optionsFromScript<Options>(
     strings: string[];
     booleans: string[];
     numbers: string[];
-  }
+  },
 ): Partial<Options> {
   if (!element.hasAttribute("options")) {
     return {};
@@ -422,17 +422,17 @@ export function optionsFromScript<Options>(
     for (const item of optionValue) {
       if (item.kind !== "tuple") {
         throw new Error(
-          `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
+          `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`,
         );
       }
       if (item[0].kind !== "string") {
         throw new Error(
-          `chart option key must be a string, got a ${item[0].kind}`
+          `chart option key must be a string, got a ${item[0].kind}`,
         );
       }
       if (item[1].kind !== "string") {
         throw new Error(
-          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`
+          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`,
         );
       }
       if (table.has(item[0].value)) {
@@ -468,7 +468,7 @@ export function optionsFromScript<Options>(
           table.set(attribute, null);
         } else {
           throw new Error(
-            `invalid number ${num.toString()} for attritube ${attribute}`
+            `invalid number ${num.toString()} for attritube ${attribute}`,
           );
         }
       }
@@ -483,14 +483,14 @@ export function optionsFromScript<Options>(
     return object;
   } else {
     throw new Error(
-      `attribute options must be a list, got a ${optionValue.kind}`
+      `attribute options must be a list, got a ${optionValue.kind}`,
     );
   }
 }
 
 export function addInputEventListener(
   inputElement: HTMLInputElement,
-  handler: (value: string) => void
+  handler: (value: string) => void,
 ) {
   inputElement.addEventListener("change", (event: Event) => {
     event.preventDefault();
@@ -501,7 +501,7 @@ export function addInputEventListener(
 
 export function addButtonEventListener(
   element: HTMLButtonElement,
-  handler: () => void
+  handler: () => void,
 ) {
   element.addEventListener("click", (event: Event) => {
     handler();
@@ -511,7 +511,7 @@ export function addButtonEventListener(
 
 export function addCheckBoxEventListener(
   element: HTMLElement,
-  handler: (checked: boolean) => void
+  handler: (checked: boolean) => void,
 ) {
   element.addEventListener("change", (event: Event) => {
     event.preventDefault();

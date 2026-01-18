@@ -37,7 +37,7 @@ export class MatrixShape {
       MatrixDimension.empty(),
       SIVector.ONE,
       MatrixDimension.empty(),
-      SIVector.ONE
+      SIVector.ONE,
     );
   }
 
@@ -46,7 +46,7 @@ export class MatrixShape {
     public rowDimension: MatrixDimension,
     public rowUnit: SIVector,
     public columnDimension: MatrixDimension,
-    public columnUnit: SIVector
+    public columnUnit: SIVector,
   ) {}
 
   public toText() {
@@ -97,7 +97,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit.mult(other.rowUnit),
       this.columnDimension,
-      this.columnUnit.mult(other.columnUnit)
+      this.columnUnit.mult(other.columnUnit),
     );
   }
 
@@ -110,7 +110,7 @@ export class MatrixShape {
         "Shape " +
           this.toText() +
           " is not compatible for dot product with shape " +
-          other.toText()
+          other.toText(),
       );
     }
     return new MatrixShape(
@@ -118,7 +118,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit,
       other.columnDimension,
-      other.columnUnit
+      other.columnUnit,
     );
   }
 
@@ -128,7 +128,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit,
       this.columnDimension,
-      this.columnUnit
+      this.columnUnit,
     );
   }
 
@@ -146,7 +146,7 @@ export class MatrixShape {
       this.columnDimension,
       this.columnUnit.reciprocal(),
       this.rowDimension,
-      this.rowUnit.reciprocal()
+      this.rowUnit.reciprocal(),
     );
   }
 
@@ -156,7 +156,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit.reciprocal(),
       this.columnDimension,
-      this.columnUnit.reciprocal()
+      this.columnUnit.reciprocal(),
     );
   }
 
@@ -168,12 +168,12 @@ export class MatrixShape {
       this.multiplier.mult(other.multiplier),
       this.rowDimension.kronecker(other.rowDimension),
       this.rowUnit.mult(
-        other.rowUnit.map((base) => UOM.fromBase(base.shift(rowOrder)))
+        other.rowUnit.map((base) => UOM.fromBase(base.shift(rowOrder))),
       ),
       this.columnDimension.kronecker(other.columnDimension),
       this.columnUnit.mult(
-        other.columnUnit.map((base) => UOM.fromBase(base.shift(columnOrder)))
-      )
+        other.columnUnit.map((base) => UOM.fromBase(base.shift(columnOrder))),
+      ),
     );
   }
 
@@ -243,7 +243,7 @@ export class MatrixShape {
       this.rowDimension,
       SIVector.ONE,
       this.columnDimension,
-      SIVector.ONE
+      SIVector.ONE,
     );
   }
 
@@ -290,7 +290,7 @@ export class MatrixShape {
   public columnCoordinates(position: number) {
     return PacioliCoordinates.fromIndex(
       this.columnDimension.indexSets,
-      position
+      position,
     );
   }
 

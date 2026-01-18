@@ -35,12 +35,12 @@ export function arbitraryIndexSet(): fc.Arbitrary<IndexSet> {
     .chain((name) =>
       fc
         .array(fc.string(), { minLength: 1 })
-        .map((items) => IndexSet.fromItems(name, name, items))
+        .map((items) => IndexSet.fromItems(name, name, items)),
     );
 }
 
 export function arbitraryIndexSetElement(
-  indexSet: IndexSet
+  indexSet: IndexSet,
 ): fc.Arbitrary<string> {
   return fc
     .integer({ min: 0, max: indexSet.items.length - 1 })

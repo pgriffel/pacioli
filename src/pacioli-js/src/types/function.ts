@@ -26,7 +26,10 @@ import { GenericType } from "./generic";
 
 export class FunctionType {
   readonly kind = "function";
-  constructor(public from: PacioliType, public to: PacioliType) {}
+  constructor(
+    public from: PacioliType,
+    public to: PacioliType,
+  ) {}
 
   apply(args: PacioliType[]): PacioliType {
     return subs(this.to, matchTypes(this.from, new GenericType("Tuple", args)));

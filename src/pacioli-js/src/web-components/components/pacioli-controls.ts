@@ -127,7 +127,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   attributeChangedCallback(
     name: string,
     _oldValue: string | null,
-    _newValue: string
+    _newValue: string,
   ) {
     switch (name) {
       case "for": {
@@ -192,7 +192,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
       this.animationButton('[part="button reset"]'),
       () => {
         this.resetButtonClicked();
-      }
+      },
     );
 
     addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) => {
@@ -325,7 +325,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
         try {
           if (checked) {
             scene.space.startAutoRotation(
-              PacioliControlsComponent.SECONDS_PER_ROTATION
+              PacioliControlsComponent.SECONDS_PER_ROTATION,
             );
           } else {
             scene.space.stopAutoRotation();
