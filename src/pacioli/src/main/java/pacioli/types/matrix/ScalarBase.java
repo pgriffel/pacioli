@@ -22,6 +22,7 @@
 package pacioli.types.matrix;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import java.util.Optional;
 
 import pacioli.ast.definition.UnitDefinition;
@@ -34,6 +35,26 @@ import uom.PowerProduct;
 import uom.Unit;
 
 public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
+
+    static final Map<String, BigDecimal> PREFIXES = Map.ofEntries(
+            Map.entry("yocto", new BigDecimal(1).movePointLeft(-24)),
+            Map.entry("zepto", new BigDecimal(1).movePointLeft(-21)),
+            Map.entry("atto", new BigDecimal(1).movePointLeft(-18)),
+            Map.entry("femto", new BigDecimal(1).movePointLeft(-15)),
+            Map.entry("pico", new BigDecimal(1).movePointLeft(-12)),
+            Map.entry("nano", new BigDecimal(1).movePointLeft(-9)),
+            Map.entry("micro", new BigDecimal(1).movePointLeft(-6)),
+            Map.entry("milli", new BigDecimal(1).movePointLeft(-3)),
+            Map.entry("centi", new BigDecimal(1).movePointLeft(-2)),
+            Map.entry("deci", new BigDecimal(1).movePointLeft(-1)),
+            Map.entry("kilo", new BigDecimal(1).movePointLeft(3)),
+            Map.entry("mega", new BigDecimal(1).movePointLeft(6)),
+            Map.entry("giga", new BigDecimal(1).movePointLeft(9)),
+            Map.entry("tera", new BigDecimal(1).movePointLeft(12)),
+            Map.entry("peta", new BigDecimal(1).movePointLeft(15)),
+            Map.entry("exa", new BigDecimal(1).movePointLeft(18)),
+            Map.entry("zeta", new BigDecimal(1).movePointLeft(21)),
+            Map.entry("yotta", new BigDecimal(1).movePointLeft(24)));
 
     private final Optional<String> prefix;
     private final String text;
@@ -82,30 +103,12 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     public DimensionedNumber<TypeBase> flat() {
         BigDecimal fac = new BigDecimal(1);
         if (prefix.isPresent()) {
-            if (prefix.get().equals("kilo")) {
-                fac = new BigDecimal(1000);
-            } else if (prefix.get().equals("pico")) {
-                fac = new BigDecimal(1).movePointLeft(12);
-            } else if (prefix.get().equals("nano")) {
-                fac = new BigDecimal(1).movePointLeft(9);
-            } else if (prefix.get().equals("micro")) {
-                fac = new BigDecimal(1).movePointLeft(6);
-            } else if (prefix.get().equals("milli")) {
-                fac = new BigDecimal(1).movePointLeft(3);
-            } else if (prefix.get().equals("centi")) {
-                fac = new BigDecimal(1).movePointLeft(2);
-            } else if (prefix.get().equals("deci")) {
-                fac = new BigDecimal(1).movePointLeft(1);
-            } else if (prefix.get().equals("mega")) {
-                fac = new BigDecimal(1).movePointRight(6);
-            } else if (prefix.get().equals("giga")) {
-                fac = new BigDecimal(1).movePointRight(9);
-            } else if (prefix.get().equals("tera")) {
-                fac = new BigDecimal(1).movePointRight(12);
+            BigDecimal s = PREFIXES.get(prefix.get());
+            if (s == null) {
+                throw new RuntimeException("Unknown UoM prefix: '" + prefix.get() + "");
             } else {
-                throw new RuntimeException("todo: unit prefix" + prefix.get());
+                fac = s;
             }
-            // return new ScalarBase(text).multiply(fac);
         }
         Optional<UnitDefinition> def = info.definition();
         if (def.isPresent()) {

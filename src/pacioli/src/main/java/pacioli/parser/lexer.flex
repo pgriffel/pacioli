@@ -61,7 +61,7 @@ import pacioli.compiler.PacioliException;
 
 Identifier = [a-zA-Z$_] [a-zA-Z0-9$_]*
 Natural = [0-9]+
-Decimal = [0-9]+\.[0-9]+
+Decimal = [0-9]*"."[0-9]+([eE][-+]?[0-9]+)?
 Boolean = true | false
 Newline = \r|\n|\r\n;
 Whitespace = {Newline} | [ \t\f]
