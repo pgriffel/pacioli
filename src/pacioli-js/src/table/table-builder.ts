@@ -108,6 +108,29 @@ export class TableBuilder {
     return this.columns.map((column) => column.header);
   }
 
+  private cellOptions(column: TableColumn): {
+    zeroString: string | undefined;
+    omitDecimals: boolean;
+    nrDecimals: number;
+    exponential: boolean;
+  } {
+    return {
+      zeroString: this.options.zero,
+      omitDecimals:
+        column.options.ignoredecimals ??
+        this.options.ignoredecimals ??
+        DEFAULT_TABLE_BUILDER_OPTTIONS.ignoredecimals,
+      nrDecimals:
+        column.options.decimals ??
+        this.options.decimals ??
+        DEFAULT_TABLE_BUILDER_OPTTIONS.decimals,
+      exponential:
+        column.options.exponential ??
+        this.options.exponential ??
+        DEFAULT_TABLE_BUILDER_OPTTIONS.exponential,
+    };
+  }
+
   rows(): {
     index: string[];
     values: { num: DimNum; magnitude: string; unit: string }[];
@@ -127,25 +150,11 @@ export class TableBuilder {
       const row = {
         index: element,
         values: this.columns.map((col) => {
-          const effOptions = {
-            ...DEFAULT_TABLE_BUILDER_OPTTIONS,
-            ...this.options,
-            ...col.options,
-          };
-
           const dimNum = col.values[i].num;
-
-          const magnitude = stringifyCell(
-            dimNum,
-            effOptions.zero,
-            effOptions.ignoredecimals,
-            effOptions.decimals,
-            effOptions.exponential,
-          );
 
           return {
             num: dimNum,
-            magnitude,
+            magnitude: stringifyCell(dimNum, this.cellOptions(col)),
             unit: dimNum.unit.toText(),
           };
         }),
@@ -176,23 +185,9 @@ export class TableBuilder {
         return;
       }
 
-      const effOptions = {
-        ...DEFAULT_TABLE_BUILDER_OPTTIONS,
-        ...this.options,
-        ...column.options,
-      };
-
-      const magnitude = stringifyCell(
-        dimNum,
-        effOptions.zero,
-        effOptions.ignoredecimals,
-        effOptions.decimals,
-        effOptions.exponential,
-      );
-
       return {
         num: dimNum,
-        magnitude,
+        magnitude: stringifyCell(dimNum, this.cellOptions(column)),
         unit: dimNum.unit.toText(),
       };
     });
@@ -408,21 +403,23 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
 function stringifyCell(
   cell: DimNum,
-  zeroString: string | undefined,
-  omitDecimals: boolean,
-  nrDecimals: number,
-  exponential: boolean,
+  options: {
+    zeroString: string | undefined;
+    omitDecimals: boolean;
+    nrDecimals: number;
+    exponential: boolean;
+  },
 ): string {
-  if (cell.magnitude.isZero() && zeroString !== undefined) {
-    return zeroString;
-  } else if (exponential) {
-    return omitDecimals
+  if (cell.magnitude.isZero() && options.zeroString !== undefined) {
+    return options.zeroString;
+  } else if (options.exponential) {
+    return options.omitDecimals
       ? cell.magnitude.toExponential()
-      : cell.magnitude.toExponential(nrDecimals);
+      : cell.magnitude.toExponential(options.nrDecimals);
   } else {
-    return omitDecimals
+    return options.omitDecimals
       ? cell.magnitude.toFixed()
-      : cell.magnitude.toFixed(nrDecimals);
+      : cell.magnitude.toFixed(options.nrDecimals);
   }
 }
 
