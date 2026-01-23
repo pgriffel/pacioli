@@ -65,16 +65,15 @@ export type BooleParameter = {
 };
 
 /**
- * Returns the Pacioli value corresponding with the element's 'script' and 'definition'
- * attribute values. If the defined value is a Pacioli function then the
+ * Returns the Pacioli value corresponding with the element's 'definition'
+ * attribute. If the defined value is a Pacioli function then the
  * function is called with the element's parameter values. If it is not
  * a function then the defined value is returned as is.
  *
  * @param element An HTML web element, typically a web component
  * @returns The computed Pacioli value
  */
-// evaluate noemen
-export function computeWebComponentValue(
+export function evaluateWebComponentDefinition(
   element: HTMLElement,
   attribute: string = "definition",
 ): PacioliValue {
@@ -418,7 +417,7 @@ export function optionsFromScript<Options>(
     return {};
   }
 
-  const optionValue = computeWebComponentValue(element, "options");
+  const optionValue = evaluateWebComponentDefinition(element, "options");
   // TODO: accept tuples?! Zie random_vec_histogram_options in web_components.pacioli
   if (optionValue.kind === "list") {
     const table = new Map<string, string | null>();

@@ -162,7 +162,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged() {
     if (this.space !== undefined) {
-      this.fetchedData = this.fetchData();
+      this.fetchedData = this.evaluateDefinition();
 
       this.loadData(this.space);
     }

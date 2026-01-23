@@ -202,7 +202,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
         // Reload the data if the definition changes. The initial load is done in
         // parametersChanged.
         if (name === "definition") {
-          this.data = this.fetchData();
+          this.data = this.evaluateDefinition();
         }
 
         this.updateChart(this.data);
@@ -217,7 +217,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged(): void {
     // Compute the data using the new parameter values
-    this.data = this.fetchData();
+    this.data = this.evaluateDefinition();
 
     // Refresh the chart
     this.updateChart(this.data);

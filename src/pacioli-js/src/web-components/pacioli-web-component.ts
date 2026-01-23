@@ -21,7 +21,7 @@
  */
 
 import {
-  computeWebComponentValue,
+  evaluateWebComponentDefinition,
   addParametersObserver,
   setParameterNodes,
 } from "./utils";
@@ -201,8 +201,8 @@ export abstract class PacioliWebComponent
   /**
    * Implementation of the Callable api.
    */
-  fetchData(): PacioliValue {
-    return computeWebComponentValue(this);
+  evaluateDefinition(): PacioliValue {
+    return evaluateWebComponentDefinition(this);
   }
 
   /**

@@ -22,7 +22,7 @@
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
-  computeWebComponentValue,
+  evaluateWebComponentDefinition,
   optionsFromAttributes,
   optionsFromScript,
 } from "../utils";
@@ -301,7 +301,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
       const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
       const exponential = getBooleAttribute(element, "exponential");
 
-      const value = computeWebComponentValue(element);
+      const value = evaluateWebComponentDefinition(element);
 
       if (value.kind !== "matrix" && value.kind !== "list") {
         throw pacioliTableError(
@@ -324,7 +324,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
 
 function columnDataFromDefinition(element: HTMLElement): ColumnData[] {
   if (element.hasAttribute("definition")) {
-    return columnsFromValue(computeWebComponentValue(element));
+    return columnsFromValue(evaluateWebComponentDefinition(element));
   } else {
     return [];
   }

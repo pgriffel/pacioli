@@ -157,7 +157,7 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
         // Reload the data if the definition changes. The initial load is done in
         // parametersChanged.
         if (name === "definition") {
-          this.data = this.fetchData();
+          this.data = this.evaluateDefinition();
         }
 
         this.drawChart(this.data);
@@ -171,7 +171,7 @@ export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    this.data = this.fetchData();
+    this.data = this.evaluateDefinition();
 
     this.drawChart(this.data);
   }

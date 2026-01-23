@@ -84,7 +84,7 @@ export interface Callable {
    *
    * @returns A PacioliValue
    */
-  fetchData(): PacioliValue;
+  evaluateDefinition(): PacioliValue;
 }
 
 /**
