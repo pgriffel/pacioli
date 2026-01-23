@@ -41,9 +41,9 @@ TEMPLATE.innerHTML = `
     }
   </style>
   <div class="buttons">
-    <button class="dot">Dot</button>
+    <button class="d3">d3</button>
     <button class="sturges">Sturges</button>
-    <button class="freedman-diaconis">FD</button>
+    <button class="freedman-diaconis">Freedman-Diaconis</button>
     <button class="custom">Custom</button>
   </div>
   <div class="inputs">
@@ -150,7 +150,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
     });
 
     const heuristics = [
-      [".dot", "dot"],
+      [".d3", "d3"],
       [".sturges", "sturges"],
       [".freedman-diaconis", "freedman-diaconis"],
     ];
