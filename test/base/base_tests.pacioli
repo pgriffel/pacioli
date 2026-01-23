@@ -61,9 +61,10 @@ define base_suites = [
     qr_suite,
     cholesky_suite,
     solve_suite,
-    map_suite
+    map_suite,
     #mapnz_suite       does not exist in MVM yet
     #kronecker_suite   TODO port in pacioli-ts
+    defconv_suite
 ];
 
 run_test_suites(base_suites); 
@@ -1217,7 +1218,6 @@ define test_store_contract_for_keys(test_keys, test_values) =
 # By re-evaluating test_keys and test_values the tests test test equality well.
 # There is a difference between to identical matrices and two different matrices 
 # with the same contents. The map should handle deep equality well.
-
 # ------------------------------------------------------------------------------
 
 define test_strings(base) =
@@ -1299,5 +1299,31 @@ define map_suite = test_suite("Type Map", [
     )
 ]);
 
+# ------------------------------------------------------------------------------
+# Conversions
+# ------------------------------------------------------------------------------
 
+defconv gram_per_kilogram :: gram per kilo:gram;
 
+defconv milligram_per_kilogram :: milli:gram per kilo:gram;
+
+defconv yottagram_per_gram :: yotta:gram per gram;
+
+define defconv_suite = test_suite("defconv", [
+
+    test("should give correct conversion for gram per kilo:gram I", () ->
+        gram_per_kilogram = 1000 * |gram per kilo:gram|
+    ),
+
+    test("should give correct conversion for gram per kilo:gram II", () ->
+        gram_per_kilogram * 50 * |kilo:gram| = 50000 * |gram|
+    ),
+
+    test("should give correct conversion for milli:gram per kilo:gram", () ->
+        milligram_per_kilogram = 1000000 * |milli:gram per kilo:gram|
+    ),
+
+    test("should give correct conversion for yotta:gram per kilo:gram", () ->
+        yottagram_per_gram ~= 10^-24 * |yotta:gram per gram|
+    )
+]);

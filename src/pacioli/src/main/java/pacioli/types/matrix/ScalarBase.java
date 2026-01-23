@@ -37,24 +37,24 @@ import uom.Unit;
 public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
 
     static final Map<String, BigDecimal> PREFIXES = Map.ofEntries(
-            Map.entry("yocto", new BigDecimal(1).movePointLeft(-24)),
-            Map.entry("zepto", new BigDecimal(1).movePointLeft(-21)),
-            Map.entry("atto", new BigDecimal(1).movePointLeft(-18)),
-            Map.entry("femto", new BigDecimal(1).movePointLeft(-15)),
-            Map.entry("pico", new BigDecimal(1).movePointLeft(-12)),
-            Map.entry("nano", new BigDecimal(1).movePointLeft(-9)),
-            Map.entry("micro", new BigDecimal(1).movePointLeft(-6)),
-            Map.entry("milli", new BigDecimal(1).movePointLeft(-3)),
-            Map.entry("centi", new BigDecimal(1).movePointLeft(-2)),
-            Map.entry("deci", new BigDecimal(1).movePointLeft(-1)),
-            Map.entry("kilo", new BigDecimal(1).movePointLeft(3)),
-            Map.entry("mega", new BigDecimal(1).movePointLeft(6)),
-            Map.entry("giga", new BigDecimal(1).movePointLeft(9)),
-            Map.entry("tera", new BigDecimal(1).movePointLeft(12)),
-            Map.entry("peta", new BigDecimal(1).movePointLeft(15)),
-            Map.entry("exa", new BigDecimal(1).movePointLeft(18)),
-            Map.entry("zeta", new BigDecimal(1).movePointLeft(21)),
-            Map.entry("yotta", new BigDecimal(1).movePointLeft(24)));
+            Map.entry("yocto", new BigDecimal(1).movePointRight(-24)),
+            Map.entry("zepto", new BigDecimal(1).movePointRight(-21)),
+            Map.entry("atto", new BigDecimal(1).movePointRight(-18)),
+            Map.entry("femto", new BigDecimal(1).movePointRight(-15)),
+            Map.entry("pico", new BigDecimal(1).movePointRight(-12)),
+            Map.entry("nano", new BigDecimal(1).movePointRight(-9)),
+            Map.entry("micro", new BigDecimal(1).movePointRight(-6)),
+            Map.entry("milli", new BigDecimal(1).movePointRight(-3)),
+            Map.entry("centi", new BigDecimal(1).movePointRight(-2)),
+            Map.entry("deci", new BigDecimal(1).movePointRight(-1)),
+            Map.entry("kilo", new BigDecimal(1).movePointRight(3)),
+            Map.entry("mega", new BigDecimal(1).movePointRight(6)),
+            Map.entry("giga", new BigDecimal(1).movePointRight(9)),
+            Map.entry("tera", new BigDecimal(1).movePointRight(12)),
+            Map.entry("peta", new BigDecimal(1).movePointRight(15)),
+            Map.entry("exa", new BigDecimal(1).movePointRight(18)),
+            Map.entry("zeta", new BigDecimal(1).movePointRight(21)),
+            Map.entry("yotta", new BigDecimal(1).movePointRight(24)));
 
     private final Optional<String> prefix;
     private final String text;

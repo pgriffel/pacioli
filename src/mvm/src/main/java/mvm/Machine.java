@@ -159,6 +159,11 @@ public class Machine {
 
     static public UnitSystem<MatrixBase> makeSI() {
         UnitSystem<MatrixBase> si = new UnitSystem<MatrixBase>();
+        si.addPrefix("yotta", new Prefix("Y", new BigDecimal("1").movePointRight(24)));
+        si.addPrefix("zetta", new Prefix("Z", new BigDecimal("1").movePointRight(21)));
+        si.addPrefix("exa", new Prefix("E", new BigDecimal("1").movePointRight(18)));
+        si.addPrefix("peta", new Prefix("P", new BigDecimal("1").movePointRight(15)));
+        si.addPrefix("tera", new Prefix("T", new BigDecimal("1").movePointRight(12)));
         si.addPrefix("giga", new Prefix("G", new BigDecimal("1000000000")));
         si.addPrefix("mega", new Prefix("M", new BigDecimal("1000000")));
         si.addPrefix("kilo", new Prefix("k", new BigDecimal("1000")));
@@ -168,7 +173,12 @@ public class Machine {
         si.addPrefix("centi", new Prefix("c", new BigDecimal("0.01")));
         si.addPrefix("milli", new Prefix("m", new BigDecimal("0.001")));
         si.addPrefix("micro", new Prefix("μ", new BigDecimal("0.000001")));
-        si.addPrefix("nano", new Prefix("n", new BigDecimal("0.000000001")));
+        si.addPrefix("nano", new Prefix("n", new BigDecimal("1").movePointLeft(9)));
+        si.addPrefix("pico", new Prefix("p", new BigDecimal("1").movePointLeft(12)));
+        si.addPrefix("femto", new Prefix("f", new BigDecimal("1").movePointLeft(15)));
+        si.addPrefix("atto", new Prefix("a", new BigDecimal("1").movePointLeft(18)));
+        si.addPrefix("zepto", new Prefix("z", new BigDecimal("1").movePointLeft(21)));
+        si.addPrefix("yocto", new Prefix("y", new BigDecimal("1").movePointLeft(24)));
         return si;
     }
 
