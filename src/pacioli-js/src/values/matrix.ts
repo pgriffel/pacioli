@@ -28,7 +28,9 @@ import { tagMatrix, type RawCoordinates } from "../raw-values/raw-value";
 import type { RawMatrix } from "../raw-values/raw-matrix";
 import { getNumber } from "../raw-values/raw-matrix";
 import type { IndexSet } from "./index-set";
-import { TableData } from "../dom/table";
+import type { TableBuilderOptions } from "../table/table-builder";
+import { TableBuilder } from "../table/table-builder";
+import { TableColumn } from "../table/table-column";
 
 /**
  * A matrix combines a shape and numbers.
@@ -43,7 +45,10 @@ import { TableData } from "../dom/table";
 export class PacioliMatrix {
   readonly kind = "matrix";
 
-  constructor(public shape: MatrixShape, public numbers: RawMatrix) {}
+  constructor(
+    public shape: MatrixShape,
+    public numbers: RawMatrix,
+  ) {}
 
   /**
    * Filters the matrix entries. Only entries satisfying the predicate remain.
@@ -52,18 +57,18 @@ export class PacioliMatrix {
    * @returns A new matrix of the same shape
    */
   public filter(
-    predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean
+    predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean,
   ) {
     return new PacioliMatrix(
       this.shape,
-      filter_matrix(this.numbers, predicate)
+      filter_matrix(this.numbers, predicate),
     );
   }
 
   getDimNum(row: number, column: number) {
     return DimNum.fromNumber(
       this.getNum(row, column),
-      this.getUnit(row, column)
+      this.getUnit(row, column),
     );
   }
 
@@ -79,7 +84,7 @@ export class PacioliMatrix {
     const unitShape = MatrixShape.scalar(unit);
     return new PacioliMatrix(
       this.shape.dimensionless().scale(unitShape),
-      convert_unit(this.numbers, this.shape, unit, context)
+      convert_unit(this.numbers, this.shape, unit, context),
     );
   }
 
@@ -103,12 +108,19 @@ export class PacioliMatrix {
     return getNumber(this.numbers, 0, 0);
   }
 
+  // toAscii noemen en toDOM maken!?
   public toDecimal(decimals: number, zero?: string) {
-    return this.tableData("Value").stringify(zero, [decimals], false).ascii();
+    return this.tableBuilder("Value", { decimals, zero }).ascii();
   }
 
-  public tableData(header: string, showTotals: boolean = true): TableData {
-    return TableData.from(this, header, showTotals);
+  public tableBuilder(
+    header: string,
+    tableOptions: Partial<TableBuilderOptions> = {},
+  ): TableBuilder {
+    return new TableBuilder(
+      [TableColumn.fromVector(this, header)],
+      tableOptions,
+    );
   }
 }
 
@@ -122,7 +134,7 @@ export class PacioliMatrix {
  */
 export function matrixKeyValueList(
   matrix: PacioliMatrix,
-  zeros: boolean = false
+  zeros: boolean = false,
 ): {
   values: { row: string[]; column: string[]; value: DimNum }[];
   rows: string[];
@@ -153,14 +165,14 @@ export function matrixKeyValueList(
     const values = coo[2];
 
     // Fill the list with all non-zero values
-    for (let i = 0; i < rows.length; i++) {
+    for (const [i, row] of rows.entries()) {
       if (values[i] !== 0) {
         kvList.push({
-          row: matrix.shape.rowCoordinates(rows[i]).names,
+          row: matrix.shape.rowCoordinates(row).names,
           column: matrix.shape.columnCoordinates(columns[i]).names,
           value: DimNum.fromNumber(
             values[i],
-            matrix.shape.unitAt(rows[i], columns[i])
+            matrix.shape.unitAt(row, columns[i]),
           ),
         });
       }
@@ -180,7 +192,7 @@ export function matrixKeyValueList(
  */
 export function filter_matrix(
   numbers: RawMatrix,
-  predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean
+  predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean,
 ) {
   const m = numbers.nrRows;
   const n = numbers.nrColumns;
@@ -195,10 +207,10 @@ export function filter_matrix(
   const filteredColumns = [];
   const filteredValues = [];
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     const rowCoords = {
       kind: "coordinates" as const,
-      position: rows[i],
+      position: row,
       size: m,
     };
     const columnCoords = {
@@ -207,7 +219,7 @@ export function filter_matrix(
       size: n,
     };
     if (predicate(values[i], rowCoords, columnCoords)) {
-      filteredRows.push(rows[i]);
+      filteredRows.push(row);
       filteredColumns.push(columns[i]);
       filteredValues.push(values[i]);
     }
@@ -216,7 +228,7 @@ export function filter_matrix(
     [filteredRows, filteredColumns, filteredValues],
     m,
     n,
-    "COO"
+    "COO",
   );
 }
 
@@ -228,7 +240,7 @@ export function convert_unit(
   numbers: RawMatrix,
   shape: MatrixShape,
   unit: SIUnit,
-  context: Context
+  context: Context,
 ) {
   const m = numbers.nrRows;
   const n = numbers.nrColumns;
@@ -241,10 +253,10 @@ export function convert_unit(
 
   const convertedValues = [];
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     const factor = context.conversionFactor(
-      shape.unitAt(rows[i], columns[i]),
-      unit
+      shape.unitAt(row, columns[i]),
+      unit,
     );
     convertedValues.push(values[i] * factor.toNumber());
   }

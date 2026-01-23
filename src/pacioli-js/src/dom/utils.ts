@@ -27,7 +27,7 @@ export const locale = "nl-NL";
 export function toFixed(
   value: number,
   decimals: number,
-  zero?: string
+  zero?: string,
 ): string {
   return typeof zero === "string" && value === 0
     ? zero

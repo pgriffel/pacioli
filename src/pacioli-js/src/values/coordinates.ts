@@ -41,7 +41,10 @@ export class PacioliCoordinates {
     return new PacioliCoordinates(names, indexSets);
   }
 
-  constructor(public names: string[], public indexSets: IndexSet[]) {}
+  constructor(
+    public names: string[],
+    public indexSets: IndexSet[],
+  ) {}
 
   public position() {
     let position = 0;
@@ -55,9 +58,9 @@ export class PacioliCoordinates {
   public project(cols: number[]): PacioliCoordinates {
     const names = [];
     const indexSets = [];
-    for (let i = 0; i < cols.length; i++) {
-      names.push(this.names[cols[i]]);
-      indexSets.push(this.indexSets[cols[i]]);
+    for (const col of cols) {
+      names.push(this.names[col]);
+      indexSets.push(this.indexSets[col]);
     }
     return new PacioliCoordinates(names, indexSets);
   }
@@ -67,7 +70,7 @@ export class PacioliCoordinates {
     if (n === 0) {
       return "_";
     } else {
-      const names = new Array(n) as string[];
+      const names = Array.from<string>({ length: n });
       for (let i = 0; i < n; i++) {
         names[i] = this.indexSets[i].name + "@" + this.names[i];
       }
@@ -123,7 +126,7 @@ export class PacioliCoordinates {
       new MatrixDimension(this.indexSets),
       SIVector.ONE,
       MatrixDimension.empty(),
-      SIVector.ONE
+      SIVector.ONE,
     );
   }
 
@@ -145,7 +148,7 @@ export class PacioliCoordinates {
       newUnit = newUnit.mult(
         unit.map((base) => {
           return vecBaseItem(base, i);
-        })
+        }),
       );
     }
     return newUnit;

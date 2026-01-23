@@ -67,7 +67,7 @@ export class PacioliContext {
     return new PacioliContext(
       UOMContext.fromDef(emptyDef),
       new Map(),
-      new Map()
+      new Map(),
     );
   }
 
@@ -78,7 +78,7 @@ export class PacioliContext {
   constructor(
     public unitContext: UOMContext,
     public unitVectors: Map<string, UnitVector> = new Map(),
-    public indexSets: Map<string, IndexSet> = new Map()
+    public indexSets: Map<string, IndexSet> = new Map(),
   ) {}
 
   public addBase(name: string, symbol: string, definition?: DimNum) {
@@ -93,7 +93,7 @@ export class PacioliContext {
     return this.unitContext.lookupScaledUnit(prefix, name);
   }
 
-  public addIndexSet(indexSet: IndexSet): PacioliContext {
+  public addIndexSet(indexSet: IndexSet): this {
     this.indexSets.set(indexSet.id, indexSet);
     return this;
   }
@@ -103,31 +103,42 @@ export class PacioliContext {
   }
 
   public getIndexSets(): IndexSet[] {
-    return Array.from(this.indexSets.values());
+    return [...this.indexSets.values()];
   }
 
   public addUnitVectorFromJSON(
     name: string,
     index: string,
-    units: { name: string; unit: any }[]
+    units: {
+      name: string;
+      unit: {
+        powers: {
+          base: {
+            prefix?: string;
+            name: string;
+          };
+          power?: number;
+        }[];
+      };
+    }[],
   ): UnitVector {
     const indexSet = this.findIndexSet(index);
     if (indexSet) {
       const unitMap = new Map<string, SIUnit>();
-      units.forEach((item) => {
+      for (const item of units) {
         unitMap.set(item.name, this.unitContext.parseSIUnit(item.unit));
-      });
+      }
       const vector = UnitVector.fromMap(name, indexSet, unitMap);
       this.addUnitVector(vector);
       return vector;
     } else {
       throw new Error(
-        "Index set " + index + " unknown when creating unit vector " + name
+        "Index set " + index + " unknown when creating unit vector " + name,
       );
     }
   }
 
-  public addUnitVector(vector: UnitVector): PacioliContext {
+  public addUnitVector(vector: UnitVector): this {
     this.unitVectors.set(vector.name, vector);
     return this;
   }

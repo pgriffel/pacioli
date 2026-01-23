@@ -41,7 +41,7 @@ describe("MatrixDimension", () => {
         fc.property(arbitraryMatrixDimension(), (dimension) => {
           // console.log(dimension)
           expect(dimension).toEqual(dimension);
-        })
+        }),
       );
     });
   });

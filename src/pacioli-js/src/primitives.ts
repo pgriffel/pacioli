@@ -29,13 +29,13 @@ import {
   getCOONumbers,
   getFullNumbers,
 } from "./raw-values/numbers";
+import { RawMap } from "./raw-values/raw-value";
 import type {
   RawArray,
   RawBoole,
   RawCoordinates,
   RawFunction,
   RawList,
-  RawMap,
   RawRef,
   RawString,
   RawTuple,
@@ -54,7 +54,6 @@ import {
 import type { PacioliVoid } from "./values/void";
 import { VOID } from "./values/void";
 import { PacioliMatrix } from "./values/matrix";
-import { PacioliMap } from "./values/map";
 import { RawMaybe } from "./values/maybe";
 import { SingularValueDecomposition } from "./linear-algebra/singular-value-decomposition";
 import { CholeskyDecomposition } from "./linear-algebra/cholesky-decomposition";
@@ -70,6 +69,7 @@ import {
   set,
   unaryNumbers,
 } from "./raw-values/raw-matrix";
+import { PacioliError } from "./pacioli-error";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -94,7 +94,7 @@ export const prefix = {
   deci: { symbol: "d", factor: Math.pow(10, -1) },
   centi: { symbol: "c", factor: Math.pow(10, -2) },
   milli: { symbol: "m", factor: Math.pow(10, -3) },
-  micro: { symbol: "\xB5", factor: Math.pow(10, -6) },
+  micro: { symbol: "\u00B5", factor: Math.pow(10, -6) },
   nano: { symbol: "n", factor: Math.pow(10, -9) },
   pico: { symbol: "p", factor: Math.pow(10, -12) },
   femto: { symbol: "f", factor: Math.pow(10, -15) },
@@ -131,7 +131,7 @@ export function $base_base__new_ref(value: RawValue): RawRef {
 }
 
 export function $base_base__empty_ref(): RawRef {
-  return tagRef(new Array<RawValue>(1));
+  return tagRef(Array.from({ length: 1 }));
 }
 
 export function $base_base__ref_set(ref: RawRef, value: RawValue): RawRef {
@@ -148,7 +148,7 @@ export function $base_base_just(value: RawValue): RawValue {
 }
 
 export function $base_base_error(value: RawString): unknown {
-  throw Error(value);
+  throw new PacioliError(value);
 }
 
 /**
@@ -222,9 +222,9 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
       function (a: number, b: number) {
         return a !== b;
       },
-      false
+      false,
     );
-  } else if (x instanceof Array && y instanceof Array) {
+  } else if (Array.isArray(x) && Array.isArray(y)) {
     const n = x.length;
     if (y.length !== n) {
       return false;
@@ -234,7 +234,7 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
         // TODO: remove casts. Split this if case into tuple, list, etc., instead of instanceof Array!?
         !$base_base_equal(
           x[i] as unknown as RawValue,
-          y[i] as unknown as RawValue
+          y[i] as unknown as RawValue,
         )
       ) {
         return false;
@@ -253,8 +253,8 @@ export function $base_io_print(x: RawValue): PacioliVoid {
 
 export function $base_matrix_is_zero(x: RawMatrix): RawBoole {
   const values = getCOONumbers(x)[2];
-  for (let i = 0; i < values.length; i++) {
-    if (values[i] !== 0) return false;
+  for (const value of values) {
+    if (value !== 0) return false;
   }
   return true;
 }
@@ -269,7 +269,7 @@ export function $base_matrix_magnitude(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_row(
   x: RawMatrix,
-  coord: RawCoordinates
+  coord: RawCoordinates,
 ): RawMatrix {
   const row = coord.position;
   const matrix = zeroNumbers(1, x.nrColumns);
@@ -277,8 +277,8 @@ export function $base_matrix_row(
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i] === row) {
+  for (const [i, entry] of rows.entries()) {
+    if (entry === row) {
       set(matrix, 0, columns[i], values[i]);
     }
   }
@@ -291,7 +291,7 @@ export function $base_matrix_row_unit(x: RawMatrix): RawMatrix {
 
 export function $base_matrix_row_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrRows;
-  const domain = new Array<RawCoordinates>(n);
+  const domain = Array.from<RawCoordinates>({ length: n });
   for (let i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
@@ -300,24 +300,24 @@ export function $base_matrix_row_domain(matrix: RawMatrix): RawList {
 
 export function $base_matrix_index_less(
   x: RawCoordinates,
-  y: RawCoordinates
+  y: RawCoordinates,
 ): RawBoole {
   return x.position < y.position;
 }
 
 export function $base_matrix_column(
   x: RawMatrix,
-  coord: RawCoordinates
+  coord: RawCoordinates,
 ): RawMatrix {
   // todo: reconsider this and the $base_matrix_row implementation
   return $base_matrix_transpose(
-    $base_matrix_row($base_matrix_transpose(x), coord)
+    $base_matrix_row($base_matrix_transpose(x), coord),
   );
 }
 
 export function $base_matrix_column_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrColumns;
-  const domain = new Array<RawValue>(n);
+  const domain = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
     domain[i] = { kind: "coordinates", position: i, size: n };
   }
@@ -331,7 +331,7 @@ export function $base_matrix_column_unit(x: RawMatrix): RawMatrix {
 export function $base_matrix_get_num(
   matrix: RawMatrix,
   i: RawCoordinates,
-  j: RawCoordinates
+  j: RawCoordinates,
 ): RawMatrix {
   return get(matrix, i.position, j.position);
 }
@@ -339,7 +339,7 @@ export function $base_matrix_get_num(
 export function $base_matrix_get(
   matrix: RawMatrix,
   i: RawCoordinates,
-  j: RawCoordinates
+  j: RawCoordinates,
 ): RawMatrix {
   return get(matrix, i.position, j.position);
 }
@@ -348,15 +348,11 @@ export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
   const first = tuples[0] as unknown as [
     RawCoordinates,
     RawCoordinates,
-    RawMatrix
+    RawMatrix,
   ];
   const numbers = zeroNumbers(first[0].size, first[1].size);
-  for (let i = 0; i < tuples.length; i++) {
-    const tup = tuples[i] as unknown as [
-      RawCoordinates,
-      RawCoordinates,
-      RawMatrix
-    ];
+  for (const tuple of tuples) {
+    const tup = tuple as unknown as [RawCoordinates, RawCoordinates, RawMatrix];
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
   return numbers;
@@ -364,7 +360,7 @@ export function $base_matrix_make_matrix(tuples: RawList): RawMatrix {
 
 export function $base_matrix_signum(x: RawMatrix): RawMatrix {
   return unaryNumbers(x, function (val: number) {
-    return val < 0 ? -1 : val > 0 ? 1 : 0;
+    return Math.sign(val);
   });
 }
 
@@ -402,8 +398,7 @@ export function $base_matrix_top(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let l = 0; l < rows.length; l++) {
-    const i = rows[l];
+  for (const [l, i] of rows.entries()) {
     const j = columns[l];
     const val = values[l]; //Pacioli.getNumber(x, i, j)
     if (count < n) {
@@ -444,8 +439,7 @@ export function $base_matrix_bottom(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let l = 0; l < rows.length; l++) {
-    const i = rows[l];
+  for (const [l, i] of rows.entries()) {
     const j = columns[l];
     const val = values[l];
     if (count < n) {
@@ -498,8 +492,8 @@ export function $base_matrix_transpose(x: RawMatrix): RawMatrix {
   const rows = numbers[0];
   const columns = numbers[1];
   const values = numbers[2];
-  for (let i = 0; i < rows.length; i++) {
-    set(result, columns[i], rows[i], values[i]);
+  for (const [i, row] of rows.entries()) {
+    set(result, columns[i], row, values[i]);
   }
   return result;
 }
@@ -513,16 +507,13 @@ export function $base_matrix_dim_div(x: RawMatrix, y: RawMatrix): RawMatrix {
 }
 
 export function $base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
-  if (x.nrColumns !== y.nrRows) {
-    throw Error("Invalid mmult");
-  }
   // Currently the only function that uses CCS. The others have been disabled with
   // the === 13 hack. See note in numbers.ts
   return tagMatrix(
     numeric.dot(getFullNumbers(x), getFullNumbers(y)) as NumericFullMatrix,
     x.nrRows,
     y.nrColumns,
-    "full"
+    "full",
   );
   // return tagNumbers(
   //   ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
@@ -539,7 +530,7 @@ export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
       numeric.ccsmul(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
-      "CCS"
+      "CCS",
     );
   } else {
     return elementWiseNumbers(x, y, function (a: number, b: number) {
@@ -573,7 +564,7 @@ export function $base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
 
 export function $base_matrix_divide(x: RawMatrix, y: RawMatrix): RawMatrix {
   return elementWiseNumbers(x, y, function (a: number, b: number) {
-    return b !== 0 ? a / b : 0;
+    return b === 0 ? 0 : a / b;
   });
 }
 
@@ -604,7 +595,7 @@ export function $base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
       numeric.ccsadd(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
-      "CCS"
+      "CCS",
     );
   } else {
     return elementWiseNumbers(x, y, function (a: number, b: number) {
@@ -621,7 +612,7 @@ export function $base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
       numeric.ccssub(getCCSNumbers(x), getCCSNumbers(y)),
       x.nrRows,
       y.nrColumns,
-      "CCS"
+      "CCS",
     );
   } else {
     return elementWiseNumbers(x, y, function (a: number, b: number) {
@@ -657,8 +648,8 @@ export function $base_matrix_scale_down(x: RawMatrix, y: RawMatrix): RawMatrix {
 export function $base_matrix_total(x: RawMatrix): RawMatrix {
   const values = getCOONumbers(x)[2];
   let total = 0;
-  for (let i = 0; i < values.length; i++) {
-    total += values[i];
+  for (const value of values) {
+    total += value;
   }
   const result = zeroNumbers(1, 1);
   set(result, 0, 0, total);
@@ -703,7 +694,7 @@ export function $base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.max(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -712,7 +703,7 @@ export function $base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.min(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -721,7 +712,7 @@ export function $base_matrix_sin(x: RawMatrix): RawMatrix {
     numeric.sin(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -730,7 +721,7 @@ export function $base_matrix_cos(x: RawMatrix): RawMatrix {
     numeric.cos(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -739,7 +730,7 @@ export function $base_matrix_tan(x: RawMatrix): RawMatrix {
     numeric.tan(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -748,7 +739,7 @@ export function $base_system__asin(x: RawMatrix): RawMatrix {
     numeric.asin(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -757,7 +748,7 @@ export function $base_system__acos(x: RawMatrix): RawMatrix {
     numeric.acos(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -766,7 +757,7 @@ export function $base_system__atan(x: RawMatrix): RawMatrix {
     numeric.atan(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -775,7 +766,7 @@ export function $base_system__atan2(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.atan2(getFullNumbers(x), getFullNumbers(y)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -819,7 +810,7 @@ export function $base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
     return $base_matrix_mexpt(
       tagMatrix(numeric.inv(getFullNumbers(x)), x.nrColumns, x.nrRows, "full"),
       // $base_matrix_solve(x, $base_matrix_left_identity(x)),
-      $base_matrix_negative(y)
+      $base_matrix_negative(y),
     );
   } else {
     let result = x;
@@ -836,7 +827,7 @@ export function $base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
     numeric.pow(getFullNumbers(x), n),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -845,7 +836,7 @@ export function $base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
   const yLog = initialNumbers(1, 1, [[0, 0, yLogged[0][0]]]);
   return $base_matrix_scale_down(
     tagMatrix(numeric.log(getFullNumbers(x)), x.nrRows, x.nrColumns, "full"),
-    yLog
+    yLog,
   );
 }
 
@@ -854,7 +845,7 @@ export function $base_matrix_exp(x: RawMatrix): RawMatrix {
     numeric.exp(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -863,7 +854,7 @@ export function $base_matrix_ln(x: RawMatrix): RawMatrix {
     numeric.log(getFullNumbers(x)),
     x.nrRows,
     x.nrColumns,
-    "full"
+    "full",
   );
 }
 
@@ -874,7 +865,7 @@ export function $base_matrix_less(x: RawMatrix, y: RawMatrix): RawBoole {
     function (a: number, b: number) {
       return a >= b;
     },
-    true
+    true,
   ); //=== null
 }
 
@@ -885,7 +876,7 @@ export function $base_matrix_less_eq(x: RawMatrix, y: RawMatrix): RawBoole {
     function (a: number, b: number) {
       return a > b;
     },
-    false
+    false,
   ); //=== null
 }
 
@@ -896,7 +887,7 @@ export function $base_matrix_greater(x: RawMatrix, y: RawMatrix): RawBoole {
     function (a: number, b: number) {
       return a <= b;
     },
-    true
+    true,
   ); //=== null
 }
 
@@ -907,7 +898,7 @@ export function $base_matrix_greater_eq(x: RawMatrix, y: RawMatrix): RawBoole {
     function (a: number, b: number) {
       return a < b;
     },
-    false
+    false,
   ); //=== null
 }
 
@@ -1064,13 +1055,13 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
   const svd = $base_matrix_singular_value_list(x) as unknown as [
     RawMatrix,
     RawMatrix,
-    RawMatrix
+    RawMatrix,
   ][];
 
   // Copied from SingularValueDecomposition.cs
   const treshold = Math.max(
     EPS,
-    EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns)
+    EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns),
   );
 
   let inv = zeroNumbers(x.nrColumns, x.nrRows);
@@ -1083,7 +1074,7 @@ export function $base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
       // if (getNumber(r, 0, 0) > treshold) {
       const m = $base_matrix_scale(
         r,
-        $base_matrix_mmult(w, $base_matrix_transpose(v))
+        $base_matrix_mmult(w, $base_matrix_transpose(v)),
       );
 
       inv = $base_matrix_sum(inv, m);
@@ -1153,7 +1144,7 @@ export function $base_matrix_singular_value_list(A: RawMatrix): RawList {
       }
 
       tuples.push(
-        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right]),
       );
     }
 
@@ -1181,7 +1172,7 @@ export function $base_matrix_singular_value_list(A: RawMatrix): RawList {
       }
 
       tuples.push(
-        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right])
+        tagTuple(needsTranspose ? [sv, right, left] : [sv, left, right]),
       );
     }
 
@@ -1222,16 +1213,16 @@ export function $base_matrix_ranking(x: RawMatrix): RawMatrix {
   const values = numbers[2];
 
   const tmp = [];
-  for (let i = 0; i < rows.length; i++) {
-    tmp[i] = [rows[i], columns[i], values[i]];
+  for (const [i, row] of rows.entries()) {
+    tmp[i] = [row, columns[i], values[i]];
   }
   tmp.sort(function (a, b) {
     if (a[2] > b[2]) return 1;
     if (a[2] < b[2]) return -1;
     return 0;
   });
-  for (let i = 0; i < tmp.length; i++) {
-    set(result, tmp[i][0], tmp[i][1], i + 1);
+  for (const [i, element] of tmp.entries()) {
+    set(result, element[0], element[1], i + 1);
   }
   return result;
 }
@@ -1243,24 +1234,24 @@ export function $base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
   const columns = numbers[1];
   const values = numbers[2];
 
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     // Again the fun arg to fun.call. See apply
     set(
       result,
-      rows[i],
+      row,
       columns[i],
       getNumber(
         fun.call(fun, tagMatrix([[values[i]]], 1, 1, "full")) as RawMatrix,
         0,
-        0
-      )
+        0,
+      ),
     );
   }
   return result;
 }
 
 export function $base_list_zip(x: RawList, y: RawList): RawList {
-  const list = new Array<RawValue>(Math.min(x.length, y.length));
+  const list = Array.from<RawValue>({ length: Math.min(x.length, y.length) });
   for (let i = 0; i < list.length; i++) {
     list[i] = tagTuple([x[i], y[i]]);
   }
@@ -1268,9 +1259,9 @@ export function $base_list_zip(x: RawList, y: RawList): RawList {
 }
 
 export function $base_list_map_list(fun: RawFunction, items: RawList): RawList {
-  const list = tagList(new Array<RawValue>(items.length));
-  for (let i = 0; i < items.length; i++) {
-    list[i] = fun(items[i]);
+  const list = tagList(Array.from({ length: items.length }));
+  for (const [i, item] of items.entries()) {
+    list[i] = fun(item);
   }
   return tagList(list);
 }
@@ -1281,15 +1272,15 @@ export function $base_system__add_mut(list: RawList, item: RawValue): RawList {
 }
 
 export function $base_list_append(x: RawList, y: RawList): RawList {
-  return tagList(x.concat(y));
+  return tagList([...x, ...y]);
 }
 
 export function $base_list_reverse(x: RawList): RawList {
-  return tagList(x.slice(0).reverse());
+  return tagList([...x].reverse());
 }
 
 export function $base_list_tail(x: RawList): RawList {
-  const array = new Array<RawValue>(x.length - 1);
+  const array = Array.from<RawValue>({ length: x.length - 1 });
   for (let i = 0; i < array.length; i++) {
     array[i] = x[i + 1];
   }
@@ -1306,7 +1297,7 @@ export function $base_list_nth(x: RawMatrix, y: RawList): RawValue {
 
 export function $base_list_naturals(num: RawMatrix): RawList {
   const n = getNumber(num, 0, 0);
-  const list = new Array<RawValue>(n);
+  const list = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
     list[i] = initialNumbers(1, 1, [[0, 0, i]]);
   }
@@ -1316,11 +1307,11 @@ export function $base_list_naturals(num: RawMatrix): RawList {
 export function $base_list_loop_list(
   init: RawValue,
   fun: RawFunction,
-  list: RawList
+  list: RawList,
 ): RawValue {
   let accu: RawValue = init;
-  for (let i = 0; i < list.length; i++) {
-    accu = fun.apply(fun, [accu, list[i]]);
+  for (const element of list) {
+    accu = fun.apply(fun, [accu, element]);
   }
   return accu;
 }
@@ -1335,7 +1326,7 @@ export function $base_list_head(x: RawList): RawValue {
 
 export function $base_list_fold_list(
   fun: RawFunction,
-  list: RawList
+  list: RawList,
 ): RawValue {
   if (list.length === 0) {
     throw new Error("Cannot fold an empty list");
@@ -1349,9 +1340,9 @@ export function $base_list_fold_list(
 
 export function $base_list_sort_list(list: RawList, fun: RawFunction): RawList {
   return tagList(
-    list.slice(0).sort(function (a: RawValue, b: RawValue) {
+    [...list].sort(function (a: RawValue, b: RawValue) {
       return getNumber(fun.apply(fun, [a, b]) as RawMatrix, 0, 0);
-    })
+    }),
   );
 }
 
@@ -1383,8 +1374,8 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
   if (typeof formatter !== "string") {
     throw new Error(
       `Illegal format string. The first argument to format must be a string. Found: \n\n${rawValueLabel(
-        formatter
-      )}`
+        formatter,
+      )}`,
     );
   }
 
@@ -1402,106 +1393,118 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
     if (char === "%") {
       if (i + 1 === n) {
         throw new Error(
-          `unfinished format directive at end of format string ${formatString}`
+          `unfinished format directive at end of format string ${formatString}`,
         );
       }
 
       const secondChar = formatString[i + 1];
 
-      if (secondChar === "%") {
-        out += "%";
-        i += 2;
-      } else if (secondChar === "s") {
-        // TODO: stringifyRawValue gebruiken!
-        out += stringifyRawValue(args[argumentIndex++]);
-        i += 2;
+      switch (secondChar) {
+        case "%": {
+          out += "%";
+          i += 2;
 
-        // const debugHack = false;
+          break;
+        }
+        case "s": {
+          // TODO: stringifyRawValue gebruiken!
+          out += stringifyRawValue(args[argumentIndex++]);
+          i += 2;
 
-        // const arg = args[argumentIndex++];
-        // const mat = arg as RawMatrix;
-        // if (debugHack && mat.kind === "matrix") {
-        //   out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
-        //     mat.storage
-        //   }`;
-        // }
-        // if (typeof arg === "object" && arg.kind === "coordinates") {
-        //   out += arg.position;
-        // } else {
-        //   out += arg.toString(); // TODO fix this
-        // }
-        // i += 2;
-      } else if (secondChar === "n") {
-        out += "\n";
-        i += 2;
-      } else {
-        const regex = /^%([0-9]*)d/;
+          // const debugHack = false;
 
-        const match = regex.exec(formatString.slice(i));
+          // const arg = args[argumentIndex++];
+          // const mat = arg as RawMatrix;
+          // if (debugHack && mat.kind === "matrix") {
+          //   out += `mat(${mat.nrRows}, ${mat.nrColumns}) ${mat.join(" + ")} ${
+          //     mat.storage
+          //   }`;
+          // }
+          // if (typeof arg === "object" && arg.kind === "coordinates") {
+          //   out += arg.position;
+          // } else {
+          //   out += arg.toString(); // TODO fix this
+          // }
+          // i += 2;
 
-        if (match !== null && match[0].length > 0) {
-          let size: number | null;
-          try {
-            size = match[1] === "" ? null : parseInt(match[1]);
-          } catch (_: unknown) {
-            size = null;
-          }
+          break;
+        }
+        case "n": {
+          out += "\n";
+          i += 2;
 
-          const mat = args[argumentIndex++]; // as RawMatrix;
-
-          if (typeof mat !== "object" || mat.kind !== "matrix") {
-            throw new Error("Expected matrix for %d format argument");
-          }
-
-          // TODO: make dimensionless output for mat.
-          const txt = getNumber(mat, 0, 0).toFixed(0);
-
-          out += size === null ? txt : txt.padStart(size, " ");
-          i += match[0].length;
-        } else {
-          const regex = /^%([0-9]*)([.]?)([0-9]*)f/;
+          break;
+        }
+        default: {
+          const regex = /^%([0-9]*)d/;
 
           const match = regex.exec(formatString.slice(i));
 
           if (match !== null && match[0].length > 0) {
-            let nrDecs: number;
-            try {
-              nrDecs = match[3] === "" ? NR_DECIMALS : parseInt(match[3]);
-            } catch (_: unknown) {
-              nrDecs = NR_DECIMALS;
-            }
-
             let size: number | null;
             try {
-              size = match[1] === "" ? null : parseInt(match[1]);
-            } catch (_: unknown) {
+              size = match[1] === "" ? null : Number.parseInt(match[1]);
+            } catch {
               size = null;
             }
 
-            const mat = args[argumentIndex++];
+            const mat = args[argumentIndex++]; // as RawMatrix;
 
             if (typeof mat !== "object" || mat.kind !== "matrix") {
               throw new Error("Expected matrix for %d format argument");
             }
 
-            if (mat.nrRows === 1 && mat.nrColumns === 1) {
-              const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
-              out += size === null ? txt : txt.padStart(size, " ");
-            } else {
-              // // FIXME: replace this quick and dirty solution with proper matrix formatting
-              // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
-              // if (rowList === null) {
-              //   out += "Could not format matrix";
-              // } else {
-              //   out += rowList;
-              // }
-              out += stringifyRawValue(mat);
-            }
+            // TODO: make dimensionless output for mat.
+            const txt = getNumber(mat, 0, 0).toFixed(0);
 
+            out += size === null ? txt : txt.padStart(size, " ");
             i += match[0].length;
           } else {
-            out += char;
-            i++;
+            const regex = /^%([0-9]*)([.]?)([0-9]*)f/;
+
+            const match = regex.exec(formatString.slice(i));
+
+            if (match !== null && match[0].length > 0) {
+              let nrDecs: number;
+              try {
+                nrDecs =
+                  match[3] === "" ? NR_DECIMALS : Number.parseInt(match[3]);
+              } catch {
+                nrDecs = NR_DECIMALS;
+              }
+
+              let size: number | null;
+              try {
+                size = match[1] === "" ? null : Number.parseInt(match[1]);
+              } catch {
+                size = null;
+              }
+
+              const mat = args[argumentIndex++];
+
+              if (typeof mat !== "object" || mat.kind !== "matrix") {
+                throw new Error("Expected matrix for %d format argument");
+              }
+
+              if (mat.nrRows === 1 && mat.nrColumns === 1) {
+                const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+                out += size === null ? txt : txt.padStart(size, " ");
+              } else {
+                // // FIXME: replace this quick and dirty solution with proper matrix formatting
+                // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
+                // if (rowList === null) {
+                //   out += "Could not format matrix";
+                // } else {
+                //   out += rowList;
+                // }
+                out += stringifyRawValue(mat);
+              }
+
+              i += match[0].length;
+            } else {
+              out += char;
+              i++;
+            }
           }
         }
       }
@@ -1546,27 +1549,31 @@ export function $base_system__set_precision(num: RawMatrix): PacioliVoid {
 
 export function $base_string_unit2string(unit: RawMatrix): RawString {
   const shape = unit.shape;
+
   if (shape === undefined) {
-    throw Error("shape undefined");
+    throw new Error("shape undefined in unit2string");
   }
+
   const rowOrder = shape.rowOrder();
   const columnOrder = shape.columnOrder();
 
   if (rowOrder === 0 && columnOrder === 0) {
     return shape.unitAt(0, 0).toText();
   } else {
-    throw Error("unit2string is not implemented for non-scalars");
+    throw new PacioliError(
+      "unit2string is only implemented for scalars, not for vectors and matrices",
+    );
   }
 }
 
 export function $base_system__num2string(
   num: RawMatrix,
   decimals: RawMatrix,
-  unit: RawMatrix
+  unit: RawMatrix,
 ): RawString {
   const shape = unit.shape;
   if (shape === undefined) {
-    throw Error("shape undefined");
+    throw new Error("shape undefined");
   }
   const matrix = new PacioliMatrix(shape, num);
   return matrix.toDecimal(getNumber(decimals, 0, 0));
@@ -1574,16 +1581,16 @@ export function $base_system__num2string(
 
 export function $base_string_compare_string(
   x: RawString,
-  y: RawString
+  y: RawString,
 ): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, x < y ? -1 : x > y ? 1 : 0]]);
+  return initialNumbers(1, 1, [[0, 0, x.localeCompare(y)]]);
 }
 
 export function $base_string_concatenate(
   x: RawString,
-  y: RawString
+  y: RawString,
 ): RawString {
-  return x.concat(y);
+  return x + y;
 }
 
 export function $base_string_split_string(x: RawString, y: RawString): RawList {
@@ -1592,7 +1599,7 @@ export function $base_string_split_string(x: RawString, y: RawString): RawList {
 
 export function $base_string_char_at(
   str: RawString,
-  pos: RawMatrix
+  pos: RawMatrix,
 ): RawString {
   const n = str.length;
 
@@ -1613,7 +1620,7 @@ export function $base_string_pad(
   left: RawString,
   right: RawString,
   n: RawMatrix,
-  sub: RawString
+  sub: RawString,
 ): RawString {
   return (
     left + right.padStart(Math.max(0, getNumber(n, 0, 0) - left.length), sub)
@@ -1633,7 +1640,7 @@ export function $base_system__system_time(): RawMatrix {
 }
 
 export function $base_array_make_array(n: RawMatrix): RawArray {
-  return tagArray(new Array<RawValue>(getNumber(n, 0, 0)));
+  return tagArray(Array.from({ length: getNumber(n, 0, 0) }));
 }
 
 export function $base_array_array_get(arr: RawArray, pos: RawMatrix): RawValue {
@@ -1643,7 +1650,7 @@ export function $base_array_array_get(arr: RawArray, pos: RawMatrix): RawValue {
 export function $base_array_array_put(
   arr: RawArray,
   pos: RawMatrix,
-  val: RawValue
+  val: RawValue,
 ): PacioliVoid {
   arr[getNumber(pos, 0, 0)] = val;
   return VOID;
@@ -1654,8 +1661,7 @@ export function $base_array_array_size(arr: RawArray): RawMatrix {
 }
 
 export function $base_map_empty_map(): RawMap {
-  // return tagMap(new Map<RawValue, RawValue>());
-  return new PacioliMap();
+  return new RawMap();
 }
 
 export function $base_map_lookup(key: RawValue, map: RawMap): RawValue {
@@ -1665,7 +1671,7 @@ export function $base_map_lookup(key: RawValue, map: RawMap): RawValue {
 export function $base_map_store(
   key: RawValue,
   value: RawValue,
-  map: RawMap
+  map: RawMap,
 ): PacioliVoid {
   return map.store(key, value);
 }

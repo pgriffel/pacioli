@@ -48,7 +48,7 @@ describe("DOM", () => {
         new MatrixDimension([personSet]),
         SIVector.ONE,
         new MatrixDimension([]),
-        SIVector.ONE
+        SIVector.ONE,
       );
       const numbers = initialNumbers(personSet.size(), 1, [
         [0, 0, 1],
@@ -58,23 +58,23 @@ describe("DOM", () => {
 
       const matrix = new PacioliMatrix(shape, numbers);
 
-      const tableData = matrix.tableData("Value");
+      const tableBuilder = matrix.tableBuilder("Value", { decimals: 2 });
 
-      const stringified = tableData.stringify("0", [2], false);
+      // const stringified = tableData.stringify("0", [2], false);
 
-      expect(tableData.clipboardText()).toEqual(`Person\tValue
+      expect(tableBuilder.clipboardText()).toEqual(`Person\tValue
 Jack\t1
 Jill\t1.2345678901234567
 Jane\t1234567890.1234567
 John\t0
 Jennifer\t0`);
 
-      expect(stringified.ascii()).toEqual(`Person           Value 
+      expect(tableBuilder.ascii()).toEqual(`Person           Value 
 Jack              1.00 
 Jill              1.23 
 Jane     1234567890.12 
-John                 0 
-Jennifer             0 
+John              0.00 
+Jennifer          0.00 
 `);
     });
   });

@@ -20,14 +20,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { SIUnit } from "uom-ts";
-import { UOM } from "uom-ts";
+import { SIUnit, UOM } from "uom-ts";
 import { PacioliCoordinates } from "./coordinates";
 import { MatrixDimension } from "./matrix-dimension";
 import type { VectorBase } from "./vector-base";
 
 export class SIVector extends UOM<VectorBase> {
-  public static ONE: UOM<VectorBase> = new UOM(new Map());
+  public static readonly ONE: UOM<VectorBase> = new UOM(new Map());
 }
 
 export class MatrixShape {
@@ -38,7 +37,7 @@ export class MatrixShape {
       MatrixDimension.empty(),
       SIVector.ONE,
       MatrixDimension.empty(),
-      SIVector.ONE
+      SIVector.ONE,
     );
   }
 
@@ -47,7 +46,7 @@ export class MatrixShape {
     public rowDimension: MatrixDimension,
     public rowUnit: SIVector,
     public columnDimension: MatrixDimension,
-    public columnUnit: SIVector
+    public columnUnit: SIVector,
   ) {}
 
   public toText() {
@@ -98,7 +97,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit.mult(other.rowUnit),
       this.columnDimension,
-      this.columnUnit.mult(other.columnUnit)
+      this.columnUnit.mult(other.columnUnit),
     );
   }
 
@@ -107,11 +106,11 @@ export class MatrixShape {
       !this.columnDimension.equals(other.rowDimension) &&
       this.columnUnit.equals(other.rowUnit)
     ) {
-      throw Error(
+      throw new Error(
         "Shape " +
           this.toText() +
           " is not compatible for dot product with shape " +
-          other.toText()
+          other.toText(),
       );
     }
     return new MatrixShape(
@@ -119,7 +118,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit,
       other.columnDimension,
-      other.columnUnit
+      other.columnUnit,
     );
   }
 
@@ -129,7 +128,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit,
       this.columnDimension,
-      this.columnUnit
+      this.columnUnit,
     );
   }
 
@@ -147,7 +146,7 @@ export class MatrixShape {
       this.columnDimension,
       this.columnUnit.reciprocal(),
       this.rowDimension,
-      this.rowUnit.reciprocal()
+      this.rowUnit.reciprocal(),
     );
   }
 
@@ -157,22 +156,24 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit.reciprocal(),
       this.columnDimension,
-      this.columnUnit.reciprocal()
+      this.columnUnit.reciprocal(),
     );
   }
 
   public kron(other: MatrixShape) {
-    const mapper = function (order: number) {
-      return function (base: VectorBase) {
-        return UOM.fromBase(base.shift(order));
-      };
-    };
+    const rowOrder = this.rowOrder();
+    const columnOrder = this.columnOrder();
+
     return new MatrixShape(
       this.multiplier.mult(other.multiplier),
       this.rowDimension.kronecker(other.rowDimension),
-      this.rowUnit.mult(other.rowUnit.map(mapper(this.rowOrder()))),
+      this.rowUnit.mult(
+        other.rowUnit.map((base) => UOM.fromBase(base.shift(rowOrder))),
+      ),
       this.columnDimension.kronecker(other.columnDimension),
-      this.columnUnit.mult(other.columnUnit.map(mapper(this.columnOrder())))
+      this.columnUnit.mult(
+        other.columnUnit.map((base) => UOM.fromBase(base.shift(columnOrder))),
+      ),
     );
   }
 
@@ -242,7 +243,7 @@ export class MatrixShape {
       this.rowDimension,
       SIVector.ONE,
       this.columnDimension,
-      SIVector.ONE
+      SIVector.ONE,
     );
   }
 
@@ -289,7 +290,7 @@ export class MatrixShape {
   public columnCoordinates(position: number) {
     return PacioliCoordinates.fromIndex(
       this.columnDimension.indexSets,
-      position
+      position,
     );
   }
 
@@ -302,7 +303,7 @@ export class MatrixShape {
   public rowName(): string {
     return this.rowNames().reduce(function (x, y) {
       return x + "%" + y;
-    });
+    }, "");
   }
 
   public columnNames(): string[] {
@@ -314,12 +315,8 @@ export class MatrixShape {
   public columnName(): string {
     return this.columnNames().reduce(function (x, y) {
       return x + "%" + y;
-    });
+    }, "");
   }
-
-  // Pacioli.Shape.prototype.columnCoordinates = function (position) {
-  //     return new Pacioli.Coordinates(position, this.columnSets);
-  //   }
 
   public findRowUnit(row: number): SIUnit {
     return this.rowCoordinates(row).findIndividualUnit(this.rowUnit);

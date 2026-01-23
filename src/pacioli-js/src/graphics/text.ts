@@ -35,7 +35,7 @@ export type PacioliLabel = [
   PacioliMatrix, // position
   PacioliString, // color
   PacioliString, // font
-  PacioliMatrix // scale
+  PacioliMatrix, // scale
 ];
 
 export function addLabel(
@@ -50,7 +50,7 @@ export function addLabel(
     unitY: SIUnit;
     unitZ: SIUnit;
     scale: number;
-  }
+  },
 ) {
   const [characters, position, color, font, scale] = pacioliLabel;
 

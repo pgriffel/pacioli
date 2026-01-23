@@ -21,25 +21,45 @@
  */
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  evaluateWebComponentDefinition,
+  optionsFromAttributes,
+  optionsFromScript,
+} from "../utils";
 import { DOMTable } from "../../dom/dom";
 import type { PacioliTuple } from "../../values/tuple";
 import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliMatrix } from "../../values/matrix";
+import { PacioliError } from "../../pacioli-error";
+import {
+  getBooleAttribute,
+  getNumberAttribute,
+  getStringAttribute,
+} from "../pacioli-web-component";
+import type { PacioliList } from "../../values/list";
 
 /**
  * Options for Pacioli's table component.
  */
 export interface TableOptions {
   decimals: number;
-
   zero?: string;
-
   nozerorows: boolean;
-
   totals: boolean;
-
   ignoredecimals: boolean;
+  exponential: boolean;
+  ascii: boolean;
+  clipboard: boolean;
+}
+
+interface ColumnData {
+  header: string;
+  value: PacioliMatrix | PacioliList;
+  decimals?: number;
+  ignoredecimals?: boolean;
+  exponential?: boolean;
+  showTotal?: boolean;
+  total?: PacioliMatrix;
 }
 
 /**
@@ -47,9 +67,29 @@ export interface TableOptions {
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
-  booleans: ["nozerorows", "ignoredecimals", "totals"],
+  booleans: [
+    "nozerorows",
+    "ignoredecimals",
+    "exponential",
+    "totals",
+    "ascii",
+    "clipboard",
+  ],
   numbers: ["decimals"],
 };
+
+function pacioliTableError(message: string): PacioliError {
+  return new PacioliError(
+    `Unexpected data for table. ${message}\n\n${VALID_TABLE_DATA_MESSAGE}`,
+  );
+}
+
+const VALID_TABLE_DATA_MESSAGE = `Valid chart data for a table is 
+  - a list of (number, number) pairs
+  - a pair of number lists
+  - a pair of number vectors
+  - a vector
+  - a list of numbers`;
 
 /**
  * Style sheet for the table component
@@ -127,9 +167,54 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Is the decimals attribute ignored?
+   */
+  get ignoredecimals(): boolean {
+    return this.getBooleAttribute("ignoredecimals");
+  }
+
+  set ignoredecimals(value: boolean) {
+    this.setBooleAttribute("ignoredecimals", value);
+  }
+
+  /**
+   * Is the table displayed in ASCII format?
+   */
+  get ascii(): boolean {
+    return this.getBooleAttribute("ascii");
+  }
+
+  set ascii(value: boolean) {
+    this.setBooleAttribute("ascii", value);
+  }
+
+  /**
+   * Is the table displayed in clipboard format?
+   */
+  get clipboard(): boolean {
+    return this.getBooleAttribute("clipboard");
+  }
+
+  set clipboard(value: boolean) {
+    this.setBooleAttribute("clipboard", value);
+  }
+
+  /**
+   * Is exponential notation for numbers used?
+   */
+  get exopnential(): boolean {
+    return this.getBooleAttribute("exopnential");
+  }
+
+  set exopnential(value: boolean) {
+    this.setBooleAttribute("exopnential", value);
+  }
+
+  /**
    * The Pacioli value displayed in the table.
    */
-  data?: PacioliValue;
+  // data?: PacioliValue;
+  columns?: ColumnData[];
 
   constructor() {
     super();
@@ -139,12 +224,15 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
+  static readonly observedAttributes = [
     "definition",
     "decimals",
     "totals",
     "nozerorows",
     "ignoredecimals",
+    "exopnential",
+    "ascii",
+    "clipboard",
   ];
 
   /**
@@ -152,14 +240,14 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
    */
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
-      if (this.data !== undefined) {
+      if (this.columns !== undefined) {
         // Reload the data if the definition changes. The initial load is done in
         // parametersChanged.
         if (name === "definition") {
-          this.data = this.fetchData();
+          this.columns = this.collectColumns();
         }
 
-        this.drawTable(this.data);
+        this.drawTable(this.columns);
       }
     } catch (err: unknown) {
       this.displayError(err instanceof Error ? err.message : String(err));
@@ -170,12 +258,19 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    this.data = this.fetchData();
+    this.columns = this.collectColumns();
 
-    this.drawTable(this.data);
+    this.drawTable(this.columns);
   }
 
-  drawTable(value: PacioliValue) {
+  collectColumns(): ColumnData[] {
+    return [
+      ...columnDataFromDefinition(this),
+      ...columnDataFromChildElements(this),
+    ];
+  }
+
+  drawTable(columns: ColumnData[]) {
     this.clearContent();
     this.clearErrors();
 
@@ -184,63 +279,98 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
       ...optionsFromAttributes<TableOptions>(this, SUPPORTED_ATTRIBUTES),
     };
 
-    const columns = columnsFromValue(value);
-
     this.contentParent().appendChild(DOMTable(columns, options));
+  }
+}
+
+function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
+  const columns: ColumnData[] = [];
+
+  for (const child of element.children) {
+    if (child.nodeName === "COLUMN") {
+      const element = child as HTMLElement;
+
+      const header = getStringAttribute(
+        element,
+        "header",
+        "No 'header' attribute",
+      );
+      const decimals = element.hasAttribute("decimals")
+        ? getNumberAttribute(element, "decimals")
+        : undefined;
+      const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
+      const exponential = getBooleAttribute(element, "exponential");
+
+      const value = evaluateWebComponentDefinition(element);
+
+      if (value.kind !== "matrix" && value.kind !== "list") {
+        throw pacioliTableError(
+          `Invalid column '${header}'. Expected a matrix or a list, got a '${value.kind}'`,
+        );
+      }
+
+      columns.push({
+        header: header,
+        value: value,
+        decimals,
+        ignoredecimals,
+        exponential,
+      });
+    }
+  }
+
+  return columns;
+}
+
+function columnDataFromDefinition(element: HTMLElement): ColumnData[] {
+  if (element.hasAttribute("definition")) {
+    return columnsFromValue(evaluateWebComponentDefinition(element));
+  } else {
+    return [];
   }
 }
 
 /**
  * Converts a PacioliValue into a list of columns options for the DOMTable function.
  *
- * TODO: create pacioli-column component and read the columns from HTML!?
- *
  * @param value
  * @returns
  */
-function columnsFromValue(value: PacioliValue): {
-  title: string;
-  value: PacioliMatrix;
-  decimals?: number;
-  showTotal?: boolean;
-  total?: PacioliMatrix;
-}[] {
+function columnsFromValue(value: PacioliValue): ColumnData[] {
   if (value.kind === "tuple") {
     const columns = value.map((item: PacioliValue) => {
       if (item.kind === "tuple") {
         return columnData(item);
       } else {
-        throw Error(`Invalid column. Expected a tuple, got a '${item.kind}'`);
+        throw pacioliTableError(
+          `Invalid column. Expected a tuple, got a '${item.kind}'`,
+        );
       }
     });
     return columns;
   } else {
-    throw Error(`Expected a tuple of columns, got a '${value.kind}'`);
+    throw pacioliTableError(
+      `Expected a tuple of columns, got a '${value.kind}'`,
+    );
   }
 }
 
 /**
  * Helper for columnsFromValue. Converts a single column spec.
  */
-function columnData(value: PacioliTuple): {
-  title: string;
-  value: PacioliMatrix;
-  decimals?: number;
-  showTotal?: boolean;
-  total?: PacioliMatrix;
-} {
+function columnData(value: PacioliTuple): ColumnData {
   if (value.length >= 2 && value.length <= 5) {
     if (value[0].kind !== "string") {
-      throw Error(
-        `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`
+      throw pacioliTableError(
+        `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`,
       );
     }
 
     const title: string = value[0].value;
 
     if (value[1].kind !== "matrix") {
-      throw Error(
-        `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`
+      throw pacioliTableError(
+        `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`,
       );
     }
 
@@ -256,13 +386,13 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "matrix") {
           decimals = val?.getNum(0, 0);
         } else {
-          throw Error(
-            `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
+          throw pacioliTableError(
+            `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`,
           );
         }
       } else {
-        throw Error(
-          `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`
+        throw pacioliTableError(
+          `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`,
         );
       }
     }
@@ -273,15 +403,15 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "boole") {
           showTotal = val?.value;
         } else {
-          throw Error(
-            `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`
+          throw pacioliTableError(
+            `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`,
           );
         }
       } else if (value[3].kind === "boole") {
         showTotal = value[3].value;
       } else {
-        throw Error(
-          `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`
+        throw pacioliTableError(
+          `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`,
         );
       }
     }
@@ -292,27 +422,27 @@ function columnData(value: PacioliTuple): {
         if (val === undefined || val.kind === "matrix") {
           total = val;
         } else {
-          throw Error(
-            `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`
+          throw pacioliTableError(
+            `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`,
           );
         }
       } else {
-        throw Error(
-          `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`
+        throw pacioliTableError(
+          `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`,
         );
       }
     }
 
     return {
-      title: value[0].value,
+      header: value[0].value,
       value: value[1],
       decimals,
       showTotal,
       total,
     };
   } else {
-    throw Error(
-      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`
+    throw pacioliTableError(
+      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`,
     );
   }
 }

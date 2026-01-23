@@ -24,7 +24,7 @@ import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
   addButtonEventListener,
   addCheckBoxEventListener,
-  attachedPacioliWebComponent,
+  targetElements,
 } from "../utils";
 import type { PacioliSceneComponent } from "./pacioli-scene";
 
@@ -114,12 +114,12 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = ["for"];
+  static readonly observedAttributes = ["for"];
 
   /**
    * Auto-rotation speed
    */
-  static SECONDS_PER_ROTATION = 30;
+  static readonly SECONDS_PER_ROTATION = 30;
 
   /**
    * Web component life-cycle event.
@@ -127,7 +127,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
   attributeChangedCallback(
     name: string,
     _oldValue: string | null,
-    _newValue: string
+    _newValue: string,
   ) {
     switch (name) {
       case "for": {
@@ -166,9 +166,16 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    *
    * @returns The connected PacioliScene, or undefined if no connected scene exists.
    */
-  sceneElement(): PacioliSceneComponent | undefined {
-    const component = attachedPacioliWebComponent(this);
-    return component ? (component as PacioliSceneComponent) : undefined;
+  sceneElements(): PacioliSceneComponent[] {
+    const scenes: PacioliSceneComponent[] = [];
+
+    for (const target of targetElements(this)) {
+      if (target.nodeName === "PACIOLI-SCENE") {
+        scenes.push(target as PacioliSceneComponent);
+      }
+    }
+
+    return scenes;
   }
 
   /**
@@ -185,7 +192,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
       this.animationButton('[part="button reset"]'),
       () => {
         this.resetButtonClicked();
-      }
+      },
     );
 
     addCheckBoxEventListener(this.configurationLabel(".axis"), (checked) => {
@@ -209,9 +216,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the start button
    */
   private startButtonClicked() {
-    const scene = this.sceneElement();
-
-    if (scene) {
+    for (const scene of this.sceneElements()) {
       try {
         const isRunning = scene.isRunning();
 
@@ -230,8 +235,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the step button
    */
   private stepButtonClicked() {
-    const scene = this.sceneElement();
-    if (scene) {
+    for (const scene of this.sceneElements()) {
       try {
         scene.step();
         this.updateControls();
@@ -245,8 +249,7 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the reset button
    */
   private resetButtonClicked() {
-    const scene = this.sceneElement();
-    if (scene) {
+    for (const scene of this.sceneElements()) {
       try {
         scene.reset();
         this.updateControls();
@@ -260,16 +263,17 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the axis checkbox
    */
   private axisCheckBoxClicked(checked: boolean) {
-    const scene = this.sceneElement();
-    if (scene && scene.space) {
-      try {
-        if (checked) {
-          scene.space.showAxis();
-        } else {
-          scene.space.hideAxis();
+    for (const scene of this.sceneElements()) {
+      if (scene.space) {
+        try {
+          if (checked) {
+            scene.space.showAxis();
+          } else {
+            scene.space.hideAxis();
+          }
+        } catch (err: unknown) {
+          scene.displayError(err instanceof Error ? err.message : String(err));
         }
-      } catch (err: unknown) {
-        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -278,16 +282,17 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the labels checkbox
    */
   private labelsCheckBoxClicked(checked: boolean) {
-    const scene = this.sceneElement();
-    if (scene && scene.space) {
-      try {
-        if (checked) {
-          scene.space.showLabels();
-        } else {
-          scene.space.hideLabels();
+    for (const scene of this.sceneElements()) {
+      if (scene.space) {
+        try {
+          if (checked) {
+            scene.space.showLabels();
+          } else {
+            scene.space.hideLabels();
+          }
+        } catch (err: unknown) {
+          scene.displayError(err instanceof Error ? err.message : String(err));
         }
-      } catch (err: unknown) {
-        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -296,16 +301,17 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the grid checkbox
    */
   private gridCheckBoxClicked(checked: boolean) {
-    const scene = this.sceneElement();
-    if (scene && scene.space) {
-      try {
-        if (checked) {
-          scene.space.showGrid();
-        } else {
-          scene.space.hideGrid();
+    for (const scene of this.sceneElements()) {
+      if (scene.space) {
+        try {
+          if (checked) {
+            scene.space.showGrid();
+          } else {
+            scene.space.hideGrid();
+          }
+        } catch (err: unknown) {
+          scene.displayError(err instanceof Error ? err.message : String(err));
         }
-      } catch (err: unknown) {
-        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -314,18 +320,19 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the auto-rotate checkbox
    */
   private autoRotateCheckboxClicked(checked: boolean) {
-    const scene = this.sceneElement();
-    if (scene && scene.space) {
-      try {
-        if (checked) {
-          scene.space.startAutoRotation(
-            PacioliControlsComponent.SECONDS_PER_ROTATION
-          );
-        } else {
-          scene.space.stopAutoRotation();
+    for (const scene of this.sceneElements()) {
+      if (scene.space) {
+        try {
+          if (checked) {
+            scene.space.startAutoRotation(
+              PacioliControlsComponent.SECONDS_PER_ROTATION,
+            );
+          } else {
+            scene.space.stopAutoRotation();
+          }
+        } catch (err: unknown) {
+          scene.displayError(err instanceof Error ? err.message : String(err));
         }
-      } catch (err: unknown) {
-        scene.displayError(err instanceof Error ? err.message : String(err));
       }
     }
   }
@@ -334,16 +341,14 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * Handler for the snapshot button
    */
   private snapshotButtonClicked() {
-    const followedId = this.getAttribute("for");
-    const scene = this.sceneElement();
-    if (scene && followedId !== null) {
-      scene.openImage(followedId);
-    } else {
-      if (scene) {
-        scene.displayError("No scene to take snapshot of");
-      } else {
-        alert("No scene to take snapshot of");
-      }
+    const scenes = this.sceneElements();
+
+    if (scenes.length === 0) {
+      alert("No scene to take snapshot of");
+    }
+
+    for (const scene of scenes) {
+      scene.openImage(scene.id);
     }
   }
 
@@ -352,15 +357,15 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
    * button labels for the animation buttons.
    */
   private updateControls() {
-    // const animationElement = this.findElement(".animation");
-
     const runButton = this.animationButton(".run");
     const stepButton = this.animationButton(".step");
     const resetButton = this.animationButton(".reset");
 
-    const scene = this.sceneElement();
+    // The first scene is leading
+    const scenes = this.sceneElements();
+    const scene = scenes.length === 0 ? undefined : scenes[0];
 
-    if (scene && scene.space) {
+    if (scene?.space) {
       // If we get here the space must have been created
       const space = scene.space;
 
@@ -374,7 +379,6 @@ export class PacioliControlsComponent extends PacioliShadowTreeComponent {
       if (scene.isAnimation()) {
         const isRunning = space.isRunning();
 
-        // animationElement.style.display = "";
         runButton.style.display = "";
         stepButton.style.display = "";
         resetButton.style.display = "";

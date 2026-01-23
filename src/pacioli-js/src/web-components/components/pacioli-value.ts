@@ -38,6 +38,10 @@ export interface ValueOptions {
   totals: boolean;
 
   ignoredecimals: boolean;
+
+  ascii: boolean;
+
+  clipboard: boolean;
 }
 
 /**
@@ -45,7 +49,7 @@ export interface ValueOptions {
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
-  booleans: ["nozerorows", "ignoredecimals", "totals"],
+  booleans: ["nozerorows", "ignoredecimals", "totals", "ascii", "clipboard"],
   numbers: ["decimals"],
 };
 
@@ -115,12 +119,14 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
+  static readonly observedAttributes = [
     "definition",
     "decimals",
     "ignoredecimals",
     "totals",
     "nozeros",
+    "ascii",
+    "clipboard",
   ];
 
   /**
@@ -132,7 +138,7 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
         // Reload the data if the definition changes. The initial load is done in
         // parametersChanged.
         if (name === "definition") {
-          this.data = this.fetchData();
+          this.data = this.evaluateDefinition();
         }
 
         this.drawTable(this.data);
@@ -146,7 +152,7 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged(): void {
-    this.data = this.fetchData();
+    this.data = this.evaluateDefinition();
 
     this.drawTable(this.data);
   }

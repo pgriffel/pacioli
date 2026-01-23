@@ -21,12 +21,11 @@
  */
 
 import type { PacioliCoordinates } from "../values/coordinates";
-import type { PacioliMap } from "../values/map";
 import { RawMaybe } from "../values/maybe";
 import type { NumericMatrix } from "./numbers";
-import type { PacioliVoid } from "../values/void";
+import { VOID, type PacioliVoid } from "../values/void";
 import {
-  tableDataFromRawMatrix,
+  tableBuilderFromRawMatrix,
   type RawMatrix,
   type RawMatrixStorage,
 } from "./raw-matrix";
@@ -69,11 +68,6 @@ export interface RawList extends Array<RawValue> {
 export interface RawArray extends Array<RawValue> {
   kind: "array";
 }
-
-/**
- * Type of an unboxed Pacioli map. The same as a non-raw map.
- */
-export type RawMap = PacioliMap;
 
 /**
  * Type of raw Void. The same as the non-raw type.
@@ -131,7 +125,7 @@ export function tagMatrix(
   numbers: NumericMatrix,
   nrRows: number,
   nrColumns: number,
-  storage: RawMatrixStorage
+  storage: RawMatrixStorage,
 ): RawMatrix {
   const matrix = numbers as RawMatrix;
 
@@ -172,7 +166,7 @@ export function tagRef(value: Array<RawValue>): RawRef {
  * @returns One of the labels.
  */
 export function rawValueLabel(
-  value: RawValue
+  value: RawValue,
 ):
   | "matrix"
   | "list"
@@ -238,22 +232,27 @@ export function stringifyRawValue(value: RawValue): string {
 
   switch (value.kind) {
     case "matrix": {
-      return tableDataFromRawMatrix(value, "Value", false).ascii();
-      // return `mat(${value.nrRows.toString()}, ${value.nrColumns.toString()}) ${value.join(
-      //   " + "
-      // )} ${value.storage.toString()}`;
+      return tableBuilderFromRawMatrix(value).ascii();
     }
     case "list": {
-      return `[${value.map(stringifyRawValue).join(", ")}]`;
+      return `[${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}]`;
     }
     case "tuple": {
-      return `[${value.map(stringifyRawValue).join(", ")}]`;
+      return `(${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")})`;
     }
     case "array": {
-      return `<${value.map(stringifyRawValue).join(", ")}>`;
+      return `{${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}}`;
     }
     case "ref": {
-      return `<${value.map(stringifyRawValue).join(", ")}>`;
+      return `<${value
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}>`;
     }
     case "coordinates": {
       return `${value.size.toString()}@${value.position.toString()}`;
@@ -278,5 +277,39 @@ export function stringifyRawValue(value: RawValue): string {
         ? "Nothing"
         : `just<${stringifyRawValue(value.value)}>`;
     }
+  }
+}
+
+/**
+ * Unboxed Pacioli map.
+ */
+export class RawMap {
+  readonly kind = "map";
+
+  valueMap = new Map<string, RawValue>();
+  keyMap = new Map<string, RawValue>();
+
+  public store(key: RawValue, value: RawValue): PacioliVoid {
+    const effKey = stringifyRawValue(key);
+    this.valueMap.set(effKey, value);
+    this.keyMap.set(effKey, key);
+    return VOID;
+  }
+
+  public lookup(key: RawValue): RawMaybe {
+    const effKey = stringifyRawValue(key);
+    if (this.keyMap.has(effKey)) {
+      return new RawMaybe(this.valueMap.get(effKey));
+    } else {
+      return new RawMaybe();
+    }
+  }
+
+  public keys(): RawList {
+    const keys: RawValue[] = [];
+    for (const key of this.keyMap.values()) {
+      keys.push(key);
+    }
+    return tagList(keys);
   }
 }

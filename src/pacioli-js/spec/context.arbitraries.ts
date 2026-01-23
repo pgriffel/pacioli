@@ -29,12 +29,12 @@ import { pickOne } from "./util";
 import { MatrixShape, SIVector } from "../src/values/matrix-shape";
 
 export function arbitraryUOM(
-  context: PacioliContext
+  context: PacioliContext,
 ): fc.Arbitrary<UOM<SIBase>> {
   return fc
     .array(arbitraryBase(context.unitContext))
     .map((terms) =>
-      terms.map(UOM.fromBase).reduce((x, y) => x.mult(y), SIUnit.ONE)
+      terms.map(UOM.fromBase).reduce((x, y) => x.mult(y), SIUnit.ONE),
     );
 }
 
@@ -47,13 +47,13 @@ export function arbitraryBase(context: UOMContext): fc.Arbitrary<SIBase> {
 }
 
 export function arbitraryScalarShape(
-  context: PacioliContext
+  context: PacioliContext,
 ): fc.Arbitrary<MatrixShape> {
   return arbitraryUOM(context).map((unit) => MatrixShape.scalar(unit));
 }
 
 export function arbitraryShape(
-  context: PacioliContext
+  context: PacioliContext,
 ): fc.Arbitrary<MatrixShape> {
   return fc
     .record({
@@ -73,8 +73,8 @@ export function arbitraryShape(
               new MatrixDimension(indexSets.row),
               SIVector.ONE,
               new MatrixDimension(indexSets.column),
-              SIVector.ONE
-            )
+              SIVector.ONE,
+            ),
         );
     });
 }

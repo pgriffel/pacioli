@@ -32,7 +32,6 @@ import type { SIUnit } from "uom-ts";
 import { DimNum } from "uom-ts";
 import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliContext } from "../context";
-import { displayChartError } from "./chart-utils";
 import type { BandChartData } from "./chart-data";
 import { bandChartData } from "./chart-data";
 import * as d3 from "d3";
@@ -59,13 +58,13 @@ export interface HistogramOptions extends DefaultChartOptions {
     frequency: DimNum,
     lower: DimNum,
     upper: DimNum,
-    options: HistogramOptions
+    options: HistogramOptions,
   ) => void;
   tooltip?: (
     frequency: DimNum,
     lower: DimNum,
     upper: DimNum,
-    options: HistogramOptions
+    options: HistogramOptions,
   ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
@@ -107,119 +106,112 @@ export class Histogram {
   };
 
   constructor(
-    private data: PacioliValue,
-    public context: PacioliContext,
-    options: Partial<HistogramOptions>
+    private readonly data: PacioliValue,
+    public readonly context: PacioliContext,
+    options: Partial<HistogramOptions>,
   ) {
     this.options = { ...DEFAULT_HISTOGRAM_OPTIONS, ...options };
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      // Get the data in the asked unit of measurement
-      const unit =
-        this.options.unit !== undefined && this.options.unit !== ""
-          ? parseUnit(this.options.unit)
-          : undefined;
+    // Get the data in the asked unit of measurement
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      const data = bandChartData(
-        this.context,
-        this.data,
-        this.options.zeros,
-        unit
-      );
+    const data = bandChartData(
+      this.context,
+      this.data,
+      this.options.zeros,
+      unit,
+    );
 
-      // Determine the drawing dimensions
-      const margin = combineMargins(
-        DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
-      );
+    // Determine the drawing dimensions
+    const margin = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin),
+    );
 
-      const width = this.options.width - margin.left - margin.right;
-      const height = this.options.height - margin.top - margin.bottom;
+    const width = this.options.width - margin.left - margin.right;
+    const height = this.options.height - margin.top - margin.bottom;
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
-
-      // Create an svg element under the parent
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("class", "pacioli chart histogram");
-
-      if (data !== null) {
-        const group = svg
-          .append("g")
-          .attr(
-            "transform",
-            `translate(${margin.left.toString()},${margin.top.toString()})`
-          );
-
-        // Check the existence of options for the bin calculation.
-        const hasLower = typeof this.options.lower === "number";
-        const hasUpper = typeof this.options.upper === "number";
-        const hasBins = typeof this.options.bins === "number";
-
-        // Determine the value bounds. The effective bounds are not necessarily
-        // the data bounds. If no bounds are given then the data bounds are rounded
-        // to give nicer bins.
-        const lower = hasLower
-          ? (this.options.lower as number)
-          : Math.floor(data.min);
-        const upper = hasUpper
-          ? (this.options.upper as number)
-          : Math.floor(data.max) + 1;
-
-        const nrBins = hasBins
-          ? (this.options.bins as number)
-          : binSize(data.entries, lower, upper, this.options.heuristic);
-
-        if (nrBins <= 0) {
-          throw Error(
-            `number of bins ${nrBins.toString()} must be a positive number`
-          );
-        }
-
-        if (upper < lower) {
-          throw Error(
-            `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`
-          );
-        }
-
-        // Store the params for the methods below
-        this.params = {
-          lower,
-          upper,
-          nrBins,
-        };
-
-        appendHistogram(
-          group,
-          width,
-          height,
-          data,
-          lower,
-          upper,
-          nrBins,
-          data.unit,
-          this.options
-        );
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      const labelText =
-        this.options.caption === undefined ? "" : ` '${this.options.caption}'`;
-
-      displayChartError(parent, `While drawing histogram${labelText}:`, err);
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.firstChild.remove();
     }
+
+    // Create an svg element under the parent
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .attr("class", "pacioli chart histogram");
+
+    if (data === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      const group = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`,
+        );
+
+      // Check the existence of options for the bin calculation.
+      const hasLower = typeof this.options.lower === "number";
+      const hasUpper = typeof this.options.upper === "number";
+      const hasBins = typeof this.options.bins === "number";
+
+      // Determine the value bounds. The effective bounds are not necessarily
+      // the data bounds. If no bounds are given then the data bounds are rounded
+      // to give nicer bins.
+      const lower = hasLower
+        ? (this.options.lower as number)
+        : Math.floor(data.min);
+      const upper = hasUpper
+        ? (this.options.upper as number)
+        : Math.floor(data.max) + 1;
+
+      const nrBins = hasBins
+        ? (this.options.bins as number)
+        : binSize(data.entries, lower, upper, this.options.heuristic);
+
+      if (nrBins <= 0) {
+        throw new Error(
+          `number of bins ${nrBins.toString()} must be a positive number`,
+        );
+      }
+
+      if (upper < lower) {
+        throw new Error(
+          `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`,
+        );
+      }
+
+      // Store the params for the methods below
+      this.params = {
+        lower,
+        upper,
+        nrBins,
+      };
+
+      appendHistogram(
+        group,
+        width,
+        height,
+        data,
+        lower,
+        upper,
+        nrBins,
+        data.unit,
+        this.options,
+      );
+    }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 
   nrBins(): number | undefined {
@@ -240,7 +232,7 @@ function histogramClickHanler(
   frequency: DimNum,
   lower: DimNum,
   upper: DimNum,
-  options: HistogramOptions
+  options: HistogramOptions,
 ) {
   const text =
     "There are " +
@@ -250,7 +242,7 @@ function histogramClickHanler(
     " to " +
     upper.toFixed(options.decimals);
   const mat = values.map(
-    (value) => `\n${value.keys.toString()}  ${value.value} `
+    (value) => `\n${value.keys.toString()}  ${value.value} `,
   );
   alert(text + mat.join(","));
 }
@@ -259,10 +251,10 @@ function histogramTooltip(
   frequency: DimNum,
   lower: DimNum,
   upper: DimNum,
-  options: HistogramOptions
+  options: HistogramOptions,
 ): string {
   return `${lower.toFixed(options.decimals)}..${upper.toFixed(
-    options.decimals
+    options.decimals,
   )}: ${frequency.toFixed(0)}`;
 }
 
@@ -275,14 +267,14 @@ function appendHistogram(
   upper: number,
   nrBins: number,
   unit: SIUnit,
-  options: HistogramOptions
+  options: HistogramOptions,
 ) {
   const dataRange = upper - lower;
 
   const binWidth = dataRange / nrBins;
 
-  const tresholds = [...Array<number>(nrBins)].map(
-    (_, i) => (i + 1) * binWidth + lower
+  const tresholds = Array.from({ length: nrBins }).map(
+    (_, i) => (i + 1) * binWidth + lower,
   );
   const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
   const binArray = histogram(data.entries.map((entry) => entry.value));
@@ -369,7 +361,7 @@ function appendHistogram(
     .attr("class", "bar")
     .attr("transform", function (d) {
       return `translate(${domain(
-        d.x0 as number
+        d.x0 as number,
       ).toString()}, ${range(d.length).toString()})`;
     })
     .append("rect")
@@ -409,7 +401,7 @@ function appendHistogram(
         tooltip.show(
           options.tooltip(dat.frequency, dat.lower, dat.upper, options),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
       }
     })
@@ -422,7 +414,7 @@ function binSize(
   entries: { label: string; value: number }[],
   lower: number,
   upper: number,
-  heuristic: string
+  heuristic: string,
 ): number {
   const values = entries.map((entry) => entry.value);
 
@@ -440,8 +432,8 @@ function binSize(
       return Math.max(sturges(values), freedmanDiaconis(values, lower, upper));
     }
     default: {
-      throw Error(
-        `bin size heuristic '${heuristic}' unknown. Expected one of 'd3', 'sturges', 'freedman-diaconis', or 'seaborn'`
+      throw new Error(
+        `bin size heuristic '${heuristic}' unknown. Expected one of 'd3', 'sturges', 'freedman-diaconis', or 'seaborn'`,
       );
     }
   }
@@ -454,7 +446,7 @@ function sturges(values: number[]) {
 function freedmanDiaconis(
   values: number[],
   lower: number,
-  upper: number
+  upper: number,
 ): number {
   const perc25 = d3.quantile(values, 0.25);
   const perc75 = d3.quantile(values, 0.75);
@@ -462,7 +454,7 @@ function freedmanDiaconis(
     const h = (2 * (perc75 - perc25)) / values.length ** (1 / 3);
     return h === 0 ? 1 : Math.ceil((upper - lower) / h);
   } else {
-    throw Error("cannot compute Freedman-Diaconis. Is the data valid?");
+    throw new Error("cannot compute Freedman-Diaconis. Is the data valid?");
   }
 }
 
@@ -473,7 +465,7 @@ function freedmanDiaconis(
 function binData(
   bin: d3.Bin<number, number>,
   data: BandChartData,
-  decimals: number
+  decimals: number,
 ): {
   value: { keys: string[]; value: string }[];
   frequency: DimNum;
@@ -486,11 +478,11 @@ function binData(
 
   const result: { keys: string[]; value: string }[] = [];
 
-  for (let i = 0; i < data.entries.length; i++) {
-    const num = data.entries[i].value;
+  for (const element of data.entries) {
+    const num = element.value;
     if (lower <= num && num < upper) {
       result.push({
-        keys: [data.entries[i].label],
+        keys: [element.label],
         value: num.toFixed(decimals),
       });
     }

@@ -30,6 +30,7 @@ import type { PacioliWebComponent } from "./pacioli-web-component";
 import type { PacioliBoole } from "../values/boole";
 import { pacioliFalse, pacioliTrue } from "../values/boole";
 import { string } from "../cache";
+import { PacioliError } from "../pacioli-error";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -64,17 +65,17 @@ export type BooleParameter = {
 };
 
 /**
- * Returns the Pacioli value corresponding with the element's 'script' and 'definition'
- * attribute values. If the defined value is a Pacioli function then the
+ * Returns the Pacioli value corresponding with the element's 'definition'
+ * attribute. If the defined value is a Pacioli function then the
  * function is called with the element's parameter values. If it is not
  * a function then the defined value is returned as is.
  *
  * @param element An HTML web element, typically a web component
  * @returns The computed Pacioli value
  */
-export function computeWebComponentValue(
+export function evaluateWebComponentDefinition(
   element: HTMLElement,
-  attribute: string = "definition"
+  attribute: string = "definition",
 ): PacioliValue {
   // Get the element's 'script' and 'definition' attributes
   let script = null;
@@ -88,9 +89,12 @@ export function computeWebComponentValue(
     if (parts.length === 2) {
       script = parts[0];
       definition = parts[1];
+    } else if (parts.length === 3 && parts[0] === "lib") {
+      script = "$" + parts[1] + "_" + parts[1];
+      definition = parts[2];
     } else {
-      throw Error(
-        `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`
+      throw new Error(
+        `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`,
       );
     }
   }
@@ -98,7 +102,7 @@ export function computeWebComponentValue(
   // Check that they exist
   if (script === null || definition === null) {
     throw new Error(
-      `definition not found.\n\n Please give a 'definition' attribute of the form 'script:definition' with a valid value or function name.`
+      `definition not found.\n\n Please give a 'definition' attribute of the form 'script:definition' with a valid value or function name.`,
     );
   }
 
@@ -108,7 +112,7 @@ export function computeWebComponentValue(
   if (pacioliValue instanceof PacioliFunction) {
     // If it is a function then we need the parameter values
     const params = parameterNodes(element)
-      .map(parseParameterNode)
+      .map((element) => parseParameterNode(element))
       .map((p) => p.pacioliValue);
 
     // Call the function with the parameters
@@ -123,8 +127,8 @@ export function computeWebComponentValue(
  * The element's DOM children. They contain the parameters for the scene function.
  */
 export function parameterNodes(element: HTMLElement): HTMLElement[] {
-  return Array.from(element.childNodes).filter(
-    (child) => child.nodeName === "PARAMETER"
+  return [...element.children].filter(
+    (child) => child.nodeName === "PARAMETER",
   ) as HTMLElement[];
 }
 
@@ -134,15 +138,15 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
   if (children.length !== values.length) {
     const definition = element.getAttribute("definition");
 
-    throw Error(
+    throw new Error(
       `invalid number of arugments for definition '${
         definition ?? "unknown"
-      }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`
+      }'. Expected ${children.length.toString()}, but got ${values.length.toString()}.`,
     );
   }
 
-  for (let i = 0; i < children.length; i++) {
-    children[i].innerText = values[i];
+  for (const [i, child] of children.entries()) {
+    child.innerText = values[i];
   }
 }
 
@@ -154,7 +158,7 @@ export function setParameterNodes(element: HTMLElement, values: string[]) {
  * @returns the new MutationObserver
  */
 export function addParametersObserver(
-  element: PacioliWebComponent
+  element: PacioliWebComponent,
 ): MutationObserver {
   const observer = new MutationObserver(() => {
     // element.parametersChanged();
@@ -178,7 +182,7 @@ export function addParametersObserver(
  * @returns A list of parsed parameters.
  */
 export function parseParameterNode(
-  parameterNode: HTMLElement
+  parameterNode: HTMLElement,
 ): PacioliParameter {
   const label = parameterNode.getAttribute("label") ?? "n/a";
   const type = parameterNode.getAttribute("type") ?? "number";
@@ -201,7 +205,7 @@ export function parseParameterNode(
         // Browsers give an empty string on invalid input. This gives a
         // unclear error message in si.parseDimNum below.
         if (value === "") {
-          throw Error(`invalid value for ${type} parameter ${label}`);
+          throw new Error(`invalid value for ${type} parameter ${label}`);
         }
 
         // Parse the number and the unit
@@ -230,16 +234,47 @@ export function parseParameterNode(
 
       default: {
         throw new Error(
-          `unexpected parameter type '${type}' for parameter '${label}'. Expected 'string', 'number', or 'boole'.`
+          `unexpected parameter type '${type}' for parameter '${label}'. Expected 'string', 'number', or 'boole'.`,
         );
       }
     }
   } catch (error: unknown) {
-    throw Error(
+    throw new Error(
       `cannot read value ${value} for ${type} parameter ${label}:\n\n ${
         error instanceof Error ? error.message : String(error)
-      }.`
+      }.`,
     );
+  }
+}
+
+/**
+ * The HTML elements that are referenced by an element's 'for' attribute. The attribute
+ * can be a comma separated list.
+ *
+ * @param element The element with the 'for' attribute
+ * @returns The referenced elements.
+ */
+export function targetElements(element: HTMLElement): HTMLElement[] {
+  const elementId = element.getAttribute("for");
+  if (elementId === null) {
+    throw new PacioliError(
+      "No 'for' attribute found. Provide a 'for' attribute with the target's element id as value.",
+    );
+  } else {
+    const components: HTMLElement[] = [];
+
+    for (const id of elementId.split(",")) {
+      const trimmed = id.trim();
+      const component = document.getElementById(trimmed);
+      if (component === null) {
+        throw new PacioliError(
+          `Could not find element '${trimmed}'. Provide a valid element id in the 'for' attribute.`,
+        );
+      } else {
+        components.push(component);
+      }
+    }
+    return components;
   }
 }
 
@@ -250,22 +285,8 @@ export function parseParameterNode(
  * @param element The element with the 'for' attribute
  * @returns The referenced element, or undefined if it is not found.
  */
-export function attachedPacioliWebComponent(
-  element: HTMLElement
-): PacioliWebComponent | null {
-  const elementId = element.getAttribute("for");
-  return elementId !== null ? getPacioliWebComponentById(elementId) : null;
-}
-
-/**
- * The Pacioli web component that is referenced by an element's 'for' attribute. Returns
- * undefined if no such component is found.
- *
- * @param element The element with the 'for' attribute
- * @returns The referenced element, or undefined if it is not found.
- */
 export function getPacioliWebComponentById(
-  elementId: string
+  elementId: string,
 ): PacioliWebComponent | null {
   const element = document.getElementById(elementId);
 
@@ -273,8 +294,8 @@ export function getPacioliWebComponentById(
     if ("setParameters" in element) {
       return element as PacioliWebComponent;
     } else {
-      throw Error(
-        `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`
+      throw new Error(
+        `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`,
       );
     }
   } else {
@@ -292,15 +313,15 @@ export function getPacioliWebComponentById(
  */
 export function optionalStringAttributes(
   element: HTMLElement,
-  attributes: string[]
+  attributes: string[],
 ) {
   let object = {};
-  attributes.forEach((attribute) => {
+  for (const attribute of attributes) {
     const value = element.getAttribute(attribute);
     if (value !== null) {
       object = { ...object, [attribute]: value };
     }
-  });
+  }
   return object;
 }
 
@@ -314,20 +335,20 @@ export function optionalStringAttributes(
  */
 export function optionalNumberAttributes(
   element: HTMLElement,
-  attributes: string[]
+  attributes: string[],
 ) {
   let object = {};
-  attributes.forEach((attribute) => {
+  for (const attribute of attributes) {
     const value = element.getAttribute(attribute);
     if (value !== null) {
       const num = Number(value);
       if (Number.isFinite(num)) {
         object = { ...object, [attribute]: num };
       } else {
-        throw Error(`Invalid number ${value} for attritube ${attribute}`);
+        throw new Error(`Invalid number ${value} for attritube ${attribute}`);
       }
     }
-  });
+  }
   return object;
 }
 
@@ -340,12 +361,12 @@ export function optionalNumberAttributes(
  */
 export function optionalBooleanAttributes(
   element: HTMLElement,
-  attributes: string[]
+  attributes: string[],
 ) {
   let object = {};
-  attributes.forEach((attribute) => {
+  for (const attribute of attributes) {
     object = { ...object, [attribute]: element.hasAttribute(attribute) };
-  });
+  }
   return object;
 }
 
@@ -360,12 +381,12 @@ export function optionsFromAttributes<Options>(
     strings: string[];
     booleans: string[];
     numbers: string[];
-  }
+  },
 ): Partial<Options> {
   if (FLAG_EXPERIMENT_CHECK_ATTRIBUTES) {
     const SYSTEM_ATTRIBUTES = ["id", "definition"];
 
-    element.getAttributeNames().forEach((attribute) => {
+    for (const attribute of element.getAttributeNames()) {
       if (
         !SYSTEM_ATTRIBUTES.includes(attribute) &&
         !supportedAttributes.strings.includes(attribute) &&
@@ -374,7 +395,7 @@ export function optionsFromAttributes<Options>(
       ) {
         console.warn(`Skipping unknown attribute ${attribute}`);
       }
-    });
+    }
   }
 
   return {
@@ -390,29 +411,31 @@ export function optionsFromScript<Options>(
     strings: string[];
     booleans: string[];
     numbers: string[];
-  }
+  },
 ): Partial<Options> {
   if (!element.hasAttribute("options")) {
     return {};
   }
 
-  const optionValue = computeWebComponentValue(element, "options");
+  const optionValue = evaluateWebComponentDefinition(element, "options");
   // TODO: accept tuples?! Zie random_vec_histogram_options in web_components.pacioli
   if (optionValue.kind === "list") {
     const table = new Map<string, string | null>();
 
-    optionValue.forEach((item: PacioliValue) => {
+    for (const item of optionValue) {
       if (item.kind !== "tuple") {
-        throw Error(
-          `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`
+        throw new Error(
+          `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`,
         );
       }
       if (item[0].kind !== "string") {
-        throw Error(`chart option key must be a string, got a ${item[0].kind}`);
+        throw new Error(
+          `chart option key must be a string, got a ${item[0].kind}`,
+        );
       }
       if (item[1].kind !== "string") {
-        throw Error(
-          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`
+        throw new Error(
+          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`,
         );
       }
       if (table.has(item[0].value)) {
@@ -421,25 +444,25 @@ export function optionsFromScript<Options>(
       const key = item[0].value;
       const value = item[1].value;
       table.set(key, value);
-    });
+    }
 
     let object = {};
 
-    supportedAttributes.strings.forEach((attribute) => {
+    for (const attribute of supportedAttributes.strings) {
       if (table.has(attribute)) {
         object = { ...object, [attribute]: table.get(attribute) };
         table.set(attribute, null);
       }
-    });
+    }
 
-    supportedAttributes.booleans.forEach((attribute) => {
+    for (const attribute of supportedAttributes.booleans) {
       if (table.has(attribute)) {
         object = { ...object, [attribute]: table.get(attribute) === "true" };
         table.set(attribute, null);
       }
-    });
+    }
 
-    supportedAttributes.numbers.forEach((attribute) => {
+    for (const attribute of supportedAttributes.numbers) {
       if (table.has(attribute)) {
         const value = table.get(attribute);
         const num = Number(value);
@@ -447,12 +470,12 @@ export function optionsFromScript<Options>(
           object = { ...object, [attribute]: num };
           table.set(attribute, null);
         } else {
-          throw Error(
-            `invalid number ${num.toString()} for attritube ${attribute}`
+          throw new Error(
+            `invalid number ${num.toString()} for attritube ${attribute}`,
           );
         }
       }
-    });
+    }
 
     for (const key of table.keys()) {
       if (table.get(key) !== null) {
@@ -462,13 +485,15 @@ export function optionsFromScript<Options>(
 
     return object;
   } else {
-    throw Error(`attribute options must be a list, got a ${optionValue.kind}`);
+    throw new Error(
+      `attribute options must be a list, got a ${optionValue.kind}`,
+    );
   }
 }
 
 export function addInputEventListener(
   inputElement: HTMLInputElement,
-  handler: (value: string) => void
+  handler: (value: string) => void,
 ) {
   inputElement.addEventListener("change", (event: Event) => {
     event.preventDefault();
@@ -479,7 +504,7 @@ export function addInputEventListener(
 
 export function addButtonEventListener(
   element: HTMLButtonElement,
-  handler: () => void
+  handler: () => void,
 ) {
   element.addEventListener("click", (event: Event) => {
     handler();
@@ -489,7 +514,7 @@ export function addButtonEventListener(
 
 export function addCheckBoxEventListener(
   element: HTMLElement,
-  handler: (checked: boolean) => void
+  handler: (checked: boolean) => void,
 ) {
   element.addEventListener("change", (event: Event) => {
     event.preventDefault();

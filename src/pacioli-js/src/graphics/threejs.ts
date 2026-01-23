@@ -30,7 +30,7 @@ import type { PacioliTuple } from "../values/tuple";
 export function createGridHelper(
   size: number,
   divisions: number,
-  color: string
+  color: string,
 ) {
   const gridColor = new THREE.Color(color);
   return new THREE.GridHelper(size, divisions, gridColor, gridColor);
@@ -46,7 +46,7 @@ export function createGridHelper(
 export function moveObject(
   object: THREE.Object3D,
   position: PacioliMatrix,
-  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const jsVector = vector2THREE(position, units);
   object.position.set(jsVector.x, jsVector.y, jsVector.z);
@@ -69,7 +69,7 @@ export function rotateObject(object: THREE.Object3D, rotations: PacioliTuple) {
  */
 export function vector2THREE(
   vector: PacioliMatrix,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const extraFactor = options.scale;
   const numbers = vector.numbers;
@@ -90,7 +90,7 @@ export function vector2THREE(
   return new THREE.Vector3(
     getNumber(numbers, 0, 0) * factorx,
     getNumber(numbers, 2, 0) * factory,
-    getNumber(numbers, 1, 0) * factorz
+    getNumber(numbers, 1, 0) * factorz,
   );
 }
 
@@ -102,7 +102,7 @@ export function makeCanvasLabelObject(
     fontSize: number;
     labelColor: string;
     labelScale: number;
-  }
+  },
 ): THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial> {
   // See https://threejs.org/manual/#en/canvas-textures
 
@@ -158,16 +158,20 @@ export function makeCanvasLabelObject(
 
 export function updateCanvasLabelObject(
   labelObj: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>,
-  text: string
+  text: string,
 ) {
   const texture = labelObj.material.map;
 
-  if (texture !== null) {
+  if (texture === null) {
+    console.log("no texture");
+  } else {
     const canvas = texture.source.data as HTMLCanvasElement;
 
     let context = canvas.getContext("2d");
 
-    if (context !== null) {
+    if (context === null) {
+      console.log("no context");
+    } else {
       const width = 1.1 * Math.ceil(context.measureText(text).width);
       const height = canvas.height;
 
@@ -180,14 +184,14 @@ export function updateCanvasLabelObject(
         // Resizing the canvas invalidates the context. We need to get a new context.
         const newContext = canvas.getContext("2d");
 
-        if (newContext !== null) {
+        if (newContext === null) {
+          console.log("no context");
+        } else {
           newContext.textAlign = "center";
           newContext.font = font;
           newContext.textBaseline = "middle";
 
           context = newContext;
-        } else {
-          console.log("no context");
         }
       } else {
         context.clearRect(0, 0, canvas.width, canvas.height);
@@ -196,10 +200,6 @@ export function updateCanvasLabelObject(
       context.fillText(text, width / 2, height / 2);
 
       texture.needsUpdate = true;
-    } else {
-      console.log("no context");
     }
-  } else {
-    console.log("no texture");
   }
 }

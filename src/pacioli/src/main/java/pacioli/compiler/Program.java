@@ -21,6 +21,7 @@
 
 package pacioli.compiler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,8 +45,10 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.definition.ValueEquation;
+import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.parser.Parser;
@@ -63,6 +66,8 @@ import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.Typing;
+import pacioli.types.ast.QuantNode;
+import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.type.TypeObject;
 
@@ -262,6 +267,22 @@ public class Program {
                         .isMonomorphic(false)
                         .isPublic(false)
                         .location(def.location());
+
+                // Extract the type declaration from a defmatrix definition. Otherwise the
+                // compiler complains about missing type declarations.
+                if (builder.definition.body instanceof MatrixLiteralNode body) {
+                    var fakeSchema = new SchemaNode(body.location(), new ArrayList<QuantNode>(), body.typeNode);
+                    var fakeDeclaration = new Declaration(body.location(), builder.definition.id, fakeSchema);
+                    builder.declaredType(fakeDeclaration);
+                }
+
+                // Extract the type declaration from a defconv definition. Otherwise the
+                // compiler complains about missing type declarations.
+                if (builder.definition.body instanceof ConversionNode body) {
+                    var fakeSchema = new SchemaNode(body.location(), new ArrayList<QuantNode>(), body.typeNode);
+                    var fakeDeclaration = new Declaration(body.location(), builder.definition.id, fakeSchema);
+                    builder.declaredType(fakeDeclaration);
+                }
             }
         }
 

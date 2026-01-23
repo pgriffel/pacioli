@@ -15,5 +15,9 @@ module.exports = (env) => {
     module: {
       rules: [{ test: /\.ts$/, use: "ts-loader", exclude: /node_modules/ }],
     },
+    performance: {
+      maxEntrypointSize: 1000000,
+      maxAssetSize: 1000000,
+    },
   };
 };

@@ -37,6 +37,6 @@ export class MatrixType {
     public rowIndex: PacioliIndex,
     public rowUnit: PacioliVector,
     public columnIndex: PacioliIndex,
-    public columnUnit: PacioliVector
+    public columnUnit: PacioliVector,
   ) {}
 }

@@ -66,7 +66,9 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged() {
     // Compute the words.
-    const words = wordData(this.fetchData() as unknown as WordCloudData);
+    const words = wordData(
+      this.evaluateDefinition() as unknown as WordCloudData,
+    );
 
     // Add a new word cloud to the content parent
     this.clearContent();

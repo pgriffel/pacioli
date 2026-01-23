@@ -162,7 +162,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
    */
   override parametersChanged() {
     if (this.space !== undefined) {
-      this.fetchedData = this.fetchData();
+      this.fetchedData = this.evaluateDefinition();
 
       this.loadData(this.space);
     }
@@ -187,8 +187,8 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
       ) {
         return kindAttribute;
       } else {
-        throw Error(
-          `cannot set kind '${kindAttribute}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`
+        throw new Error(
+          `cannot set kind '${kindAttribute}' on PacioliControlsComponent. Valid kinds are 'scene', 'animation' or 'stateful-animation'`,
         );
       }
     }
@@ -278,13 +278,13 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
 
     const dataURL = canvas.toDataURL("image/png");
 
-    if (name !== undefined) {
+    if (name === undefined) {
+      window.open(dataURL, "_blank");
+    } else {
       const link = document.createElement("a");
       link.href = dataURL;
       link.download = `${name}.png`;
       link.click();
-    } else {
-      window.open(dataURL, "_blank");
     }
   }
 
@@ -305,7 +305,7 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
 function loadSpaceData(
   space: Space,
   data: PacioliValue,
-  kind: "scene" | "animation" | "stateful-animation"
+  kind: "scene" | "animation" | "stateful-animation",
 ) {
   // Cast the PacioliValue to the expected type and hope it works out at runtime.
   // TODO: Improve error handling with runtime checks on the returned value

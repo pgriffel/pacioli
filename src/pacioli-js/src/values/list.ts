@@ -26,7 +26,10 @@ import type { PacioliType } from "../types/pacioli-type";
 export class PacioliList extends Array<PacioliValue> {
   readonly kind = "list";
 
-  constructor(public type: PacioliType, ...elements: PacioliValue[]) {
+  constructor(
+    public type: PacioliType,
+    ...elements: PacioliValue[]
+  ) {
     super();
     this.push(...elements);
   }

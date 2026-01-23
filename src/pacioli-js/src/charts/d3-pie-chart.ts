@@ -29,7 +29,6 @@ import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
@@ -56,13 +55,13 @@ export interface PieChartOptions extends DefaultChartOptions {
     number: DimNum,
     label: string,
     fraction: number,
-    options: PieChartOptions
+    options: PieChartOptions,
   ) => void;
   tooltip?: (
     number: DimNum,
     label: string,
     fraction: number,
-    options: PieChartOptions
+    options: PieChartOptions,
   ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
@@ -92,7 +91,7 @@ function pieChartClickHandler(
   number: DimNum,
   label: string,
   fraction: number,
-  options: PieChartOptions
+  options: PieChartOptions,
 ) {
   const num = number.toFixed(options.decimals);
   const frac = (fraction * 100).toFixed(0);
@@ -109,7 +108,7 @@ function pieChartTooltip(
   number: DimNum,
   label: string,
   fraction: number,
-  options: PieChartOptions
+  options: PieChartOptions,
 ) {
   return `${label}: ${number.toFixed(options.decimals)} (${(
     fraction * 100
@@ -125,68 +124,61 @@ export class PieChart {
   options: PieChartOptions;
 
   constructor(
-    public data: PacioliValue,
-    private context: PacioliContext,
-    options: Partial<PieChartOptions>
+    public readonly data: PacioliValue,
+    private readonly context: PacioliContext,
+    options: Partial<PieChartOptions>,
   ) {
     this.options = { ...DEFAULT_PIE_CHART_OPTIONS, ...options };
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      const unit =
-        this.options.unit !== undefined && this.options.unit !== ""
-          ? parseUnit(this.options.unit)
-          : undefined;
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      const input = bandChartData(
-        this.context,
-        this.data,
-        this.options.zeros,
-        unit
-      );
+    const input = bandChartData(
+      this.context,
+      this.data,
+      this.options.zeros,
+      unit,
+    );
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
-
-      const margin = combineMargins(
-        DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
-      );
-
-      const width = this.options.width - margin.left - margin.right;
-      const height = this.options.height - margin.top - margin.bottom;
-
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("class", "pacioli chart pie-chart")
-        .attr("width", this.options.width)
-        .attr("height", this.options.height);
-
-      if (input !== null) {
-        const group = svg
-          .append("g")
-          .attr(
-            "transform",
-            `translate(${margin.left.toString()},${margin.top.toString()})`
-          );
-
-        appendPieChart(group, input, width, height, this.options);
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      const labelText =
-        this.options.label === undefined ? "" : ` '${this.options.label}'`;
-
-      displayChartError(parent, `While drawing pie chart${labelText}:`, err);
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.firstChild.remove();
     }
+
+    const margin = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin),
+    );
+
+    const width = this.options.width - margin.left - margin.right;
+    const height = this.options.height - margin.top - margin.bottom;
+
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("class", "pacioli chart pie-chart")
+      .attr("width", this.options.width)
+      .attr("height", this.options.height);
+
+    if (input === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      const group = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`,
+        );
+
+      appendPieChart(group, input, width, height, this.options);
+    }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 }
 
@@ -195,11 +187,11 @@ function appendPieChart(
   data: BandChartData,
   width: number,
   height: number,
-  options: PieChartOptions
+  options: PieChartOptions,
 ) {
   group.attr(
     "transform",
-    `translate(${(width / 2).toString()},${(height / 2).toString()})`
+    `translate(${(width / 2).toString()},${(height / 2).toString()})`,
   );
 
   const size = Math.min(width, height);
@@ -232,7 +224,7 @@ function appendPieChart(
         name: entry.label,
         value: entry.value,
       };
-    })
+    }),
   );
 
   const arc = d3
@@ -270,7 +262,7 @@ function appendPieChart(
             DimNum.fromNumber(clicked.value, data.unit),
             clicked.name,
             clicked.value / total,
-            options
+            options,
           );
         }, 0);
       }
@@ -282,10 +274,10 @@ function appendPieChart(
             DimNum.fromNumber(d.data.value, data.unit),
             d.data.name,
             d.data.value / total,
-            options
+            options,
           ),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
       }
     })

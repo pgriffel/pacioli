@@ -24,7 +24,7 @@ import { PacioliWebController } from "../pacioli-web-controller";
 import {
   addButtonEventListener,
   addInputEventListener,
-  attachedPacioliWebComponent,
+  targetElements,
 } from "../utils";
 import type { PacioliHistogramComponent } from "./pacioli-histogram";
 
@@ -41,9 +41,9 @@ TEMPLATE.innerHTML = `
     }
   </style>
   <div class="buttons">
-    <button class="dot">Dot</button>
+    <button class="d3">d3</button>
     <button class="sturges">Sturges</button>
-    <button class="freedman-diaconis">FD</button>
+    <button class="freedman-diaconis">Freedman-Diaconis</button>
     <button class="custom">Custom</button>
   </div>
   <div class="inputs">
@@ -78,7 +78,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
   /**
    * Web component field.
    */
-  static observedAttributes = ["for"];
+  static readonly observedAttributes = ["for"];
 
   /**
    * Web component life-cycle event.
@@ -108,8 +108,11 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
    * @returns The connected histogram, or undefined if no connected histogram exists.
    */
   histogramElement(): PacioliHistogramComponent | undefined {
-    const component = attachedPacioliWebComponent(this);
-    return component ? (component as PacioliHistogramComponent) : undefined;
+    // TODO: handle multiple histograms
+    const components = targetElements(this);
+    return components.length > 0
+      ? (components[0] as PacioliHistogramComponent)
+      : undefined;
   }
 
   /**
@@ -124,7 +127,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
 
     // Add event handlers to the inputs. Update the chart's attributes
     // from the new input values.
-    inputElements.forEach(([className, attribute]) => {
+    for (const [className, attribute] of inputElements) {
       addInputEventListener(this.inputElement(className), (value) => {
         if (value === "") {
           this.histogramElement()?.removeAttribute(attribute);
@@ -132,7 +135,7 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
           this.histogramElement()?.setAttribute(attribute, value);
         }
       });
-    });
+    }
 
     // Add an event handler to the custom button. It sets or unsets
     // the 'bins' attribute. The bounds don't need to be set, because
@@ -147,19 +150,19 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
     });
 
     const heuristics = [
-      [".dot", "dot"],
+      [".d3", "d3"],
       [".sturges", "sturges"],
       [".freedman-diaconis", "freedman-diaconis"],
     ];
 
     // Add an event handler to the heuristic buttons. It must remove
     // the 'bins' attribute, otherwise it would have no effect.
-    heuristics.forEach(([className, heuristic]) => {
+    for (const [className, heuristic] of heuristics) {
       addButtonEventListener(this.buttonElement(className), () => {
         this.histogramElement()?.removeAttribute("bins");
         this.histogramElement()?.setAttribute("heuristic", heuristic);
       });
-    });
+    }
   }
 
   /**
@@ -199,5 +202,5 @@ export class PacioliHistogramOptionsComponent extends PacioliWebController {
 
 customElements.define(
   "pacioli-histogram-options",
-  PacioliHistogramOptionsComponent
+  PacioliHistogramOptionsComponent,
 );

@@ -25,5 +25,8 @@ import type { PacioliType } from "./pacioli-type";
 export class GenericType {
   readonly kind = "generic";
 
-  constructor(public name: string, public items: PacioliType[]) {}
+  constructor(
+    public name: string,
+    public items: PacioliType[],
+  ) {}
 }

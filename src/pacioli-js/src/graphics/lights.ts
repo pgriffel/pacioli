@@ -34,7 +34,7 @@ export type PacioliSpotLight = [
   PacioliMatrix, // position
   PacioliMatrix, // target
   PacioliString, // color
-  PacioliMatrix // intensity
+  PacioliMatrix, // intensity
 ];
 
 /**
@@ -43,13 +43,13 @@ export type PacioliSpotLight = [
  */
 export type AmbientLight = [
   PacioliString, // color
-  PacioliMatrix // intensity
+  PacioliMatrix, // intensity
 ];
 
 export function addSpotLight(
   body: THREE.Object3D,
   spotlight: PacioliSpotLight,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const [position, target, color, intensity] = spotlight;
 
@@ -58,7 +58,7 @@ export function addSpotLight(
 
   const light = new THREE.SpotLight(
     new THREE.Color(color.value),
-    getNumber(intensity.numbers, 0, 0)
+    getNumber(intensity.numbers, 0, 0),
   );
 
   light.position.set(positionVector.x, positionVector.y, positionVector.z);

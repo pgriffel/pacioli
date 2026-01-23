@@ -39,7 +39,7 @@ export type PacioliScene = [
   PacioliPath[],
   PacioliSpotLight[],
   AmbientLight,
-  PacioliLabel[]
+  PacioliLabel[],
 ];
 
 /**

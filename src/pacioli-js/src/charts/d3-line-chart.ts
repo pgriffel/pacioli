@@ -27,7 +27,6 @@ import {
   appendChartCaption,
   appendEmptyChartMessage,
   combineMargins,
-  displayChartError,
   parseMargin,
   ToolTip,
 } from "./chart-utils";
@@ -98,83 +97,75 @@ export class LineChart {
   constructor(
     public readonly data: PacioliValue,
     private readonly context: PacioliContext,
-    options: Partial<LineChartOptions>
+    options: Partial<LineChartOptions>,
   ) {
     this.options = { ...DEFAULT_LINE_CHART_OPTIONS, ...options };
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      const unit =
-        this.options.unit !== undefined && this.options.unit !== ""
-          ? parseUnit(this.options.unit)
-          : undefined;
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      const xunit =
-        this.options.xunit !== undefined && this.options.xunit !== ""
-          ? parseUnit(this.options.xunit)
-          : undefined;
+    const xunit =
+      this.options.xunit !== undefined && this.options.xunit !== ""
+        ? parseUnit(this.options.xunit)
+        : undefined;
 
-      const yunit =
-        this.options.yunit !== undefined && this.options.yunit !== ""
-          ? parseUnit(this.options.yunit)
-          : undefined;
+    const yunit =
+      this.options.yunit !== undefined && this.options.yunit !== ""
+        ? parseUnit(this.options.yunit)
+        : undefined;
 
-      // Transform the data to a usable format
-      const data = linearChartData(
-        this.context,
-        this.data,
-        xunit || unit,
-        yunit || unit
-      );
+    // Transform the data to a usable format
+    const data = linearChartData(
+      this.context,
+      this.data,
+      xunit || unit,
+      yunit || unit,
+    );
 
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
-
-      // Define dimensions of graph
-      const m = combineMargins(
-        DEFAULT_CHART_MARGIN,
-        parseMargin(this.options.margin)
-      );
-
-      const w = this.options.width - m.left - m.right;
-      const h = this.options.height - m.top - m.bottom;
-
-      // Add an SVG element with the desired dimensions and margin.
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", w + m.left + m.right)
-        .attr("height", h + m.top + m.bottom)
-        .attr("class", "pacioli chart line-chart");
-
-      if (data !== null) {
-        // Add a group to allow attr's to apply to everything in the group
-        const group = svg
-          .append("g")
-          .attr("width", w)
-          .attr("height", h)
-          .attr(
-            "transform",
-            `translate(${m.left.toString()},${m.top.toString()})`
-          );
-
-        appendLineChart(group, data, w, h, this.options);
-      } else {
-        appendEmptyChartMessage(svg, "No data", this.options);
-      }
-
-      // Add the caption above all other elements
-      appendChartCaption(svg, this.options);
-    } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing line chart '" + this.options.ylabel + "':",
-        err
-      );
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.firstChild.remove();
     }
+
+    // Define dimensions of graph
+    const m = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin),
+    );
+
+    const w = this.options.width - m.left - m.right;
+    const h = this.options.height - m.top - m.bottom;
+
+    // Add an SVG element with the desired dimensions and margin.
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", w + m.left + m.right)
+      .attr("height", h + m.top + m.bottom)
+      .attr("class", "pacioli chart line-chart");
+
+    if (data === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      // Add a group to allow attr's to apply to everything in the group
+      const group = svg
+        .append("g")
+        .attr("width", w)
+        .attr("height", h)
+        .attr(
+          "transform",
+          `translate(${m.left.toString()},${m.top.toString()})`,
+        );
+
+      appendLineChart(group, data, w, h, this.options);
+    }
+
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
 }
 
@@ -188,12 +179,12 @@ export class LineChart {
 function lineChartClickHandler(
   label: DimNum,
   number: DimNum,
-  options: LineChartOptions
+  options: LineChartOptions,
 ) {
   alert(
     `${options.xlabel} = ${label.toText()}\n${
       options.ylabel
-    } = ${number.toText()}`
+    } = ${number.toText()}`,
   );
 }
 
@@ -208,7 +199,7 @@ function lineChartClickHandler(
 function lineChartTooltip(
   label: DimNum,
   number: DimNum,
-  options: LineChartOptions
+  options: LineChartOptions,
 ) {
   return `${options.xlabel} = ${label.toFixed(options.decimals)} <br> ${
     options.ylabel
@@ -229,10 +220,10 @@ function appendLineChart(
   data: LinearChartData,
   w: number,
   h: number,
-  options: LineChartOptions
+  options: LineChartOptions,
 ) {
-  const yMin = options.ylower !== undefined ? options.ylower : data.yLower;
-  const yMax = options.yupper !== undefined ? options.yupper : data.yUpper;
+  const yMin = options.ylower ?? data.yLower;
+  const yMax = options.yupper ?? data.yUpper;
   const xMin = data.xLower;
   const xMax = data.xUpper;
 
@@ -276,7 +267,7 @@ function appendLineChart(
     .text(
       `${
         options.xlabel
-      } [${data.xUnit.toText()}] (n=${data.values.length.toString()})`
+      } [${data.xUnit.toText()}] (n=${data.values.length.toString()})`,
     );
 
   // create y axis
@@ -375,7 +366,7 @@ function appendLineChart(
           handler(
             DimNum.fromNumber(entry.x, data.xUnit),
             DimNum.fromNumber(entry.y, data.yUnit),
-            options
+            options,
           );
         }, 0);
       }
@@ -387,10 +378,10 @@ function appendLineChart(
           options.tooltip(
             DimNum.fromNumber(entry.x, data.xUnit),
             DimNum.fromNumber(entry.y, data.yUnit),
-            options
+            options,
           ),
           event.pageX + options.tooltipOffset.dx,
-          event.pageY + options.tooltipOffset.dy
+          event.pageY + options.tooltipOffset.dy,
         );
 
         // Show the dot on the graph's line

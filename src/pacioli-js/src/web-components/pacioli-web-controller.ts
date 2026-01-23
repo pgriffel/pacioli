@@ -58,7 +58,7 @@ export abstract class PacioliWebController extends PacioliWebComponent {
   clearContent(): void {
     const parent = this.contentParent();
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
   }
 
@@ -70,7 +70,7 @@ export abstract class PacioliWebController extends PacioliWebComponent {
     const element = this.rootElement().querySelector(selectors);
 
     if (element === null) {
-      throw Error(`Cannot find element '${selectors}'`);
+      throw new Error(`Cannot find element '${selectors}'`);
     }
 
     return element as HTMLElement;

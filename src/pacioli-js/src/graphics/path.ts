@@ -31,13 +31,13 @@ import * as THREE from "three";
  */
 export type PacioliPath = [
   PacioliMatrix[], // path points
-  PacioliString // color
+  PacioliString, // color
 ];
 
 export function addPath(
   body: THREE.Object3D,
   path: PacioliPath,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   body.add(createTHREEPath(path, options));
 }
@@ -48,7 +48,7 @@ export function disposePath(line: THREE.Line) {
 
 function createTHREEPath(
   path: PacioliPath,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   const geometry = new THREE.BufferGeometry();
   const material = new THREE.LineBasicMaterial({
@@ -58,7 +58,7 @@ function createTHREEPath(
   });
 
   geometry.setFromPoints(
-    path[0].map((point: PacioliMatrix) => vector2THREE(point, options))
+    path[0].map((point: PacioliMatrix) => vector2THREE(point, options)),
   );
 
   const lineObject = new THREE.Line(geometry, material);

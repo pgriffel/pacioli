@@ -21,16 +21,28 @@
  */
 
 import type { PacioliMatrix } from "../values/matrix";
-import { mergeTableDatas, TableData } from "./table";
-import { NR_DECIMALS } from "../primitives";
+import { TableBuilder } from "../table/table-builder";
 import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliList } from "../values/list";
+import type { TableColumnOptions } from "../table/table-column";
+import { TableColumn } from "../table/table-column";
+
+type DOMOptions = {
+  decimals: number;
+  ignoredecimals: boolean;
+  exponential: boolean;
+  zero: string;
+  nozerorows: boolean;
+  totals: boolean;
+  ascii: boolean;
+  clipboard: boolean;
+};
 
 /**
  * Creates HTML for any PacioliValue.
  *
  * Recurses through containers like list and tuples, so the result can be a tree.
  *
- * TODO: remove any type
  * TODO: connect nozerorows
  *
  * @param x The PacioliValue to display
@@ -39,95 +51,69 @@ import type { PacioliValue } from "../values/pacioli-value";
  */
 export function DOM(
   x: PacioliValue,
-  options?: Partial<{
-    decimals: number;
-    ignoredecimals: boolean;
-    zero: string;
-    nozerorows: boolean;
-    totals: boolean;
-  }>
+  options?: Partial<DOMOptions>,
 ): HTMLElement | Text {
-  if (
-    typeof x === "boolean" ||
-    typeof x === "string" ||
-    typeof x === "function"
-  ) {
-    // return document.createTextNode(x.toString());
-    throw Error("Typescript says this cannot happen");
-  } else {
-    switch (x.kind) {
-      case "matrix": {
-        // if (x.shape) {
-        //   const mat = x as PacioliMatrix;
-        //   return mat
-        //     .tableData("Value")
-        //     .stringify(
-        //       options?.zero,
-        //       [options?.decimals ?? NR_DECIMALS],
-        //       options?.ignoredecimals ?? false
-        //     )
-        //     .dom(options?.totals ?? false);
-        // } else {
-        //   // hack to debug without shape info via print en printed
-        //   return document.createTextNode(stringifyRawValue(x as RawMatrix));
-        // }
-        return x
-          .tableData("Value")
-          .stringify(
-            options?.zero,
-            [options?.decimals ?? NR_DECIMALS],
-            options?.ignoredecimals ?? false
-          )
-          .dom(options?.totals ?? false);
-      }
-      case "string": {
-        return document.createTextNode(x.value);
-      }
-      case "coordinates": {
-        return document.createTextNode(x.shortText());
-        // case "ref":
-        //     return Pacioli.DOM(x.value[0])
-      }
-      case "list": {
-        const list = document.createElement("ol");
-        const items = x;
-        for (let i = 0; i < items.length; i++) {
-          const item = document.createElement("li");
-          item.appendChild(DOM(items[i], options));
-          list.appendChild(item);
-        }
-        return list;
-      }
-      case "tuple": {
-        const tup = document.createElement("ul");
-        const items = x;
-        for (let i = 0; i < items.length; i++) {
-          const item = document.createElement("li");
-          item.appendChild(DOM(items[i], options));
-          tup.appendChild(item);
-        }
-        return tup;
-      }
-      case "array": {
-        const list = document.createElement("ol");
-        const items = x;
-        for (let i = 0; i < items.length; i++) {
-          const item = document.createElement("li");
-          item.appendChild(DOM(items[i], options));
-          list.appendChild(item);
-        }
-        return list;
-      }
-      case "maybe": {
-        return x.value !== undefined
-          ? DOM(x.value, options)
-          : document.createTextNode("Nothing");
-      }
-      //   PacioliRef | PacioliBoole | PacioliFunction | PacioliMap | PacioliVoid
-      default:
-        return document.createTextNode(x.toString());
+  switch (x.kind) {
+    case "matrix": {
+      return x.tableBuilder("Value", options).dom();
+    }
+    case "string": {
+      return document.createTextNode(x.value);
+    }
+    case "coordinates": {
+      return document.createTextNode(x.shortText());
+    }
+    case "list": {
+      return arrayElementsToDOM("ol", x, options);
+    }
+    case "tuple": {
+      return arrayElementsToDOM("ul", x, options);
+    }
+    case "array": {
+      return arrayElementsToDOM("ul", x, options);
+    }
+    case "maybe": {
+      return x.value === undefined
+        ? document.createTextNode("Nothing")
+        : DOM(x.value, options);
+    }
+    case "map": {
+      return x.dom();
+    }
+    case "boole": {
+      return document.createTextNode(x.value ? "true" : "false");
+    }
+    case "ref": {
+      return DOM(x.element);
+    }
+    case "function": {
+      return document.createTextNode("|closure|");
+    }
+    case "void": {
+      return document.createTextNode("|void|");
     }
   }
+}
+
+/**
+ * Helper for function DOM
+ */
+function arrayElementsToDOM(
+  tag: "ol" | "ul",
+  items: PacioliValue[],
+  options?: Partial<DOMOptions>,
+): HTMLElement {
+  const listElement = document.createElement(tag);
+
+  for (const item of items) {
+    const itemElement = document.createElement("li");
+
+    itemElement.appendChild(DOM(item, options));
+
+    listElement.appendChild(itemElement);
+  }
+
+  return listElement;
 }
 
 /**
@@ -139,34 +125,31 @@ export function DOM(
  */
 export function DOMTable(
   columns: {
-    title: string;
-    value: PacioliMatrix;
+    header: string;
+    value: PacioliMatrix | PacioliList;
     decimals?: number;
+    ignoredecimals?: boolean;
+    exponential?: boolean;
     showTotal?: boolean;
     total?: PacioliMatrix;
   }[],
-  options: Partial<{
-    decimals: number;
-    ignoredecimals: boolean;
-    zero: string;
-    nozerorows: boolean;
-    totals: boolean;
-  }>
+  options: Partial<DOMOptions>,
 ) {
-  const decs = columns.map((column) => {
-    return column.decimals ?? options.decimals ?? NR_DECIMALS;
+  const tableColumns: TableColumn[] = columns.map((column) => {
+    const columnOptions: Partial<TableColumnOptions> = {
+      decimals: column.decimals,
+      ignoredecimals: column.ignoredecimals,
+      exponential: column.exponential,
+      showTotal: column.showTotal,
+      total: column.total,
+    };
+
+    if (column.value.kind === "matrix") {
+      return TableColumn.fromVector(column.value, column.header, columnOptions);
+    } else {
+      return TableColumn.fromList(column.value, column.header, columnOptions);
+    }
   });
 
-  return mergeTableDatas(
-    columns.map((column) =>
-      TableData.from(
-        column.value,
-        column.title,
-        column.showTotal === undefined ? true : column.showTotal,
-        column.total
-      )
-    )
-  )
-    .stringify(options.zero, decs, options.ignoredecimals ?? false)
-    .dom(options.totals ?? false);
+  return new TableBuilder(tableColumns, options).dom();
 }

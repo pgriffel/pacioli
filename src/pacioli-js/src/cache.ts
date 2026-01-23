@@ -24,7 +24,7 @@ import type { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { IndexSet } from "./values/index-set";
 import { set } from "./raw-values/raw-matrix";
-import type { PacioliUnit } from "./types/pacioli-type";
+import type { PacioliType, PacioliUnit } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
 import type { RawCoordinates, RawValue } from "./raw-values/raw-value";
@@ -47,13 +47,13 @@ export function makeIndexSet(id: string, name: string, items: string[]) {
 
 export function createCoordinates(
   pairs: string[][],
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): RawCoordinates {
   const names = [];
   const indexSets = [];
-  for (let i = 0; i < pairs.length; i++) {
-    names[i] = pairs[i][0];
-    indexSets[i] = fetchIndex(pairs[i][1], context);
+  for (const [i, pair] of pairs.entries()) {
+    names[i] = pair[0];
+    indexSets[i] = fetchIndex(pair[1], context);
   }
   const coords = new PacioliCoordinates(names, indexSets);
   // added coords for b_Matrix_make_matrix
@@ -88,7 +88,7 @@ export function oneNumbers(m: number, n: number): RawMatrix {
 
 export function oneNumbersFromShape(
   type: MatrixType,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): RawMatrix {
   const shape = matrixShapeFromType(type, context);
   const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
@@ -111,13 +111,13 @@ export function oneNumbersFromShape(
 export function initialNumbers(
   m: number,
   n: number,
-  data: number[][]
+  data: number[][],
 ): RawMatrix {
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
   const numbers = tagMatrix([], m, n, "DOK");
-  for (let i = 0; i < data.length; i++) {
-    set(numbers, data[i][0], data[i][1], data[i][2]);
+  for (const datum of data) {
+    set(numbers, datum[0], datum[1], datum[2]);
   }
   return numbers;
 }
@@ -152,11 +152,10 @@ export function initialNumbers(
 export function printValue(x: RawValue) {
   const cons = document.getElementById("console");
   if (cons) {
-    const body = stringifyRawValue(x);
-    // const body = DOM(x);
     const elt = document.createElement("pre");
-    // elt.appendChild(body);
-    elt.innerText = body;
+
+    elt.innerText = stringifyRawValue(x);
+
     cons.appendChild(elt);
   } else {
     console.log(x);
@@ -176,19 +175,19 @@ export function string(value: string): PacioliString {
 // 1. The Store
 // -----------------------------------------------------------------------------
 
-const cache: object = {};
+const cache: Map<string, PacioliType | RawValue> = new Map();
 
 export function fetchValue(
   home: string,
   name: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): RawValue {
   return lookupItem<RawValue>(home + "_" + name, context);
 }
 
 export function fetchIndex(
   id: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): IndexSet {
   const indexSet = context.findIndexSet(id);
   if (indexSet === undefined) {
@@ -203,7 +202,7 @@ export function fetchIndex(
 export function fetchUnit(
   prefix: string,
   base: string,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): SIUnit {
   const unit = context.lookupUnit(prefix, base);
   if (unit === undefined) {
@@ -213,7 +212,7 @@ export function fetchUnit(
     //   prefix.length === 0 && parts.length === 2 ? parts[0] : prefix;
 
     const def: { definition?: DimNum; symbol: string } = computeItem(
-      "sbase_" + baseName
+      "sbase_" + baseName,
     );
     // TODO
     context.addBase(baseName, def.symbol, def.definition);
@@ -227,7 +226,7 @@ export function fetchUnit(
 export function fetchUnitVector(
   id: string,
   indexSet: IndexSet,
-  context: PacioliContext = defaultContext
+  context: PacioliContext = defaultContext,
 ): UnitVector {
   const vec = context.findUnitVector(id);
   if (vec === undefined) {
@@ -259,26 +258,31 @@ export function fetchUnitVector(
  * @param _context
  * @returns
  */
+// TODO Remove this disable if the type of this function is fixed. Two functions? And
+// two caches?
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 export function lookupItem<T>(
   full: string,
-  _context: PacioliContext = defaultContext
+  _context: PacioliContext = defaultContext,
 ): T {
-  // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-  if (cache[full] === undefined) {
+  if (cache.get(full) === undefined) {
     // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
-    const asValue = window["Pacioli"][full];
+    const asValue = window["Pacioli"][full] as
+      | PacioliType
+      | RawValue
+      | undefined;
 
-    if (asValue) {
-      // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-      cache[full] = asValue;
+    if (asValue === undefined) {
+      cache.set(
+        full,
+        findFunction<T>("compute_" + full)() as PacioliType | RawValue,
+      );
     } else {
-      // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-      cache[full] = findFunction<T>("compute_" + full)();
+      cache.set(full, asValue);
     }
   }
 
-  // @ts-expect-error Needed until cached is changed to a Map (or multiple Maps).
-  return cache[full] as T;
+  return cache.get(full) as T;
 }
 
 /**
@@ -286,8 +290,12 @@ export function lookupItem<T>(
  */
 function computeItem(full: string): { symbol: string; definition?: DimNum } {
   return findFunction<{ symbol: string; definition?: DimNum }>(
-    "compute_" + full
+    "compute_" + full,
   )();
+}
+
+declare global {
+  var Pacioli: object;
 }
 
 /**
@@ -300,26 +308,21 @@ function computeItem(full: string): { symbol: string; definition?: DimNum } {
  * @param name
  * @returns
  */
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
 function findFunction<T>(name: string): () => T {
-  if ("Pacioli" in window) {
-    const nameSpace = window["Pacioli"] as object;
+  const nameSpace = globalThis.Pacioli;
 
-    // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
-    const fun = nameSpace[name] as undefined | (() => T);
+  // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
+  const fun = nameSpace[name] as (() => T) | undefined;
 
-    if (fun === undefined) {
-      throw new Error(`No function found to compute Pacioli item '${name}'`);
-    }
-    if (typeof fun === "function") {
-      return fun;
-    } else {
-      throw new Error(
-        `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`
-      );
-    }
+  if (fun === undefined) {
+    throw new Error(`No function found to compute Pacioli item '${name}'`);
+  }
+  if (typeof fun === "function") {
+    return fun;
   } else {
     throw new Error(
-      `No 'Pacioli' namespace found, cannot compute Pacioli item '${name}'`
+      `Expected a function to compute Pacioli item '${name}', but found a ${typeof fun}`,
     );
   }
 }

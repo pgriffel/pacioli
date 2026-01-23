@@ -69,14 +69,14 @@ export function parseMargin(text: string | undefined): {
       right: nums[2 % n],
       bottom: nums[3 % n],
     };
-  } catch (_) {
+  } catch {
     return ZERO_MARGIN;
   }
 }
 
 export function combineMargins(
   x: { left: number; top: number; right: number; bottom: number } | undefined,
-  y: { left: number; top: number; right: number; bottom: number } | undefined
+  y: { left: number; top: number; right: number; bottom: number } | undefined,
 ) {
   return {
     left: (x?.left ?? 0) + (y?.left ?? 0),
@@ -101,23 +101,6 @@ export interface DefaultChartOptions {
    * Number of decimals used for numbers. Default is 2.
    */
   decimals?: number;
-}
-
-export function displayChartError(
-  parent: HTMLElement,
-  message: string,
-  err: unknown
-) {
-  while (parent.firstChild) {
-    parent.removeChild(parent.firstChild);
-  }
-  parent.appendChild(document.createTextNode(message));
-  const par = document.createElement("p");
-  par.style.color = "red";
-  parent.appendChild(par);
-  par.appendChild(
-    document.createTextNode(err instanceof Error ? err.message : String(err))
-  );
 }
 
 // Tooltips in d3:
@@ -204,7 +187,7 @@ export class ToolTip {
 export function appendEmptyChartMessage(
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   message: string,
-  options: DefaultChartOptions
+  options: DefaultChartOptions,
 ) {
   svg
     .append("text")
@@ -226,7 +209,7 @@ export function appendEmptyChartMessage(
 export function appendChartCaption(
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
   options: DefaultChartOptions,
-  caption?: string
+  caption?: string,
 ) {
   const text = caption ?? options.caption;
 

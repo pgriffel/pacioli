@@ -74,14 +74,14 @@ export function getFullNumbers(numbers: RawMatrix): NumericFullMatrix {
   const n = numbers.nrColumns;
 
   const fullFromDOK = function (
-    nums: RawDOKMatrix | NumericDOKMatrix
+    nums: RawDOKMatrix | NumericDOKMatrix,
   ): NumericFullMatrix {
-    const array = new Array(m) as NumericFullMatrix;
+    const array = Array.from({ length: m }) as NumericFullMatrix;
     for (let i = 0; i < m; i++) {
-      const inner = new Array<number>(n);
+      const inner = Array.from<number>({ length: n });
       for (let j = 0; j < n; j++) {
         const rowi = nums[i];
-        inner[j] = rowi ? rowi[j] ?? 0 : 0;
+        inner[j] = rowi ? (rowi[j] ?? 0) : 0;
       }
       array[i] = inner;
     }
@@ -180,15 +180,16 @@ export function getCOONumbers(numbers: RawMatrix): NumericCOOMatrix {
       const columns = ccsNumbers[1];
       const values = ccsNumbers[2];
       const tmp: NumericDOKMatrix = [];
-      for (let i = 0; i < rows.length; i++) {
-        let row = tmp[rows[i]];
+      for (const [i, entry] of rows.entries()) {
+        let row = tmp[entry];
         if (row === undefined) row = [];
         row[columns[i]] = values[i];
       }
       return DOK2COO(tmp);
     }
-    default:
+    default: {
       throw new Error("unknown number kind");
+    }
   }
 }
 
@@ -240,15 +241,15 @@ function DOK2COO(numbers: RawDOKMatrix | NumericDOKMatrix): NumericCOOMatrix {
 
   for (const x in numbers) {
     if (Object.prototype.hasOwnProperty.call(numbers, x)) {
-      const parsedX = parseInt(x);
+      const parsedX = Number.parseInt(x);
       //if (typeof parsedX === "number") {
-      if (isFinite(parsedX) && !isNaN(parsedX)) {
+      if (Number.isFinite(parsedX) && !Number.isNaN(parsedX)) {
         const row = numbers[parsedX];
         for (const y in row) {
           if (Object.prototype.hasOwnProperty.call(row, y)) {
-            const parsedY = parseInt(y);
+            const parsedY = Number.parseInt(y);
             //if (typeof parsedY === "number") {
-            if (isFinite(parsedY) && !isNaN(parsedY)) {
+            if (Number.isFinite(parsedY) && !Number.isNaN(parsedY)) {
               const value = row[parsedY];
               if (value !== undefined && value !== 0) {
                 tripleArray.push([parsedX, parsedY, value]);
@@ -267,17 +268,17 @@ function DOK2COO(numbers: RawDOKMatrix | NumericDOKMatrix): NumericCOOMatrix {
       if (a[1] > b[1]) return 1;
       if (a[1] < b[1]) return -1;
       return 0;
-    }
+    },
   );
 
   const rows = [];
   const columns = [];
   const values = [];
 
-  for (let i = 0; i < tripleArray.length; i++) {
-    rows.push(tripleArray[i][0]);
-    columns.push(tripleArray[i][1]);
-    values.push(tripleArray[i][2]);
+  for (const element of tripleArray) {
+    rows.push(element[0]);
+    columns.push(element[1]);
+    values.push(element[2]);
   }
 
   return [rows, columns, values];

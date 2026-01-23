@@ -33,6 +33,7 @@ import type {
   RawArray,
   RawCoordinates,
   RawList,
+  RawMap,
   RawTuple,
   RawValue,
 } from "../raw-values/raw-value";
@@ -63,7 +64,7 @@ import { PacioliTuple } from "./tuple";
 import { PacioliList } from "./list";
 import { PacioliArray } from "./array";
 import type { PacioliRef } from "./ref";
-import type { PacioliMap } from "./map";
+import { PacioliMap } from "./map";
 import type { RawMatrix } from "../raw-values/raw-matrix";
 
 export type PacioliValue =
@@ -95,76 +96,93 @@ export interface ToText {
 export function boxRawValue(
   value: RawValue,
   type: PacioliType,
-  context: PacioliContext
+  context: PacioliContext,
 ): PacioliValue {
   switch (type.kind) {
     case "generic": {
-      if (type.name === "Tuple") {
-        const values = value as RawTuple;
-        const tuple = new PacioliTuple();
-        for (let i = 0; i < values.length; i++) {
-          tuple.push(boxRawValue(values[i], type.items[i], context));
-        }
-        return tuple;
-      } else if (type.name === "Boole") {
-        if (typeof value === "boolean") {
-          return value ? pacioliTrue : pacioliFalse;
-        } else {
-          throw new Error(
-            `Expected a boolean instead of ${typeof value} when boxing raw boolean value`
-          );
-        }
-      } else if (type.name === "String") {
-        if (typeof value === "string") {
-          return new PacioliString(value);
-        } else {
-          throw new Error(
-            `Expected a string instead of ${typeof value} when boxing raw string value`
-          );
-        }
-      } else if (type.name === "Void") {
-        return VOID;
-      } else if (type.name === "Maybe") {
-        const val = (value as RawMaybe).value;
-        return new PacioliMaybe(
-          type,
-          val === undefined
-            ? undefined
-            : boxRawValue(val, type.items[0], context)
-        );
-      } else if (type.name === "List") {
-        // TODO: This is called with value.kind undefined. Does generated code not tag lists?
-        // Or is it better to be permissive here?
-        // if (Array.isArray(value) && value.kind === "list") {
-        if (Array.isArray(value)) {
-          const values = value as RawList;
-          const list = new PacioliList(type);
-          for (let i = 0; i < values.length; i++) {
-            list.push(boxRawValue(values[i], type.items[0], context));
+      switch (type.name) {
+        case "Tuple": {
+          const values = value as RawTuple;
+          const tuple = new PacioliTuple();
+          for (const [i, entry] of values.entries()) {
+            tuple.push(boxRawValue(entry, type.items[i], context));
           }
-          return list;
-        } else {
-          throw new Error(
-            `Expected an array object instead of ${typeof value} when boxing raw list value`
-          );
+          return tuple;
         }
-      } else if (type.name === "Array") {
-        if (Array.isArray(value)) {
-          const values = value as RawArray;
-          const array = new PacioliArray();
-          for (let i = 0; i < values.length; i++) {
-            array.push(boxRawValue(values[i], type.items[0], context));
+        case "Boole": {
+          if (typeof value === "boolean") {
+            return value ? pacioliTrue : pacioliFalse;
+          } else {
+            throw new Error(
+              `Expected a boolean instead of ${typeof value} when boxing raw boolean value`,
+            );
           }
-          return array;
-        } else {
-          throw new Error(
-            `Expected an array object instead of ${typeof value} when boxing raw array value`
+        }
+        case "String": {
+          if (typeof value === "string") {
+            return new PacioliString(value);
+          } else {
+            throw new Error(
+              `Expected a string instead of ${typeof value} when boxing raw string value`,
+            );
+          }
+        }
+        case "Void": {
+          return VOID;
+        }
+        case "Maybe": {
+          const val = (value as RawMaybe).value;
+          return new PacioliMaybe(
+            type,
+            val === undefined
+              ? undefined
+              : boxRawValue(val, type.items[0], context),
           );
         }
-      } else {
-        throw new Error(
-          `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `
-        );
+        case "List": {
+          // TODO: This is called with value.kind undefined. Does generated code not tag lists?
+          // Or is it better to be permissive here?
+          // if (Array.isArray(value) && value.kind === "list") {
+          if (Array.isArray(value)) {
+            const values = value as RawList;
+            const list = new PacioliList(type);
+            for (const value_ of values) {
+              list.push(boxRawValue(value_, type.items[0], context));
+            }
+            return list;
+          } else {
+            throw new Error(
+              `Expected an array object instead of ${typeof value} when boxing raw list value`,
+            );
+          }
+        }
+        case "Array": {
+          if (Array.isArray(value)) {
+            const values = value as RawArray;
+            const array = new PacioliArray();
+            for (const value_ of values) {
+              array.push(boxRawValue(value_, type.items[0], context));
+            }
+            return array;
+          } else {
+            throw new Error(
+              `Expected an array object instead of ${typeof value} when boxing raw array value`,
+            );
+          }
+        }
+        case "Map": {
+          return new PacioliMap(
+            type.items[0],
+            type.items[1],
+            value as RawMap,
+            context,
+          );
+        }
+        default: {
+          throw new Error(
+            `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `,
+          );
+        }
       }
     }
     case "function": {
@@ -172,21 +190,21 @@ export function boxRawValue(
         return new PacioliFunction(value, type, context);
       } else {
         throw new Error(
-          `Expected a function instead of ${typeof value} when boxing raw function value`
+          `Expected a function instead of ${typeof value} when boxing raw function value`,
         );
       }
     }
     case "matrix": {
       return new PacioliMatrix(
         matrixShapeFromType(type, context),
-        value as RawMatrix
+        value as RawMatrix,
       );
     }
     case "typevar": {
-      throw Error(
+      throw new Error(
         `Unxpected typevar '${type.kind}' for type ${typeof value} with value ${
           type.name
-        } `
+        } `,
       );
     }
     case "index": {
@@ -208,7 +226,7 @@ export function boxRawValue(
 
 export function matrixShapeFromType(
   type: MatrixType,
-  context: PacioliContext
+  context: PacioliContext,
 ): MatrixShape {
   const rowDim = matrixDimensionFromIndex(type.rowIndex, context);
   const columnDim = matrixDimensionFromIndex(type.columnIndex, context);
@@ -217,7 +235,7 @@ export function matrixShapeFromType(
     rowDim,
     internUnitVector(rowDim, type.rowUnit, context),
     columnDim,
-    internUnitVector(columnDim, type.columnUnit, context)
+    internUnitVector(columnDim, type.columnUnit, context),
   );
 }
 
@@ -229,7 +247,7 @@ export function typeFromValue(value: PacioliValue): PacioliType {
         matrixDimensionFromIndexInv(value.shape.rowDimension),
         internUnitVectorInv(value.shape.rowUnit),
         matrixDimensionFromIndexInv(value.shape.columnDimension),
-        internUnitVectorInv(value.shape.columnUnit)
+        internUnitVectorInv(value.shape.columnUnit),
       );
     }
     case "list": {
@@ -238,7 +256,10 @@ export function typeFromValue(value: PacioliValue): PacioliType {
     }
     case "tuple": {
       const valueList = value as unknown as PacioliValue[];
-      return new GenericType("Tuple", valueList.map(typeFromValue));
+      return new GenericType(
+        "Tuple",
+        valueList.map((element) => typeFromValue(element)),
+      );
     }
     case "string": {
       return new GenericType("String", []);
@@ -261,10 +282,10 @@ export function rawValueFromValue(value: PacioliValue): RawValue {
       return value.numbers;
     }
     case "tuple": {
-      return tagTuple(value.map(rawValueFromValue));
+      return tagTuple(value.map((element) => rawValueFromValue(element)));
     }
     case "list": {
-      return tagList(value.map(rawValueFromValue));
+      return tagList(value.map((element) => rawValueFromValue(element)));
     }
     case "string": {
       return value.value;
@@ -289,11 +310,11 @@ export function rawValueFromValue(value: PacioliValue): RawValue {
 
 function matrixDimensionFromIndex(
   index: PacioliIndex,
-  context: PacioliContext
+  context: PacioliContext,
 ): MatrixDimension {
   if (index.kind === "index") {
     return new MatrixDimension(
-      index.sets.map((name) => fetchIndex("index_" + name, context))
+      index.sets.map((name) => fetchIndex("index_" + name, context)),
     );
   } else {
     throw new Error("index kind " + index.kind + " unexpected");
@@ -304,7 +325,7 @@ function matrixDimensionFromIndexInv(dimension: MatrixDimension): PacioliIndex {
   return new IndexType(
     dimension.indexSets.map((set) => {
       return set.name;
-    })
+    }),
   );
 }
 
@@ -332,7 +353,7 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
  */
 function internUnitInv(unit: SIUnit): PacioliUnit {
   return unit.map((base) =>
-    UOM.fromBase(new SIBaseType(base.prefix.name, base.base))
+    UOM.fromBase(new SIBaseType(base.prefix.name, base.base)),
   );
 }
 
@@ -345,7 +366,7 @@ function internUnitInv(unit: SIUnit): PacioliUnit {
 function internUnitVector(
   dimension: MatrixDimension,
   unit: PacioliVector,
-  context: PacioliContext
+  context: PacioliContext,
 ): SIVector {
   const siUnit: SIVector = unit.map((base) => {
     if (base.isVar) {
@@ -354,7 +375,7 @@ function internUnitVector(
       const unitVector = fetchUnitVector(
         base.name,
         dimension.indexSets[base.position],
-        context
+        context,
       );
       return UOM.fromBase(new VectorBase(unitVector, base.position, base.name));
     }

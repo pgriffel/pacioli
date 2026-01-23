@@ -58,6 +58,6 @@ export function arrayEqual(x: any[], y: any[]): boolean {
 export function pickOne<T>(array: fc.Arbitrary<T[]>): fc.Arbitrary<T> {
   //  return fc.subarray(context.getBases(), { minLength: 1, maxLength: 1 }).map(x => x[0]);
   return array.chain((array) =>
-    fc.integer({ min: 0, max: array.length - 1 }).map((n) => array[n])
+    fc.integer({ min: 0, max: array.length - 1 }).map((n) => array[n]),
   );
 }

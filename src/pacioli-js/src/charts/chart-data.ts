@@ -27,6 +27,7 @@ import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliMatrix } from "../values/matrix";
 import type { PacioliCoordinates } from "../values/coordinates";
 import type { PacioliTuple } from "../values/tuple";
+import { PacioliError } from "../pacioli-error";
 
 interface LinearChartEntry {
   x: number;
@@ -47,6 +48,19 @@ export interface LinearChartData {
   yUpper: number;
 }
 
+function linearChartError(message: string): PacioliError {
+  return new PacioliError(
+    `Unexpected data for linear chart. ${message}\n\n${VALID_LINEAR_CHART_DATA_MESSAGE}`,
+  );
+}
+
+const VALID_LINEAR_CHART_DATA_MESSAGE = `Valid chart data for a linear chart is 
+  - a list of (number, number) pairs
+  - a pair of number lists
+  - a pair of number vectors
+  - a vector
+  - a list of numbers`;
+
 /**
  * Attempts to create a list of pairs suitable for display in charts from a PacioliValue.
  *
@@ -66,7 +80,7 @@ export function linearChartData(
   context: PacioliContext,
   data: PacioliValue,
   xUnit?: SIUnit,
-  yUnit?: SIUnit
+  yUnit?: SIUnit,
 ): LinearChartData | null {
   const xConv = xUnit
     ? (x: PacioliMatrix) => x.convertUnit(xUnit, context.unitContext)
@@ -78,8 +92,8 @@ export function linearChartData(
   switch (data.kind) {
     case "tuple": {
       if (data.length !== 2) {
-        throw Error(
-          `exptected a pair, but got a tuple of length (${data.length.toString()}`
+        throw linearChartError(
+          `When the data is a tuple it must be a pair. Got a tuple of length ${data.length.toString()}.`,
         );
       }
 
@@ -95,25 +109,25 @@ export function linearChartData(
         const rightEltKind = right[0].kind;
 
         if (leftEltKind !== "matrix") {
-          throw Error(
-            `exptected a list of numbers in the pair's first list, but got a list of ${leftEltKind}`
+          throw new Error(
+            `exptected a list of numbers in the pair's first list, but got a list of ${leftEltKind}`,
           );
         }
 
         if (rightEltKind !== "matrix") {
-          throw Error(
-            `exptected a list of numbers in the pair's second list, but got a list of ${rightEltKind}`
+          throw new Error(
+            `exptected a list of numbers in the pair's second list, but got a list of ${rightEltKind}`,
           );
         }
 
         return pairsFromLists(
-          (left as PacioliMatrix[]).map(xConv),
-          (right as PacioliMatrix[]).map(yConv)
+          (left as PacioliMatrix[]).map((element) => xConv(element)),
+          (right as PacioliMatrix[]).map((element) => yConv(element)),
         );
       }
 
-      throw Error(
-        `exptected a tuple of vectors or a tuple of number lists, but got a (${left.kind}, ${right.kind}) tuple`
+      throw new Error(
+        `exptected a tuple of vectors or a tuple of number lists, but got a (${left.kind}, ${right.kind}) tuple`,
       );
     }
     case "list": {
@@ -124,7 +138,9 @@ export function linearChartData(
       const firstElt = data[0];
 
       if (firstElt.kind === "matrix") {
-        return pairsFromListofScalars((data as PacioliMatrix[]).map(yConv));
+        return pairsFromListofScalars(
+          (data as PacioliMatrix[]).map((element) => yConv(element)),
+        );
       }
 
       if (firstElt.kind === "tuple") {
@@ -132,20 +148,20 @@ export function linearChartData(
 
         return pairsFromLists(
           tuples.map((x) => x[0]),
-          tuples.map((x) => x[1])
+          tuples.map((x) => x[1]),
         );
       }
 
-      throw Error(
-        "exptected a list of numbers but got a list of " + firstElt.kind
+      throw new Error(
+        "exptected a list of numbers but got a list of " + firstElt.kind,
       );
     }
     case "matrix": {
       return pairsFromVector(data);
     }
     default: {
-      throw Error(
-        "exptected a vector or a list of numbers but got a " + data.kind
+      throw new Error(
+        "exptected a vector or a list of numbers but got a " + data.kind,
       );
     }
   }
@@ -168,6 +184,19 @@ export interface BandChartData {
   unit: SIUnit;
 }
 
+function bandChartError(message: string): PacioliError {
+  return new PacioliError(
+    `Unexpected data for band chart. ${message}\n\n${VALID_BAND_CHART_DATA_MESSAGE}`,
+  );
+}
+
+const VALID_BAND_CHART_DATA_MESSAGE = `Valid chart data for a linear chart is 
+  - a list of (number, number) pairs
+  - a pair of number lists
+  - a pair of number vectors
+  - a vector
+  - a list of numbers`;
+
 /**
  * Attempts to create data suitable for charts with a band scale. Used by the bar chart,
  * the pie chart, and the histogram.
@@ -188,27 +217,30 @@ export function bandChartData(
   context: PacioliContext,
   data: PacioliValue,
   includeZeros: boolean,
-  unit?: SIUnit
+  unit?: SIUnit,
 ): BandChartData | null {
   const convert = unit
     ? (x: PacioliMatrix) => x.convertUnit(unit, context.unitContext)
     : (x: PacioliMatrix) => x;
 
   switch (data.kind) {
-    case "list":
+    case "list": {
       return bandChartDataFromList(data, includeZeros, convert);
-    case "matrix":
+    }
+    case "matrix": {
       return bandChartDataFromVector(convert(data), includeZeros);
-    default:
-      throw Error(
-        "exptected a vector or a list of numbers but got a " + data.kind
+    }
+    default: {
+      throw bandChartError(
+        "exptected a vector or a list of numbers but got a " + data.kind,
       );
+    }
   }
 }
 
 function pairsFromMatrices(
   left: PacioliMatrix,
-  right: PacioliMatrix
+  right: PacioliMatrix,
 ): LinearChartData | null {
   const n = Math.min(left.shape.nrRows(), right.shape.nrRows());
 
@@ -256,7 +288,7 @@ function pairsFromMatrices(
 
 function pairsFromLists(
   left: PacioliValue[],
-  right: PacioliValue[]
+  right: PacioliValue[],
 ): LinearChartData | null {
   const n = Math.min(left.length, right.length);
 
@@ -299,15 +331,15 @@ function pairsFromLists(
 }
 
 function pairsFromListofScalars(
-  items: PacioliValue[],
-  includeZeros: boolean = true
+  items: PacioliMatrix[],
+  includeZeros: boolean = true,
 ): LinearChartData {
   const values: LinearChartEntry[] = [];
   let min;
   let max;
 
-  for (let i = 0; i < items.length; i++) {
-    const value = (items[i] as PacioliMatrix).getNum(0, 0);
+  for (const [i, item] of items.entries()) {
+    const value = item.getNum(0, 0);
 
     if (includeZeros || value !== 0) {
       values.push({ x: i, y: value });
@@ -324,13 +356,13 @@ function pairsFromListofScalars(
     yLower: min ?? 0, // todo
     yUpper: max ?? 1, // todo
     xUnit: SIUnit.ONE,
-    yUnit: (items[0] as PacioliMatrix).getUnit(0, 0), // assume uniform units
+    yUnit: items[0].getUnit(0, 0), // assume uniform units
   };
 }
 
 function pairsFromVector(
   data: PacioliMatrix,
-  includeZeros: boolean = true
+  includeZeros: boolean = true,
 ): LinearChartData {
   const values: LinearChartEntry[] = [];
   let min;
@@ -363,7 +395,7 @@ function pairsFromVector(
 export function bandChartDataFromList(
   items: PacioliValue[],
   includeZeros: boolean,
-  conv: (x: PacioliMatrix) => PacioliMatrix
+  conv: (x: PacioliMatrix) => PacioliMatrix,
 ): BandChartData | null {
   const values: BandChartEntry[] = [];
   let min;
@@ -376,8 +408,8 @@ export function bandChartDataFromList(
   const content = items[0];
 
   if (content.kind === "matrix") {
-    for (let i = 0; i < items.length; i++) {
-      const mat = conv(items[i] as PacioliMatrix);
+    for (const [i, item] of items.entries()) {
+      const mat = conv(item as PacioliMatrix);
       const value = getNumber(mat.numbers, 0, 0);
 
       if (includeZeros || value !== 0) {
@@ -396,12 +428,12 @@ export function bandChartDataFromList(
       label: "", // TODO? Is this used?
     };
   } else if (content.kind === "tuple") {
-    for (let i = 0; i < items.length; i++) {
-      const tup = items[i] as PacioliTuple;
+    for (const [i, item] of items.entries()) {
+      const tup = item as PacioliTuple;
 
       if (tup[1].kind !== "matrix") {
-        throw Error(
-          `Second tuple element for chart data must be a matrix, not a ${tup[1].kind}`
+        throw new Error(
+          `Second tuple element for chart data must be a matrix, not a ${tup[1].kind}`,
         );
       }
 
@@ -434,15 +466,15 @@ export function bandChartDataFromList(
       label: "", // TODO? Is this used?
     };
   } else {
-    throw Error(
-      "exptected a list of numbers but got a list of " + content.kind
+    throw new Error(
+      "exptected a list of numbers but got a list of " + content.kind,
     );
   }
 }
 
 export function bandChartDataFromVector(
   data: PacioliMatrix,
-  includeZeros: boolean
+  includeZeros: boolean,
 ): BandChartData | null {
   const numbers = data.numbers;
   const shape = data.shape;

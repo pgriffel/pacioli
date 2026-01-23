@@ -21,7 +21,7 @@
  */
 
 import {
-  computeWebComponentValue,
+  evaluateWebComponentDefinition,
   addParametersObserver,
   setParameterNodes,
 } from "./utils";
@@ -43,7 +43,7 @@ TEMPLATE.innerHTML = `
     }
   </style>
   <div class="error-root">
-    <div class="error-content"></div>
+    <pre class="error-content"></pre>
     <button class="close-button">Close</button>
   </div>
   <div class="content">
@@ -98,11 +98,11 @@ export abstract class PacioliWebComponent
     return this.getNumberAttribute("decimals", 0);
   }
 
-  set ignoreDecimals(value: boolean) {
+  set ignoredecimals(value: boolean) {
     this.setBooleAttribute("ignoredecimals", value);
   }
 
-  get ignoreDecimals(): boolean {
+  get ignoredecimals(): boolean {
     return this.getBooleAttribute("ignoredecimals");
   }
 
@@ -152,7 +152,7 @@ export abstract class PacioliWebComponent
     const element = this.rootElement().querySelector(".content");
 
     if (element === null) {
-      throw Error(`Cannot find content parent`);
+      throw new Error(`Cannot find content parent`);
     }
 
     return element as HTMLElement;
@@ -164,7 +164,7 @@ export abstract class PacioliWebComponent
   clearContent() {
     const parent = this.contentParent();
     while (parent.firstChild) {
-      parent.removeChild(parent.firstChild);
+      parent.firstChild.remove();
     }
   }
 
@@ -175,7 +175,7 @@ export abstract class PacioliWebComponent
     const element = this.rootElement().querySelector(selectors);
 
     if (element === null) {
-      throw Error(`Cannot find element '${selectors}'`);
+      throw new Error(`Cannot find element '${selectors}'`);
     }
 
     return element as HTMLElement;
@@ -201,8 +201,8 @@ export abstract class PacioliWebComponent
   /**
    * Implementation of the Callable api.
    */
-  fetchData(): PacioliValue {
-    return computeWebComponentValue(this);
+  evaluateDefinition(): PacioliValue {
+    return evaluateWebComponentDefinition(this);
   }
 
   /**
@@ -226,7 +226,7 @@ export abstract class PacioliWebComponent
       const errMessage = err instanceof Error ? err.message : String(err);
 
       console.log(
-        `Error: ${message}.\n\nThe error is displayed in the console because of the following: ${errMessage}`
+        `Error: ${message}.\n\nThe error is displayed in the console because of the following: ${errMessage}`,
       );
     }
   }
@@ -249,7 +249,7 @@ export abstract class PacioliWebComponent
     const root = this.rootElement().querySelector(".error-root");
 
     if (root === null) {
-      throw Error("Error root element does not exist");
+      throw new Error("Error root element does not exist");
     } else {
       // If it exists, we know it is an HTMLElement
       return root as HTMLElement;
@@ -260,7 +260,7 @@ export abstract class PacioliWebComponent
     const content = this.rootElement().querySelector(".error-content");
 
     if (content === null) {
-      throw Error("Error content element does not exist");
+      throw new Error("Error content element does not exist");
     } else {
       // If it exists, we know it is an HTMLElement
       return content as HTMLElement;
@@ -271,7 +271,7 @@ export abstract class PacioliWebComponent
     const element = this.rootElement().querySelector(".close-button");
 
     if (element === null) {
-      throw Error("Error close button element does not exist");
+      throw new Error("Error close button element does not exist");
     } else {
       // If it exists, we know it is an HTMLButtonElement
       return element as HTMLButtonElement;
@@ -294,10 +294,9 @@ export abstract class PacioliWebComponent
 
   protected getNumberAttribute(
     attribute: string,
-    defaultValue: number = 0
+    defaultValue: number = 0,
   ): number {
-    const att = this.getAttribute(attribute);
-    return Number(att === null ? defaultValue : att);
+    return getNumberAttribute(this, attribute, defaultValue);
   }
 
   protected setStringAttribute(attribute: string, value: string | undefined) {
@@ -310,10 +309,9 @@ export abstract class PacioliWebComponent
 
   protected getStringAttribute(
     attribute: string,
-    defaultValue: string = ""
+    defaultValue: string = "",
   ): string {
-    const att = this.getAttribute(attribute);
-    return att === null ? defaultValue : att;
+    return getStringAttribute(this, attribute, defaultValue);
   }
 
   protected setBooleAttribute(attribute: string, value: boolean | undefined) {
@@ -327,4 +325,29 @@ export abstract class PacioliWebComponent
   protected getBooleAttribute(attribute: string): boolean {
     return this.hasAttribute(attribute);
   }
+}
+
+export function getNumberAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue: number = 0,
+): number {
+  const att = element.getAttribute(attribute);
+  return Number(att ?? defaultValue);
+}
+
+export function getStringAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue: string = "",
+): string {
+  const att = element.getAttribute(attribute);
+  return att ?? defaultValue;
+}
+
+export function getBooleAttribute(
+  element: HTMLElement,
+  attribute: string,
+): boolean {
+  return element.hasAttribute(attribute);
 }

@@ -165,7 +165,15 @@ export class Context {
     return this;
   }
 
-  public parseSIUnit(json: any): SIUnit {
+  public parseSIUnit(json: {
+    powers: {
+      base: {
+        prefix?: string;
+        name: string;
+      };
+      power?: number;
+    }[];
+  }): SIUnit {
     return unitFromJSON(json, (prefixName, baseName) => {
       const prefix = this.prefixes.get(prefixName);
       if (prefix) {

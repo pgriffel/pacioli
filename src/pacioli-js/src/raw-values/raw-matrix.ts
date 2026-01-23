@@ -20,7 +20,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import { StringifiedTableData } from "../dom/table";
+import { DimNum, SIUnit } from "uom-ts";
+import { TableBuilder } from "../table/table-builder";
 import { NR_DECIMALS } from "../primitives";
 import type { MatrixShape } from "../values/matrix-shape";
 import type {
@@ -31,6 +32,7 @@ import type {
 } from "./numbers";
 import { getCOONumbers, getFullNumbers } from "./numbers";
 import { tagMatrix } from "./raw-value";
+import { TableColumn } from "../table/table-column";
 
 export type RawMatrixStorage = "full" | "DOK" | "COO" | "CCS";
 
@@ -85,7 +87,7 @@ export function set(
   numbers: RawMatrix,
   row: number,
   column: number,
-  value: number
+  value: number,
 ) {
   switch (numbers.storage) {
     case "full": {
@@ -94,7 +96,7 @@ export function set(
     }
     case "DOK": {
       if (numbers[row] === undefined) {
-        numbers[row] = new Array(numbers.nrColumns);
+        numbers[row] = Array.from({ length: numbers.nrColumns });
       }
       numbers[row][column] = value;
       break;
@@ -124,7 +126,7 @@ export function set(
       break;
     }
     case "CCS": {
-      throw Error("Set not implemented for CCS storage");
+      throw new Error("Set not implemented for CCS storage");
     }
   }
 }
@@ -132,7 +134,7 @@ export function set(
 export function getNumber(
   numbers: RawMatrix,
   row: number,
-  column: number
+  column: number,
 ): number {
   switch (numbers.storage) {
     case "full": {
@@ -140,15 +142,15 @@ export function getNumber(
     }
     case "DOK": {
       const entry = numbers[row];
-      return entry ? entry[column] ?? 0 : 0;
+      return entry ? (entry[column] ?? 0) : 0;
     }
     case "COO": {
       const rows = numbers[0];
       const columns = numbers[1];
       const values = numbers[2];
-      for (let i = 0; i < rows.length; i++) {
-        if (row < rows[i]) return 0;
-        if (row === rows[i]) {
+      for (const [i, entry] of rows.entries()) {
+        if (row < entry) return 0;
+        if (row === entry) {
           if (column < columns[i]) return 0;
           if (column === columns[i]) return values[i];
         }
@@ -181,21 +183,21 @@ export function getNumber(
 
 export function unaryNumbers(
   numbers: RawMatrix,
-  fun: (val: number) => number
+  fun: (val: number) => number,
 ): RawMatrix {
   const coo = getCOONumbers(numbers);
   return tagMatrix(
-    [coo[0], coo[1], coo[2].map(fun)],
+    [coo[0], coo[1], coo[2].map((element) => fun(element))],
     numbers.nrRows,
     numbers.nrColumns,
-    "COO"
+    "COO",
   );
 }
 
 export function elementWiseNumbers(
   xNumbers: RawMatrix,
   yNumbers: RawMatrix,
-  fun: (x: number, y: number) => number
+  fun: (x: number, y: number) => number,
 ) {
   let px = 0;
   let py = 0;
@@ -267,7 +269,7 @@ export function elementWiseNumbers(
     [rows, columns, values],
     xNumbers.nrRows,
     xNumbers.nrColumns,
-    "COO"
+    "COO",
   );
 }
 
@@ -275,7 +277,7 @@ export function findNonZero(
   xNumbers: RawMatrix,
   yNumbers: RawMatrix,
   fun: (x: number, y: number) => boolean,
-  zero_zero_case: boolean
+  zero_zero_case: boolean,
 ) {
   let px = 0;
   let py = 0;
@@ -404,38 +406,27 @@ export function findNonZero(
 // }
 
 /**
- * By using StringifiedTableData we don't duplicate code and have uniform output.
+ * Create a TableBuilder.
  *
- * @param matrix
- * @param header
- * @param _showTotal
- * @param total
- * @returns
+ * The numbers in the table are dimensionless because raw matrices don't carry untis!
+ *
+ * @param matrix A raw matrix
+ * @param header Title for the value column. Default is "Value"
+ * @returns The TableBuilder
  */
-export function tableDataFromRawMatrix(
+export function tableBuilderFromRawMatrix(
   matrix: RawMatrix,
-  header: string,
-  _showTotal: boolean,
-  total?: string
-): StringifiedTableData {
-  const indexSets = {
-    row: matrix.nrRows === 1 ? [] : ["row"],
-    column: matrix.nrColumns === 1 ? [] : ["column"],
-  };
-  const index: {
-    row: string[];
-    column: string[];
-  }[] = [];
-  const columnHeaders: string[] = [header];
-  const columns: {
-    row: { magnitude: string; unit: string }[];
-    isZero: boolean;
-  }[] = [];
+  header: string = "Value",
+): TableBuilder {
+  const indexSets = [
+    ...(matrix.nrRows === 1 ? [] : ["row"]),
+    ...(matrix.nrColumns === 1 ? [] : ["column"]),
+  ];
+  const index: string[][] = [];
+  const values: { num: DimNum; isZero: boolean }[] = [];
 
   const nrRows = matrix.nrRows;
   const nrColumns = matrix.nrColumns;
-
-  let effectiveTotal = 0;
 
   if (nrRows === 0 || nrColumns === 0) {
     throw new Error("No rows and columns?");
@@ -445,28 +436,25 @@ export function tableDataFromRawMatrix(
     // Add the data rows
     for (let i = 0; i < nrRows; i++) {
       for (let j = 0; j < nrColumns; j++) {
-        const indexEntry = {
-          row: [i.toString()],
-          column: [j.toString()],
-        };
-
-        index.push(indexEntry);
+        index.push([i.toString(), j.toString()]);
 
         const num = numbers[i][j];
 
-        const dimNum = { magnitude: num.toFixed(NR_DECIMALS), unit: "" };
+        const dimNum = DimNum.fromNumber(num, SIUnit.ONE);
 
-        columns.push({ row: [dimNum], isZero: num === 0 });
-
-        effectiveTotal += num;
+        values.push({ num: dimNum, isZero: num === 0 });
       }
     }
   }
 
-  return new StringifiedTableData(indexSets, index, columnHeaders, columns, [
-    {
-      magnitude: total === undefined ? effectiveTotal.toString() : total,
-      unit: "",
-    },
-  ]);
+  const column = new TableColumn(indexSets, index, header, values);
+
+  const options = {
+    decimals: NR_DECIMALS,
+    ignoredecimals: false,
+    nozerorows: false,
+    totals: true,
+  };
+
+  return new TableBuilder([column], options);
 }

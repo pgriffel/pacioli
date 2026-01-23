@@ -90,7 +90,7 @@ export class ThreeJsEnvironment {
     this.camera.position.set(
       options.cameraX * options.scale,
       options.cameraY * options.scale,
-      options.cameraZ * options.scale
+      options.cameraZ * options.scale,
     );
     this.camera.lookAt(this.body.position);
 
@@ -141,7 +141,7 @@ export class ThreeJsEnvironment {
     // the web components to change the ambient light.
     this.setAmbientLight(
       this.options.ambientColor ?? ambientLight[0].value,
-      this.options.ambientIntensity ?? getNumber(ambientLight[1].numbers, 0, 0)
+      this.options.ambientIntensity ?? getNumber(ambientLight[1].numbers, 0, 0),
     );
   }
 
@@ -180,14 +180,14 @@ export class ThreeJsEnvironment {
    * Removes all body elements that have been loaded previously.
    */
   clear() {
-    while (0 < this.body.children.length) {
+    while (this.body.children.length > 0) {
       const child = this.body.children[0];
 
       // Free used resources
       switch (child.type) {
         case "Mesh": {
           disposeMesh(
-            child as THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+            child as THREE.Mesh<THREE.BufferGeometry, THREE.Material>,
           );
           break;
         }
@@ -249,7 +249,7 @@ export class ThreeJsEnvironment {
       this.grid = createGridHelper(
         this.options.gridSize * this.options.scale,
         this.options.gridDivisions,
-        this.options.gridColor
+        this.options.gridColor,
       );
       this.scene.add(this.grid);
     }
@@ -273,7 +273,7 @@ export class ThreeJsEnvironment {
         this.options.axisSize * this.options.scale,
         this.options.axisColorsX,
         this.options.axisColorsY,
-        this.options.axisColorsZ
+        this.options.axisColorsZ,
       );
       this.scene.add(this.axis);
     }
@@ -302,16 +302,20 @@ export class ThreeJsEnvironment {
       this.axisLabels = createAxisLabels(
         this.options.axisSize * this.options.scale,
         0.5,
-        this.options
+        this.options,
       );
 
-      this.axisLabels.forEach((label) => this.scene.add(label));
+      for (const label of this.axisLabels) {
+        this.scene.add(label);
+      }
       this.updateLabelOrientations();
     }
   }
 
   hideAxisLabels() {
-    this.axisLabels.forEach((label) => this.scene.remove(label));
+    for (const label of this.axisLabels) {
+      this.scene.remove(label);
+    }
     this.axisLabels = [];
   }
 
@@ -411,7 +415,7 @@ export class ThreeJsEnvironment {
       unitY: SIUnit;
       unitZ: SIUnit;
       scale: number;
-    }
+    },
   ) {
     addPath(this.body, path, options);
   }
@@ -423,7 +427,7 @@ export class ThreeJsEnvironment {
       unitY: SIUnit;
       unitZ: SIUnit;
       scale: number;
-    }
+    },
   ) {
     addMesh(this.body, mesh, options);
   }
@@ -441,7 +445,7 @@ export class ThreeJsEnvironment {
 
 function createWebGLRenderer(
   width: number,
-  height: number
+  height: number,
 ): THREE.WebGLRenderer {
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
@@ -456,7 +460,7 @@ function createWebGLRenderer(
 function createOrbitControls(
   camera: THREE.Camera,
   domElement: HTMLElement,
-  _options: object
+  _options: object,
 ) {
   const controls = new OrbitControls(camera, domElement);
 
@@ -481,7 +485,7 @@ function createCamera(options: {
         50,
         options.width / options.height,
         options.cameraNear * options.scale,
-        options.cameraFar * options.scale
+        options.cameraFar * options.scale,
       );
     }
     case "orthographic": {
@@ -495,11 +499,11 @@ function createCamera(options: {
         (fudge * options.height) / 2,
         (fudge * -options.height) / 2,
         options.cameraNear * options.scale, // is dit goed? of -options.cameraFar?
-        options.cameraFar * options.scale
+        options.cameraFar * options.scale,
       );
     }
     default: {
-      throw Error(`Camera kind $kind unknown`);
+      throw new Error(`Camera kind $kind unknown`);
     }
   }
 }
@@ -508,14 +512,14 @@ function createAxis(
   size: number,
   colorX: string,
   colorY: string,
-  colorZ: string
+  colorZ: string,
 ): THREE.AxesHelper {
   const axis = new THREE.AxesHelper(size);
 
   axis.setColors(
     new THREE.Color(colorX),
     new THREE.Color(colorY),
-    new THREE.Color(colorZ)
+    new THREE.Color(colorZ),
   );
 
   return axis;
@@ -533,7 +537,7 @@ function createAxisLabels(
     unitZ: SIUnit;
     scale: number;
     labelScale: number;
-  }
+  },
 ) {
   const axisLabels = [];
 
@@ -551,9 +555,7 @@ function createAxisLabels(
   labelZ.position.set(0, offset, 0);
   labelY.position.set(0, 0, offset);
 
-  axisLabels.push(labelX);
-  axisLabels.push(labelY);
-  axisLabels.push(labelZ);
+  axisLabels.push(labelX, labelY, labelZ);
 
   return axisLabels;
 }

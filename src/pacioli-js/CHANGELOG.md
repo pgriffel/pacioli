@@ -6,3 +6,4 @@
 
 - Switched to esbuild
 - Implemented pacioli-js implementations of the linear algebra decompositions
+- Added eslint

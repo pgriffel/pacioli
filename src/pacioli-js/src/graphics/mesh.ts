@@ -46,13 +46,13 @@ export type PacioliMesh = [
   PacioliTuple, // rotations
   PacioliString, // name
   PacioliBoole, // wireframe
-  PacioliString // material
+  PacioliString, // material
 ];
 
 export function addMesh(
   body: THREE.Object3D,
   mesh: PacioliMesh,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
   // Create a THREE mesh object from the Pacioli mesh and add it to the body
   const meshObject = createTHREEMesh(mesh, options);
@@ -67,9 +67,9 @@ export function addMesh(
 export function updateMesh(
   body: THREE.Object3D,
   mesh: PacioliMesh,
-  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
-  const [, , position, rotations, name] = mesh;
+  const [_vertices, _faces, position, rotations, name] = mesh;
 
   if (name.value !== "") {
     const object = body.getObjectByName(name.value);
@@ -79,18 +79,18 @@ export function updateMesh(
         if (position.value.kind === "matrix") {
           moveObject(object, position.value, units);
         } else {
-          throw Error("Mesh position must be a matrix");
+          throw new Error("Mesh position must be a matrix");
         }
       }
       rotateObject(object, rotations);
     } else {
-      throw Error(`Mesh with name ${name.value} not found`);
+      throw new Error(`Mesh with name ${name.value} not found`);
     }
   }
 }
 
 export function disposeMesh(
-  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+  mesh: THREE.Mesh<THREE.BufferGeometry, THREE.Material>,
 ) {
   mesh.material.dispose();
   mesh.geometry.dispose();
@@ -98,7 +98,7 @@ export function disposeMesh(
 
 function createTHREEMesh(
   mesh: PacioliMesh,
-  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number }
+  options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
   const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
 
@@ -115,14 +115,25 @@ function createTHREEMesh(
   };
 
   let mat;
-  if (material === "normal") {
-    mat = new THREE.MeshNormalMaterial(props);
-  } else if (material === "lambert") {
-    mat = new THREE.MeshLambertMaterial(props);
-  } else if (material === "phong") {
-    mat = new THREE.MeshPhongMaterial(props);
-  } else {
-    mat = new THREE.MeshBasicMaterial(props);
+  switch (material) {
+    case "normal": {
+      mat = new THREE.MeshNormalMaterial(props);
+
+      break;
+    }
+    case "lambert": {
+      mat = new THREE.MeshLambertMaterial(props);
+
+      break;
+    }
+    case "phong": {
+      mat = new THREE.MeshPhongMaterial(props);
+
+      break;
+    }
+    default: {
+      mat = new THREE.MeshBasicMaterial(props);
+    }
   }
 
   // Create a mesh object with the material and add it to the body
@@ -130,7 +141,7 @@ function createTHREEMesh(
     [vs, fs],
     mat,
     options,
-    hasWireframe.value
+    hasWireframe.value,
   ) as THREE.Mesh<THREE.BufferGeometry, THREE.Material>;
 
   if (name.value !== "") {
@@ -147,7 +158,7 @@ function createTHREEMesh(
     if (pos.value.kind === "matrix") {
       moveObject(meshObject, pos.value, options);
     } else {
-      throw Error("Mesh position must be a matrix");
+      throw new Error("Mesh position must be a matrix");
     }
   }
 
@@ -160,11 +171,11 @@ function createTHREEMesh(
 function mesh2THREE(
   mesh: [
     [PacioliMatrix, PacioliString][],
-    [PacioliMatrix, PacioliMatrix, PacioliMatrix][]
+    [PacioliMatrix, PacioliMatrix, PacioliMatrix][],
   ],
   material: THREE.Material,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
-  wireframe: boolean
+  wireframe: boolean,
 ) {
   const [vertices, faces] = mesh;
 
@@ -177,8 +188,8 @@ function mesh2THREE(
   // Not used at the moment.
   const normals = [];
 
-  for (let i = 0; i < vertices.length; i++) {
-    const vec = vector2THREE(vertices[i][0], options);
+  for (const [i, vertex] of vertices.entries()) {
+    const vec = vector2THREE(vertex[0], options);
     positions[i * 3 + 0] = vec.x;
     positions[i * 3 + 1] = vec.y;
     positions[i * 3 + 2] = vec.z;
@@ -186,8 +197,7 @@ function mesh2THREE(
     normals.push(vec.x, vec.y, vec.z);
   }
 
-  for (let i = 0; i < faces.length; i++) {
-    const face = faces[i];
+  for (const [i, face] of faces.entries()) {
     indices[i * 3 + 0] = getNumber(face[0].numbers, 0, 0);
     indices[i * 3 + 1] = getNumber(face[1].numbers, 0, 0);
     indices[i * 3 + 2] = getNumber(face[2].numbers, 0, 0);
@@ -199,8 +209,8 @@ function mesh2THREE(
   const colors = [];
   const color = new THREE.Color();
 
-  for (let i = 0; i < vertices.length; i++) {
-    color.set(vertices[i][1].value);
+  for (const vertex of vertices) {
+    color.set(vertex[1].value);
 
     // define the same color for each vertex of a triangle
     colors.push(color.r, color.g, color.b);

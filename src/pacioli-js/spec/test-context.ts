@@ -49,7 +49,7 @@ export const testDefs = {
 };
 
 export const testContext = PacioliContext.fromUOMContext(
-  UOMContext.fromDef(siDef).loadDef(testDefs)
+  UOMContext.fromDef(siDef).loadDef(testDefs),
 );
 
 export const metreJSON = {
@@ -70,7 +70,7 @@ testContext
       "Jane",
       "John",
       "Jennifer",
-    ])
+    ]),
   );
 
 testContext.addUnitVectorFromJSON("standard", "Geom3", [
