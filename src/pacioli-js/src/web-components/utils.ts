@@ -73,6 +73,7 @@ export type BooleParameter = {
  * @param element An HTML web element, typically a web component
  * @returns The computed Pacioli value
  */
+// evaluate noemen
 export function computeWebComponentValue(
   element: HTMLElement,
   attribute: string = "definition",
@@ -89,6 +90,9 @@ export function computeWebComponentValue(
     if (parts.length === 2) {
       script = parts[0];
       definition = parts[1];
+    } else if (parts.length === 3 && parts[0] === "lib") {
+      script = "$" + parts[1] + "_" + parts[1];
+      definition = parts[2];
     } else {
       throw new Error(
         `definition ${attValue} is invalid. Expected a string of the form 'script:definition'.`,
