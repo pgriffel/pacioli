@@ -31,6 +31,12 @@ import type { PacioliTuple } from "../../values/tuple";
 import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliMatrix } from "../../values/matrix";
 import { PacioliError } from "../../pacioli-error";
+import {
+  getBooleAttribute,
+  getNumberAttribute,
+  getStringAttribute,
+} from "../pacioli-web-component";
+import type { PacioliList } from "../../values/list";
 
 /**
  * Options for Pacioli's table component.
@@ -41,12 +47,17 @@ export interface TableOptions {
   nozerorows: boolean;
   totals: boolean;
   ignoredecimals: boolean;
+  exponential: boolean;
+  ascii: boolean;
+  clipboard: boolean;
 }
 
 interface ColumnData {
-  title: string;
-  value: PacioliMatrix;
+  header: string;
+  value: PacioliMatrix | PacioliList;
   decimals?: number;
+  ignoredecimals?: boolean;
+  exponential?: boolean;
   showTotal?: boolean;
   total?: PacioliMatrix;
 }
@@ -56,7 +67,14 @@ interface ColumnData {
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
-  booleans: ["nozerorows", "ignoredecimals", "totals"],
+  booleans: [
+    "nozerorows",
+    "ignoredecimals",
+    "exponential",
+    "totals",
+    "ascii",
+    "clipboard",
+  ],
   numbers: ["decimals"],
 };
 
@@ -149,6 +167,50 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   }
 
   /**
+   * Is the decimals attribute ignored?
+   */
+  get ignoredecimals(): boolean {
+    return this.getBooleAttribute("ignoredecimals");
+  }
+
+  set ignoredecimals(value: boolean) {
+    this.setBooleAttribute("ignoredecimals", value);
+  }
+
+  /**
+   * Is the table displayed in ASCII format?
+   */
+  get ascii(): boolean {
+    return this.getBooleAttribute("ascii");
+  }
+
+  set ascii(value: boolean) {
+    this.setBooleAttribute("ascii", value);
+  }
+
+  /**
+   * Is the table displayed in clipboard format?
+   */
+  get clipboard(): boolean {
+    return this.getBooleAttribute("clipboard");
+  }
+
+  set clipboard(value: boolean) {
+    this.setBooleAttribute("clipboard", value);
+  }
+
+  /**
+   * Is exponential notation for numbers used?
+   */
+  get exopnential(): boolean {
+    return this.getBooleAttribute("exopnential");
+  }
+
+  set exopnential(value: boolean) {
+    this.setBooleAttribute("exopnential", value);
+  }
+
+  /**
    * The Pacioli value displayed in the table.
    */
   // data?: PacioliValue;
@@ -168,6 +230,9 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
     "totals",
     "nozerorows",
     "ignoredecimals",
+    "exopnential",
+    "ascii",
+    "clipboard",
   ];
 
   /**
@@ -205,73 +270,14 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
     ];
   }
 
-  // fetchColumns(): PacioliValue {
-  //   const data = this.fetchData();
-
-  //   const res = [];
-
-  //   for (const child of this.children) {
-  //     if (child.nodeName === "COLUMN") {
-  //       const element = child as HTMLElement;
-
-  //       // const def = element.getAttribute("definition");
-  //       const header = element.innerText;
-
-  //       const value = computeWebComponentValue(element);
-
-  //       res.push({
-  //         title: header,
-  //         value: value as PacioliMatrix,
-  //       });
-  //     }
-  //   }
-
-  //   DOMTable(res, {});
-
-  //   const columnNodes = Array.from(this.childNodes).filter(
-  //     (child) => child.nodeName === "COLUMN"
-  //   ) as HTMLElement[];
-
-  //   console.log(
-  //     "columns",
-  //     columnNodes.map((col) => col.getAttribute("definition"))
-  //   );
-
-  //   console.log(
-  //     "columns 2",
-  //     columnNodes.map((col) => col.innerText)
-  //   );
-
-  //   const columnValues = Array.from(this.childNodes)
-  //     .filter((child) => child.nodeName === "COLUMN")
-  //     .map((x) => computeWebComponentValue(x as HTMLElement));
-
-  //   console.log("columns 3", columnValues);
-
-  //   const cols = columnValues.map((v) => {
-  //     return {
-  //       title: "todo",
-  //       value: v as PacioliMatrix,
-  //     };
-  //   });
-
-  //   this.contentParent().appendChild(DOMTable(cols, {}));
-
-  //   return data;
-  // }
-
   drawTable(columns: ColumnData[]) {
     this.clearContent();
     this.clearErrors();
-
-    // this.fetchColumns();
 
     const options = {
       ...optionsFromScript<TableOptions>(this, SUPPORTED_ATTRIBUTES),
       ...optionsFromAttributes<TableOptions>(this, SUPPORTED_ATTRIBUTES),
     };
-
-    // const columns = columnsFromValue(value);
 
     this.contentParent().appendChild(DOMTable(columns, options));
   }
@@ -284,15 +290,31 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
     if (child.nodeName === "COLUMN") {
       const element = child as HTMLElement;
 
-      // const def = element.getAttribute("definition");
-      // const header = element.innerText;
-      const header = element.getAttribute("header") ?? "No 'header' attribute";
+      const header = getStringAttribute(
+        element,
+        "header",
+        "No 'header' attribute",
+      );
+      const decimals = element.hasAttribute("decimals")
+        ? getNumberAttribute(element, "decimals")
+        : undefined;
+      const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
+      const exponential = getBooleAttribute(element, "exponential");
 
       const value = computeWebComponentValue(element);
 
+      if (value.kind !== "matrix" && value.kind !== "list") {
+        throw pacioliTableError(
+          `Invalid column '${header}'. Expected a matrix or a list, got a '${value.kind}'`,
+        );
+      }
+
       columns.push({
-        title: header,
-        value: value as PacioliMatrix,
+        header: header,
+        value: value,
+        decimals,
+        ignoredecimals,
+        exponential,
       });
     }
   }
@@ -310,8 +332,6 @@ function columnDataFromDefinition(element: HTMLElement): ColumnData[] {
 
 /**
  * Converts a PacioliValue into a list of columns options for the DOMTable function.
- *
- * TODO: create pacioli-column component and read the columns from HTML!?
  *
  * @param value
  * @returns
@@ -414,7 +434,7 @@ function columnData(value: PacioliTuple): ColumnData {
     }
 
     return {
-      title: value[0].value,
+      header: value[0].value,
       value: value[1],
       decimals,
       showTotal,

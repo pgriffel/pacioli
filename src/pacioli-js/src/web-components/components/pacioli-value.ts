@@ -38,6 +38,10 @@ export interface ValueOptions {
   totals: boolean;
 
   ignoredecimals: boolean;
+
+  ascii: boolean;
+
+  clipboard: boolean;
 }
 
 /**
@@ -45,7 +49,7 @@ export interface ValueOptions {
  */
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
-  booleans: ["nozerorows", "ignoredecimals", "totals"],
+  booleans: ["nozerorows", "ignoredecimals", "totals", "ascii", "clipboard"],
   numbers: ["decimals"],
 };
 
@@ -121,6 +125,8 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
     "ignoredecimals",
     "totals",
     "nozeros",
+    "ascii",
+    "clipboard",
   ];
 
   /**

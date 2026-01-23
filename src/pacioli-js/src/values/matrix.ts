@@ -28,7 +28,9 @@ import { tagMatrix, type RawCoordinates } from "../raw-values/raw-value";
 import type { RawMatrix } from "../raw-values/raw-matrix";
 import { getNumber } from "../raw-values/raw-matrix";
 import type { IndexSet } from "./index-set";
-import { TableData } from "../dom/table";
+import type { TableBuilderOptions } from "../table/table-builder";
+import { TableBuilder } from "../table/table-builder";
+import { TableColumn } from "../table/table-column";
 
 /**
  * A matrix combines a shape and numbers.
@@ -106,12 +108,19 @@ export class PacioliMatrix {
     return getNumber(this.numbers, 0, 0);
   }
 
+  // toAscii noemen en toDOM maken!?
   public toDecimal(decimals: number, zero?: string) {
-    return this.tableData("Value").stringify(zero, [decimals], false).ascii();
+    return this.tableBuilder("Value", { decimals, zero }).ascii();
   }
 
-  public tableData(header: string, showTotals: boolean = true): TableData {
-    return TableData.from(this, header, showTotals);
+  public tableBuilder(
+    header: string,
+    tableOptions: Partial<TableBuilderOptions> = {},
+  ): TableBuilder {
+    return new TableBuilder(
+      [TableColumn.fromVector(this, header)],
+      tableOptions,
+    );
   }
 }
 

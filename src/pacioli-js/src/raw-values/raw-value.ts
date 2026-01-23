@@ -25,7 +25,7 @@ import { RawMaybe } from "../values/maybe";
 import type { NumericMatrix } from "./numbers";
 import { VOID, type PacioliVoid } from "../values/void";
 import {
-  tableDataFromRawMatrix,
+  tableBuilderFromRawMatrix,
   type RawMatrix,
   type RawMatrixStorage,
 } from "./raw-matrix";
@@ -232,10 +232,7 @@ export function stringifyRawValue(value: RawValue): string {
 
   switch (value.kind) {
     case "matrix": {
-      return tableDataFromRawMatrix(value, "Value", false).ascii();
-      // return `mat(${value.nrRows.toString()}, ${value.nrColumns.toString()}) ${value.join(
-      //   " + "
-      // )} ${value.storage.toString()}`;
+      return tableBuilderFromRawMatrix(value).ascii();
     }
     case "list": {
       return `[${value
@@ -243,14 +240,14 @@ export function stringifyRawValue(value: RawValue): string {
         .join(", ")}]`;
     }
     case "tuple": {
-      return `[${value
+      return `(${value
         .map((element) => stringifyRawValue(element))
-        .join(", ")}]`;
+        .join(", ")})`;
     }
     case "array": {
-      return `<${value
+      return `{${value
         .map((element) => stringifyRawValue(element))
-        .join(", ")}>`;
+        .join(", ")}}`;
     }
     case "ref": {
       return `<${value

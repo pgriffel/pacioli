@@ -98,11 +98,11 @@ export abstract class PacioliWebComponent
     return this.getNumberAttribute("decimals", 0);
   }
 
-  set ignoreDecimals(value: boolean) {
+  set ignoredecimals(value: boolean) {
     this.setBooleAttribute("ignoredecimals", value);
   }
 
-  get ignoreDecimals(): boolean {
+  get ignoredecimals(): boolean {
     return this.getBooleAttribute("ignoredecimals");
   }
 
@@ -311,8 +311,7 @@ export abstract class PacioliWebComponent
     attribute: string,
     defaultValue: string = "",
   ): string {
-    const att = this.getAttribute(attribute);
-    return att ?? defaultValue;
+    return getStringAttribute(this, attribute, defaultValue);
   }
 
   protected setBooleAttribute(attribute: string, value: boolean | undefined) {
@@ -335,4 +334,20 @@ export function getNumberAttribute(
 ): number {
   const att = element.getAttribute(attribute);
   return Number(att ?? defaultValue);
+}
+
+export function getStringAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue: string = "",
+): string {
+  const att = element.getAttribute(attribute);
+  return att ?? defaultValue;
+}
+
+export function getBooleAttribute(
+  element: HTMLElement,
+  attribute: string,
+): boolean {
+  return element.hasAttribute(attribute);
 }

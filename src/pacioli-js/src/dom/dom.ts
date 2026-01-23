@@ -21,16 +21,21 @@
  */
 
 import type { PacioliMatrix } from "../values/matrix";
-import { mergeTableDatas, TableData } from "./table";
-import { NR_DECIMALS } from "../primitives";
+import { TableBuilder } from "../table/table-builder";
 import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliList } from "../values/list";
+import type { TableColumnOptions } from "../table/table-column";
+import { TableColumn } from "../table/table-column";
 
 type DOMOptions = {
   decimals: number;
   ignoredecimals: boolean;
+  exponential: boolean;
   zero: string;
   nozerorows: boolean;
   totals: boolean;
+  ascii: boolean;
+  clipboard: boolean;
 };
 
 /**
@@ -50,14 +55,7 @@ export function DOM(
 ): HTMLElement | Text {
   switch (x.kind) {
     case "matrix": {
-      return x
-        .tableData("Value")
-        .stringify(
-          options?.zero,
-          [options?.decimals ?? NR_DECIMALS],
-          options?.ignoredecimals ?? false,
-        )
-        .dom(options?.totals ?? false);
+      return x.tableBuilder("Value", options).dom();
     }
     case "string": {
       return document.createTextNode(x.value);
@@ -127,28 +125,31 @@ function arrayElementsToDOM(
  */
 export function DOMTable(
   columns: {
-    title: string;
-    value: PacioliMatrix;
+    header: string;
+    value: PacioliMatrix | PacioliList;
     decimals?: number;
+    ignoredecimals?: boolean;
+    exponential?: boolean;
     showTotal?: boolean;
     total?: PacioliMatrix;
   }[],
   options: Partial<DOMOptions>,
 ) {
-  const decs = columns.map((column) => {
-    return column.decimals ?? options.decimals ?? NR_DECIMALS;
+  const tableColumns: TableColumn[] = columns.map((column) => {
+    const columnOptions: Partial<TableColumnOptions> = {
+      decimals: column.decimals,
+      ignoredecimals: column.ignoredecimals,
+      exponential: column.exponential,
+      showTotal: column.showTotal,
+      total: column.total,
+    };
+
+    if (column.value.kind === "matrix") {
+      return TableColumn.fromVector(column.value, column.header, columnOptions);
+    } else {
+      return TableColumn.fromList(column.value, column.header, columnOptions);
+    }
   });
 
-  return mergeTableDatas(
-    columns.map((column) =>
-      TableData.from(
-        column.value,
-        column.title,
-        column.showTotal === undefined ? true : column.showTotal,
-        column.total,
-      ),
-    ),
-  )
-    .stringify(options.zero, decs, options.ignoredecimals ?? false)
-    .dom(options.totals ?? false);
+  return new TableBuilder(tableColumns, options).dom();
 }
