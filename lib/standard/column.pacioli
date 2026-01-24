@@ -47,7 +47,7 @@ defrecord for_index P: for_unit a, b, P!u:
     Column(a, P!u, b) as column where
         header: String,
         value: a*P!u,
-        decimals: decimals,
+        decimals: Maybe(decimals),
         show_total: Boole,
         total: Maybe(b);
 
@@ -60,7 +60,7 @@ declare default_column :: for_index P: for_unit a, P!u, b:
     (String, a*P!u) -> Column(a, P!u, b);
 
 define default_column(header, value) =
-    make_column(header, value, _nr_decimals() * |decimals|, true, nothing());
+    make_column(header, value, nothing(), true, nothing());
 
 # ------------------------------------------------------------------------------
 
