@@ -300,6 +300,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
         : undefined;
       const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
       const exponential = getBooleAttribute(element, "exponential");
+      const showTotal = getBooleAttribute(element, "totals");
 
       const value = evaluateWebComponentDefinition(element);
 
@@ -315,6 +316,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
         decimals,
         ignoredecimals,
         exponential,
+        showTotal,
       });
     }
   }
