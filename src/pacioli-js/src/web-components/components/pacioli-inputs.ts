@@ -272,7 +272,8 @@ function createParameterInputs(
       inputElement.checked = parameter.value === "true";
       inputElement.type = "checkbox";
     } else {
-      inputElement.value = parameter.value;
+      inputElement.value =
+        parameter.type === "number" ? parameter.value.trim() : parameter.value;
       inputElement.type = parameter.type;
     }
 
