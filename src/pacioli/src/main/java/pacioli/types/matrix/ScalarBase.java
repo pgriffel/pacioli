@@ -114,7 +114,7 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
         if (def.isPresent()) {
             DimensionedNumber<TypeBase> dimNum = def.get().evalBody();
             if (dimNum != null) {
-                return def.get().evalBody().multiply(fac);
+                return def.get().evalBody().flat().multiply(fac);
             }
         }
         return new ScalarBase(info).multiply(fac);
