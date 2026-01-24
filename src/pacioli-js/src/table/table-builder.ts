@@ -117,16 +117,16 @@ export class TableBuilder {
     return {
       zeroString: this.options.zero,
       omitDecimals:
-        column.options.ignoredecimals ??
-        this.options.ignoredecimals ??
+        column.options.ignoredecimals === true ||
+        this.options.ignoredecimals === true ||
         DEFAULT_TABLE_BUILDER_OPTTIONS.ignoredecimals,
       nrDecimals:
         column.options.decimals ??
         this.options.decimals ??
         DEFAULT_TABLE_BUILDER_OPTTIONS.decimals,
       exponential:
-        column.options.exponential ??
-        this.options.exponential ??
+        column.options.exponential === true ||
+        this.options.exponential === true ||
         DEFAULT_TABLE_BUILDER_OPTTIONS.exponential,
     };
   }
