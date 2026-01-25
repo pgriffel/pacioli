@@ -40,6 +40,7 @@ export
     face,
     with_mesh_material,
     with_mesh_wireframe,
+    with_mesh_name,
     set_wireframe;
 
 # ------------------------------------------------------------------------------
@@ -53,7 +54,7 @@ doc Mesh
 defrecord for_unit a, Geom3!u: Mesh(a, Geom3!u) as mesh where
     vertices: List(Vertex(a, Geom3!u)),
     faces: List(Face),
-    optional_position: Maybe(a*Geom3!u),
+    position: Maybe(a*Geom3!u),
     rotation: Tuple(radian, radian, radian),
     name: String,
     wireframe: Boole,
@@ -133,7 +134,7 @@ declare move_mesh ::
     for_unit a, Geom3!u: (Mesh(a, Geom3!u), a*Geom3!u) -> Mesh(a, Geom3!u);
 
 define move_mesh(mesh, vec) =
-    with_mesh_optional_position(just(vec), mesh);
+    with_mesh_position(just(vec), mesh);
 
 # ------------------------------------------------------------------------------
 
