@@ -209,7 +209,7 @@ define test_columns() =
         with_column_total(just(12 * |people/kilo:metre^2|), default_column("Density", population/land_area)),
         with_column_total(just(total(population)/total(land_area)), default_column("Density", population/land_area)),
         default_column_with_total("Density", population/land_area, total(population)/total(land_area)),
-        make_column("Density", population/land_area, 3*|decimals|, false, just(12 * |people/kilo:metre^2|)));
+        make_column("Density", population/land_area, just(3*|decimals|), false, just(12 * |people/kilo:metre^2|)));
 
 defconv c1 :: mega:metre/kilo:metre;
 defconv c2 :: mega:people/people;
