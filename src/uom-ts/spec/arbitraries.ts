@@ -33,9 +33,9 @@ export const testDefs = {
   prefixes: [],
   bases: [
     { name: "stuk", symbol: "st" },
-    { name: "euro", symbol: "â‚¬" },
-    { name: "cent", symbol: "Â¢" },
-    { name: "millicent", symbol: "mÂ¢" },
+    { name: "euro", symbol: "€" },
+    { name: "cent", symbol: "¢" },
+    { name: "millicent", symbol: "m¢" },
   ],
   equations: [
     {
@@ -62,7 +62,7 @@ export function arbitraryPrimitiveSIBase(): fc.Arbitrary<SIBase> {
 
 export function arbitrarySIBase(): fc.Arbitrary<SIBase> {
   return arbitraryPrimitiveSIBase().chain((base) =>
-    arbitraryPrefix().map((prefix) => base.withPrefix(prefix))
+    arbitraryPrefix().map((prefix) => base.withPrefix(prefix)),
   );
 }
 
@@ -83,6 +83,6 @@ export function arbitrarySITerm(): fc.Arbitrary<UOMTerm<SIBase>> {
   return arbitrarySIBase().chain((base) =>
     fc
       .integer({ min: -10, max: 10 })
-      .map((power) => UOMTerm.fromBase(base).withPower(power))
+      .map((power) => UOMTerm.fromBase(base).withPower(power)),
   );
 }

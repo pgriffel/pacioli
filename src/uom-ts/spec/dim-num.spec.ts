@@ -46,7 +46,7 @@ import { SIUnit } from "../src/context";
  */
 export function arbitraryDimNum(): fc.Arbitrary<DimNum> {
   return arbitraryUOM().chain((uom) =>
-    arbitraryBigNum().map((factor) => new DimNum(factor, uom))
+    arbitraryBigNum().map((factor) => new DimNum(factor, uom)),
   );
 }
 
@@ -54,7 +54,7 @@ export function arbitraryNum(): fc.Arbitrary<number> {
   return fc.oneof(
     { arbitrary: fc.constantFrom(-2, -1, 0, 1, 2), weight: 1 },
     { arbitrary: fc.integer(), weight: 2 },
-    { arbitrary: fc.float(), weight: 2 }
+    { arbitrary: fc.float(), weight: 2 },
   );
 }
 
@@ -77,7 +77,7 @@ describe("DimNum", () => {
 
           // and the factor should be the given factor
           expect(dimNum.magnitude.comparedTo(factor)).to.equal(0);
-        })
+        }),
       );
     });
   });
@@ -94,7 +94,7 @@ describe("DimNum", () => {
 
           // and the factor should be 1
           expect(dimNum.magnitude.comparedTo(new BigNumber(1))).to.equal(0);
-        })
+        }),
       );
     });
   });
@@ -112,13 +112,13 @@ describe("DimNum", () => {
           // Then the factor is the product of the factors
           expect(
             mult.magnitude.comparedTo(
-              numA.magnitude.multipliedBy(numB.magnitude)
-            )
+              numA.magnitude.multipliedBy(numB.magnitude),
+            ),
           ).to.equal(0);
 
           // And the unit is the product of the units
           expect(mult.unit.equals(numA.unit.mult(numB.unit))).to.equal(true);
-        })
+        }),
       );
     });
   });
@@ -137,13 +137,13 @@ describe("DimNum", () => {
 
             // Then the factor is the exponent of the factor
             expect(
-              exp.magnitude.comparedTo(num.magnitude.exponentiatedBy(power))
+              exp.magnitude.comparedTo(num.magnitude.exponentiatedBy(power)),
             ).to.equal(0);
 
             // And the unit is the exponent of the unit
             expect(exp.unit.equals(num.unit.expt(power))).to.equal(true);
-          }
-        )
+          },
+        ),
       );
     });
   });
@@ -159,7 +159,7 @@ describe("DimNum", () => {
 
           // Then the result is the same as an exponent with power -1
           expect(reci.equals(num.expt(-1))).to.equal(true);
-        })
+        }),
       );
     });
   });
@@ -181,9 +181,9 @@ describe("DimNum", () => {
           // (result of e.g. 1/0) and Infinity === Infinity is true.
           expect(div.equals(numA.mult(numB.reciprocal()))).to.equal(
             numA.magnitude.comparedTo(new BigNumber(0)) !== 0 ||
-              numB.magnitude.comparedTo(new BigNumber(0)) !== 0
+              numB.magnitude.comparedTo(new BigNumber(0)) !== 0,
           );
-        })
+        }),
       );
     });
   });
@@ -194,9 +194,9 @@ describe("DimNum", () => {
         fc.property(arbitraryDimNum(), arbitraryDimNum(), (numA, numB) => {
           expect(numA.equals(numB)).to.equal(
             numA.magnitude.comparedTo(numB.magnitude) === 0 &&
-              numA.unit.equals(numB.unit)
+              numA.unit.equals(numB.unit),
           );
-        })
+        }),
       );
     });
   });
@@ -206,7 +206,7 @@ describe("DimNum", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), (num) => {
           expect(num.isDimensionless()).to.equal(num.unit.isDimensionless());
-        })
+        }),
       );
     });
   });
@@ -214,47 +214,47 @@ describe("DimNum", () => {
   describe("toFixed", () => {
     it("should print with dot for en-US", () => {
       expect(DimNum.dimless(new BigNumber("12.345")).toFixed()).to.equal(
-        "12.345"
+        "12.345",
       );
     });
 
     it("should print dimensioned number correctly", () => {
       expect(
-        testContext.parseDimNum("12.345 * euro^2 / stuk").toFixed()
-      ).to.equal("12.345 â‚¬^2/st");
+        testContext.parseDimNum("12.345 * euro^2 / stuk").toFixed(),
+      ).to.equal("12.345 €/st");
     });
 
     it("should print unit with negative power correctly", () => {
       expect(
-        testContext.parseDimNum("12.345 * euro^-2 / stuk").toFixed()
-      ).to.equal("12.345/â‚¬^2/st");
+        testContext.parseDimNum("12.345 * euro^-2 / stuk").toFixed(),
+      ).to.equal("12.345/€/st");
     });
   });
 
   describe("toLocale", () => {
     it("should print with comma for nl-NL", () => {
       expect(
-        DimNum.dimless(new BigNumber("12.345")).toLocale(2, "nl-NL")
+        DimNum.dimless(new BigNumber("12.345")).toLocale(2, "nl-NL"),
       ).to.equal("12,35");
     });
 
     it("should print dimensioned number correctly for nl-NL", () => {
       expect(
-        testContext.parseDimNum("12.345 * euro^2 / stuk").toLocale(2, "nl-NL")
-      ).to.equal("12,35 â‚¬^2/st");
+        testContext.parseDimNum("12.345 * euro^2 / stuk").toLocale(2, "nl-NL"),
+      ).to.equal("12,35 €/st");
     });
   });
 
   describe("print", () => {
     it("should print a dimensionless number", () => {
       expect(DimNum.dimless(new BigNumber("12.345")).print()).to.equal(
-        "12.345"
+        "12.345",
       );
     });
 
     it("should print a simple dimensioned number", () => {
       expect(DimNum.fromUnit(testContext.getUnit("euro")).print()).to.equal(
-        "euro"
+        "euro",
       );
     });
 
@@ -262,8 +262,8 @@ describe("DimNum", () => {
       expect(
         new DimNum(
           new BigNumber("12.345"),
-          testContext.getUnit("euro").expt(2).mult(testContext.getUnit("stuk"))
-        ).print()
+          testContext.getUnit("euro").expt(2).mult(testContext.getUnit("stuk")),
+        ).print(),
       ).to.equal("12.345*euro^2*stuk");
     });
 
@@ -276,7 +276,7 @@ describe("DimNum", () => {
             console.log("huh");
           }
           expect(num.equals(testContext.parseDimNum(num.print()))).to.be.true;
-        })
+        }),
       );
     });
   });

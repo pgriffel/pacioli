@@ -173,7 +173,7 @@ public class Machine {
         si.addPrefix("deci", new Prefix("d", new BigDecimal("0.1")));
         si.addPrefix("centi", new Prefix("c", new BigDecimal("0.01")));
         si.addPrefix("milli", new Prefix("m", new BigDecimal("0.001")));
-        si.addPrefix("micro", new Prefix("Î¼", new BigDecimal("0.000001")));
+        si.addPrefix("micro", new Prefix("µ", new BigDecimal("0.000001")));
         si.addPrefix("nano", new Prefix("n", new BigDecimal("1").movePointLeft(9)));
         si.addPrefix("pico", new Prefix("p", new BigDecimal("1").movePointLeft(12)));
         si.addPrefix("femto", new Prefix("f", new BigDecimal("1").movePointLeft(15)));

@@ -29,9 +29,9 @@ export const testDefs = {
   prefixes: [],
   bases: [
     { name: "stuk", symbol: "st" },
-    { name: "euro", symbol: "â‚¬" },
-    { name: "cent", symbol: "Â¢" },
-    { name: "millicent", symbol: "mÂ¢" },
+    { name: "euro", symbol: "€" },
+    { name: "cent", symbol: "¢" },
+    { name: "millicent", symbol: "m¢" },
   ],
   equations: [
     {

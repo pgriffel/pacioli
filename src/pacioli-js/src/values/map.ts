@@ -64,7 +64,7 @@ function mapAsDOM(
       const item = document.createElement("li");
 
       item.appendChild(DOM(boxRawValue(k, srcType, context)));
-      item.appendChild(document.createTextNode("â†’"));
+      item.appendChild(document.createTextNode("→"));
       item.appendChild(DOM(boxRawValue(v, dstType, context)));
 
       element.appendChild(item);

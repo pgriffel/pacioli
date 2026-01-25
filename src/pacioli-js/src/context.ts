@@ -33,7 +33,7 @@ export const emptyDef: Definition = {
     { name: "femto", power: -15, symbol: "f" },
     { name: "pico", power: -12, symbol: "p" },
     { name: "nano", power: -9, symbol: "n" },
-    { name: "micro", power: -6, symbol: "Âµ" },
+    { name: "micro", power: -6, symbol: "µ" },
     { name: "milli", power: -3, symbol: "m" },
     { name: "centi", power: -2, symbol: "c" },
     { name: "deci", power: -1, symbol: "d" },

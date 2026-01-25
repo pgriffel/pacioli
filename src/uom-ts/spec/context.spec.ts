@@ -63,7 +63,7 @@ describe("context", () => {
 
           // Then
           expect(flat.equals(DimNum.fromUnit(unit))).to.equal(true);
-        })
+        }),
       );
     });
 
@@ -77,7 +77,7 @@ describe("context", () => {
 
           // When a context is created from the definition
           const context = new Context([], [base], [[name, dimNum]]).loadDef(
-            testContext.genDef()
+            testContext.genDef(),
           );
 
           // When the unit for the base is created
@@ -92,13 +92,13 @@ describe("context", () => {
               testContext.flattenDimNum(dimNum).toText(),
               unit.toText(),
               " = ",
-              flat.toText()
+              flat.toText(),
             );
           }
 
           // Then
           expect(flat.equals(testContext.flattenDimNum(dimNum))).to.equal(true);
-        })
+        }),
       );
     });
 
@@ -121,20 +121,20 @@ describe("context", () => {
               dimNum.toText(),
               flat.toText(),
               "not equal",
-              alt.toText()
+              alt.toText(),
             );
             console.log(
               dimNum.toPrecision(precision),
               flat.toPrecision(precision),
               "not equal",
-              alt.toPrecision(precision)
+              alt.toPrecision(precision),
             );
           }
 
           expect(
-            flat.toPrecision(precision) === alt.toPrecision(precision)
+            flat.toPrecision(precision) === alt.toPrecision(precision),
           ).to.equal(true);
-        })
+        }),
       );
     });
   });
@@ -142,7 +142,7 @@ describe("context", () => {
   describe("loadDef", () => {
     it("should load testContext.genDef", () => {
       expect(Context.fromDef(testContext.genDef()).toText()).to.equal(
-        testContext.toText()
+        testContext.toText(),
       );
     });
   });
@@ -152,7 +152,7 @@ describe("context", () => {
       expect(
         si
           .conversionFactor(si.getUnit("milli:gram"), si.getUnit("gram"))
-          .comparedTo(new BigNumber("0.001"))
+          .comparedTo(new BigNumber("0.001")),
       ).to.equal(0);
     });
 
@@ -161,9 +161,9 @@ describe("context", () => {
         si
           .conversionFactor(
             si.getUnit("milli:gram"),
-            si.getScaledUnit("", "gram")
+            si.getScaledUnit("", "gram"),
           )
-          .comparedTo(new BigNumber("0.001"))
+          .comparedTo(new BigNumber("0.001")),
       ).to.equal(0);
     });
 
@@ -172,9 +172,9 @@ describe("context", () => {
         prefixes: [{ name: "milli", power: -3, symbol: "m" }],
         bases: [
           { name: "stuk", symbol: "st" },
-          { name: "euro", symbol: "â‚¬" },
-          { name: "cent", symbol: "Â¢" },
-          { name: "millicent", symbol: "mÂ¢" },
+          { name: "euro", symbol: "€" },
+          { name: "cent", symbol: "¢" },
+          { name: "millicent", symbol: "m¢" },
         ],
         equations: [
           {
@@ -195,9 +195,9 @@ describe("context", () => {
         context
           .conversionFactor(
             context.getUnit("millicent"),
-            context.getScaledUnit("", "euro")
+            context.getScaledUnit("", "euro"),
           )
-          .comparedTo(new BigNumber("0.00001"))
+          .comparedTo(new BigNumber("0.00001")),
       ).to.equal(0);
     });
   });
