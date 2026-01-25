@@ -36,7 +36,7 @@ defunit volt "V" = watt/ampere;
 
 defunit farad "F" = coulomb/volt;
 
-defunit ohm "ÃŽÂ©" = volt/ampere;
+defunit ohm "Ω" = volt/ampere;
 
 defunit siemens "S" = ampere/volt;
 
@@ -46,7 +46,7 @@ defunit tesla "T" = weber/metre^2;
 
 defunit henry "H" = weber/ampere;
 
-defunit degree_celcius "Ã‚Â°C" = kelvin;
+defunit degree_celcius "°C" = kelvin;
 
 defunit lumen "lm" = candela/steradian;
 
@@ -76,12 +76,12 @@ defunit inch "\"" = 0.0254 * metre;
 
 defunit foot "'" = 0.3048 * metre;
 
-defunit degree "Ã‚Â°" = pi * radian / 180;
-# defunit degree "Ã‚Â°" = 0.017453292519943295 * radian;
+defunit degree "°" = pi * radian / 180;
+# defunit degree "°" = 0.017453292519943295 * radian;
 
-#defunit degree "Ã‚Â°" = / (* (extern pi) radian) 180);
+#defunit degree "°" = / (* (extern pi) radian) 180);
 #
-#defunit angle-minute "Ã¢â‚¬Â²" = / degree 60);
+#defunit angle-minute "′" = / degree 60);
 #
 #defunit angle-second "''" = / angle-minute 60);
 #
@@ -106,7 +106,7 @@ defunit litre "l" = deci:metre^3;
 #
 #defunit natural-unit-of-mass "mc" = * 9.109382616 (10 ^ -31) (kilo gram));
 #
-#defunit natural-unit-of-time "h/(mcÃ‚Â²)" = * 1.288088667786 (10 ^ -21) second);
+#defunit natural-unit-of-time "h/(mc²)" = * 1.288088667786 (10 ^ -21) second);
 #
 #defunit atomic-unit-of-charge "e" = * 1.6021765314 (10 ^ -19) coulomb);
 #
@@ -131,7 +131,7 @@ defunit litre "l" = deci:metre^3;
 #
 #defunit millimetre-of-mercury "mmHg" = * 133.322 pascal);
 #
-#defunit angstrom "Ãƒâ€¦" = / metre (10 ^ 10));
+#defunit angstrom "Å" = / metre (10 ^ 10));
 #
 #defunit nautical-mile "M" = * 1852 metre);
 #
