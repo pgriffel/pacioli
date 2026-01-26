@@ -204,21 +204,6 @@ describe("context", () => {
 
   describe("convertDimNum", () => {
     it("should convert kilo:metre to centi:metre", () => {
-      console.log(
-        "eq2s",
-        DimNum.fromString("100000*centi:metre"),
-        testContext.convertDimNum(
-          DimNum.fromUnit(testContext.getUnit("kilo:metre")),
-          testContext.getUnit("centi:metre"),
-        ),
-        testContext
-          .convertDimNum(
-            DimNum.fromUnit(testContext.getUnit("kilo:metre")),
-            testContext.getUnit("centi:metre"),
-          )
-          .equals(DimNum.fromString("100000*centi:metre")),
-      );
-
       expect(
         testContext
           .convertDimNum(
@@ -228,6 +213,21 @@ describe("context", () => {
           .equals(
             DimNum.fromUnit(testContext.getUnit("centi:metre")).scale(
               new BigNumber(100000),
+            ),
+          ),
+      ).to.be.true;
+    });
+
+    it("should convert yotta:gram to earthmass", () => {
+      expect(
+        testContext
+          .convertDimNum(
+            DimNum.fromUnit(testContext.getUnit("yotta:gram")),
+            testContext.getUnit("earthmass"),
+          )
+          .equals(
+            DimNum.fromUnit(testContext.getUnit("earthmass")).scale(
+              new BigNumber(1 / 5972),
             ),
           ),
       ).to.be.true;

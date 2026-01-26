@@ -327,9 +327,10 @@ export class Context {
     let num = DimNum.ONE;
 
     for (const term of unit.termMap.values()) {
-      const prefixFactor = new BigNumber(10)
-        .exponentiatedBy(term.base.prefix.power)
-        .exponentiatedBy(term.power);
+      const power = term.base.prefix.power * term.power;
+
+      const prefixFactor = new BigNumber(1).shiftedBy(power);
+
       const definition: DimNum | undefined = this.equations.get(term.base.base);
 
       if (definition) {
@@ -340,6 +341,7 @@ export class Context {
         const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(
           term.power,
         );
+
         num = num.mult(new DimNum(prefixFactor, unit));
       }
     }
@@ -371,12 +373,6 @@ export class Context {
    * @returns The new dimensioned number
    */
   public convertDimNum(num: DimNum, unit: SIUnit): DimNum {
-    console.log(
-      new DimNum(
-        num.magnitude.multipliedBy(this.conversionFactor(num.unit, unit)),
-        unit,
-      ).sum(DimNum.fromUnit(unit).scale(new BigNumber(0))),
-    );
     return new DimNum(
       num.magnitude.multipliedBy(this.conversionFactor(num.unit, unit)),
       unit,

@@ -20,13 +20,12 @@
  * SOFTWARE.
  */
 
-import { siDef } from "../src/si";
+import { siDef, si } from "../src/si";
 import * as fc from "fast-check";
 import { Context } from "../src/context";
 import { SIBase } from "../src/si-base";
 import BigNumber from "bignumber.js";
 import { Prefix } from "../src/prefix";
-import { si } from "../src/si";
 import { UOMTerm } from "../src/uom-term";
 
 export const testDefs = {
@@ -36,6 +35,7 @@ export const testDefs = {
     { name: "euro", symbol: "€" },
     { name: "cent", symbol: "¢" },
     { name: "millicent", symbol: "m¢" },
+    { name: "earthmass", symbol: "earth" },
   ],
   equations: [
     {
@@ -48,6 +48,13 @@ export const testDefs = {
     {
       lhs: "millicent",
       rhs: { powers: [{ prefix: "milli", base: { name: "cent" } }] },
+    },
+    {
+      lhs: "earthmass",
+      rhs: {
+        factor: new BigNumber(5972),
+        powers: [{ base: { prefix: "yotta", name: "gram" } }],
+      },
     },
   ],
 };

@@ -1310,6 +1310,10 @@ defconv milligram_per_kilogram :: milli:gram per kilo:gram;
 
 defconv yottagram_per_gram :: yotta:gram per gram;
 
+defunit earthmass "earth" = 5972 * yotta:gram;
+
+defconv earthmass_per_yottagram :: earthmass / yotta:gram;
+
 define defconv_suite = test_suite("defconv", [
 
     test("should give correct conversion for gram per kilo:gram I", () ->
@@ -1326,5 +1330,9 @@ define defconv_suite = test_suite("defconv", [
 
     test("should give correct conversion for yotta:gram per kilo:gram", () ->
         yottagram_per_gram ~= 10^-24 * |yotta:gram per gram|
+    ),
+
+    test("should give correct conversion for earthmass per yotta:gram", () ->
+        earthmass_per_yottagram = 1/5972 * |earthmass per yotta:gram|
     )
 ]);

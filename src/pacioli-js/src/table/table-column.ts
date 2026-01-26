@@ -31,6 +31,7 @@ import type { PacioliList } from "../values/list";
  */
 export interface TableColumnOptions {
   decimals: number;
+  unit?: SIUnit;
   ignoredecimals: boolean;
   exponential: boolean;
   showTotal: boolean;

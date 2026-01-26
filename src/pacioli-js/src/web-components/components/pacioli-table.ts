@@ -37,6 +37,8 @@ import {
   getStringAttribute,
 } from "../pacioli-web-component";
 import type { PacioliList } from "../../values/list";
+import type { SIUnit } from "uom-ts";
+import { parseUnit } from "../../api";
 
 /**
  * Options for Pacioli's table component.
@@ -55,6 +57,7 @@ export interface TableOptions {
 interface ColumnData {
   header: string;
   value: PacioliMatrix | PacioliList;
+  unit?: SIUnit;
   decimals?: number;
   ignoredecimals?: boolean;
   exponential?: boolean;
@@ -301,6 +304,9 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
       const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
       const exponential = getBooleAttribute(element, "exponential");
       const showTotal = getBooleAttribute(element, "totals");
+      const unit = element.hasAttribute("unit")
+        ? parseUnit(getStringAttribute(element, "unit"))
+        : undefined;
 
       const value = evaluateWebComponentDefinition(element);
 
@@ -313,6 +319,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
       columns.push({
         header: header,
         value: value,
+        unit,
         decimals,
         ignoredecimals,
         exponential,

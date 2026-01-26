@@ -26,6 +26,7 @@ import type { PacioliValue } from "../values/pacioli-value";
 import type { PacioliList } from "../values/list";
 import type { TableColumnOptions } from "../table/table-column";
 import { TableColumn } from "../table/table-column";
+import type { SIUnit } from "uom-ts";
 
 type DOMOptions = {
   decimals: number;
@@ -127,6 +128,7 @@ export function DOMTable(
   columns: {
     header: string;
     value: PacioliMatrix | PacioliList;
+    unit?: SIUnit;
     decimals?: number;
     ignoredecimals?: boolean;
     exponential?: boolean;
@@ -138,6 +140,7 @@ export function DOMTable(
   const tableColumns: TableColumn[] = columns.map((column) => {
     const columnOptions: Partial<TableColumnOptions> = {
       decimals: column.decimals,
+      unit: column.unit,
       ignoredecimals: column.ignoredecimals,
       exponential: column.exponential,
       showTotal: column.showTotal,

@@ -23,6 +23,7 @@
 import type { DimNum } from "uom-ts";
 import { NR_DECIMALS } from "../primitives";
 import type { TableColumn } from "./table-column";
+import { defaultContext } from "../cache";
 
 /**
  * Exactly the same as DOMOptions. TODO: consider merging.
@@ -150,7 +151,12 @@ export class TableBuilder {
       const row = {
         index: element,
         values: this.columns.map((col) => {
-          const dimNum = col.values[i].num;
+          let dimNum = col.values[i].num;
+          const unit = col.options.unit;
+
+          if (unit !== undefined) {
+            dimNum = defaultContext.unitContext.convertDimNum(dimNum, unit);
+          }
 
           return {
             num: dimNum,

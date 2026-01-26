@@ -271,10 +271,6 @@ describe("DimNum", () => {
       fc.assert(
         fc.property(arbitraryDimNum(), (num) => {
           fc.pre(num.magnitude.isFinite());
-
-          if (!num.equals(testContext.parseDimNum(num.print()))) {
-            console.log("huh");
-          }
           expect(num.equals(testContext.parseDimNum(num.print()))).to.be.true;
         }),
       );
