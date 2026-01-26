@@ -143,7 +143,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String asJS() {
+    public String asJS(boolean forType) {
         // return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit",
         // indexSetName.home, indexSetName.name,
         // unitName.home, unitName.name);

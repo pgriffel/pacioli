@@ -220,7 +220,6 @@ public class JSTranspiler implements SymbolTableVisitor {
             if (optionalBody.isPresent()) {
                 UnitNode body = optionalBody.get();
                 DimensionedNumber<TypeBase> number = body.evalUnit();
-                number = number.flat();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
                 out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: \"%s\"}\n",
                         number.factor(), TypeBase.compileUnitToJS(number.unit()),

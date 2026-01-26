@@ -33,7 +33,13 @@ public interface TypeBase extends Base<TypeBase> {
 
     public final static Unit<TypeBase> ONE = new PowerProduct<TypeBase>();
 
-    public String asJS();
+    /**
+     * The compiler use ScalarBase in unit expressions (defunit) and in type
+     * expressions. The JavaScript runtime uses different bases for the two cases.
+     * The forType flag indicates whether we are compiling for type expressions or
+     * for unit expressions in unit definitions.
+     */
+    public String asJS(boolean forType);
 
     public String asMVMUnit(CompilationSettings settings);
 
@@ -74,33 +80,18 @@ public interface TypeBase extends Base<TypeBase> {
     }
 
     public static String compileUnitToJS(Unit<TypeBase> unit) {
-        String product = "";
-        int n = 0;
-        for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.asJS() + ".expt(" + unit.power(base) + ")";
-            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
-            n++;
-        }
-        if (n == 0) {
-            return "Pacioli.ONE";
-        } else {
-            return product;
-        }
+        return compileUnitToJSHelper(unit, false);
     }
 
-    /**
-     * Compiles to uom-ts definition format. Replaces compileUnitToJS above.
-     * 
-     * @param unit
-     * @return
-     */
-    public static String compileUnitToJSON(Unit<TypeBase> unit) {
+    public static String compileUnitToJSType(Unit<TypeBase> unit) {
+        return compileUnitToJSHelper(unit, true);
+    }
+
+    private static String compileUnitToJSHelper(Unit<TypeBase> unit, boolean forType) {
         String product = "";
         int n = 0;
         for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.asJS() + ".expt(" + unit.power(base) + ")";
+            String baseText = base.asJS(forType) + ".expt(" + unit.power(base) + ")";
             product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
             n++;
         }

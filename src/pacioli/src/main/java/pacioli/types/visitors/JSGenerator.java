@@ -91,27 +91,34 @@ public class JSGenerator implements TypeVisitor {
     public void visit(MatrixType type) {
 
         out.write("Pacioli.createMatrixType(");
-        out.write(TypeBase.compileUnitToJS(type.factor()));
+
+        // Scalar factor
+        out.write(TypeBase.compileUnitToJSType(type.factor()));
         out.write(", ");
-        // out.write(type.rowDimension.compileToJS());
+
+        // Row dimension
         type.rowDimension().accept(this);
-        // if (!type.rowDimension.isVar()) out.write(".param");
         out.write(", ");
+
+        // Row unit
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJS(type.rowUnit()));
+            out.write(TypeBase.compileUnitToJSType(type.rowUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
         out.write(", ");
-        // out.write(type.columnDimension.compileToJS());
+
+        // Column dimension
         type.columnDimension().accept(this);
-        // if (!type.columnDimension.isVar()) out.write(".param");
         out.write(", ");
+
+        // Column unit
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJS(type.columnUnit()));
+            out.write(TypeBase.compileUnitToJSType(type.columnUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
+
         out.write(")");
     }
 
@@ -140,7 +147,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(ScalarUnitVar type) {
-        out.write(type.asJS());
+        out.write(type.asJS(true));
     }
 
     @Override
@@ -151,7 +158,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
-        out.write(type.asJS());
+        out.write(type.asJS(true));
     }
 
     @Override

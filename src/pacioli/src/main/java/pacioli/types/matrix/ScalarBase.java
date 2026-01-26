@@ -136,10 +136,18 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
     }
 
     @Override
-    public String asJS() {
-        return prefix.isPresent()
-                ? String.format("Pacioli.unitType('%s', '%s')", prefix.get(), text)
-                : String.format("Pacioli.unitType('%s')", text);
+    public String asJS(boolean forType) {
+        if (forType) {
+            return prefix.isPresent()
+                    ? String.format("Pacioli.unitType('%s', '%s')", prefix.get(), text)
+                    : String.format("Pacioli.unitType('%s')", text);
+
+        } else {
+            return prefix.isPresent()
+                    ? String.format("Pacioli.unit('%s:%s')", prefix.get(), text)
+                    : String.format("Pacioli.unit('%s')", text);
+
+        }
     }
 
     @Override

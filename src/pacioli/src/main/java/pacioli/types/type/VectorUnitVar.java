@@ -140,7 +140,7 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     }
 
     @Override
-    public String asJS() {
+    public String asJS(boolean forType) {
         return "Pacioli.unitFromVarName('_" + this.pretty() + "_')";
     }
 
