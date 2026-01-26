@@ -201,4 +201,36 @@ describe("context", () => {
       ).to.equal(0);
     });
   });
+
+  describe("convertDimNum", () => {
+    it("should convert kilo:metre to centi:metre", () => {
+      console.log(
+        "eq2s",
+        DimNum.fromString("100000*centi:metre"),
+        testContext.convertDimNum(
+          DimNum.fromUnit(testContext.getUnit("kilo:metre")),
+          testContext.getUnit("centi:metre"),
+        ),
+        testContext
+          .convertDimNum(
+            DimNum.fromUnit(testContext.getUnit("kilo:metre")),
+            testContext.getUnit("centi:metre"),
+          )
+          .equals(DimNum.fromString("100000*centi:metre")),
+      );
+
+      expect(
+        testContext
+          .convertDimNum(
+            DimNum.fromUnit(testContext.getUnit("kilo:metre")),
+            testContext.getUnit("centi:metre"),
+          )
+          .equals(
+            DimNum.fromUnit(testContext.getUnit("centi:metre")).scale(
+              new BigNumber(100000),
+            ),
+          ),
+      ).to.be.true;
+    });
+  });
 });

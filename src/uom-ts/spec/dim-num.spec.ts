@@ -221,13 +221,13 @@ describe("DimNum", () => {
     it("should print dimensioned number correctly", () => {
       expect(
         testContext.parseDimNum("12.345 * euro^2 / stuk").toFixed(),
-      ).to.equal("12.345 €/st");
+      ).to.equal("12.345 €^2/st");
     });
 
     it("should print unit with negative power correctly", () => {
       expect(
         testContext.parseDimNum("12.345 * euro^-2 / stuk").toFixed(),
-      ).to.equal("12.345/€/st");
+      ).to.equal("12.345/€^2/st");
     });
   });
 
@@ -241,7 +241,7 @@ describe("DimNum", () => {
     it("should print dimensioned number correctly for nl-NL", () => {
       expect(
         testContext.parseDimNum("12.345 * euro^2 / stuk").toLocale(2, "nl-NL"),
-      ).to.equal("12,35 €/st");
+      ).to.equal("12,35 €^2/st");
     });
   });
 

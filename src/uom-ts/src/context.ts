@@ -109,7 +109,7 @@ export class Context {
   constructor(
     prefixes: Prefix[],
     bases: SIBase[],
-    equations: [string, DimNum][]
+    equations: [string, DimNum][],
   ) {
     // Set the prefixes
     for (const prefix of prefixes) {
@@ -142,7 +142,7 @@ export class Context {
     for (const record of def.prefixes) {
       this.prefixes.set(
         record.name,
-        new Prefix(record.power, record.name, record.symbol)
+        new Prefix(record.power, record.name, record.symbol),
       );
     }
 
@@ -180,7 +180,7 @@ export class Context {
         return this.getScaledUnit(prefixName, baseName);
       } else {
         throw new Error(
-          "Cannot create unit from json. Invalid prefix: " + prefixName
+          "Cannot create unit from json. Invalid prefix: " + prefixName,
         );
       }
     });
@@ -249,7 +249,7 @@ export class Context {
 
   public lookupScaledUnit(
     prefix: string,
-    name: string
+    name: string,
   ): UOM<SIBase> | undefined {
     const parts = name.split(":");
     const baseName = parts.length === 2 ? parts[1] : name;
@@ -294,7 +294,7 @@ export class Context {
   private getUnitFromBase(
     prefixName: string,
     baseName: string,
-    fullName: string
+    fullName: string,
   ): UOM<SIBase> | undefined {
     const prefix = this.prefixes.get(prefixName);
     const base = this.bases.get(baseName);
@@ -304,7 +304,7 @@ export class Context {
     }
     if (!prefix) {
       throw new Error(
-        "Prefix '" + prefixName + "' unknown in unit " + fullName
+        "Prefix '" + prefixName + "' unknown in unit " + fullName,
       );
     }
 
@@ -338,7 +338,7 @@ export class Context {
           .scale(prefixFactor);
       } else {
         const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(
-          term.power
+          term.power,
         );
         num = num.mult(new DimNum(prefixFactor, unit));
       }
@@ -360,7 +360,26 @@ export class Context {
     const flatUnit = this.flatten(num.unit);
     return new DimNum(
       num.magnitude.multipliedBy(flatUnit.magnitude),
-      flatUnit.unit
+      flatUnit.unit,
+    );
+  }
+
+  /**
+   * Converts the dimensioned number to the given unit.
+   *
+   * @param unit A dimensioned number
+   * @returns The new dimensioned number
+   */
+  public convertDimNum(num: DimNum, unit: SIUnit): DimNum {
+    console.log(
+      new DimNum(
+        num.magnitude.multipliedBy(this.conversionFactor(num.unit, unit)),
+        unit,
+      ).sum(DimNum.fromUnit(unit).scale(new BigNumber(0))),
+    );
+    return new DimNum(
+      num.magnitude.multipliedBy(this.conversionFactor(num.unit, unit)),
+      unit,
     );
   }
 
@@ -378,7 +397,7 @@ export class Context {
       return flat.magnitude;
     } else {
       throw new Error(
-        "cannot convert unit " + from.toText() + " to unit " + to.toText() + ""
+        "cannot convert unit " + from.toText() + " to unit " + to.toText() + "",
       );
     }
   }
@@ -393,7 +412,7 @@ export class Context {
    */
   conversionFactorMaybe(
     from: UOM<SIBase>,
-    to: UOM<SIBase>
+    to: UOM<SIBase>,
   ): BigNumber | undefined {
     var flat = this.flatten(from.div(to));
     if (flat.isDimensionless()) {
@@ -514,7 +533,7 @@ export class Context {
     return parseDimNum(
       input,
       this.getUnit.bind(this),
-      this.getScaledUnit.bind(this)
+      this.getScaledUnit.bind(this),
     );
   }
 }
