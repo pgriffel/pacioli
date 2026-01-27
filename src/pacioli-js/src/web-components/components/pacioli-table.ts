@@ -346,7 +346,7 @@ function columnDataFromDefinition(element: HTMLElement): ColumnData[] {
  * @returns
  */
 function columnsFromValue(value: PacioliValue): ColumnData[] {
-  if (value.kind === "tuple") {
+  if (value.kind === "tuple" || value.kind === "list") {
     const columns = value.map((item: PacioliValue) => {
       if (item.kind === "tuple") {
         return columnData(item);
@@ -359,7 +359,7 @@ function columnsFromValue(value: PacioliValue): ColumnData[] {
     return columns;
   } else {
     throw pacioliTableError(
-      `Expected a tuple of columns, got a '${value.kind}'`,
+      `Expected a tuple or list of columns, got a '${value.kind}'`,
     );
   }
 }
@@ -368,79 +368,30 @@ function columnsFromValue(value: PacioliValue): ColumnData[] {
  * Helper for columnsFromValue. Converts a single column spec.
  */
 function columnData(value: PacioliTuple): ColumnData {
-  if (value.length >= 2 && value.length <= 5) {
-    if (value[0].kind !== "string") {
-      throw pacioliTableError(
-        `Invalid column. Expected a (string, vector, ...) tuple, but the first tuple element is a '${value[0].kind}'.`,
-      );
-    }
+  if (value.length < 2 || value.length > 5) {
+    throw pacioliTableError(
+      `Invalid column. Expected a (string, value, ...) tuple, got ${value.length.toString()} tuple elements instead of 2 to 5.`,
+    );
+  }
 
-    const title: string = value[0].value;
+  if (value[0].kind !== "string") {
+    throw pacioliTableError(
+      `Invalid column. Expected a (string, value, ...) tuple, but the first tuple element is a '${value[0].kind}'.`,
+    );
+  }
 
-    if (value[1].kind !== "matrix") {
-      throw pacioliTableError(
-        `Column '${title}'' is invalid. Expected a (string, vector, ...) tuple, but the second tuple element is a '${value[1].kind}'.`,
-      );
-    }
+  const title: string = value[0].value;
 
-    let decimals = undefined;
-    let showTotal = undefined;
-    let total = undefined;
+  if (value[1].kind !== "matrix" && value[1].kind !== "list") {
+    throw pacioliTableError(
+      `Column '${title}'' is invalid. Expected a vector or list value, but the second tuple element is a '${value[1].kind}'.`,
+    );
+  }
 
-    if (value.length >= 3) {
-      if (value[2].kind === "matrix") {
-        decimals = value[2].getNum(0, 0);
-      } else if (value[2].kind === "maybe") {
-        const val = value[2].value;
-        if (val === undefined || val.kind === "matrix") {
-          decimals = val?.getNum(0, 0);
-        } else {
-          throw pacioliTableError(
-            `Invalid decimals for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`,
-          );
-        }
-      } else {
-        throw pacioliTableError(
-          `Invalid decimals for column '${title}'. Expected a number or a maybe number, got a '${value[2].kind}'`,
-        );
-      }
-    }
-
-    if (value.length >= 4) {
-      if (value[3].kind === "maybe") {
-        const val = value[3].value;
-        if (val === undefined || val.kind === "boole") {
-          showTotal = val?.value;
-        } else {
-          throw pacioliTableError(
-            `Invalid showTotal for column '${title}'. Expected a boole in the maybe, got a '${val.kind}'`,
-          );
-        }
-      } else if (value[3].kind === "boole") {
-        showTotal = value[3].value;
-      } else {
-        throw pacioliTableError(
-          `Invalid showTotal for column '${title}'. Expected a boole or a maybe boole, got a '${value[3].kind}'`,
-        );
-      }
-    }
-
-    if (value.length >= 5) {
-      if (value[4].kind === "maybe") {
-        const val = value[4].value;
-        if (val === undefined || val.kind === "matrix") {
-          total = val;
-        } else {
-          throw pacioliTableError(
-            `Invalid total for column '${title}'. Expected a number in the maybe, got a '${val.kind}'`,
-          );
-        }
-      } else {
-        throw pacioliTableError(
-          `Invalid total for column '${title}'. Expected a maybe number, got a '${value[3].kind}'`,
-        );
-      }
-    }
+  try {
+    const decimals = value.length > 2 ? parseDecimals(value[2]) : undefined;
+    const showTotal = value.length > 3 ? parseShowTotal(value[3]) : undefined;
+    const total = value.length > 4 ? parseTotal(value[4]) : undefined;
 
     return {
       header: value[0].value,
@@ -449,11 +400,75 @@ function columnData(value: PacioliTuple): ColumnData {
       showTotal,
       total,
     };
-  } else {
+  } catch (error) {
     throw pacioliTableError(
-      `Invalid column. Expected a (string, vector) pair or (string, vector, scalar) triple, got ${value.length.toString()} tuple elements instead of 2 or 3.`,
+      `Error in column '${title}': ${
+        error instanceof Error ? error.message : String(error)
+      }`,
     );
   }
+}
+
+function parseDecimals(value: PacioliValue): number | undefined {
+  if (value.kind === "matrix") {
+    return value.getNum(0, 0);
+  }
+
+  if (value.kind === "maybe") {
+    const val = value.value;
+
+    if (val === undefined) {
+      return undefined;
+    }
+
+    if (val.kind === "matrix") {
+      return val.getNum(0, 0);
+    }
+  }
+
+  throw pacioliTableError(
+    `Invalid decimals. Expected a number or a maybe number, got a '${value.kind}'`,
+  );
+}
+
+function parseShowTotal(value: PacioliValue): boolean | undefined {
+  if (value.kind === "boole") {
+    return value.value;
+  }
+
+  if (value.kind === "maybe") {
+    const val = value.value;
+
+    if (val === undefined) {
+      return undefined;
+    }
+
+    if (val.kind === "boole") {
+      return val.value;
+    }
+  }
+
+  throw pacioliTableError(
+    `Invalid show totals value. Expected a boole or a maybe, got a '${value.kind}'`,
+  );
+}
+
+function parseTotal(value: PacioliValue): PacioliMatrix | undefined {
+  if (value.kind === "matrix") {
+    return value;
+  }
+
+  if (value.kind === "maybe") {
+    const val = value.value;
+
+    if (val === undefined || val.kind === "matrix") {
+      return val;
+    }
+  }
+
+  throw pacioliTableError(
+    `Invalid total. Expected a number, got a '${value.kind}'`,
+  );
 }
 
 customElements.define("pacioli-table", PacioliTableComponent);
