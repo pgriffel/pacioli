@@ -28,10 +28,10 @@ make it viable for smaller projects, prototyping, education, etc.
 ## Download and Installation
 
 The quickest way to get started is to install the Pacioli Visual Studio Code extension.
-Otherwise you have to install Pacioli manually. The [GitHub project][home] gives details
-on installation.
-
-[home]: https://github.com/pgriffel/pacioli
+Download the [VSIX file](pacioli-0.0.0.vsix) and install it in Visual Studio Code with the
+`Extension: Install from VSIX...` command.
+Otherwise you can install Pacioli manually. The [GitHub project][https://github.com/pgriffel/pacioli]
+gives details on installation.
 
 ## License
 
@@ -49,5 +49,3 @@ Notable missing features that are on the roadmap are
 - Error handling
 - Better support for writing libraries and integration with other environments
 - Support for other IDEs besides VS Code.
-
-2013-2025 Paul Griffioen
