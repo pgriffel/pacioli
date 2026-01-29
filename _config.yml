@@ -22,8 +22,8 @@ title: Pacioli
 email: pgriffel@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   A statically typed unit-aware matrix language
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "/pacioli" # the subpath of your site, e.g. /blog
+url: "http://pgriffel/github.io" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 # github_username: jekyll
 
