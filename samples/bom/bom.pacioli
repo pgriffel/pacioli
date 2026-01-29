@@ -1,0 +1,125 @@
+
+import si;
+
+# ----------------------------------------------------------------------------
+# Units
+# ----------------------------------------------------------------------------
+
+defunit crate "crt" = 0.025 * metre^3;
+
+defunit pie "pie" = 1;
+
+defunit piece "pc" = 1;
+
+# ----------------------------------------------------------------------------
+# Setup
+# ----------------------------------------------------------------------------
+
+defindex Product = {
+    Butter, 
+    Flour,
+    Pastry,
+    Apples,
+    Sugar,
+    ApplePie,
+    PieceOfPie,
+    CrateOfApples
+};
+
+defunit Product!unit = {
+    ApplePie: pie,
+    PieceOfPie: piece,
+    Butter: gram,
+    Flour: gram, 
+    Pastry: kilo:gram, 
+    Apples: gram,
+    CrateOfApples: crate,
+    Sugar: gram
+};
+
+defunit Product!trade_unit = {
+    ApplePie: pie,
+    PieceOfPie: piece,
+    Butter: kilo:gram,
+    Flour: kilo:gram, 
+    Pastry: kilo:gram, 
+    Apples: kilo:gram,
+    CrateOfApples: crate,
+    Sugar: kilo:gram
+};
+
+defconv conv ::
+    Product!unit per Product!trade_unit;
+
+# ----------------------------------------------------------------------------
+# Input
+# ----------------------------------------------------------------------------
+
+defmatrix price :: dollar/Product!trade_unit = {
+    CrateOfApples -> 100,
+    Flour ->  0.80,
+    Butter -> 2.00,
+    Sugar -> 0.50
+};
+
+defmatrix BoM :: Product!unit per Product!unit = {
+    CrateOfApples, Apples ->      0.00005,
+    Butter, Pastry ->           360.0,
+    Flour, Pastry ->            550.0,
+    Pastry, ApplePie ->           0.4,
+    Apples, ApplePie ->         750.0,
+    Sugar, ApplePie ->          225.0,
+    Butter, ApplePie ->         115.0,
+    ApplePie, PieceOfPie ->       0.125
+};
+
+# ----------------------------------------------------------------------------
+# Computations
+# ----------------------------------------------------------------------------
+
+declare BoM_closure ::
+    Product!unit per Product!unit;
+
+define BoM_closure =
+    closure(BoM);
+
+declare trade_BoM ::
+    Product!trade_unit per Product!trade_unit;
+
+define trade_BoM =
+    conv^D '*' BoM '*' conv;
+
+declare product_cost ::
+    dollar/Product!trade_unit;
+
+define product_cost =
+    closure(trade_BoM)^T '*' price;
+
+define ingredient_breakdown =
+    closure(trade_BoM) '*' (delta(Product@PieceOfPie) * |Product!trade_unit|);
+
+define cost_breakdown = 
+    ingredient_breakdown * price;
+
+define cost_breakdown_in_percentages = 
+    to_percentage(cost_breakdown '/.' total(cost_breakdown));
+
+# ----------------------------------------------------------------------------
+
+set_precision(5*|decimals|);
+
+printf("\nConversion matrix is%.5f", conv);
+
+printf("\nBill of material in ingredient units is%.3f", BoM);
+
+printf("\nBill of material in trade units is%.3f", trade_BoM);
+
+printf("\nClosure of trade BoM is%.3f", closure(trade_BoM));
+
+printf("\nProduct cost is%.2f", product_cost);
+
+printf("\nIngredient breakdown for one piece of pie is%.5f", ingredient_breakdown);
+
+printf("\nCost breakdown for one piece of pie is%.5f", cost_breakdown);
+
+printf("\nCost breakdown for one piece of pie in percentages is%.1f", cost_breakdown_in_percentages);

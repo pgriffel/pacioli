@@ -1,0 +1,110 @@
+# ----------------------------------------------------------------------------
+# Shell Allometries
+#
+# An experiment on typed linear algebra for geometry based on:
+#
+# Urdy S, Goudemand N, Bucher H, Chirat R. 2010. Allometries and the
+# morphogenesis of the molluscan shell: a quantitative and theoretical
+# model. J. Exp. Zool.  (Mol. Dev. Evol.) 314B:280–302.
+#
+# The shell model is in file 'model.pacioli'. This file is mostly a small
+# wrapper around the model functions.
+#
+# This improved second version uses some new Pacioli features. The model 
+# computation hasn't changed and still follows the original MATLAB script
+# closely.
+#
+# Paul Griffioen 2012-2025
+# ----------------------------------------------------------------------------
+
+import geometry;
+import si;
+import graphics;
+
+include model;
+include info;
+include curve;
+
+# ----------------------------------------------------------------------------
+# Apertures
+#
+# Convenience functions to create circular and rectangular apertures.
+#
+# The Shell interface expects a list of (angle, distance) pairs as initial 
+# aperture. Such pairs outline a path in the x-z plane. The functions in this
+# section create such paths.
+# ----------------------------------------------------------------------------
+
+doc circle_path
+    "circle_path(n, d) creates a circle of n line segments each of lenght d";
+
+declare circle_path ::
+    for_unit a: (1, a) -> List(Tuple(radian, a));
+
+define circle_path(n, d) =
+    let 
+        angle = 2*pi*|radian|/n
+    in
+        [tuple(a, d) |
+            i <- naturals(n-1),
+            a := if i = 0 then angle/2 else angle end]
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc rectangle_path
+    "rectangle_path(w, h) creates a rectangle of width w and height h";
+
+declare rectangle_path ::
+    for_unit a: (a, a) -> List(Tuple(radian, a));
+
+define rectangle_path(w, h) =
+    let
+        turn = pi*|radian|/2
+    in
+        [tuple(0*|radian|, h/2), tuple(turn, w), tuple(turn, h), tuple(turn, w)]
+    end;
+
+# ----------------------------------------------------------------------------
+# A test
+# ----------------------------------------------------------------------------
+
+defalias shell_unit = milli:metre;
+
+define my_path_a() =
+  circle_path(17, 0.2*|shell_unit|);
+
+define my_path_b() = [
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.6*|radian|, 0.25*|shell_unit|),
+    tuple(-0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.6*|radian|, 1.25*|shell_unit|),
+    tuple(-0.6*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|),
+    tuple( 0.3*|radian|, 0.25*|shell_unit|)
+];
+
+define my_path_c() =
+    rectangle_path(0.5*|shell_unit|, 0.5*|shell_unit|);
+
+declare test_shell ::
+    () -> Shell(shell_unit);
+
+define test_shell() = 
+  let 
+      deg = 2*pi*|radian|/360,
+      shell_vec(x, y, z) = vector3d(x*|shell_unit|, y*|shell_unit|, z*|shell_unit|),
+      aperture_coords = absolute_aperture_coords(my_path_a(), |shell_unit|)
+  in
+      grow(initial_shell(aperture_coords, shell_vec(0, 0, 0), shell_vec(-0.05, 0, -0.02),
+                    1, 0*deg, 1.02, 0*deg, 0*deg, 10*deg, 2, 1), 2)
+  end;
+
+test_shell();

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Saddle</title>
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
+    <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Saddle</h1>
+    <p>
+        Plot of a saddle surface.
+
+    <p>
+        $f(u, v) = (x, y, z)^T$ with
+    <ul>
+        <li>$x = u$</li>
+        <li>$y = v$</li>
+        <li>$z = au^2 + bv^2$</li>
+    </ul>
+    where $a$ and $b$ are scaling factors, $-5 \le u \le 5$, and $-5 \le v \le 5$.
+
+    <p>
+        The squares $u^2$ and $v^2$ for $z$ makes its unit metre squared.
+
+    <p>
+        Setting $a$ and $b$ to the parameter of the paraboloid gives the same surface, but parameterized differently.
+
+    <p>
+
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="saddle_scene" definition="surfaces:saddle_scene" kind="scene"
+            perspective axis unitZ="metre^2">
+            <parameter label="a" unit="1">0.1</parameter>
+            <parameter label="b" unit="1">-0.2</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">50</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="saddle_scene"></pacioli-inputs>
+        <pacioli-controls for="saddle_scene"></pacioli-controls>
+
+    </div>
+
+
+</body>
+
+
+</html>

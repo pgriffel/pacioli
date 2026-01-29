@@ -1,0 +1,167 @@
+import graphics;
+import geometry;
+
+# ------------------------------------------------------------------------------
+# blocks_scene1
+# ------------------------------------------------------------------------------
+
+declare blocks_scene1 :: Scene(metre, Geom3!);
+
+define blocks_scene1 =
+    let
+        block = cube_mesh(3*|metre|, make_color("blue"))
+    in 
+        add_meshes([block], empty_scene("blocks"))
+    end;
+
+# ------------------------------------------------------------------------------
+# blocks_scene2
+# ------------------------------------------------------------------------------
+
+define COLOR_TOP = make_color("red");
+define COLOR_MIDDLE = make_color("green");
+define COLOR_BOTTOM = make_color("blue");
+
+declare make_block1 ::
+    (metre, Color, metre) -> Mesh(metre, Geom3!);
+
+define make_block1(size, color, offset) = 
+    begin
+        mesh := cube_mesh(size, color);
+        mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+
+        return mesh;
+    end;
+
+declare blocks_scene2 ::
+    (metre, metre, metre) -> Scene(metre, Geom3!);
+
+define blocks_scene2(top, middle, bottom) =
+    let
+        bottom_block =
+            make_block1(bottom, COLOR_BOTTOM, 0.5*bottom),
+        
+        middle_block =
+            make_block1(middle, COLOR_MIDDLE, bottom + 0.5*middle),
+        
+        top_block =
+            make_block1(top, COLOR_TOP, bottom + middle + 0.5*top),
+
+        scene = empty_scene("blocks")
+    in 
+        add_meshes([top_block, middle_block, bottom_block], scene)
+    end;
+
+# ------------------------------------------------------------------------------
+# blocks_scene3
+# ------------------------------------------------------------------------------
+
+declare make_center_spot_light ::
+    for_unit a: (radian, a, Color, candela) -> SpotLight(a, Geom3!);
+
+define make_center_spot_light(angle, distance, color, intensity) =
+    let
+        direction = vector3d(cos(angle), sin(angle), 0.5),
+        position = distance '.*' direction
+    in
+        make_spotlight(position, 0 '.*' position, color, intensity)
+    end;
+
+declare make_block2 ::
+    (metre, Color, metre) -> Mesh(metre, Geom3!);
+
+define make_block2(size, color, offset) = 
+    begin
+        mesh := cube_mesh(size, color);
+        mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+        mesh := with_mesh_material("Phong", mesh);
+
+        return mesh;
+    end;
+
+declare illuminated_scene ::
+    (String) -> Scene(metre, Geom3!);
+
+define illuminated_scene(id) = 
+    let
+        light =
+            make_center_spot_light(
+                0*|radian|,
+                20*|metre|,
+                make_color("white"),
+                5000*|candela|)
+    in
+        add_spotlights([light], empty_scene(id))
+    end;
+
+declare blocks_scene3 :: (metre, metre, metre) -> Scene(metre, Geom3!);
+
+define blocks_scene3(top, middle, bottom) =
+    let
+        bottom_block =
+            make_block2(bottom, COLOR_BOTTOM, 0.5*bottom),
+        
+        middle_block =
+            make_block2(middle, COLOR_MIDDLE, bottom + 0.5*middle),
+        
+        top_block =
+            make_block2(top, COLOR_TOP, bottom + middle + 0.5*top),
+
+        scene = illuminated_scene("blocks")
+    in 
+        add_meshes([top_block, middle_block, bottom_block], scene)
+    end;
+
+# ------------------------------------------------------------------------------
+# blocks_animation
+# ------------------------------------------------------------------------------
+
+declare make_block3 ::
+    (String, metre, Color, metre) -> Mesh(metre, Geom3!);
+
+define make_block3(name, size, color, offset) = 
+    begin
+        mesh := cube_mesh(size, color);
+        mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+        mesh := with_mesh_material("Phong", mesh);
+        mesh := with_mesh_name(name, mesh);
+
+        return mesh;
+    end;
+
+declare spin ::
+    for_unit a, Geom3!b: (Mesh(a, Geom3!b), radian) -> Mesh(a, Geom3!b);
+
+define spin(mesh, angle) = 
+    rotate_mesh(mesh, 0*|radian|, 0*|radian|, angle);
+
+declare blocks_animation :: (metre, metre, metre) -> Animation(metre, Geom3!);
+
+define blocks_animation(top, middle, bottom) =
+    let 
+        bottom_block =
+            make_block3("bottom", bottom, COLOR_BOTTOM, 0.5*bottom),
+        
+        middle_block =
+            make_block3("middle", middle, COLOR_MIDDLE, bottom + 0.5*middle),
+        
+        top_block =
+            make_block3("top", top, COLOR_TOP, bottom + middle + 0.5*top),
+        
+        velocity = 1*|radian/second|,
+
+        animation_callback = (time, scene) ->
+            let
+                bottom_spun = spin(bottom_block, time*velocity),
+                middle_spun = spin(middle_block, 2*time*velocity),
+                top_spun = spin(top_block, 4*time*velocity)
+            in
+                with_scene_meshes([bottom_spun, middle_spun, top_spun], scene)
+            end,
+
+        initial_scene = animation_callback(0*|second|, illuminated_scene("blocks")),
+
+        animation = add_animation_callback(animation_callback, initial_scene)
+    in
+        animation
+    end;

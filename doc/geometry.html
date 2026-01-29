@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>geometry</title>
+</head>
+<body>
+<h1>The <code>geometry</code> library</h1>
+<p>Interface for the <code>geometry</code> library</p>
+<h2>Synopsis</h2>
+<pre>
+<a href="#basis2d">basis2d</a> :: Tuple(Geom2!, Geom2!)
+<a href="#basis3d">basis3d</a> :: Tuple(Geom3!, Geom3!, Geom3!)
+
+<a href="#azimuth">azimuth</a> :: for_unit a: (a*Geom3!) -> radian
+<a href="#cross">cross</a> :: for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!
+<a href="#cross_sqrt">cross_sqrt</a> :: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!
+<a href="#det2d">det2d</a> :: for_unit a, Geom2!u: (a*Geom2! per Geom2!) -> a^2
+<a href="#det3d">det3d</a> :: for_unit a, Geom3!u: (a*Geom3! per Geom3!) -> a^3
+<a href="#euler_rotation">euler_rotation</a> :: (radian, radian, radian) -> Geom3! per Geom3!
+<a href="#inclination">inclination</a> :: for_unit a: (a*Geom3!) -> radian
+<a href="#matrix2d">matrix2d</a> :: for_unit a: (a, a, a, a) -> a*Geom2! per Geom2!
+<a href="#matrix3d">matrix3d</a> :: for_unit a: (a, a, a, a, a, a, a, a, a) -> a*Geom3! per Geom3!
+<a href="#polar_angle">polar_angle</a> :: for_unit a: (a*Geom2!) -> radian
+<a href="#rotation">rotation</a> :: (radian, radian, radian) -> Geom3! per Geom3!
+<a href="#signed_volume">signed_volume</a> :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^3
+<a href="#space_vec">space_vec</a> :: for_unit a: (a, a, a) -> a*Geom3!
+<a href="#surface_area">surface_area</a> :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^2
+<a href="#surface_volume">surface_volume</a> :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^3
+<a href="#to_cartesian2d">to_cartesian2d</a> :: for_unit a: (a, radian) -> a*Geom2!
+<a href="#to_cartesian3d">to_cartesian3d</a> :: for_unit a: (a, radian, radian) -> a*Geom3!
+<a href="#to_polar2d">to_polar2d</a> :: for_unit a: (a*Geom2!) -> Tuple(a, radian)
+<a href="#to_polar3d">to_polar3d</a> :: for_unit a: (a*Geom3!) -> Tuple(a, radian, radian)
+<a href="#triangle_area">triangle_area</a> :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^2
+<a href="#vector2d">vector2d</a> :: for_unit a: (a, a) -> a*Geom2!
+<a href="#vector3d">vector3d</a> :: for_unit a: (a, a, a) -> a*Geom3!
+</pre>
+<h2>Index sets</h2>
+<dl>
+<dt id="Geom2"><code>Geom2</code></dt>
+<dd>
+
+<p>Index set for a 2D geometric space. Defined as the set <code>{x, y}</code>.
+</dd>
+<dt id="Geom3"><code>Geom3</code></dt>
+<dd>
+
+<p>Index set for a 3D geometric space. Defined as the set <code>{x, y, z}</code>.
+</dd>
+</dl>
+<h2>Values</h2>
+<dl>
+<dt id="basis2d"><code>basis2d</code></dt>
+<dd>
+<pre>:: Tuple(Geom2!, Geom2!)</pre>
+
+<p>Basis vectors for Geom2.
+<p>Example:
+<p><code>let (vx, vy) = basis2d in ... end</code>
+</dd>
+<dt id="basis3d"><code>basis3d</code></dt>
+<dd>
+<pre>:: Tuple(Geom3!, Geom3!, Geom3!)</pre>
+
+<p>Basis vectors for Geom3.
+<p>Example:
+<p><code>let (i, j, k) = basis3d in ... end</code>
+</dd>
+</dl>
+<h2>Functions</h2>
+<h3 id="azimuth">azimuth</h3>
+<p><code>:: for_unit a: (a*Geom3!) -> radian</code>
+
+<p>The azimuth for polar coordinates.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>
+<h3 id="cross">cross</h3>
+<p><code>:: for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!</code>
+
+<p>The cross product between two vectors.
+<h3 id="cross_sqrt">cross_sqrt</h3>
+<p><code>:: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!</code>
+
+<p>The cross product between two vectors, but with the norms averaged to keep
+the same unit of measurement.
+<h3 id="det2d">det2d</h3>
+<p><code>:: for_unit a, Geom2!u: (a*Geom2! per Geom2!) -> a^2</code>
+
+<p>Determinant of a <code>Geom2</code> matrix
+<h3 id="det3d">det3d</h3>
+<p><code>:: for_unit a, Geom3!u: (a*Geom3! per Geom3!) -> a^3</code>
+
+<p>Determinant of a <code>Geom3</code> matrix
+<h3 id="euler_rotation">euler_rotation</h3>
+<p><code>:: (radian, radian, radian) -> Geom3! per Geom3!</code>
+
+<p>Creates a rotation matrix from angles in the x, y and z direction.
+<h3 id="inclination">inclination</h3>
+<p><code>:: for_unit a: (a*Geom3!) -> radian</code>
+
+<p>The inclination for polar coordinates.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>
+<h3 id="matrix2d">matrix2d</h3>
+<p><code>:: for_unit a: (a, a, a, a) -> a*Geom2! per Geom2!</code>
+
+<p>Creates a <code>Geom2</code> matrix. The arguments are in row-major order.
+<h3 id="matrix3d">matrix3d</h3>
+<p><code>:: for_unit a: (a, a, a, a, a, a, a, a, a) -> a*Geom3! per Geom3!</code>
+
+<p>Creates a <code>Geom3</code> matrix. The arguments are in row-major order.
+<h3 id="polar_angle">polar_angle</h3>
+<p><code>:: for_unit a: (a*Geom2!) -> radian</code>
+
+<p>The angle for polar coordinates in <code>Geom2</code>.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>to_cartesian2d(norm(v), polar_angle(v)) = v</code>
+<h3 id="rotation">rotation</h3>
+<p><code>:: (radian, radian, radian) -> Geom3! per Geom3!</code>
+
+<p>Deprecated. Use euler_rotation instead.
+<h3 id="signed_volume">signed_volume</h3>
+<p><code>:: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^3</code>
+
+<p>Volume enclosed by three position vectors.
+<h3 id="space_vec">space_vec</h3>
+<p><code>:: for_unit a: (a, a, a) -> a*Geom3!</code>
+
+<h3 id="surface_area">surface_area</h3>
+<p><code>:: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^2</code>
+
+<p>Total area of a surface build from triangles. Sums the triangle
+area of the individual triangles.
+<h3 id="surface_volume">surface_volume</h3>
+<p><code>:: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^3</code>
+
+<p>Total volume of a body build from triangles. Sums the triangle
+volume of the individual triangles.
+<h3 id="to_cartesian2d">to_cartesian2d</h3>
+<p><code>:: for_unit a: (a, radian) -> a*Geom2!</code>
+
+<p>Creates a vector in cartesian coordinates from polar coordinates.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>to_cartesian2d(norm(v), polar_angle(v)) = v</code>
+<h3 id="to_cartesian3d">to_cartesian3d</h3>
+<p><code>:: for_unit a: (a, radian, radian) -> a*Geom3!</code>
+
+<p>Creates a vector in cartesian coordinates from polar coordinates.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>
+<h3 id="to_polar2d">to_polar2d</h3>
+<p><code>:: for_unit a: (a*Geom2!) -> Tuple(a, radian)</code>
+
+<p>Gives polar coordinates for a vector in cartesian coordinates. A tuple
+with the norm and the angle.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>let (nrm, ang) = to_polar2d(v) in to_cartesian2d(nrm, ang) end = v</code>
+<h3 id="to_polar3d">to_polar3d</h3>
+<p><code>:: for_unit a: (a*Geom3!) -> Tuple(a, radian, radian)</code>
+
+<p>Gives polar coordinates for a vector in cartesian coordinates. A tuple
+with the norm, the inclination and the azimuth.
+<p>For any vector <code>v</code> the following equality holds
+<p><code>let (nrm, inc, azi) = to_polar3d(v) in to_cartesian3d(nrm, inc, azi) end = v</code>
+<h3 id="triangle_area">triangle_area</h3>
+<p><code>:: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^2</code>
+
+<p>Area of the triangle given by three position vectors.
+<h3 id="vector2d">vector2d</h3>
+<p><code>:: for_unit a: (a, a) -> a*Geom2!</code>
+
+<p>Creates a <code>Geom2</code> vector.
+<h3 id="vector3d">vector3d</h3>
+<p><code>:: for_unit a: (a, a, a) -> a*Geom3!</code>
+
+<p>Creates a <code>Geom3</code> vector.
+<p><small>Version dev, 2025-12-31T18:34:21.835162900+01:00[Europe/Amsterdam]</small>
+</body>
+</html>

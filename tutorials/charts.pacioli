@@ -1,0 +1,42 @@
+defunit person "prsn";
+
+defindex Continent = {Asia, Africa, Americas, Europe, Oceania};
+
+# source: http://en.wikipedia.org/wiki/List_of_continents_by_population
+
+defmatrix population :: person*Continent! = {
+  Asia -> 4298723000,
+  Africa -> 1110635000,
+  Americas -> 972005000,
+  Europe -> 742452000,
+  Oceania -> 38304000
+};
+
+define pie_chart_options = [
+    tuple("caption", "My Pie Chart"),
+    tuple("label", "Continent")
+];
+
+define random_squares =
+    [expt(random(), 2) | x <- naturals(1000)];
+
+declare sine_wave :: for_unit a:
+    (a, 1/second, second, second, 1) -> List(Tuple(second, a));
+
+define sine_wave(amplitude, frequency, start_time, end_time, nr_samples) =
+    let
+        w = frequency * 2*pi*|radian|,
+        dt = (end_time - start_time) / nr_samples
+    in
+        [tuple(t, amplitude * sin(w * t)) | i <- naturals(nr_samples), t := start_time + i * dt]
+    end;
+
+define example_wave =
+  sine_wave(0.2, 1/|second|, 0*|second|, 8*|second|, 100);
+
+
+define random_avg(k) =
+    sum[random() | _ <- naturals(k)] / k;
+
+define random_avg_pairs(k, n) =
+    [tuple(random_avg(k), random_avg(k)) | _ <- naturals(n)];

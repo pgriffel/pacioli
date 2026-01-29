@@ -1,0 +1,100 @@
+# ----------------------------------------------------------------------------
+# Shell Model
+#
+# Paul Griffioen 2012-2025
+# ----------------------------------------------------------------------------
+
+import geometry;
+import graphics;
+
+include model;
+include curve;
+
+# ----------------------------------------------------------------------------
+# Types
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+
+doc Info
+    "A shell's info is a tuple with information about the shell:
+    - aperture area
+    - body area growth
+    - body area
+    - body volume growth
+    - body volume";
+
+defrecord for_unit a: Info(a) as info where
+    aperture_area: List(a^2),
+    body_area_growth: List(a^2),
+    body_area: List(a^2),
+    body_volume_growth: List(a^3),
+    body_volume: List(a^3);
+
+# ----------------------------------------------------------------------------
+# Shell Info 
+# ----------------------------------------------------------------------------
+
+declare empty_shell_info ::
+    for_unit a: (Shell(a)) -> Info(a);
+
+define empty_shell_info(shell) =
+  let u = shell_unit(shell) in 
+      make_info([0 * u^2], [0 * u^2], [0 * u^2], [0 * u^3], [0 * u^3])
+  end;
+
+# ----------------------------------------------------------------------------
+
+declare extend_shell_info ::
+    for_unit a: (Shell(a), Info(a), 1) -> Info(a);
+
+define extend_shell_info(shell, info, n) =
+    let
+        (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info,
+        body = shell_body(shell) 
+    in
+        begin
+            start := list_size(aperture_area) - 1;
+          
+            area := last(body_area);
+            volume := last(body_volume);
+
+            i := 0;
+            while i != n do
+                a := nth(max(0, start+i-1), body);
+                b := nth(start+i, body);
+                
+                cb := curve_surface(curve_reverse(b));
+                ss := segment_surface(a, b);
+                sass := surface_area(ss);
+                vss := surface_volume(append(ss, append(curve_surface(a), cb)));
+                
+                area := area + sass;
+                volume := volume + vss;
+
+                aperture_area := _add_mut(aperture_area, surface_area(cb));
+                body_area_growth := _add_mut(body_area_growth, sass);
+                body_area := _add_mut(body_area, area);
+                body_volume_growth := _add_mut(body_volume_growth, vss);
+                body_volume := _add_mut(body_volume, volume);
+
+                i := i + 1;
+            end
+            
+            return make_info(aperture_area, body_area_growth, body_area, body_volume_growth, body_volume);
+        end
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare last_segment_info ::
+    for_unit a: (Info(a)) -> Tuple(a^2, a^2, a^2, a^3, a^3);
+
+define last_segment_info(info) =
+  let (aperture_area, body_area_growth, body_area, body_volume_growth, body_volume) = info in
+      tuple(last(aperture_area),
+            last(body_area_growth),
+            last(body_area),
+            last(body_volume_growth),
+            last(body_volume))
+  end;
