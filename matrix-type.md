@@ -35,7 +35,7 @@ Say vector $\textbf{x}$ has units $\textbf{u}$ of the form $P\to \mathbb{U}$.
 In Pacioli's type system this is written as `x :: P!u`. The notation with the exclamation mark combines the unit vector's index set with the unit vector's name. On the left of the exclamation mark is the unit vector' index set. On the right a name for the unit vector.
 
 Dimensionless vectors are written with just the index set name as in `P!` and `Q!`. For every index set
-there is bla bla...
+there is one such vector.
 
 ## The Matrix Type
 

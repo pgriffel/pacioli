@@ -252,7 +252,7 @@ We need to add the right material to the blocks for the light to have effect. Ch
         end;
 
 Function `with_mesh_material` sets the mesh material. Materials suitable for light
-are "Phong" and "Lambert". An other value is "normal".
+are "Phong" and "Lambert". An other value is "Normal".
 
 Make the following change.
 

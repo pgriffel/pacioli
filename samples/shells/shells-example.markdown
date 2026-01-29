@@ -1,7 +1,4 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
 layout: default
 ---
 
@@ -22,15 +19,10 @@ The shell is computed in [Pacioli code][prog] using a seperate module
 for the [model][proglib]. It is displayed on the page with library
 [three.js][three].
 
-All computations are guaranteed unit correct and derived by the
-compiler. For example
-
-    define triangle area(x, y, z) =
-        norm(cross(y - x, z - x)) / 2;
-
-has as derived type
-
-    triangle area :: for unit a: (a*Space!, a*Space!, a*Space!) -> a^2
+The computation does not block the browser, but the code is somewhat outdated and
+needs an upgrade. The javascript code in the HTML page computes the shell in small steps
+to avoid blocking the event loop. The api it uses is however not stable and will probably
+change in the future.
 
 [shells]: /samples/shells/shells.html
 [three]: http://threejs.org/

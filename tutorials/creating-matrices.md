@@ -8,9 +8,9 @@ An introduction to Pacioli's dimensioned matrices.
 
 ## Creating Matrices
 
-Constructing matrices with the right units of measurement requires some care as a results of Pacioli's emphasis on index-free operations. Especially non-uniform units of measurement are tricky because the type system does not take individual units in unit vectors into account.
-
-Note that non-uniform units would lead to a compiler complaint about the list type. It can however be combined with the unit notation to create a non-uniform vector.
+Constructing matrices with the right units of measurement requires some care as a results of Pacioli's emphasis on index-free operations. This holds especially for non-uniform units of measurement, because the type system does not take individual units in unit vectors into account.
+As explained in [Pacioli's matrix type](/matrix-type), the parametric type system restricts non-index-free operations to uniform units of measurement. This means that for example putting the matrix elements in a list is not possible, because the list type
+expects all elements to have the same type.
 
 Primitives to construct matrices are
 

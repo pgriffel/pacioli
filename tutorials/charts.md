@@ -15,7 +15,7 @@ A chart displays a value or a function. When a function is displayed,
 Values are converted to the right units of measurement and
 labels are added automatically.
 
-The Pacioli charts can be split into band scale charts and linear scale charts,
+The Pacioli charts can be grouped into band scale charts and linear scale charts,
 depending on the kind of domain.
 
 ---

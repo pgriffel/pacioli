@@ -28,23 +28,3 @@ For example
         make_complex(
             complex_real_part(x) + complex_real_part(y),
             complex_imaginary_part(x) + complex_imaginary_part(y));
-
-For example
-
-    defrecord for_index I, for_unit a, I!u: Foo(a, I!u) as foo where
-        title: String,
-        vec: a*I!u,
-        scalar: a;
-
-Defines type `Foo(a, I!u)`
-
-The syntax of a record definition is
-
-    defrecord quantifiers name(parameters) as basename where
-        name: type,
-        name: type,
-        ...;
-
-It defines a type and constructors and accesors that operate on this type.
-
-For example
