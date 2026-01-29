@@ -19,3 +19,5 @@ Manual for Pacioli 0.5.0
 - [pacioli-line-chart](pacioli-line-chart)
 - [pacioli-scatter-plot](pacioli-scatter-plot)
 - [pacioli-scene](pacioli-scene)
+- [pacioli-inputs](pacioli-inputs)
+- [pacioli-controls](pacioli-controls)

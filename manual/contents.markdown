@@ -57,3 +57,5 @@ Manual for Pacioli 0.5
   - [pacioli-line-chart](web-components/pacioli-line-chart)
   - [pacioli-scatter-plot](web-components/pacioli-scatter-plot)
   - [pacioli-scene](web-components/pacioli-scene)
+  - [pacioli-inputs](web-components/pacioli-inputs)
+  - [pacioli-controls](web-components/pacioli-controls)
