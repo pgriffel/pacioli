@@ -64,7 +64,7 @@ Various examples that demonstrate different use cases. See the samples and test 
 -->
 
 [home]: https://github.com/pgriffel/pacioli
-[uom-in-matrices]: /uom-in-matrices
+[uom-in-matrices]: uom-in-matrices
 [matrix-type]: /matrix-type
 [surfaces]: /samples/parametric_surfaces/surfaces
 [bom]: /samples/bom/bom-sample
