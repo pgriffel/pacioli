@@ -10,7 +10,7 @@ The basics of dimensioned matrices can be found in [Units of Measurement in Matr
 
 ## Examples
 
-Various examples that demonstrate different use cases. See the samples directory in the [GitHub project][home] for more examples.
+Various examples that demonstrate different use cases. See the samples and test directories in the [GitHub project][home] for more examples.
 
 - [Bill of Material][bom]\
   Computations with a bill of material. The matrices are visualized with dot/graphviz.
@@ -41,8 +41,11 @@ Various examples that demonstrate different use cases. See the samples directory
 - [Working with matrices II - Curiosity](/tutorials/curiosity) \
   Gives some details on Pacioli's type system. It is about the power consumption of Nasa's curiosity rover and involves vectors with non-uniform units of measurement.
 
+- [Working with tables](/tutorials/tables)\
+  Explains how to add tables to a web page.
+
 - [Working with charts](/tutorials/charts)\
-  Explains how to add charts to a web page with web components.
+  Explains how to add charts to a web page.
 
 - [Working with 3D graphics](/tutorials/graphics)\
   Creating 3D scenes and animations with web components.
