@@ -24,7 +24,7 @@ needs an upgrade. The javascript code in the HTML page computes the shell in sma
 to avoid blocking the event loop. The api it uses is however not stable and will probably
 change in the future.
 
-[shells]: /samples/shells/shells.html
+[shells]: shells.html
 [three]: http://threejs.org/
 [prog]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/shells.pacioli
 [proglib]: https://raw.githubusercontent.com/pgriffel/pacioli/master/samples/shells/model.pacioli

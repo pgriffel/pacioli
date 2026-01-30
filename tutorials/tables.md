@@ -216,11 +216,11 @@ Add the following code to `tables.pacioli`.
 
     define N = 11;
 
-    define squares = [n^2 | n <- naturals (N)];
+    define squares = [n^2 | n <- naturals(N)];
 
-    define cubes = [n^3 | n <- naturals (N)];
+    define cubes = [n^3 | n <- naturals(N)];
 
-    define exponents = [expt(2, n) | n <- naturals (N)];
+    define exponents = [expt(2, n) | n <- naturals(N)];
 
 Add the following HTML
 

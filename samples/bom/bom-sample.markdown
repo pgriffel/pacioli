@@ -43,7 +43,7 @@ The hmtl page for the visualization is in [bom.html]
 
 The dot images are generated with [viz.js], a collection of packages for working with [graphviz] in JavaScript.
 
-[bom]: /samples/bom/bom.html
+[bom]: bom.html
 [graphviz]: https://graphviz.org/
 [viz.js]: https://github.com/mdaines/viz-js?tab=readme-ov-file
 [bom.pacioli]: https://raw.githubusercontent.com/pgriffel/pacioli/develop/samples/bom/bom.pacioli

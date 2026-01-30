@@ -28,7 +28,7 @@ It contains javascript code to generate dot output.
 
 The dot images are generated with [viz.js], a collection of packages for working with [graphviz] in JavaScript.
 
-[petri]: /samples/net/petri-net.html
+[petri]: petri-net.html
 [net.pacioli]: https://raw.githubusercontent.com/pgriffel/pacioli/develop/samples/net/net.pacioli
 [subtraction_game.pacioli]: https://raw.githubusercontent.com/pgriffel/pacioli/develop/samples/net/subtraction_game.pacioli
 [net_behavior.pacioli]: https://raw.githubusercontent.com/pgriffel/pacioli/develop/samples/net/net_behavior.pacioli
