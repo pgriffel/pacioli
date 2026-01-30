@@ -18,20 +18,20 @@ make it viable for smaller projects, prototyping, education, etc.
   syntax highlighting, error diagnostics, etc.
 - It has some basic 3D programming features via three.js
 
+## Download and Installation
+
+The quickest way to get started is to install the Pacioli Visual Studio Code extension.
+Download the [VSIX file](pacioli-0.0.0.vsix) and install it in Visual Studio Code with the
+`Extension: Install from VSIX...` command.
+Otherwise you can install Pacioli manually. The [GitHub project](https://github.com/pgriffel/pacioli)
+gives details on installation.
+
 ## Documentation
 
 - [Getting Started](getting-started)
 - [Examples, Tutorials and Guides](examples-tutorials-guides)
 - [Pacioli Manual](manual/contents)
 - [Pacioli Libraries](doc/index)
-
-## Download and Installation
-
-The quickest way to get started is to install the Pacioli Visual Studio Code extension.
-Download the [VSIX file](pacioli-0.0.0.vsix) and install it in Visual Studio Code with the
-`Extension: Install from VSIX...` command.
-Otherwise you can install Pacioli manually. The [GitHub project][https://github.com/pgriffel/pacioli]
-gives details on installation.
 
 ## License
 

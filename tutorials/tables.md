@@ -2,7 +2,7 @@
 title: Pacioli Tables
 ---
 
-<script type="text/javascript" src="/js/pacioli-0.5.1.bundle.js"></script>
+<script type="text/javascript" src="../js/pacioli-0.5.1.bundle.js"></script>
 <script type="text/javascript" src="tables.js"></script>
 
 # Tables

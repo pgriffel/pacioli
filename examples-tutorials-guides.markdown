@@ -32,22 +32,22 @@ Various examples that demonstrate different use cases. See the samples and test 
 - [Unit inference][inference] \
   A short introduction to units of measurements in Pacioli
 
-- [Creating matrices](/tutorials/creating-matrices) \
+- [Creating matrices](tutorials/creating-matrices) \
   The basics of matrices in Pacioli.
 
-- [Working with matrices I - Kirchhof](/tutorials/kirchhof) \
+- [Working with matrices I - Kirchhof](tutorials/kirchhof) \
   This case on the equilibrium in an eletrical network explains matrices with uniform units of measurement
 
-- [Working with matrices II - Curiosity](/tutorials/curiosity) \
+- [Working with matrices II - Curiosity](tutorials/curiosity) \
   Gives some details on Pacioli's type system. It is about the power consumption of Nasa's curiosity rover and involves vectors with non-uniform units of measurement.
 
-- [Working with tables](/tutorials/tables)\
+- [Working with tables](tutorials/tables)\
   Explains how to add tables to a web page.
 
-- [Working with charts](/tutorials/charts)\
+- [Working with charts](tutorials/charts)\
   Explains how to add charts to a web page.
 
-- [Working with 3D graphics](/tutorials/graphics)\
+- [Working with 3D graphics](tutorials/graphics)\
   Creating 3D scenes and animations with web components.
 
 <!--
@@ -65,16 +65,16 @@ Various examples that demonstrate different use cases. See the samples and test 
 
 [home]: https://github.com/pgriffel/pacioli
 [uom-in-matrices]: uom-in-matrices
-[matrix-type]: /matrix-type
-[surfaces]: /samples/parametric_surfaces/surfaces
-[bom]: /samples/bom/bom-sample
-[petri]: /samples/net/petri-sample
-[shells]: /samples/shells/shells-example
+[matrix-type]: matrix-type
+[surfaces]: samples/parametric_surfaces/surfaces
+[bom]: samples/bom/bom-sample
+[petri]: samples/net/petri-sample
+[shells]: samples/shells/shells-example
 [inference]: tutorials/unit-inference
-[matrices]: /tutorials/matrices
+[matrices]: tutorials/matrices
 [kirchhof]: tutorials/kirchhof
 [space]: tutorials/space
 [charts]: tutorials/charts
-[pacioli-js]: /guides/pacioli-js
-[graphics]: /guides/graphics
-[extending-pacioli]: /guides/extending-pacioli
+[pacioli-js]: guides/pacioli-js
+[graphics]: guides/graphics
+[extending-pacioli]: guides/extending-pacioli

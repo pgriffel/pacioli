@@ -2,7 +2,7 @@
 title: Pacioli Charts
 ---
 
-<script type="text/javascript" src="/js/pacioli-0.5.1.bundle.js"></script>
+<script type="text/javascript" src="../js/pacioli-0.5.1.bundle.js"></script>
 <script type="text/javascript" src="charts.js"></script>
 
 # Charts
