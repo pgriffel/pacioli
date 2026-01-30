@@ -70,7 +70,7 @@ public class Pacioli {
 
     // Constants
     private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.5.0-SNAPSHOT";
+    private static String VERSION = "v0.5.0";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -274,6 +274,8 @@ public class Pacioli {
                 debugCommand(command, files, libs);
             } else if (command.equals("help")) {
                 helpCommand();
+            } else if (command.equals("version")) {
+                versionCommand(libs);
             } else if (command.equals("info")) {
                 infoCommand(libs);
             } else if (command.equals("lsp")) {
@@ -558,6 +560,10 @@ public class Pacioli {
 
     }
 
+    private static void versionCommand(List<File> libs) {
+        System.out.print(VERSION);
+    }
+
     private static void infoCommand(List<File> libs) {
 
         println("Pacioli %s", VERSION);
@@ -578,8 +584,6 @@ public class Pacioli {
                 Paths.get("").toAbsolutePath().toString());
 
         logOptions(true);
-
-        println("\nPaul Griffioen 2013 - 2023");
     }
 
     private static void lspCommand(List<File> libs) {
@@ -623,6 +627,7 @@ public class Pacioli {
         println("   parse         prints the code as it is parsed");
         println("   desugar       prints the code as it is parsed and desugared");
         println("   api           generates documentation");
+        println("   version       displays the compiler version");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
         println("\n");

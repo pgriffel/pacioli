@@ -84,6 +84,14 @@
             "mainClass": "pacioli.Pacioli",
             "projectName": "pacioli",
             "args": "api ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "name": "Version",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "version"
         }
     ]
 }
