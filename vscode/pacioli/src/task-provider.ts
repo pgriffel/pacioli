@@ -67,10 +67,7 @@ export class PacioliTaskProvider implements TaskProvider {
   ) {}
 
   private jarFile(): string {
-    return path.join(
-      String(this.context.extensionPath),
-      "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar",
-    );
+    return path.join(String(this.context.extensionPath), "pacioli.jar");
   }
 
   private libDir(): string {

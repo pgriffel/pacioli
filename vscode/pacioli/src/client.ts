@@ -71,7 +71,7 @@ export class PacioliClient {
 
     const jarFile = path.join(
       String(this.context?.extensionPath),
-      "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar",
+      "pacioli.jar",
     );
     const libDir = this.libDir();
 
