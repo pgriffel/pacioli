@@ -17,11 +17,13 @@ The Pacioli language is described in the [documentation][doc] pages.
 
 ## Visual Studio Code
 
-Pacioli is available as a Visual Studio Code extension. Lookup the Pacioli extension and install it. Alternatively you can download the [vsix][vsix] file and run the 'Install from VSIX' command in the command palette.
+Pacioli is available as a Visual Studio extension.Download the [vsix][vsix] file and run the 'Extensions: Install from VSIX...' command in the command palette.
 
 After the extension is installed VS Code will recognize .pacioli files. No other installation is required. See the extension readme and the Pacioli documentation for further information.
 
-[vsix]: http://pgriffel.github.io/pacioli/
+The repository contains a 'launch.json' file for running from source.
+
+[vsix]: https://pgriffel.github.io/pacioli/pacioli-0.5.0.vsix
 
 ## Command line
 
@@ -76,13 +78,10 @@ To get the latest sources:
 Or download a zip file from the [GitHub repository][gh].
 
 Runtime support for deployment via the web requires
-[pacioli-0.5.0.js][pacioli_js].
+[pacioli-0.5.1.bundle.js][pacioli_js].
 
 [gh]: https://github.com/pgriffel/pacioli
-[pacioli_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.5.0.js
-[pacioli_min_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.5.0.min.js
-[pacioli_css]: http://pgriffel.github.io/pacioli/stylesheets/pacioli.css
-[uglify]: https://github.com/mishoo/UglifyJS
+[pacioli_js]: http://pgriffel.github.io/pacioli/js/pacioli-0.5.1.bundle.js
 
 ## License
 
