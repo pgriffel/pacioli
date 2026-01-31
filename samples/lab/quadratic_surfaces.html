@@ -5,13 +5,28 @@
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-    <title>Surfaces</title>
+    <title>Quadratic surfaces</title>
 
     <script type="text/javascript" src="../../js/pacioli-0.5.1.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
     <script type="text/javascript" src="quadratic_surfaces.js"></script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    TeX: {
+      equationNumbers: { autoNumber: "all" },
+      tagSide: "right"
+    },
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
 
 </head>
 
@@ -28,38 +43,12 @@
     <p>
         Next, for comparison, we show the parametrically defined paraboloid function.
     </p>
-    In both cases we observe that the <math>
-        <mi>z</mi>
-    </math> axis has a metre squared as its unit.
+        In both cases we postulate that the $z$ axis has a $metre$ as its unit given that $x$ and $y$ have unit $metre$ as well.
 
     <p>
         A surface is described parametrically with a function
-        <math>
-            <mi>f</mi>
-            (
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            )
-            <mo>=</mo>
-            <msup>
-                <mrow>
-                    (
-                    <mi>x</mi>
-                    <mo>,</mo>
-                    <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    )
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        from parameters
-        <math>
-            (<mi>u</mi>, <mi>v</mi>)
-        </math>
-        to a three-dimensional position vector. The domains of u and v vary per parametrization.
+        $f(u,v) = (x,y,z)^T$ from parameters (u, v) to a three-dimensional position vector.
+        The domains of $u$ and $v$ vary per parametrization.
 
     <p>
         In the examples below, parameter n is the number of samples in each of the two directions. The computation
@@ -78,180 +67,56 @@
     <h2>Paraboloid and saddle surface as quadratic form</h2>
     <p>
         We consider the class of quadratic forms that is expressed as:
-
-    </p>
-    <math>
-        <mi>z</mi>
-        <mo>=</mo>
-        <mrow>
-            <mo>(</mo>
-            <mtable>
-                <mtr>
-                    <mi>x</mi>
-                    <mi>y</mi>
-                </mtr>
-            </mtable>
-            <mo>)</mo>
-        </mrow>
-        <mrow>
-            <mo>(</mo>
-            <mtable>
-                <mtr>
-                    <mtd>
-                        <msub>
-                            <mi>A</mi>
-                            <msub>
-                                <mi>x</mi>
-                            </msub>
-                            <msub>
-                                <mi>x</mi>
-                            </msub>
-                        </msub>
-                    </mtd>
-                    <mtd>
-                        <msub>
-                            <mi>A</mi>
-                            <msub>
-                                <mi>x</mi>
-                            </msub>
-                            <msub>
-                                <mi>y</mi>
-                            </msub>
-                        </msub>
-                    </mtd>
-                </mtr>
-                <mtr>
-                    <mtd>
-                        <msub>
-                            <mi>A</mi>
-                            <msub>
-                                <mi>y</mi>
-                            </msub>
-                            <msub>
-                                <mi>x</mi>
-                            </msub>
-                        </msub>
-                    </mtd>
-                    <mtd>
-                        <msub>
-                            <mi>A</mi>
-                            <msub>
-                                <mi>y</mi>
-                            </msub>
-                            <msub>
-                                <mi>y</mi>
-                            </msub>
-                        </msub>
-                    </mtd>
-                </mtr>
-            </mtable>
-            <mo>)</mo>
-        </mrow>
-        <mrow>
-            <mo>(</mo>
-            <mtable>
-                <mtr>
-                    <mi>x</mi>
-                </mtr>
-                <mtr>
-                    <mi>y</mi>
-                </mtr>
-            </mtable>
-            <mo>)</mo>
-        </mrow>
-    </math>
-
-    <p>
-        <mrow>
-            <mo>(</mo>
-            <mtable>
-                <mtr>
-                    <mi>x</mi>
-                    <mi>y</mi>
-                </mtr>
-            </mtable>
-            <mo>)</mo>
-        </mrow> in this case is computed as the "normal" transpose operator (as opposed to the reciprocal or dimensional
-        inverse).
     </p>
     <p>
-        We let the variables <math>
-            <mi>x</mi>
-        </math> and <math>
-            <mi>y</mi>
-        </math> be parametrically defined as follows:
+        $z = $
+        $\begin{pmatrix}x & y\end{pmatrix}$
+        $\begin{pmatrix}A_{xx} & A_{xy}\\A_{yx} & A_{yy}\end{pmatrix}$
+        $\begin{pmatrix}x \\ y\end{pmatrix}$
+
+    </p>
+ 
+    <p>
+                $\begin{pmatrix}x & y\end{pmatrix}$ in this case is computed as the "normal" transpose operator
+                (as opposed to the reciprocal or dimensional inverse). 
+    </p>
+
+    <p>
+        We let the variables $x$ and $y$ be parametrically defined as follows:
     </p>
 
     <p>
     <ul>
         <li>
-            <math>
-                <mi>x</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <mi>u</mi>
-                <mi>cos</mi>
-                (<mi>v</mi>)
-            </math>
+            $x = a u \cos(v)$
         </li>
         <li>
-            <math>
-                <mi>y</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <mi>u</mi>
-                <mi>sin</mi>
-                (<mi>v</mi>)
-            </math>
+            $y = a u \sin(v)$
         </li>
 
     </ul>
-    where
-    <math>
-        <mi>a</mi>
-    </math>
-    is a scaling factor,
-    <math>
-        <mn>0</mn>
-        <mo>&le;</mo>
-        <mi>u</mi>
-        <mo>&le;</mo>
-        <mn>5</mn>
-    </math>
-    , and
-    <math>
-        <mn>0</mn>
-        <mo>&le;</mo>
-        <mi>v</mi>
-        <mo>&le;</mo>
-        <mn>2&pi;</mn>
-    </math>
-
+    where $a$ is a scaling factor,
+    $ 0 \le u \le 5 $, and
+    $ 0 \le v \le 2\pi $.
+    </p>
     <p>
-        As the quadratic form has both <math>
-            <mi>x</mi>
-        </math> and <math>
-            <mi>y</mi>
-        </math> squared,
-        <math>
-            <mi>z</mi>
-        </math>'s unit is metre squared.
-
+        As the quadratic form has both $x$ and $y$ squared, we need the $A_{ij}$ parameters
+        to have unit $1/metre$ in order for $z$'s unit to be $metre$.
     <p>
 
 
     <div class="example">
         <pacioli-scene width="900" height="600" id="paraboloid_scene2" definition="quadratic_surfaces:paraboloid_scene2"
-            kind="scene" perspective grid axis unitZ="metre^2">
+            kind="scene" perspective grid axis unitZ="metre">
             <parameter label="a" unit="1">0.3</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>
 
-            <parameter label="Axx" unit="1">1</parameter>
-            <parameter label="Axy" unit="1">0</parameter>
-            <parameter label="Ayx" unit="1">0</parameter>
-            <parameter label="Ayy" unit="1">1</parameter>
+            <parameter label="Axx" unit="1/metre">1</parameter>
+            <parameter label="Axy" unit="1/metre">0</parameter>
+            <parameter label="Ayx" unit="1/metre">0</parameter>
+            <parameter label="Ayy" unit="1/metre">1</parameter>
 
             <parameter label="grid" type="boole">true</parameter>
             <parameter label="surface" type="boole">true</parameter>
@@ -271,101 +136,32 @@
 
 
     <p>
-        <math>
-            <mi>f</mi>
-            <mo>(</mo>
-            <mi>u</mi>
-            <mo>,</mo>
-            <mi>v</mi>
-            <mo>)</mo>
-            <mo>=</mo>
-            <msup>
-                <mrow>
-                    <mo>(</mo>
-                    <mi>x</mi>
-                    <mo>,</mo>
-                    <mi>y</mi>
-                    <mo>,</mo>
-                    <mi>z</mi>
-                    <mo>)</mo>
-                </mrow>
-                <mi>T</mi>
-            </msup>
-        </math>
-        with
+        $f(u,v) = (x,y,z)^T$ where $a$ is a scaling factor,
     <ul>
         <li>
-            <math>
-                <mi>x</mi>
-                <mo>=</mo>
-                <mi>u</mi>
-                <mi>cos</mi>
-                (<mi>v</mi>)
-            </math>
+            $x = u \cos(v)$
         </li>
         <li>
-            <math>
-                <mi>y</mi>
-                <mo>=</mo>
-                <mi>u</mi>
-                <mi>sin</mi>
-                (<mi>v</mi>)
-            </math>
+            $y = u \sin(v)$
         </li>
         <li>
-            <math>
-                <mi>z</mi>
-                <mo>=</mo>
-                <mi>a</mi>
-                <msup>
-                    <mi>u</mi>
-                    <mn>2</mn>
-                </msup>
-            </math>
+            $z = a u^2$
         </li>
     </ul>
-    where
-    <math>
-        <mi>a</mi>
-    </math>
-    is a scaling factor,
-    <math>
-        <mn>0</mn>
-        <mo>&le;</mo>
-        <mi>u</mi>
-        <mo>&le;</mo>
-        <mn>5</mn>
-    </math>
     , and
-    <math>
-        <mn>0</mn>
-        <mo>&le;</mo>
-        <mi>v</mi>
-        <mo>&le;</mo>
-        <mn>2&pi;</mn>
-    </math>
-
+    $ 0 \le u \le 5 $, and
+    $ 0 \le v \le 2\pi $.
+    </p>
     <p>
-        The square
-        <math>
-            <msup>
-                <mi>u</mi>
-                <mn>2</mn>
-            </msup>
-        </math>
-        for
-        <math>
-            <mi>z</mi>
-        </math>
-        makes its unit metre squared.
-
+        As the parametrization has $u$ squared,we need the parameter $a$ to have unit $1/metre$ in order for $z$'s unit to be $metre$.
     <p>
+     
 
 
     <div class="example">
         <pacioli-scene width="900" height="600" id="paraboloid_scene" definition="quadratic_surfaces:paraboloid_scene"
-            kind="scene" perspective grid axis unitZ="metre^2">
-            <parameter label="a" unit="1">0.3</parameter>
+            kind="scene" perspective grid axis unitZ="metre">
+            <parameter label="a" unit="1/metre">0.3</parameter>
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>
             <parameter label="d" unit="1">10</parameter>

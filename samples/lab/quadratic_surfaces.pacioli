@@ -99,7 +99,7 @@ define paraboloid_scene2(a, n, m, d, Axx, Axy, Ayx, Ayy, grid, surface, wirefram
                     tuple(Geom2@y, Geom2@x, Ayx),   
                     tuple(Geom2@y, Geom2@y, Ayy)])
         in
-            make_zsquared(x1, x2, quadratic_form(A)(x))
+            vector3d(x1, x2, quadratic_form(A)(x))
         end,
             
             range = 
@@ -122,7 +122,9 @@ define paraboloid_scene2(a, n, m, d, Axx, Axy, Ayx, Ayy, grid, surface, wirefram
 define paraboloid_scene(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let 
         f(u, v) =
-            make_zsquared(u*cos(v), u*sin(v), a * u^2),
+            vector3d(u*cos(v), u*sin(v), a * u^2),
+        # f(u, v) =
+        #     make_zsquared(u*cos(v), u*sin(v), a * u^2),
             
         range = 
             make_range(
