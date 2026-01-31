@@ -50,18 +50,18 @@ public class PrimitivesDocumentation {
         this.libs = libs;
     }
 
-    public void generate() throws Exception {
+    public void generate(String version) throws Exception {
 
         Pacioli.log("Generating built-in documentation in directory %s", dirName);
 
-        writeAPIFile("io.html", "dev", "io", true, true);
-        writeAPIFile("string.html", "dev", "string", true, true);
-        writeAPIFile("list.html", "dev", "list", true, true);
-        writeAPIFile("array.html", "dev", "array", true, false);
-        writeAPIFile("matrix.html", "dev", "matrix", true, true);
-        writeAPIFile("base.html", "dev", "base", true, false);
-        writeAPIFile("system.html", "dev", "system", true, false);
-        writeAPIFile("standard.html", "dev", "standard", false, true);
+        writeAPIFile("io.html", version, "io", true, true);
+        writeAPIFile("string.html", version, "string", true, true);
+        writeAPIFile("list.html", version, "list", true, true);
+        writeAPIFile("array.html", version, "array", true, false);
+        writeAPIFile("matrix.html", version, "matrix", true, true);
+        writeAPIFile("base.html", version, "base", true, false);
+        writeAPIFile("system.html", version, "system", true, false);
+        writeAPIFile("standard.html", version, "standard", false, true);
     }
 
     private void writeAPIFile(String name, String version, String module, boolean base, boolean standard)

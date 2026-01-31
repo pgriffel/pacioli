@@ -426,7 +426,7 @@ public class Pacioli {
             });
             File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
 
-            project.loadBundle().printAPI(out, includes, "dev", project.docFile()); // TODO: version, see above
+            project.loadBundle().printAPI(out, includes, VERSION, project.docFile()); // TODO: version, see above
 
             Pacioli.log("\nDocumentation ready");
 
@@ -438,7 +438,7 @@ public class Pacioli {
 
     private static void baseApiCommand(String dirName, List<File> libs)
             throws Exception {
-        new PrimitivesDocumentation(dirName, libs).generate();
+        new PrimitivesDocumentation(dirName, libs).generate(VERSION);
     }
 
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)
