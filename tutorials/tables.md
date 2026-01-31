@@ -2,7 +2,7 @@
 title: Pacioli Tables
 ---
 
-<script type="text/javascript" src="../js/pacioli-0.5.1.bundle.js"></script>
+<script type="text/javascript" src="{{ site.bundle_url }}"></script>
 <script type="text/javascript" src="tables.js"></script>
 
 # Tables
@@ -77,9 +77,11 @@ This file can be compiled to JavaScript with command
 This produces the `tables.js` file that is included alongside the
 Pacioli bundle in the HTML page.
 
-    <script type="text/javascript" src="pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="{{ site.bundle_name }}"></script>
     <script type="text/javascript" src="tables.js"></script>
 
+You can download the [{{ site.bundle_name }}]({{ site.bundle_url }})
+file, or copy the link and use that.
 Now add the following to the HTML page
 
     <pacioli-table decimals=3>

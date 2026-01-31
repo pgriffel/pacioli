@@ -2,7 +2,7 @@
 title: Pacioli Charts
 ---
 
-<script type="text/javascript" src="../js/pacioli-0.5.1.bundle.js"></script>
+<script type="text/javascript" src="{{ site.bundle_url }}"></script>
 <script type="text/javascript" src="charts.js"></script>
 
 # Charts
@@ -30,7 +30,7 @@ Create a file `charts.html` and add the following HTML.
             <meta charset="utf-8">
             <title>Charts Tutorial</title>
 
-            <script type="text/javascript" src="pacioli-0.5.1.bundle.js"></script>
+            <script type="text/javascript" src="{{ site.bundle_name }}"></script>
             <script type="text/javascript" src="charts.js"></script>
         </head>
 
@@ -45,6 +45,8 @@ Create Pacioli file `charts.pacioli`. This file can be compiled to JavaScript wi
 
 This produces the `charts.js` file that is included alongside the
 Pacioli bundle in the HTML page.
+You can download the [{{ site.bundle_name }}]({{ site.bundle_url }})
+file, or copy the link and use that.
 
 ## Band Scale Charts
 

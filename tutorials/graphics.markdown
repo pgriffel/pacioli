@@ -4,7 +4,7 @@ title: 3D Graphics
 
 <script
     type="text/javascript"
-    src="../js/pacioli-0.5.1.bundle.js">
+    src="{{ site.bundle_url }}">
 </script>
 <script
     type="text/javascript" 
@@ -100,7 +100,7 @@ Web components are the easiest way to work with 3D graphics. Create a file block
             <meta charset="utf-8">
             <title>Graphics Tutorial</title>
 
-            <script type="text/javascript" src="pacioli-0.5.1.bundle.js"></script>
+            <script type="text/javascript" src="{{ site.bundle_name }}"></script>
             <script type="text/javascript" src="blocks.js"></script>
         </head>
 
@@ -112,6 +112,8 @@ Web components are the easiest way to work with 3D graphics. Create a file block
         </body>
     </html>
 
+You can download the [{{ site.bundle_name }}]({{ site.bundle_url }})
+file, or copy the link and use that.
 This should show an empty scene.
 
 ## Adding a Block

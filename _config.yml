@@ -27,6 +27,9 @@ url: "http://pgriffel.github.io" # the base hostname & protocol for your site, e
 # twitter_username: jekyllrb
 # github_username: jekyll
 
+bundle_url: https://pgriffel.github.io/pacioli/js/pacioli-0.5.1.bundle.js
+bundle_name: pacioli-0.5.1.bundle.js
+
 # Build settings
 theme: jekyll-theme-architect
 #plugins:
