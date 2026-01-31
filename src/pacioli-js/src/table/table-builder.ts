@@ -1,28 +1,29 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023-2025 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import type { DimNum } from "uom-ts";
 import { NR_DECIMALS } from "../primitives";
 import type { TableColumn } from "./table-column";
+import { defaultContext } from "../cache";
 
 /**
  * Exactly the same as DOMOptions. TODO: consider merging.
@@ -117,16 +118,16 @@ export class TableBuilder {
     return {
       zeroString: this.options.zero,
       omitDecimals:
-        column.options.ignoredecimals ??
-        this.options.ignoredecimals ??
+        column.options.ignoredecimals === true ||
+        this.options.ignoredecimals === true ||
         DEFAULT_TABLE_BUILDER_OPTTIONS.ignoredecimals,
       nrDecimals:
         column.options.decimals ??
         this.options.decimals ??
         DEFAULT_TABLE_BUILDER_OPTTIONS.decimals,
       exponential:
-        column.options.exponential ??
-        this.options.exponential ??
+        column.options.exponential === true ||
+        this.options.exponential === true ||
         DEFAULT_TABLE_BUILDER_OPTTIONS.exponential,
     };
   }
@@ -150,7 +151,12 @@ export class TableBuilder {
       const row = {
         index: element,
         values: this.columns.map((col) => {
-          const dimNum = col.values[i].num;
+          let dimNum = col.values[i].num;
+          const unit = col.options.unit;
+
+          if (unit !== undefined) {
+            dimNum = defaultContext.unitContext.convertDimNum(dimNum, unit);
+          }
 
           return {
             num: dimNum,

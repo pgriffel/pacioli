@@ -1,23 +1,23 @@
-/* Units of measurement for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 - 2025 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import { expect } from "chai";
@@ -63,7 +63,7 @@ describe("context", () => {
 
           // Then
           expect(flat.equals(DimNum.fromUnit(unit))).to.equal(true);
-        })
+        }),
       );
     });
 
@@ -77,7 +77,7 @@ describe("context", () => {
 
           // When a context is created from the definition
           const context = new Context([], [base], [[name, dimNum]]).loadDef(
-            testContext.genDef()
+            testContext.genDef(),
           );
 
           // When the unit for the base is created
@@ -92,13 +92,13 @@ describe("context", () => {
               testContext.flattenDimNum(dimNum).toText(),
               unit.toText(),
               " = ",
-              flat.toText()
+              flat.toText(),
             );
           }
 
           // Then
           expect(flat.equals(testContext.flattenDimNum(dimNum))).to.equal(true);
-        })
+        }),
       );
     });
 
@@ -121,20 +121,20 @@ describe("context", () => {
               dimNum.toText(),
               flat.toText(),
               "not equal",
-              alt.toText()
+              alt.toText(),
             );
             console.log(
               dimNum.toPrecision(precision),
               flat.toPrecision(precision),
               "not equal",
-              alt.toPrecision(precision)
+              alt.toPrecision(precision),
             );
           }
 
           expect(
-            flat.toPrecision(precision) === alt.toPrecision(precision)
+            flat.toPrecision(precision) === alt.toPrecision(precision),
           ).to.equal(true);
-        })
+        }),
       );
     });
   });
@@ -142,7 +142,7 @@ describe("context", () => {
   describe("loadDef", () => {
     it("should load testContext.genDef", () => {
       expect(Context.fromDef(testContext.genDef()).toText()).to.equal(
-        testContext.toText()
+        testContext.toText(),
       );
     });
   });
@@ -152,7 +152,7 @@ describe("context", () => {
       expect(
         si
           .conversionFactor(si.getUnit("milli:gram"), si.getUnit("gram"))
-          .comparedTo(new BigNumber("0.001"))
+          .comparedTo(new BigNumber("0.001")),
       ).to.equal(0);
     });
 
@@ -161,9 +161,9 @@ describe("context", () => {
         si
           .conversionFactor(
             si.getUnit("milli:gram"),
-            si.getScaledUnit("", "gram")
+            si.getScaledUnit("", "gram"),
           )
-          .comparedTo(new BigNumber("0.001"))
+          .comparedTo(new BigNumber("0.001")),
       ).to.equal(0);
     });
 
@@ -195,10 +195,42 @@ describe("context", () => {
         context
           .conversionFactor(
             context.getUnit("millicent"),
-            context.getScaledUnit("", "euro")
+            context.getScaledUnit("", "euro"),
           )
-          .comparedTo(new BigNumber("0.00001"))
+          .comparedTo(new BigNumber("0.00001")),
       ).to.equal(0);
+    });
+  });
+
+  describe("convertDimNum", () => {
+    it("should convert kilo:metre to centi:metre", () => {
+      expect(
+        testContext
+          .convertDimNum(
+            DimNum.fromUnit(testContext.getUnit("kilo:metre")),
+            testContext.getUnit("centi:metre"),
+          )
+          .equals(
+            DimNum.fromUnit(testContext.getUnit("centi:metre")).scale(
+              new BigNumber(100000),
+            ),
+          ),
+      ).to.be.true;
+    });
+
+    it("should convert yotta:gram to earthmass", () => {
+      expect(
+        testContext
+          .convertDimNum(
+            DimNum.fromUnit(testContext.getUnit("yotta:gram")),
+            testContext.getUnit("earthmass"),
+          )
+          .equals(
+            DimNum.fromUnit(testContext.getUnit("earthmass")).scale(
+              new BigNumber(1 / 5972),
+            ),
+          ),
+      ).to.be.true;
     });
   });
 });

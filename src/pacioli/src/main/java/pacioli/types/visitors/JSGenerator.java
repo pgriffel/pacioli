@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2025 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types.visitors;
@@ -90,27 +91,34 @@ public class JSGenerator implements TypeVisitor {
     public void visit(MatrixType type) {
 
         out.write("Pacioli.createMatrixType(");
-        out.write(TypeBase.compileUnitToJS(type.factor()));
+
+        // Scalar factor
+        out.write(TypeBase.compileUnitToJSType(type.factor()));
         out.write(", ");
-        // out.write(type.rowDimension.compileToJS());
+
+        // Row dimension
         type.rowDimension().accept(this);
-        // if (!type.rowDimension.isVar()) out.write(".param");
         out.write(", ");
+
+        // Row unit
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJS(type.rowUnit()));
+            out.write(TypeBase.compileUnitToJSType(type.rowUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
         out.write(", ");
-        // out.write(type.columnDimension.compileToJS());
+
+        // Column dimension
         type.columnDimension().accept(this);
-        // if (!type.columnDimension.isVar()) out.write(".param");
         out.write(", ");
+
+        // Column unit
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJS(type.columnUnit()));
+            out.write(TypeBase.compileUnitToJSType(type.columnUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
+
         out.write(")");
     }
 
@@ -139,7 +147,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(ScalarUnitVar type) {
-        out.write(type.asJS());
+        out.write(type.asJS(true));
     }
 
     @Override
@@ -150,7 +158,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
-        out.write(type.asJS());
+        out.write(type.asJS(true));
     }
 
     @Override

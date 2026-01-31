@@ -1,23 +1,23 @@
-/* Units of measurement for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023-2025 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import BigNumber from "bignumber.js";
@@ -109,7 +109,7 @@ export class Context {
   constructor(
     prefixes: Prefix[],
     bases: SIBase[],
-    equations: [string, DimNum][]
+    equations: [string, DimNum][],
   ) {
     // Set the prefixes
     for (const prefix of prefixes) {
@@ -142,7 +142,7 @@ export class Context {
     for (const record of def.prefixes) {
       this.prefixes.set(
         record.name,
-        new Prefix(record.power, record.name, record.symbol)
+        new Prefix(record.power, record.name, record.symbol),
       );
     }
 
@@ -180,7 +180,7 @@ export class Context {
         return this.getScaledUnit(prefixName, baseName);
       } else {
         throw new Error(
-          "Cannot create unit from json. Invalid prefix: " + prefixName
+          "Cannot create unit from json. Invalid prefix: " + prefixName,
         );
       }
     });
@@ -249,7 +249,7 @@ export class Context {
 
   public lookupScaledUnit(
     prefix: string,
-    name: string
+    name: string,
   ): UOM<SIBase> | undefined {
     const parts = name.split(":");
     const baseName = parts.length === 2 ? parts[1] : name;
@@ -294,7 +294,7 @@ export class Context {
   private getUnitFromBase(
     prefixName: string,
     baseName: string,
-    fullName: string
+    fullName: string,
   ): UOM<SIBase> | undefined {
     const prefix = this.prefixes.get(prefixName);
     const base = this.bases.get(baseName);
@@ -304,7 +304,7 @@ export class Context {
     }
     if (!prefix) {
       throw new Error(
-        "Prefix '" + prefixName + "' unknown in unit " + fullName
+        "Prefix '" + prefixName + "' unknown in unit " + fullName,
       );
     }
 
@@ -327,9 +327,10 @@ export class Context {
     let num = DimNum.ONE;
 
     for (const term of unit.termMap.values()) {
-      const prefixFactor = new BigNumber(10)
-        .exponentiatedBy(term.base.prefix.power)
-        .exponentiatedBy(term.power);
+      const power = term.base.prefix.power * term.power;
+
+      const prefixFactor = new BigNumber(1).shiftedBy(power);
+
       const definition: DimNum | undefined = this.equations.get(term.base.base);
 
       if (definition) {
@@ -338,8 +339,9 @@ export class Context {
           .scale(prefixFactor);
       } else {
         const unit = UOM.fromBase(term.base.withPrefix(Prefix.empty)).expt(
-          term.power
+          term.power,
         );
+
         num = num.mult(new DimNum(prefixFactor, unit));
       }
     }
@@ -360,7 +362,20 @@ export class Context {
     const flatUnit = this.flatten(num.unit);
     return new DimNum(
       num.magnitude.multipliedBy(flatUnit.magnitude),
-      flatUnit.unit
+      flatUnit.unit,
+    );
+  }
+
+  /**
+   * Converts the dimensioned number to the given unit.
+   *
+   * @param unit A dimensioned number
+   * @returns The new dimensioned number
+   */
+  public convertDimNum(num: DimNum, unit: SIUnit): DimNum {
+    return new DimNum(
+      num.magnitude.multipliedBy(this.conversionFactor(num.unit, unit)),
+      unit,
     );
   }
 
@@ -378,7 +393,7 @@ export class Context {
       return flat.magnitude;
     } else {
       throw new Error(
-        "cannot convert unit " + from.toText() + " to unit " + to.toText() + ""
+        "cannot convert unit " + from.toText() + " to unit " + to.toText() + "",
       );
     }
   }
@@ -393,7 +408,7 @@ export class Context {
    */
   conversionFactorMaybe(
     from: UOM<SIBase>,
-    to: UOM<SIBase>
+    to: UOM<SIBase>,
   ): BigNumber | undefined {
     var flat = this.flatten(from.div(to));
     if (flat.isDimensionless()) {
@@ -514,7 +529,7 @@ export class Context {
     return parseDimNum(
       input,
       this.getUnit.bind(this),
-      this.getScaledUnit.bind(this)
+      this.getScaledUnit.bind(this),
     );
   }
 }

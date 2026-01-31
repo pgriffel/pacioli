@@ -29,7 +29,7 @@ This requires Node.js version 18 or above.
 
 1. Clone the sources
 
-2. Build the .jar file and copy it to the vscode/pacioli/ directory
+2. Build the .jar file and copy it to the vscode/pacioli/ directory as 'pacioli.jar'
 
 3. Copy the lib directory to the vscode/pacioli/ directory
 

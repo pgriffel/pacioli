@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2025 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli;
@@ -69,7 +70,7 @@ public class Pacioli {
 
     // Constants
     private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.5.0-SNAPSHOT";
+    private static String VERSION = "v0.5.0";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -273,6 +274,8 @@ public class Pacioli {
                 debugCommand(command, files, libs);
             } else if (command.equals("help")) {
                 helpCommand();
+            } else if (command.equals("version")) {
+                versionCommand(libs);
             } else if (command.equals("info")) {
                 infoCommand(libs);
             } else if (command.equals("lsp")) {
@@ -423,7 +426,7 @@ public class Pacioli {
             });
             File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
 
-            project.loadBundle().printAPI(out, includes, "dev", project.docFile()); // TODO: version, see above
+            project.loadBundle().printAPI(out, includes, VERSION, project.docFile()); // TODO: version, see above
 
             Pacioli.log("\nDocumentation ready");
 
@@ -435,7 +438,7 @@ public class Pacioli {
 
     private static void baseApiCommand(String dirName, List<File> libs)
             throws Exception {
-        new PrimitivesDocumentation(dirName, libs).generate();
+        new PrimitivesDocumentation(dirName, libs).generate(VERSION);
     }
 
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)
@@ -557,6 +560,10 @@ public class Pacioli {
 
     }
 
+    private static void versionCommand(List<File> libs) {
+        System.out.print(VERSION);
+    }
+
     private static void infoCommand(List<File> libs) {
 
         println("Pacioli %s", VERSION);
@@ -577,8 +584,6 @@ public class Pacioli {
                 Paths.get("").toAbsolutePath().toString());
 
         logOptions(true);
-
-        println("\nPaul Griffioen 2013 - 2023");
     }
 
     private static void lspCommand(List<File> libs) {
@@ -622,6 +627,7 @@ public class Pacioli {
         println("   parse         prints the code as it is parsed");
         println("   desugar       prints the code as it is parsed and desugared");
         println("   api           generates documentation");
+        println("   version       displays the compiler version");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
         println("\n");

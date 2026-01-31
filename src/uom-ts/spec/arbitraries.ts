@@ -1,32 +1,31 @@
-/* Units of measurement for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 - 2025 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
-import { siDef } from "../src/si";
+import { siDef, si } from "../src/si";
 import * as fc from "fast-check";
 import { Context } from "../src/context";
 import { SIBase } from "../src/si-base";
 import BigNumber from "bignumber.js";
 import { Prefix } from "../src/prefix";
-import { si } from "../src/si";
 import { UOMTerm } from "../src/uom-term";
 
 export const testDefs = {
@@ -36,6 +35,7 @@ export const testDefs = {
     { name: "euro", symbol: "€" },
     { name: "cent", symbol: "¢" },
     { name: "millicent", symbol: "m¢" },
+    { name: "earthmass", symbol: "earth" },
   ],
   equations: [
     {
@@ -48,6 +48,13 @@ export const testDefs = {
     {
       lhs: "millicent",
       rhs: { powers: [{ prefix: "milli", base: { name: "cent" } }] },
+    },
+    {
+      lhs: "earthmass",
+      rhs: {
+        factor: new BigNumber(5972),
+        powers: [{ base: { prefix: "yotta", name: "gram" } }],
+      },
     },
   ],
 };
@@ -62,7 +69,7 @@ export function arbitraryPrimitiveSIBase(): fc.Arbitrary<SIBase> {
 
 export function arbitrarySIBase(): fc.Arbitrary<SIBase> {
   return arbitraryPrimitiveSIBase().chain((base) =>
-    arbitraryPrefix().map((prefix) => base.withPrefix(prefix))
+    arbitraryPrefix().map((prefix) => base.withPrefix(prefix)),
   );
 }
 
@@ -83,6 +90,6 @@ export function arbitrarySITerm(): fc.Arbitrary<UOMTerm<SIBase>> {
   return arbitrarySIBase().chain((base) =>
     fc
       .integer({ min: -10, max: 10 })
-      .map((power) => UOMTerm.fromBase(base).withPower(power))
+      .map((power) => UOMTerm.fromBase(base).withPower(power)),
   );
 }

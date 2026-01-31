@@ -21,6 +21,7 @@ doc/*
 !doc/index.html
 vscode/pacioli/lib/
 vscode/pacioli/out/
+vscode/pacioli/dist/
 vscode/pacioli/node_modules/
 vscode/pacioli/*.jar
 vscode/pacioli/*.vsix

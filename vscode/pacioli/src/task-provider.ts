@@ -1,23 +1,23 @@
-/* Runtime Support for the Pacioli language
+/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2025 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import path from "path";
@@ -61,13 +61,13 @@ const PREDEFINED_TASKS: PacioliTask[] = [
 ];
 
 export class PacioliTaskProvider implements TaskProvider {
-  constructor(private context: ExtensionContext, private out: OutputChannel) {}
+  constructor(
+    private context: ExtensionContext,
+    private out: OutputChannel,
+  ) {}
 
   private jarFile(): string {
-    return path.join(
-      String(this.context.extensionPath),
-      "pacioli-0.5.0-SNAPSHOT-jar-with-dependencies.jar"
-    );
+    return path.join(String(this.context.extensionPath), "pacioli.jar");
   }
 
   private libDir(): string {
@@ -93,7 +93,7 @@ export class PacioliTaskProvider implements TaskProvider {
       window.showErrorMessage(
         `Task definition '${task.name}' is invalid.
          A pacioli task definition is of the form {type: 'pacioli', command: string, target?: string} with property command one of run', 'compile', 'types', 'symbols', 'api', and 'baseapi'. 
-         Property target is required for the compile command. Its value is 'mvm' or 'javascript'.`
+         Property target is required for the compile command. Its value is 'mvm' or 'javascript'.`,
       );
       return undefined;
     }
@@ -104,7 +104,7 @@ export class PacioliTaskProvider implements TaskProvider {
       task.name,
       "pacioli",
       new ShellExecution(cmd),
-      []
+      [],
     );
 
     resolved.group = {
@@ -130,7 +130,7 @@ function predefinedTasks(jarFile: string, libDir: string) {
         pacioliTask.label,
         "pacioli",
         new ShellExecution(cmd),
-        []
+        [],
       );
 
       task.group = {
@@ -148,7 +148,7 @@ function predefinedTasks(jarFile: string, libDir: string) {
 function shellCommand(
   task: PacioliTask,
   jarFile: string,
-  libDir: string
+  libDir: string,
 ): string | undefined {
   switch (task.command) {
     case "run": {

@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2025 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types.type;
@@ -32,7 +33,13 @@ public interface TypeBase extends Base<TypeBase> {
 
     public final static Unit<TypeBase> ONE = new PowerProduct<TypeBase>();
 
-    public String asJS();
+    /**
+     * The compiler use ScalarBase in unit expressions (defunit) and in type
+     * expressions. The JavaScript runtime uses different bases for the two cases.
+     * The forType flag indicates whether we are compiling for type expressions or
+     * for unit expressions in unit definitions.
+     */
+    public String asJS(boolean forType);
 
     public String asMVMUnit(CompilationSettings settings);
 
@@ -73,33 +80,18 @@ public interface TypeBase extends Base<TypeBase> {
     }
 
     public static String compileUnitToJS(Unit<TypeBase> unit) {
-        String product = "";
-        int n = 0;
-        for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.asJS() + ".expt(" + unit.power(base) + ")";
-            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
-            n++;
-        }
-        if (n == 0) {
-            return "Pacioli.ONE";
-        } else {
-            return product;
-        }
+        return compileUnitToJSHelper(unit, false);
     }
 
-    /**
-     * Compiles to uom-ts definition format. Replaces compileUnitToJS above.
-     * 
-     * @param unit
-     * @return
-     */
-    public static String compileUnitToJSON(Unit<TypeBase> unit) {
+    public static String compileUnitToJSType(Unit<TypeBase> unit) {
+        return compileUnitToJSHelper(unit, true);
+    }
+
+    private static String compileUnitToJSHelper(Unit<TypeBase> unit, boolean forType) {
         String product = "";
         int n = 0;
         for (TypeBase base : unit.bases()) {
-            TypeBase typeBase = (TypeBase) base;
-            String baseText = typeBase.asJS() + ".expt(" + unit.power(base) + ")";
+            String baseText = base.asJS(forType) + ".expt(" + unit.power(base) + ")";
             product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
             n++;
         }
