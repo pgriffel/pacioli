@@ -31,7 +31,7 @@ import { stringifyCell } from "./util";
  */
 export interface TableBuilderOptions {
   decimals: number;
-  ignoredecimals: boolean;
+  raw: boolean;
   exponential: boolean;
   zero: string;
   nozerorows: boolean;
@@ -42,7 +42,7 @@ export interface TableBuilderOptions {
 
 const DEFAULT_TABLE_BUILDER_OPTTIONS = {
   decimals: NR_DECIMALS,
-  ignoredecimals: false,
+  raw: false,
   exponential: false,
   nozerorows: false,
   totals: false,
@@ -94,7 +94,7 @@ export class TableBuilder {
 
   stringifiedSinguleScalar(): string {
     // TODO: zero returnen if zero?
-    return (this.options?.ignoredecimals ?? false)
+    return (this.options?.raw ?? false)
       ? this.singuleScalar().toFixed()
       : this.singuleScalar().toFixed(this.options?.decimals ?? NR_DECIMALS);
   }
@@ -119,9 +119,9 @@ export class TableBuilder {
     return {
       zeroString: this.options.zero,
       omitDecimals:
-        column.options.ignoredecimals === true ||
-        this.options.ignoredecimals === true ||
-        DEFAULT_TABLE_BUILDER_OPTTIONS.ignoredecimals,
+        column.options.raw === true ||
+        this.options.raw === true ||
+        DEFAULT_TABLE_BUILDER_OPTTIONS.raw,
       nrDecimals:
         column.options.decimals ??
         this.options.decimals ??

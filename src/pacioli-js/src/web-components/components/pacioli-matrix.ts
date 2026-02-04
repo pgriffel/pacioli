@@ -28,11 +28,8 @@ import {
 import type { PacioliMatrix } from "../../values/matrix";
 import { PacioliError } from "../../pacioli-error";
 import { MatrixBuilder } from "../../table/matrix-builder";
-import type {
-  NumberOptions} from "../pacioli-number-component";
-import {
-  PacioliNumberComponent,
-} from "../pacioli-number-component";
+import type { NumberOptions } from "../pacioli-number-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 
 /**
  * Options for Pacioli's matrix component.
@@ -94,7 +91,7 @@ td.total {
 const SUPPORTED_ATTRIBUTES = {
   strings: ["zero", "order"],
   booleans: [
-    "ignoredecimals",
+    "raw",
     "exponential",
     "ascii",
     "clipboard",
@@ -162,7 +159,7 @@ export class PacioliMatrixComponent extends PacioliNumberComponent {
   static readonly observedAttributes = [
     "definition",
     "decimals",
-    "ignoredecimals",
+    "raw",
     "exponential",
     "ascii",
     "clipboard",

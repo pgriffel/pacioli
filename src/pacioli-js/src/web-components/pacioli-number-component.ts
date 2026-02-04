@@ -28,7 +28,7 @@ import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
 export interface NumberOptions {
   decimals: number;
   zero?: string;
-  ignoredecimals: boolean;
+  raw: boolean;
   exponential: boolean;
   ascii: boolean;
   clipboard: boolean;
@@ -57,12 +57,12 @@ export abstract class PacioliNumberComponent extends PacioliShadowTreeComponent 
     this.setStringAttribute("zero", value);
   }
 
-  get ignoredecimals(): boolean {
-    return this.getBooleAttribute("ignoredecimals");
+  get raw(): boolean {
+    return this.getBooleAttribute("raw");
   }
 
-  set ignoredecimals(value: boolean) {
-    this.setBooleAttribute("ignoredecimals", value);
+  set raw(value: boolean) {
+    this.setBooleAttribute("raw", value);
   }
 
   get exponential(): boolean {

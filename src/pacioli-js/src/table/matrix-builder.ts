@@ -65,7 +65,7 @@ export class MatrixBuilder {
   } {
     return {
       zeroString: this.options.zero,
-      omitDecimals: this.options.ignoredecimals === true || false,
+      omitDecimals: this.options.raw === true || false,
       nrDecimals: this.options.decimals ?? NR_DECIMALS,
       exponential: this.options.exponential === true || false,
     };

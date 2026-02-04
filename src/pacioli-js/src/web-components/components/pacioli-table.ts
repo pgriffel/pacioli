@@ -52,7 +52,7 @@ interface ColumnData {
   value: PacioliMatrix | PacioliList;
   unit?: SIUnit;
   decimals?: number;
-  ignoredecimals?: boolean;
+  raw?: boolean;
   exponential?: boolean;
   showTotal?: boolean;
   total?: PacioliMatrix;
@@ -65,7 +65,7 @@ const SUPPORTED_ATTRIBUTES = {
   strings: ["zero"],
   booleans: [
     "nozerorows",
-    "ignoredecimals",
+    "raw",
     "exponential",
     "totals",
     "ascii",
@@ -165,12 +165,12 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   /**
    * Is the decimals attribute ignored?
    */
-  get ignoredecimals(): boolean {
-    return this.getBooleAttribute("ignoredecimals");
+  get raw(): boolean {
+    return this.getBooleAttribute("raw");
   }
 
-  set ignoredecimals(value: boolean) {
-    this.setBooleAttribute("ignoredecimals", value);
+  set raw(value: boolean) {
+    this.setBooleAttribute("raw", value);
   }
 
   /**
@@ -225,7 +225,7 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
     "decimals",
     "totals",
     "nozerorows",
-    "ignoredecimals",
+    "raw",
     "exopnential",
     "ascii",
     "clipboard",
@@ -294,7 +294,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
       const decimals = element.hasAttribute("decimals")
         ? getNumberAttribute(element, "decimals")
         : undefined;
-      const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
+      const raw = getBooleAttribute(element, "raw");
       const exponential = getBooleAttribute(element, "exponential");
       const showTotal = getBooleAttribute(element, "totals");
       const unitAtt = getStringAttribute(element, "unit");
@@ -313,7 +313,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
         value: value,
         unit,
         decimals,
-        ignoredecimals,
+        raw,
         exponential,
         showTotal,
       });

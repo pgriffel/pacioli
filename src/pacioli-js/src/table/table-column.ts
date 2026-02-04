@@ -32,7 +32,7 @@ import type { PacioliList } from "../values/list";
 export interface TableColumnOptions {
   decimals: number;
   unit?: SIUnit;
-  ignoredecimals: boolean;
+  raw: boolean;
   exponential: boolean;
   showTotal: boolean;
   total?: PacioliMatrix;
