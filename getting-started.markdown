@@ -11,8 +11,6 @@ the [GitHub project][home].
 
 ## Creating a .pacioli file
 
-If you work with the Visual Studio Code extension it should recognize .pacioli files when you open them.
-
 Create a file, say foo.pacioli, and add the following code
 
     define sum_first_n(n) =
@@ -20,8 +18,12 @@ Create a file, say foo.pacioli, and add the following code
 
     sum_first_n(100);
 
-A Pacioli file contains mainly definitions and top-level expressions, terminated by a semi-colon. After
+A Pacioli file contains definitions and top-level expressions, terminated by a semi-colon. After
 reading the definitions, all expressions in the file are evaluated sequentially.
+
+If you work with the Visual Studio Code extension you must open a directory or workspace that contains the file.
+VS Code requires an open workspace to run compiler tasks. After opening a workspace it should recognize
+.pacioli files when you view them.
 
 Now run the file. In vs-code you can choose "Run Pacioli" in the popup menu or press ctrl-F9. On the
 command line you can run `pacioli run foo.pacioli`.
