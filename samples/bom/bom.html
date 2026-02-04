@@ -13,7 +13,13 @@
 </head>
 
 <body>
+    <h2>Bill of Material Matrix</h2>
+
+    <pacioli-matrix definition="bom:BoM" zero="-" headers headerunits raw>
+    </pacioli-matrix>
+
     <h2>Bill of Material</h2>
+
 
     <div id="bom"></div>
 
@@ -21,6 +27,7 @@
     <h2>Exploded Bill of Material</h2>
 
     <div id="exploded"></div>
+
 
 
     <h2>Cost Breakdown</h2>
@@ -34,7 +41,6 @@
     <h3>In percentages</h3>
 
     <pacioli-value definition="bom:cost_breakdown_in_percentages"></pacioli-value>
-
 
     <script>
 
