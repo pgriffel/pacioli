@@ -50,6 +50,7 @@ Manual for Pacioli 0.5
 - [Web Components](web-components/contents)
   - [Introduction](web-components/introduction)
   - [pacioli-value](web-components/pacioli-value)
+  - [pacioli-matrix](web-components/pacioli-matrix)
   - [pacioli-table](web-components/pacioli-table)
   - [pacioli-bar-chart](web-components/pacioli-bar-chart)
   - [pacioli-pie-chart](web-components/pacioli-pie-chart)

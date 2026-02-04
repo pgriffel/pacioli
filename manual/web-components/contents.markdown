@@ -12,6 +12,7 @@ Manual for Pacioli 0.5.0
 
 - [Introduction](introduction)
 - [pacioli-value](pacioli-value)
+- [pacioli-matrix](pacioli-matrix)
 - [pacioli-table](pacioli-table)
 - [pacioli-bar-chart](pacioli-bar-chart)
 - [pacioli-pie-chart](pacioli-pie-chart)

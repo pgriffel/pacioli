@@ -15,16 +15,19 @@ The `pacioli-scatter-plot` element adds a Pacioli scatter plot to a web page.
 ## Common
 
 <dl>
-  <dt>definition</dt>
-  <dd>Name of the value or function to display</dd>
 
-  <dt>unit</dt>
-  <dd>Unit of measurement to display the value in. Must be compatible with the value's unit.</dd>
+{% include common-web-component-attributes.md %}
+
+{% include common-number-component-attributes.md %}
+
 </dl>
 
 ## Scatter Plot
 
 <dl>
+  <dt>unit</dt>
+  <dd>Unit of measurement to display the value in. Must be compatible with the value's unit.</dd>
+
   <dt>gap</dt>
   <dd>Distance between the bars. Dimensionless?</dd>
   

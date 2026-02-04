@@ -20,13 +20,11 @@ The value can be
 ## Common Attritubes
 
 <dl>
-  <dt>definition</dt>
-  <dd>Name of the value or function to display
 
-  </dd>
+{% include common-web-component-attributes.md %}
 
-  <dt>unit</dt>
-  <dd>Unit of measurement to display the value in. Must be compatible with the value's unit.</dd>
+{% include common-number-component-attributes.md %}
+
 </dl>
 
 ## Bar Chart Attritubes

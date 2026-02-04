@@ -12,6 +12,7 @@ chart or a 3D environment.
 The following components are available to display values in textual form.
 
 - pacioli-value
+- pacioli-matrix
 - pacioli-table
 
 The following charts are supported.

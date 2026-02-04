@@ -25,11 +25,11 @@ depends on the value.
 ## Common Attributes
 
 <dl>
-  <dt>definition</dt>
-  <dd>Definition of the value. A string of the form "file:name". See the introduction for details.</dd>
 
-  <dt>decimals</dt>
-  <dd>Number of decimals for the numbers in the value.</dd>
+{% include common-web-component-attributes.md %}
+
+{% include common-number-component-attributes.md %}
+
 </dl>
 
 ## Pacioli Value Attributes
