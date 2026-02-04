@@ -22,6 +22,15 @@
 
     <div id="exploded"></div>
 
+    <pacioli-matrix
+        definition="bom:BoM"
+        zero="-" 
+        headers
+        headerunits
+        raw
+        ignoredecimals>
+    </pacioli-matrix>
+
 
     <h2>Cost Breakdown</h2>
 
@@ -34,7 +43,6 @@
     <h3>In percentages</h3>
 
     <pacioli-value definition="bom:cost_breakdown_in_percentages"></pacioli-value>
-
 
     <script>
 

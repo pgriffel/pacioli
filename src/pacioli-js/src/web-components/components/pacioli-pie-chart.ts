@@ -62,7 +62,7 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): string {
+  get unit(): string | undefined {
     return this.getStringAttribute("unit");
   }
 

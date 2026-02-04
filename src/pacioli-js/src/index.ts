@@ -246,3 +246,4 @@ export { PacioliScatterPlotComponent } from "./web-components/components/pacioli
 export { PacioliWordCloudComponent } from "./web-components/components/pacioli-wordcloud";
 export { PacioliValueComponent } from "./web-components/components/pacioli-value";
 export { PacioliTableComponent } from "./web-components/components/pacioli-table";
+export { PacioliMatrixComponent } from "./web-components/components/pacioli-matrix";

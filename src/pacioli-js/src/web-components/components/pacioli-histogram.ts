@@ -111,7 +111,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): string {
+  get unit(): string | undefined {
     return this.getStringAttribute("unit");
   }
 
@@ -122,7 +122,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   /**
    * The heuristic used for the number of bins.
    */
-  get heuristic(): string {
+  get heuristic(): string | undefined {
     return this.getStringAttribute("heuristic");
   }
 

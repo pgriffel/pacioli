@@ -24,6 +24,12 @@ import {
   evaluateWebComponentDefinition,
   addParametersObserver,
   setParameterNodes,
+  getBooleAttribute,
+  getNumberAttribute,
+  getStringAttribute,
+  setBooleAttribute,
+  setNumberAttribute,
+  setStringAttribute,
 } from "./utils";
 import type { PacioliValue } from "../values/pacioli-value";
 import type {
@@ -58,11 +64,11 @@ export abstract class PacioliWebComponent
   extends HTMLElement
   implements PacioliWebComponentBase, Callable, ErrorOutput
 {
-  set definition(value: string) {
+  set definition(value: string | undefined) {
     this.setStringAttribute("definition", value);
   }
 
-  get definition(): string {
+  get definition(): string | undefined {
     return this.getStringAttribute("definition");
   }
 
@@ -82,28 +88,12 @@ export abstract class PacioliWebComponent
     return this.getNumberAttribute("height", 0);
   }
 
-  get margin(): string {
+  get margin(): string | undefined {
     return this.getStringAttribute("margin");
   }
 
-  set margin(value: string) {
+  set margin(value: string | undefined) {
     this.setStringAttribute("margin", value);
-  }
-
-  set decimals(value: number) {
-    this.setNumberAttribute("decimals", value);
-  }
-
-  get decimals(): number {
-    return this.getNumberAttribute("decimals", 0);
-  }
-
-  set ignoredecimals(value: boolean) {
-    this.setBooleAttribute("ignoredecimals", value);
-  }
-
-  get ignoredecimals(): boolean {
-    return this.getBooleAttribute("ignoredecimals");
   }
 
   /**
@@ -278,20 +268,6 @@ export abstract class PacioliWebComponent
     }
   }
 
-  /**
-   * Helper to reflect a numeric attribute to a property
-   *
-   * @param attribute
-   * @param value
-   */
-  protected setNumberAttribute(attribute: string, value: number | undefined) {
-    if (value === undefined) {
-      this.removeAttribute(attribute);
-    } else {
-      this.setAttribute(attribute, value.toString());
-    }
-  }
-
   protected getNumberAttribute(
     attribute: string,
     defaultValue: number = 0,
@@ -299,55 +275,30 @@ export abstract class PacioliWebComponent
     return getNumberAttribute(this, attribute, defaultValue);
   }
 
-  protected setStringAttribute(attribute: string, value: string | undefined) {
-    if (value === undefined) {
-      this.removeAttribute(attribute);
-    } else {
-      this.setAttribute(attribute, value);
-    }
+  protected setNumberAttribute(attribute: string, value: number | undefined) {
+    setNumberAttribute(this, attribute, value);
   }
 
+  protected getStringAttribute(attribute: string, defaultValue: string): string;
   protected getStringAttribute(
     attribute: string,
-    defaultValue: string = "",
-  ): string {
+    defaultValue?: undefined,
+  ): string | undefined;
+  /* eslint-disable */
+  protected getStringAttribute(attribute: any, defaultValue?: any): any {
     return getStringAttribute(this, attribute, defaultValue);
   }
+  /* eslint-enable */
 
-  protected setBooleAttribute(attribute: string, value: boolean | undefined) {
-    if (value === true) {
-      this.setAttribute(attribute, "");
-    } else {
-      this.removeAttribute(attribute);
-    }
+  protected setStringAttribute(attribute: string, value: string | undefined) {
+    setStringAttribute(this, attribute, value);
   }
 
   protected getBooleAttribute(attribute: string): boolean {
-    return this.hasAttribute(attribute);
+    return getBooleAttribute(this, attribute);
   }
-}
 
-export function getNumberAttribute(
-  element: HTMLElement,
-  attribute: string,
-  defaultValue: number = 0,
-): number {
-  const att = element.getAttribute(attribute);
-  return Number(att ?? defaultValue);
-}
-
-export function getStringAttribute(
-  element: HTMLElement,
-  attribute: string,
-  defaultValue: string = "",
-): string {
-  const att = element.getAttribute(attribute);
-  return att ?? defaultValue;
-}
-
-export function getBooleAttribute(
-  element: HTMLElement,
-  attribute: string,
-): boolean {
-  return element.hasAttribute(attribute);
+  protected setBooleAttribute(attribute: string, value: boolean | undefined) {
+    setBooleAttribute(this, attribute, value);
+  }
 }

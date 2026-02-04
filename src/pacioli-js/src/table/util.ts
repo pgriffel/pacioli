@@ -20,34 +20,26 @@
  * SOFTWARE.
  */
 
-import type { SIUnit, UOMBase } from "uom-ts";
-import type { UnitVector } from "./unit-vector";
-import type { ToText } from "./pacioli-value";
+import type { DimNum } from "uom-ts";
 
-export class VectorBase implements UOMBase, ToText {
-  public readonly name;
-
-  constructor(
-    public readonly vector: UnitVector,
-    public readonly position: number,
-    public readonly baseName: string,
-  ) {
-    this.name = baseName + ":" + position.toString();
-  }
-
-  getName(): string {
-    return this.name;
-  }
-
-  public toText(): string {
-    return this.name;
-  }
-
-  public get(position: number): SIUnit {
-    return this.vector.get(position);
-  }
-
-  public shift(delta: number): VectorBase {
-    return new VectorBase(this.vector, this.position + delta, this.baseName);
+export function stringifyCell(
+  cell: DimNum,
+  options: {
+    zeroString: string | undefined;
+    omitDecimals: boolean;
+    nrDecimals: number;
+    exponential: boolean;
+  },
+): string {
+  if (cell.magnitude.isZero() && options.zeroString !== undefined) {
+    return options.zeroString;
+  } else if (options.exponential) {
+    return options.omitDecimals
+      ? cell.magnitude.toExponential()
+      : cell.magnitude.toExponential(options.nrDecimals);
+  } else {
+    return options.omitDecimals
+      ? cell.magnitude.toFixed()
+      : cell.magnitude.toFixed(options.nrDecimals);
   }
 }

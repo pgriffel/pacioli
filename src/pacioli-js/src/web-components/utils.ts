@@ -521,3 +521,84 @@ export function addCheckBoxEventListener(
     handler((event.target as HTMLInputElement).checked);
   });
 }
+
+//  Helpers to reflect a numeric attribute to a property
+//
+// three cases
+// boolean -> always true or false. Maps to present or absent
+// string -> string | undefined
+// number -> always number. absent maps to NaN
+
+export function getNumberAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue: number = 0,
+): number {
+  const att = element.getAttribute(attribute);
+  return Number(att ?? defaultValue);
+}
+
+export function setNumberAttribute(
+  element: HTMLElement,
+  attribute: string,
+  value: number | undefined,
+) {
+  if (value === undefined) {
+    element.removeAttribute(attribute);
+  } else {
+    element.setAttribute(attribute, value.toString());
+  }
+}
+
+export function getStringAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue: string,
+): string;
+
+export function getStringAttribute(
+  element: HTMLElement,
+  attribute: string,
+  defaultValue?: undefined,
+): string | undefined;
+
+/* eslint-disable */
+export function getStringAttribute(
+  element: any,
+  attribute: any,
+  defaultValue?: any,
+): any {
+  return element.getAttribute(attribute) ?? defaultValue;
+}
+/* eslint-enable */
+
+export function setStringAttribute(
+  element: HTMLElement,
+  attribute: string,
+  value: string | undefined,
+) {
+  if (value === undefined) {
+    element.removeAttribute(attribute);
+  } else {
+    element.setAttribute(attribute, value);
+  }
+}
+
+export function getBooleAttribute(
+  element: HTMLElement,
+  attribute: string,
+): boolean {
+  return element.hasAttribute(attribute);
+}
+
+export function setBooleAttribute(
+  element: HTMLElement,
+  attribute: string,
+  value: boolean | undefined,
+) {
+  if (value === true) {
+    element.setAttribute(attribute, "");
+  } else {
+    element.removeAttribute(attribute);
+  }
+}

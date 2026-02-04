@@ -88,7 +88,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): string {
+  get unit(): string | undefined {
     return this.getStringAttribute("unit");
   }
 
@@ -100,7 +100,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement in the x direction. Is derived from the data if no
    * unit attribute is given.
    */
-  get xunit(): string {
+  get xunit(): string | undefined {
     return this.getStringAttribute("xunit");
   }
 
@@ -112,7 +112,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement in the y direction. Is derived from the data if no
    * unit attribute is given.
    */
-  get yunit(): string {
+  get yunit(): string | undefined {
     return this.getStringAttribute("yunit");
   }
 

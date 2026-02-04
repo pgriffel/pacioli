@@ -24,6 +24,7 @@ import type { DimNum } from "uom-ts";
 import { NR_DECIMALS } from "../primitives";
 import type { TableColumn } from "./table-column";
 import { defaultContext } from "../cache";
+import { stringifyCell } from "./util";
 
 /**
  * Exactly the same as DOMOptions. TODO: consider merging.
@@ -405,28 +406,6 @@ function domFromTable(data: TableBuilder): HTMLElement {
   }
 
   return table;
-}
-
-function stringifyCell(
-  cell: DimNum,
-  options: {
-    zeroString: string | undefined;
-    omitDecimals: boolean;
-    nrDecimals: number;
-    exponential: boolean;
-  },
-): string {
-  if (cell.magnitude.isZero() && options.zeroString !== undefined) {
-    return options.zeroString;
-  } else if (options.exponential) {
-    return options.omitDecimals
-      ? cell.magnitude.toExponential()
-      : cell.magnitude.toExponential(options.nrDecimals);
-  } else {
-    return options.omitDecimals
-      ? cell.magnitude.toFixed()
-      : cell.magnitude.toFixed(options.nrDecimals);
-  }
 }
 
 // function tableDataHeadersEqual(left: TableData, right: TableData): boolean {

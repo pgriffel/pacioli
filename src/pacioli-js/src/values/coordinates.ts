@@ -153,4 +153,18 @@ export class PacioliCoordinates {
     }
     return newUnit;
   }
+
+  public join(other: PacioliCoordinates): PacioliCoordinates {
+    return new PacioliCoordinates(
+      [...this.names, ...other.names],
+      [...this.indexSets, ...other.indexSets],
+    );
+  }
+
+  public slice(start?: number, end?: number): PacioliCoordinates {
+    return new PacioliCoordinates(
+      this.names.slice(start, end),
+      this.indexSets.slice(start, end),
+    );
+  }
 }

@@ -51,9 +51,9 @@ export class MatrixShape {
 
   public toText() {
     let text = "(" + this.multiplier.toText() + "|";
-    text += "TODO: this.rowDimension.toText()" + "|";
-    text += "TODO: this.columnDimension.toText()" + "|";
+    text += this.rowDimension.toText() + "|";
     text += this.rowUnit.toText() + "|";
+    text += this.columnDimension.toText() + "|";
     text += this.columnUnit.toText() + "|";
     text += ")";
     return text;
@@ -294,26 +294,64 @@ export class MatrixShape {
     );
   }
 
+  public rowIndices(): { names: string[]; unit: SIUnit }[] {
+    const names: { names: string[]; unit: SIUnit }[] = [];
+
+    for (let i = 0; i < this.nrRows(); i++) {
+      names.push({
+        names: this.rowCoordinates(i).names,
+        unit: this.findRowUnit(i),
+      });
+    }
+
+    return names;
+  }
+
+  public columnIndices(): { names: string[]; unit: SIUnit }[] {
+    const names: { names: string[]; unit: SIUnit }[] = [];
+
+    for (let i = 0; i < this.nrColumns(); i++) {
+      names.push({
+        names: this.columnCoordinates(i).names,
+        unit: this.findColumnUnit(i),
+      });
+    }
+
+    return names;
+  }
+
   public rowNames(): string[] {
+    return this.rowIndices().map(
+      (index) => index.names.join(",") + ` (${index.unit.toText()})`,
+    );
+  }
+
+  public columnNames(): string[] {
+    return this.columnIndices().map(
+      (index) => index.names.join(",") + ` (${index.unit.toText()})`,
+    );
+  }
+
+  public rowHeaders(): string[] {
     return this.rowDimension.indexSets.map(function (x) {
       return x.name;
     });
   }
 
-  public rowName(): string {
-    return this.rowNames().reduce(function (x, y) {
+  public rowHeader(): string {
+    return this.rowHeaders().reduce(function (x, y) {
       return x + "%" + y;
     }, "");
   }
 
-  public columnNames(): string[] {
+  public columnHeaders(): string[] {
     return this.columnDimension.indexSets.map(function (x) {
       return x.name;
     });
   }
 
-  public columnName(): string {
-    return this.columnNames().reduce(function (x, y) {
+  public columnHeader(): string {
+    return this.columnHeaders().reduce(function (x, y) {
       return x + "%" + y;
     }, "");
   }
@@ -330,5 +368,51 @@ export class MatrixShape {
     return this.multiplier
       .mult(this.findRowUnit(row))
       .div(this.findColumnUnit(column));
+  }
+
+  public reorder(rowOrder: number, columnOrder: number): MatrixShape {
+    const oldRowOrder = this.rowOrder();
+    const oldColumnOrder = this.columnOrder();
+
+    if (rowOrder === oldRowOrder && columnOrder === oldColumnOrder) {
+      return this;
+    }
+
+    if (rowOrder + columnOrder !== oldRowOrder + oldColumnOrder) {
+      throw new Error(
+        `Cannot reorder matrix from (${oldRowOrder.toString()},${oldColumnOrder.toString()}) to (${rowOrder.toString()},${columnOrder.toString()}). The total order must be equal.`,
+      );
+    }
+
+    const totaldimension = this.rowDimension.kronecker(this.columnDimension);
+
+    const rowDimension = totaldimension.slice(0, rowOrder);
+
+    const columnDimension = totaldimension.slice(rowOrder);
+
+    const totalUnit = this.rowUnit.mult(
+      this.columnUnit
+        .reciprocal()
+        .map((base) => UOM.fromBase(base.shift(oldRowOrder))),
+    );
+
+    const rowUnit = totalUnit.map((base) =>
+      base.position >= rowOrder ? SIVector.ONE : UOM.fromBase(base),
+    );
+
+    const columnUnit = totalUnit
+      .map((base) =>
+        base.position < rowOrder ? SIVector.ONE : UOM.fromBase(base),
+      )
+      .map((base) => UOM.fromBase(base.shift(-rowOrder)))
+      .reciprocal();
+
+    return new MatrixShape(
+      this.multiplier,
+      rowDimension,
+      rowUnit,
+      columnDimension,
+      columnUnit,
+    );
   }
 }

@@ -25,33 +25,26 @@ import {
   evaluateWebComponentDefinition,
   optionsFromAttributes,
   optionsFromScript,
+  getBooleAttribute,
+  getNumberAttribute,
+  getStringAttribute,
 } from "../utils";
 import { DOMTable } from "../../dom/dom";
 import type { PacioliTuple } from "../../values/tuple";
 import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliMatrix } from "../../values/matrix";
 import { PacioliError } from "../../pacioli-error";
-import {
-  getBooleAttribute,
-  getNumberAttribute,
-  getStringAttribute,
-} from "../pacioli-web-component";
 import type { PacioliList } from "../../values/list";
 import type { SIUnit } from "uom-ts";
 import { parseUnit } from "../../api";
+import type { NumberOptions } from "../pacioli-number-component";
 
 /**
  * Options for Pacioli's table component.
  */
-export interface TableOptions {
-  decimals: number;
-  zero?: string;
+export interface TableOptions extends NumberOptions {
   nozerorows: boolean;
   totals: boolean;
-  ignoredecimals: boolean;
-  exponential: boolean;
-  ascii: boolean;
-  clipboard: boolean;
 }
 
 interface ColumnData {
@@ -150,12 +143,12 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   /**
    * Is a total row added?
    */
-  get totals(): string {
-    return this.getStringAttribute("totals");
+  get totals(): boolean {
+    return this.getBooleAttribute("totals");
   }
 
-  set totals(value: string) {
-    this.setStringAttribute("totals", value);
+  set totals(value: boolean) {
+    this.setBooleAttribute("totals", value);
   }
 
   /**
@@ -304,9 +297,8 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
       const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
       const exponential = getBooleAttribute(element, "exponential");
       const showTotal = getBooleAttribute(element, "totals");
-      const unit = element.hasAttribute("unit")
-        ? parseUnit(getStringAttribute(element, "unit"))
-        : undefined;
+      const unitAtt = getStringAttribute(element, "unit");
+      const unit = unitAtt === undefined ? undefined : parseUnit(unitAtt);
 
       const value = evaluateWebComponentDefinition(element);
 
