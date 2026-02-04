@@ -13,7 +13,13 @@
 </head>
 
 <body>
+    <h2>Bill of Material Matrix</h2>
+
+    <pacioli-matrix definition="bom:BoM" zero="-" headers headerunits raw>
+    </pacioli-matrix>
+
     <h2>Bill of Material</h2>
+
 
     <div id="bom"></div>
 
@@ -22,14 +28,6 @@
 
     <div id="exploded"></div>
 
-    <pacioli-matrix
-        definition="bom:BoM"
-        zero="-" 
-        headers
-        headerunits
-        raw
-        ignoredecimals>
-    </pacioli-matrix>
 
 
     <h2>Cost Breakdown</h2>
