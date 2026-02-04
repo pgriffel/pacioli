@@ -191,7 +191,7 @@ export function fetchIndex(
 ): IndexSet {
   const indexSet = context.findIndexSet(id);
   if (indexSet === undefined) {
-    const computed = findFunction<IndexSet>("compute_" + id)();
+    const computed = findFunction<IndexSet>(id)();
     context.addIndexSet(computed);
     return computed;
   } else {
@@ -230,8 +230,7 @@ export function fetchUnitVector(
 ): UnitVector {
   const vec = context.findUnitVector(id);
   if (vec === undefined) {
-    const unitObject = findFunction<{ units: object }>("compute_vbase_" + id)()
-      .units;
+    const unitObject = findFunction<{ units: object }>("vbase_" + id)().units;
     const unitMap = new Map<string, SIUnit>();
     for (const [key, value] of Object.entries(unitObject)) {
       unitMap.set(key, internUnit(value as PacioliUnit, context));
@@ -273,10 +272,7 @@ export function lookupItem<T>(
       | undefined;
 
     if (asValue === undefined) {
-      cache.set(
-        full,
-        findFunction<T>("compute_" + full)() as PacioliType | RawValue,
-      );
+      cache.set(full, findFunction<T>(full)() as PacioliType | RawValue);
     } else {
       cache.set(full, asValue);
     }
@@ -289,9 +285,7 @@ export function lookupItem<T>(
  * Only used in fetchUnit
  */
 function computeItem(full: string): { symbol: string; definition?: DimNum } {
-  return findFunction<{ symbol: string; definition?: DimNum }>(
-    "compute_" + full,
-  )();
+  return findFunction<{ symbol: string; definition?: DimNum }>(full)();
 }
 
 declare global {
@@ -313,7 +307,7 @@ function findFunction<T>(name: string): () => T {
   const nameSpace = globalThis.Pacioli;
 
   // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
-  const fun = nameSpace[name] as (() => T) | undefined;
+  const fun = nameSpace["compute_" + name] as (() => T) | undefined;
 
   if (fun === undefined) {
     throw new Error(`No function found to compute Pacioli item '${name}'`);
