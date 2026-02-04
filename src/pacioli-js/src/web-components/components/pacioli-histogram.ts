@@ -23,7 +23,7 @@
 import { PacioliContext } from "../../context";
 import type { HistogramOptions } from "../../charts/d3-histogram";
 import { Histogram } from "../../charts/d3-histogram";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import type { PacioliValue } from "../../values/pacioli-value";
 
@@ -84,7 +84,7 @@ const STYLES = `
 /**
  * Web component for a histogram. A wrapper around the Histogram class.
  */
-export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
+export class PacioliHistogramComponent extends PacioliNumberComponent {
   /**
    * Label of the x-axis
    */

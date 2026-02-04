@@ -20,29 +20,11 @@
  * SOFTWARE.
  */
 
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import type { NumberOptions } from "../pacioli-number-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import { DOM } from "../../dom/dom";
 import type { PacioliValue } from "../../values/pacioli-value";
-
-/**
- * Options for Pacioli's value component.
- */
-export interface ValueOptions {
-  decimals: number;
-
-  zero?: string;
-
-  nozerorows: boolean;
-
-  totals: boolean;
-
-  raw: boolean;
-
-  ascii: boolean;
-
-  clipboard: boolean;
-}
 
 /**
  * Attribues supported by the Pacioli value component
@@ -105,7 +87,7 @@ td.total {
 /**
  * Web component for a Pacioli value. A wrapper around the DOM function.
  */
-export class PacioliValueComponent extends PacioliShadowTreeComponent {
+export class PacioliValueComponent extends PacioliNumberComponent {
   /**
    * The Pacioli value displayed in the table.
    */
@@ -162,8 +144,8 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<ValueOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<ValueOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<NumberOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<NumberOptions>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.contentParent().appendChild(DOM(value, options));

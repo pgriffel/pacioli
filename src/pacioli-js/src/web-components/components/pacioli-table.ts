@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 import {
   evaluateWebComponentDefinition,
   optionsFromAttributes,
@@ -139,7 +139,7 @@ td.total {
 /**
  * Web component for a table. A wrapper around the DOMTable function.
  */
-export class PacioliTableComponent extends PacioliShadowTreeComponent {
+export class PacioliTableComponent extends PacioliNumberComponent {
   /**
    * Is a total row added?
    */
@@ -160,50 +160,6 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
 
   set nozerorows(value: boolean) {
     this.setBooleAttribute("nozerorows", value);
-  }
-
-  /**
-   * Is the decimals attribute ignored?
-   */
-  get raw(): boolean {
-    return this.getBooleAttribute("raw");
-  }
-
-  set raw(value: boolean) {
-    this.setBooleAttribute("raw", value);
-  }
-
-  /**
-   * Is the table displayed in ASCII format?
-   */
-  get ascii(): boolean {
-    return this.getBooleAttribute("ascii");
-  }
-
-  set ascii(value: boolean) {
-    this.setBooleAttribute("ascii", value);
-  }
-
-  /**
-   * Is the table displayed in clipboard format?
-   */
-  get clipboard(): boolean {
-    return this.getBooleAttribute("clipboard");
-  }
-
-  set clipboard(value: boolean) {
-    this.setBooleAttribute("clipboard", value);
-  }
-
-  /**
-   * Is exponential notation for numbers used?
-   */
-  get exopnential(): boolean {
-    return this.getBooleAttribute("exopnential");
-  }
-
-  set exopnential(value: boolean) {
-    this.setBooleAttribute("exopnential", value);
   }
 
   /**

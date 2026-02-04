@@ -23,7 +23,7 @@
 import { PacioliContext } from "../../context";
 import type { BarChartOptions } from "../../charts/d3-bar-chart";
 import { BarChart } from "../../charts/d3-bar-chart";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import type { PacioliValue } from "../../values/pacioli-value";
 
@@ -50,7 +50,7 @@ const STYLES = `
 /**
  * Web component for a bar chart. A wrapper around the BarChart class.
  */
-export class PacioliBarChartComponent extends PacioliShadowTreeComponent {
+export class PacioliBarChartComponent extends PacioliNumberComponent {
   /**
    * Label of the x-axis
    */

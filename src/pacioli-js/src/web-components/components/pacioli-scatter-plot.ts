@@ -24,7 +24,7 @@ import type { PacioliValue } from "../../values/pacioli-value";
 import type { ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { ScatterPlot } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 
 /**
@@ -75,7 +75,7 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the ScatterPlot class.
  */
-export class PacioliScatterPlotComponent extends PacioliShadowTreeComponent {
+export class PacioliScatterPlotComponent extends PacioliNumberComponent {
   /**
    * Unit of the domain values
    */

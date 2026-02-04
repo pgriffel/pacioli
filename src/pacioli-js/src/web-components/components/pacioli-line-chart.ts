@@ -23,7 +23,7 @@
 import type { LineChartOptions } from "../../charts/d3-line-chart";
 import { LineChart } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
+import { PacioliNumberComponent } from "../pacioli-number-component";
 import { optionsFromAttributes, optionsFromScript } from "../utils";
 import type { PacioliValue } from "../../values/pacioli-value";
 
@@ -83,7 +83,7 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the LineChart class.
  */
-export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
+export class PacioliLineChartComponent extends PacioliNumberComponent {
   /**
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
