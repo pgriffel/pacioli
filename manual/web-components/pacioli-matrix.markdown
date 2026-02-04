@@ -9,10 +9,7 @@ The matrix web component displays a matrix.
 ## The pacioli-matrix Component
 
 The `pacioli-matrix` element adds a Pacioli matrix to a web page.
-
-A matrix has one more index columns, and zero or more value columns.
-Each row display the values corresponding with the key(s) in the index
-column(s).
+The appearance can be changed with various options.
 
     <pacioli-matrix definition="..."></pacioli-matrix>
 
