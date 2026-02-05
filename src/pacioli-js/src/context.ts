@@ -139,7 +139,7 @@ export class PacioliContext {
   }
 
   public addUnitVector(vector: UnitVector): this {
-    this.unitVectors.set(vector.name, vector);
+    this.unitVectors.set(vector.indexSet.name + "!" + vector.name, vector);
     return this;
   }
 
