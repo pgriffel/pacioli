@@ -25,18 +25,23 @@ import type { SpaceOptions } from "../../graphics/space";
 import { Space } from "../../graphics/space";
 import type { PacioliValue } from "../../values/pacioli-value";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
 import { parseUnit } from "../../api";
 import type {
   PacioliScene,
   StatefulAnimation,
   Animation,
 } from "../../graphics/scene";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the 3D scene component
  */
-const SUPPORTED_ATTRIBUTES = {
+const SCENE_ATTRIBUTES = {
   strings: [
     "background",
     "axisColorsX",
@@ -48,8 +53,6 @@ const SUPPORTED_ATTRIBUTES = {
   ],
   booleans: ["axis", "grid", "orthographic", "hideLabels", "autoRotation"],
   numbers: [
-    "width",
-    "height",
     "axisSize",
     "ambientIntensity",
     "fps",
@@ -63,6 +66,11 @@ const SUPPORTED_ATTRIBUTES = {
     "secondsPerRotation",
   ],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  SCENE_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the bar chart
@@ -109,7 +117,8 @@ export class PacioliSceneComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = ["unit", "unitx", "unity", "unitz"];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();

@@ -23,23 +23,30 @@
 import { PacioliContext } from "../../context";
 import type { HistogramOptions } from "../../charts/d3-histogram";
 import { Histogram } from "../../charts/d3-histogram";
-import { PacioliNumberComponent } from "../pacioli-number-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
+
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the histogram component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["unit", "margin", "caption", "xlabel", "ylabel", "heuristic"],
+const HISTOGRAM_ATTRIBUTES = {
+  strings: ["unit", "caption", "xlabel", "ylabel", "heuristic"],
   booleans: [],
   numbers: [
-    "width",
-    "height",
     "bins",
     "lower",
     "upper",
-    "decimals",
     "gap",
     "ylower",
     "yupper",
@@ -47,6 +54,12 @@ const SUPPORTED_ATTRIBUTES = {
     "yticks",
   ],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  HISTOGRAM_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the histogram component
@@ -176,17 +189,8 @@ export class PacioliHistogramComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "unit",
-    "bins",
-    "lower",
-    "upper",
-    "ylower",
-    "yupper",
-    "heuristic",
-    "gap",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();

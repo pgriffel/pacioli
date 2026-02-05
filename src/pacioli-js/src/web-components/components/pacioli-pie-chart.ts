@@ -23,18 +23,33 @@
 import type { PieChartOptions } from "../../charts/d3-pie-chart";
 import { PieChart } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
-import { PacioliNumberComponent } from "../pacioli-number-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the pie chart component
  */
-const SUPPORTED_ATTRIBUTES = {
+const PIE_CHART_ATTRIBUTES = {
   strings: ["unit", "caption", "label"],
   booleans: [],
-  numbers: ["width", "height", "decimals", "radius", "labelOffset"],
+  numbers: ["radius", "labelOffset"],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  PIE_CHART_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the pie chart
@@ -94,13 +109,8 @@ export class PacioliPieChartComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "decimals",
-    "unit",
-    "radius",
-    "margin",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();

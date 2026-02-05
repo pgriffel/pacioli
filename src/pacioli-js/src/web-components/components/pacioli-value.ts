@@ -21,19 +21,34 @@
  */
 
 import type { NumberOptions } from "../pacioli-number-component";
-import { PacioliNumberComponent } from "../pacioli-number-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import { DOM } from "../../dom/dom";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the Pacioli value component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["zero"],
-  booleans: ["nozerorows", "raw", "totals", "ascii", "clipboard"],
-  numbers: ["decimals"],
+const VALUE_ATTRIBUTES = {
+  strings: [],
+  booleans: ["totals"],
+  numbers: [],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  VALUE_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the Pacioli value component
@@ -101,15 +116,8 @@ export class PacioliValueComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static readonly observedAttributes = [
-    "definition",
-    "decimals",
-    "raw",
-    "totals",
-    "nozeros",
-    "ascii",
-    "clipboard",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   /**
    * Web component life-cycle event.

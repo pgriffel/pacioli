@@ -23,27 +23,33 @@
 import type { LineChartOptions } from "../../charts/d3-line-chart";
 import { LineChart } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
-import { PacioliNumberComponent } from "../pacioli-number-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the histogram component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["caption", "margin", "label", "xlabel", "unit", "xunit", "yunit"],
+const LINE_CHART_ATTRIBUTES = {
+  strings: ["caption", "label", "xlabel", "unit", "xunit", "yunit"],
   booleans: ["smooth", "rotate"],
-  numbers: [
-    "width",
-    "height",
-    "decimals",
-    "norm",
-    "ylower",
-    "yupper",
-    "xticks",
-    "yticks",
-  ],
+  numbers: ["norm", "ylower", "yupper", "xticks", "yticks"],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  LINE_CHART_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the line chart
@@ -165,15 +171,8 @@ export class PacioliLineChartComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "unit",
-    "xunit",
-    "yunit",
-    "smooth",
-    "ylower",
-    "yupper",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();

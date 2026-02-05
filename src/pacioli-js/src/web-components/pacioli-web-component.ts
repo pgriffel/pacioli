@@ -20,23 +20,25 @@
  * SOFTWARE.
  */
 
-import {
-  evaluateWebComponentDefinition,
-  addParametersObserver,
-  setParameterNodes,
-  getBooleAttribute,
-  getNumberAttribute,
-  getStringAttribute,
-  setBooleAttribute,
-  setNumberAttribute,
-  setStringAttribute,
-} from "./utils";
 import type { PacioliValue } from "../values/pacioli-value";
 import type {
   Callable,
   ErrorOutput,
   PacioliWebComponentBase,
 } from "./interfaces";
+import {
+  getNumberAttribute,
+  setNumberAttribute,
+  getStringAttribute,
+  setStringAttribute,
+  getBooleAttribute,
+  setBooleAttribute,
+} from "./utils/attributes";
+import {
+  addParametersObserver,
+  setParameterNodes,
+  evaluateWebComponentDefinition,
+} from "./utils/definition";
 
 const TEMPLATE = document.createElement("template");
 
@@ -55,6 +57,12 @@ TEMPLATE.innerHTML = `
   <div class="content">
   </div>
 `;
+
+export const COMMON_ATTRIBUTES = {
+  strings: ["definition", "margin"],
+  booleans: [],
+  numbers: ["width", "height"],
+};
 
 /**
  * Abstract base class for Pacioli web components.

@@ -24,18 +24,25 @@ import type { PacioliValue } from "../../values/pacioli-value";
 import type { ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { ScatterPlot } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
-import { PacioliNumberComponent } from "../pacioli-number-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the scatter plot component
  */
-const SUPPORTED_ATTRIBUTES = {
+const SCATTER_PLOT_ATTRIBUTES = {
   strings: ["label", "caption", "xunit", "yunit"],
   booleans: ["trendline"],
   numbers: [
-    "width",
-    "height",
     "xlower",
     "xupper",
     "ylower",
@@ -43,9 +50,14 @@ const SUPPORTED_ATTRIBUTES = {
     "xticks",
     "yticks",
     "radius",
-    "decimals",
   ],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  SCATTER_PLOT_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the scatter plot chart
@@ -155,17 +167,8 @@ export class PacioliScatterPlotComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "xunit",
-    "yunit",
-    "xlower",
-    "xupper",
-    "ylower",
-    "yupper",
-    "xticks",
-    "yticks",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();

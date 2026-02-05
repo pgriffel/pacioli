@@ -20,15 +20,10 @@
  * SOFTWARE.
  */
 
-import { PacioliNumberComponent } from "../pacioli-number-component";
 import {
-  evaluateWebComponentDefinition,
-  optionsFromAttributes,
-  optionsFromScript,
-  getBooleAttribute,
-  getNumberAttribute,
-  getStringAttribute,
-} from "../utils";
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import { DOMTable } from "../../dom/dom";
 import type { PacioliTuple } from "../../values/tuple";
 import type { PacioliValue } from "../../values/pacioli-value";
@@ -38,6 +33,17 @@ import type { PacioliList } from "../../values/list";
 import type { SIUnit } from "uom-ts";
 import { parseUnit } from "../../api";
 import type { NumberOptions } from "../pacioli-number-component";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+  getStringAttribute,
+  getNumberAttribute,
+  getBooleAttribute,
+} from "../utils/attributes";
+import { evaluateWebComponentDefinition } from "../utils/definition";
 
 /**
  * Options for Pacioli's table component.
@@ -61,18 +67,17 @@ interface ColumnData {
 /**
  * Attribues supported by the table component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["zero"],
-  booleans: [
-    "nozerorows",
-    "raw",
-    "exponential",
-    "totals",
-    "ascii",
-    "clipboard",
-  ],
-  numbers: ["decimals"],
+const TABLE_ATTRIBUTES = {
+  strings: [],
+  booleans: ["nozerorows", "totals"],
+  numbers: [],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  TABLE_ATTRIBUTES,
+);
 
 function pacioliTableError(message: string): PacioliError {
   return new PacioliError(
@@ -176,16 +181,8 @@ export class PacioliTableComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static readonly observedAttributes = [
-    "definition",
-    "decimals",
-    "totals",
-    "nozerorows",
-    "raw",
-    "exopnential",
-    "ascii",
-    "clipboard",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   /**
    * Web component life-cycle event.

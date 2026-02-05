@@ -23,18 +23,33 @@
 import { PacioliContext } from "../../context";
 import type { BarChartOptions } from "../../charts/d3-bar-chart";
 import { BarChart } from "../../charts/d3-bar-chart";
-import { PacioliNumberComponent } from "../pacioli-number-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the bar chart component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["caption", "xlabel", "ylabel", "unit", "margin"],
+export const BAR_CHART_ATTRIBUTES = {
+  strings: ["caption", "xlabel", "ylabel", "unit"],
   booleans: [],
-  numbers: ["width", "height", "decimals", "ylower", "yupper", "padding"],
+  numbers: ["ylower", "yupper", "padding"],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  BAR_CHART_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the bar chart
@@ -131,17 +146,8 @@ export class PacioliBarChartComponent extends PacioliNumberComponent {
   /**
    * Web component field.
    */
-  static readonly observedAttributes = [
-    "definition",
-    "decimals",
-    "xlabel",
-    "ylabel",
-    "unit",
-    "margin",
-    "ylower",
-    "yupper",
-    "padding",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();

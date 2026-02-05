@@ -25,17 +25,27 @@ import { WordCloud } from "../../charts/d3-wordcloud";
 import type { PacioliMatrix } from "../../values/matrix";
 import { getNumber } from "../../raw-values/raw-matrix";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
 import type { PacioliString } from "../../values/string";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the word cloud component
  */
-const SUPPORTED_ATTRIBUTES = {
+const WORDCLOUD_ATTRIBUTES = {
   strings: [],
   booleans: [],
-  numbers: ["width", "height"],
+  numbers: [],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  WORDCLOUD_ATTRIBUTES,
+);
 
 /**
  * Pacioli format for wordcloud data. A list of tuples.
@@ -52,6 +62,12 @@ const STYLES = ``;
  */
 export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   /**
+   * Web component field.
+   */
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
+
+  /**
    * The word cloud
    */
   chart?: WordCloud;
@@ -59,6 +75,29 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   constructor() {
     super();
     this.adoptStyles(STYLES);
+  }
+
+  /**
+   * Web component life-cycle event.
+   */
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
+    try {
+      if (this.chart !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          const words = wordData(
+            this.evaluateDefinition() as unknown as WordCloudData,
+          );
+
+          this.chart = new WordCloud(words, this.chartOptions());
+        }
+
+        this.chart.draw(this.contentParent());
+      }
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   /**

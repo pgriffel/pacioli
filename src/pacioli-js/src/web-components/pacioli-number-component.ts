@@ -34,6 +34,12 @@ export interface NumberOptions {
   clipboard: boolean;
 }
 
+export const NUMBER_ATTRIBUTES = {
+  strings: ["zero"],
+  booleans: ["raw", "exponential", "ascii", "clipboard"],
+  numbers: ["decimals"],
+};
+
 /**
  * Abstract class for web components displaying some numerical computed PacioliValue.
  *

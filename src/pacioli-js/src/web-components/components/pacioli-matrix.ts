@@ -20,16 +20,22 @@
  * SOFTWARE.
  */
 
-import {
-  evaluateWebComponentDefinition,
-  optionsFromAttributes,
-  optionsFromScript,
-} from "../utils";
 import type { PacioliMatrix } from "../../values/matrix";
 import { PacioliError } from "../../pacioli-error";
 import { MatrixBuilder } from "../../table/matrix-builder";
 import type { NumberOptions } from "../pacioli-number-component";
-import { PacioliNumberComponent } from "../pacioli-number-component";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
+import { evaluateWebComponentDefinition } from "../utils/definition";
 
 /**
  * Options for Pacioli's matrix component.
@@ -88,20 +94,17 @@ td.total {
 }
 `;
 
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["zero", "order"],
-  booleans: [
-    "raw",
-    "exponential",
-    "ascii",
-    "clipboard",
-    "headers",
-    "headerunits",
-    "nounits",
-    "evenwidth",
-  ],
-  numbers: ["decimals"],
+export const MATRIX_ATTRIBUTES = {
+  strings: ["order"],
+  booleans: ["headers", "headerunits", "nounits", "evenwidth"],
+  numbers: [],
 };
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  MATRIX_ATTRIBUTES,
+);
 
 function pacioliMatrixError(message: string): PacioliError {
   return new PacioliError(`Invalid matrix for pacioli-matrix. ${message}`);
@@ -156,18 +159,8 @@ export class PacioliMatrixComponent extends PacioliNumberComponent {
     this.adoptStyles(STYLES);
   }
 
-  static readonly observedAttributes = [
-    "definition",
-    "decimals",
-    "raw",
-    "exponential",
-    "ascii",
-    "clipboard",
-    "headers",
-    "headerunits",
-    "nounits",
-    "evenwidth",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
     try {
