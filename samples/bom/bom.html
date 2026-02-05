@@ -12,21 +12,53 @@
     <script type="text/javascript" src="bom.js"></script>
 </head>
 
-<body>
+<body onload="update()">
     <h2>Bill of Material Matrix</h2>
 
-    <pacioli-matrix definition="bom:BoM" zero="-" headers headerunits raw>
+    <style>
+        pacioli-matrix {
+            margin: 16pt
+        }
+
+        .panel {
+            input {
+                margin-right: 16pt
+            }
+        }
+    </style>
+
+    <div class="panel">
+        <label for="exploded">Exploded</label>
+        <input id="exploded" type="checkbox" onchange="update()" />
+
+        <label for="raw">Raw</label>
+        <input id="raw" type="checkbox" onchange="update()" checked />
+
+        <label for="headers">Headers</label>
+        <input id="headers" type="checkbox" onchange="update()" checked />
+
+        <label for="units">Units</label>
+        <input id="units" type="checkbox" onchange="update()" checked />
+
+        <label for="evenwidth">Even width</label>
+        <input id="evenwidth" type="checkbox" onchange="update()" />
+
+        <label for="ascii">Ascii</label>
+        <input id="ascii" type="checkbox" onchange="update()" />
+    </div>
+
+    <pacioli-matrix id="bom" definition="bom:BoM" zero="-" headers headerunits raw evenwidth>
     </pacioli-matrix>
 
     <h2>Bill of Material</h2>
 
 
-    <div id="bom"></div>
+    <div id="bomsection"></div>
 
 
     <h2>Exploded Bill of Material</h2>
 
-    <div id="exploded"></div>
+    <div id="explodedsection"></div>
 
 
 
@@ -43,6 +75,18 @@
     <pacioli-value definition="bom:cost_breakdown_in_percentages"></pacioli-value>
 
     <script>
+
+        function update() {
+            const bomComponent = document.getElementById('bom')
+
+            bomComponent.headers = document.getElementById('headers').checked
+            bomComponent.raw = document.getElementById('raw').checked
+            bomComponent.nounits = !document.getElementById('units').checked
+            bomComponent.headerunits = document.getElementById('units').checked
+            bomComponent.ascii = document.getElementById('ascii').checked
+            bomComponent.evenwidth = document.getElementById('evenwidth').checked
+            bomComponent.definition = document.getElementById('exploded').checked ? "bom:BoM_closure" : "bom:BoM"
+        }
 
         function valueString(dimNum) {
             // Unit symbol string can contain " (e.g. inch)
@@ -66,8 +110,8 @@
 
         Viz.instance().then(function (viz) {
 
-            const bomElt = document.getElementById("bom");
-            const explodedElt = document.getElementById("exploded");
+            const bomElt = document.getElementById("bomsection");
+            const explodedElt = document.getElementById("explodedsection");
 
             bomElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM"))));
             explodedElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM_closure"))));

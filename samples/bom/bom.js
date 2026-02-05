@@ -1,74 +1,5 @@
 
 
-Pacioli.compute_u_$standard_matrix_right_inverse = function () {
-    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1))]), Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(-1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
-}
-
-Pacioli.$standard_matrix_right_inverse = function (lcl_A) {
-return Pacioli.$base_matrix_solve(
-lcl_A, 
-Pacioli.$base_matrix_left_identity(
-lcl_A));
-}
-
-
-Pacioli.compute_u_$standard_standard_printf = function () {
-    return new Pacioli.FunctionType(Pacioli.typeFromVarName('_t_'), new Pacioli.GenericType("Void", []));
-}
-
-Pacioli.$standard_standard_printf = function (...lcl_args) {
-return Pacioli.$base_io_print(
-Pacioli.$base_base_apply(
-Pacioli.fetchValue('$base_string', 'format'), 
-lcl_args));
-}
-
-
-Pacioli.compute_u_$standard_matrix_set_precision = function () {
-    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.unitType('decimals').expt(1), new Pacioli.IndexType([]), Pacioli.ONE, new Pacioli.IndexType([]), Pacioli.ONE)]), new Pacioli.GenericType("Void", []));
-}
-
-Pacioli.$standard_matrix_set_precision = function (lcl_n) {
-return Pacioli.$base_system__set_precision(
-Pacioli.$base_matrix_magnitude(
-lcl_n));
-}
-
-
-Pacioli.compute_u_$standard_matrix_closure = function () {
-    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.ONE, '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1))]), Pacioli.createMatrixType(Pacioli.ONE, '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
-}
-
-Pacioli.$standard_matrix_closure = function (lcl_x) {
-return Pacioli.$base_matrix_minus(
-Pacioli.$standard_matrix_kleene(
-lcl_x), 
-Pacioli.$base_matrix_left_identity(
-lcl_x));
-}
-
-
-Pacioli.compute_u_$standard_standard_to_percentage = function () {
-    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.ONE, '_D_', Pacioli.ONE, '_E_', Pacioli.ONE)]), Pacioli.createMatrixType(Pacioli.unitType('percent').expt(1), '_D_', Pacioli.ONE, '_E_', Pacioli.ONE));
-}
-
-Pacioli.$standard_standard_to_percentage = function (lcl_x) {
-return Pacioli.$base_matrix_scale(
-Pacioli.fetchValue('$standard_standard', 'percent_conv'), 
-lcl_x);
-}
-
-
-Pacioli.compute_u_$standard_matrix_inverse = function () {
-    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1))]), Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(-1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
-}
-
-Pacioli.$standard_matrix_inverse = function (lcl_x) {
-return Pacioli.$standard_matrix_right_inverse(
-lcl_x);
-}
-
-
 Pacioli.compute_u_$standard_matrix_kleene = function () {
     return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.ONE, '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1))]), Pacioli.createMatrixType(Pacioli.ONE, '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
 }
@@ -88,10 +19,82 @@ Pacioli.compute_u_$standard_matrix_delta = function () {
 
 Pacioli.$standard_matrix_delta = function (lcl_p) {
 return Pacioli.$base_matrix_make_matrix(
-[Pacioli.$base_base_tuple(
+Pacioli.$base_system__add_mut(
+Pacioli.$base_list_empty_list(
+), 
+Pacioli.$base_base_tuple(
 lcl_p, 
 Pacioli.fetchValue('$base_matrix', '_'), 
-Pacioli.initialNumbers(1, 1, [[0, 0, 1]]))]);
+Pacioli.initialNumbers(1, 1, [[0, 0, 1]]))));
+}
+
+
+Pacioli.compute_u_$standard_matrix_closure = function () {
+    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.ONE, '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1))]), Pacioli.createMatrixType(Pacioli.ONE, '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
+}
+
+Pacioli.$standard_matrix_closure = function (lcl_x) {
+return Pacioli.$base_matrix_minus(
+Pacioli.$standard_matrix_kleene(
+lcl_x), 
+Pacioli.$base_matrix_left_identity(
+lcl_x));
+}
+
+
+Pacioli.compute_u_$standard_matrix_right_inverse = function () {
+    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1))]), Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(-1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
+}
+
+Pacioli.$standard_matrix_right_inverse = function (lcl_A) {
+return Pacioli.$base_matrix_solve(
+lcl_A, 
+Pacioli.$base_matrix_left_identity(
+lcl_A));
+}
+
+
+Pacioli.compute_u_$standard_matrix_set_precision = function () {
+    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.unitType('decimals').expt(1), new Pacioli.IndexType([]), Pacioli.ONE, new Pacioli.IndexType([]), Pacioli.ONE)]), new Pacioli.GenericType("Void", []));
+}
+
+Pacioli.$standard_matrix_set_precision = function (lcl_n) {
+return Pacioli.$base_system__set_precision(
+Pacioli.$base_matrix_magnitude(
+lcl_n));
+}
+
+
+Pacioli.compute_u_$standard_matrix_inverse = function () {
+    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1))]), Pacioli.createMatrixType(Pacioli.unitFromVarName('_a_').expt(-1), '_Q_', new Pacioli.PowerProduct('_Q!v_').expt(1), '_P_', new Pacioli.PowerProduct('_P!u_').expt(1)));
+}
+
+Pacioli.$standard_matrix_inverse = function (lcl_x) {
+return Pacioli.$standard_matrix_right_inverse(
+lcl_x);
+}
+
+
+Pacioli.compute_u_$standard_standard_to_percentage = function () {
+    return new Pacioli.FunctionType(new Pacioli.GenericType("Tuple", [Pacioli.createMatrixType(Pacioli.ONE, '_D_', Pacioli.ONE, '_E_', Pacioli.ONE)]), Pacioli.createMatrixType(Pacioli.unitType('percent').expt(1), '_D_', Pacioli.ONE, '_E_', Pacioli.ONE));
+}
+
+Pacioli.$standard_standard_to_percentage = function (lcl_x) {
+return Pacioli.$base_matrix_scale(
+Pacioli.fetchValue('$standard_standard', 'percent_conv'), 
+lcl_x);
+}
+
+
+Pacioli.compute_u_$standard_standard_printf = function () {
+    return new Pacioli.FunctionType(Pacioli.typeFromVarName('_t_'), new Pacioli.GenericType("Void", []));
+}
+
+Pacioli.$standard_standard_printf = function (...lcl_args) {
+return Pacioli.$base_io_print(
+Pacioli.$base_base_apply(
+Pacioli.fetchValue('$base_string', 'format'), 
+lcl_args));
 }
 Pacioli.compute_sbase_mole = function () { return {symbol: "mol"}};
 Pacioli.compute_sbase_metre = function () { return {symbol: "m"}};
@@ -118,16 +121,13 @@ Pacioli.compute_sbase_piece = function () {
 Pacioli.compute_sbase_becquerel = function () {
     return {definition: Pacioli.DimNum.fromNumber(1.00000000000000000000000000000000000000000000000000, Pacioli.unitType('second').expt(-1)), symbol: "Bq"}
 }
+Pacioli.compute_sbase_gram = function () { return {symbol: "g"}};
+
+Pacioli.compute_index_bom_Product = function () {return Pacioli.makeIndexSet('index_bom_Product', 'Product', [ "Butter","Flour","Pastry","Apples","Sugar","ApplePie","PieceOfPie","CrateOfApples" ])}
 Pacioli.compute_sbase_pie = function () {
     return {definition: Pacioli.DimNum.fromNumber(1, Pacioli.ONE), symbol: "pie"}
 }
-
-Pacioli.compute_index_bom_Product = function () {return Pacioli.makeIndexSet('index_bom_Product', 'Product', [ "Butter","Flour","Pastry","Apples","Sugar","ApplePie","PieceOfPie","CrateOfApples" ])}
-Pacioli.compute_sbase_gram = function () { return {symbol: "g"}};
 Pacioli.compute_vbase_bom_Product_unit = function () { return {units: { 'ApplePie': Pacioli.unitType('pie').expt(1), 'PieceOfPie': Pacioli.unitType('piece').expt(1), 'Butter': Pacioli.unitType('gram').expt(1), 'Flour': Pacioli.unitType('gram').expt(1), 'Pastry': Pacioli.unitType('kilo', 'gram').expt(1), 'Apples': Pacioli.unitType('gram').expt(1), 'CrateOfApples': Pacioli.unitType('crate').expt(1), 'Sugar': Pacioli.unitType('gram').expt(1) }}};
-Pacioli.compute_sbase_coulomb = function () {
-    return {definition: Pacioli.DimNum.fromNumber(1, Pacioli.unitType('second').expt(1).mult(Pacioli.unitType('ampere').expt(1))), symbol: "C"}
-}
 Pacioli.compute_sbase_newton = function () {
     return {definition: Pacioli.DimNum.fromNumber(1000.00000000000000000000000000000000000000000000000000, Pacioli.unitType('second').expt(-2).mult(Pacioli.unitType('gram').expt(1).mult(Pacioli.unitType('metre').expt(1)))), symbol: "N"}
 }
@@ -139,6 +139,9 @@ Pacioli.compute_sbase_watt = function () {
 }
 Pacioli.compute_sbase_volt = function () {
     return {definition: Pacioli.DimNum.fromNumber(1.000000000000000000000000000000000000000000000000000000000000000000000000000, Pacioli.unitType('second').expt(-1).mult(Pacioli.unitType('ampere').expt(-1).mult(Pacioli.unitType('joule').expt(1)))), symbol: "V"}
+}
+Pacioli.compute_sbase_coulomb = function () {
+    return {definition: Pacioli.DimNum.fromNumber(1, Pacioli.unitType('second').expt(1).mult(Pacioli.unitType('ampere').expt(1))), symbol: "C"}
 }
 Pacioli.compute_sbase_farad = function () {
     return {definition: Pacioli.DimNum.fromNumber(1.00000000000000000000000000000000000000000000000000, Pacioli.unitType('second').expt(1).mult(Pacioli.unitType('ampere').expt(2).mult(Pacioli.unitType('watt').expt(-1)))), symbol: "F"}
@@ -209,32 +212,18 @@ Pacioli.compute_sbase_sievert = function () {
     return {definition: Pacioli.DimNum.fromNumber(0.00100000000000000000000000000000000000000000000000, Pacioli.unitType('newton').expt(1).mult(Pacioli.unitType('gram').expt(-1).mult(Pacioli.unitType('metre').expt(1)))), symbol: "Sv"}
 }
 
-Pacioli.compute_u_bom_conv = function () {
-    return Pacioli.createMatrixType(Pacioli.ONE, new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_trade_unit', 0).expt(1));
-}
-Pacioli.compute_bom_conv = function () {
-  return Pacioli.initialNumbers(8, 8, [[0,0,1000.0000000000000000000000000],[1,1,1000.0000000000000000000000000],[2,2,1.0000000000000000000000000],[3,3,1000.0000000000000000000000000],[4,4,1000.0000000000000000000000000],[5,5,1.0000000000000000000000000],[6,6,1.0000000000000000000000000],[7,7,1.0000000000000000000000000]]);
-}
-
-Pacioli.compute_u_$base_matrix__ = function () {
-    return new Pacioli.IndexType([]);
-}
-Pacioli.compute_$base_matrix__ = function () {
-  return Pacioli.createCoordinates([]);
-}
-
-Pacioli.compute_u_$standard_standard_percent_conv = function () {
-    return Pacioli.createMatrixType(Pacioli.unitType('percent').expt(1), new Pacioli.IndexType([]), Pacioli.ONE, new Pacioli.IndexType([]), Pacioli.ONE);
-}
-Pacioli.compute_$standard_standard_percent_conv = function () {
-  return Pacioli.initialNumbers(1, 1, [[0,0,100.0000000000000000000000000]]);
-}
-
 Pacioli.compute_u_bom_BoM = function () {
     return Pacioli.createMatrixType(Pacioli.ONE, new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1));
 }
 Pacioli.compute_bom_BoM = function () {
   return Pacioli.initialNumbers(8, 8, [[7,3,0.00005],[0,2,360.0],[1,2,550.0],[2,5,0.4],[3,5,750.0],[4,5,225.0],[0,5,115.0],[5,6,0.125]]);
+}
+
+Pacioli.compute_u_bom_conv = function () {
+    return Pacioli.createMatrixType(Pacioli.ONE, new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_trade_unit', 0).expt(1));
+}
+Pacioli.compute_bom_conv = function () {
+  return Pacioli.initialNumbers(8, 8, [[0,0,1000.0000000000000000000000000],[1,1,1000.0000000000000000000000000],[2,2,1.0000000000000000000000000],[3,3,1000.0000000000000000000000000],[4,4,1000.0000000000000000000000000],[5,5,1.0000000000000000000000000],[6,6,1.0000000000000000000000000],[7,7,1.0000000000000000000000000]]);
 }
 
 Pacioli.compute_u_bom_trade_BoM = function () {
@@ -269,20 +258,30 @@ Pacioli.compute_bom_price = function () {
   return Pacioli.initialNumbers(8, 1, [[7,0,100],[1,0,0.80],[0,0,2.00],[4,0,0.50]]);
 }
 
-Pacioli.compute_u_bom_BoM_closure = function () {
-    return Pacioli.createMatrixType(Pacioli.ONE, new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1));
-}
-Pacioli.compute_bom_BoM_closure = function () {
-  return Pacioli.$standard_matrix_closure(
-Pacioli.fetchValue('bom', 'BoM'));
-}
-
 Pacioli.compute_u_bom_cost_breakdown = function () {
     return Pacioli.createMatrixType(Pacioli.unitType('dollar').expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.ONE, new Pacioli.IndexType([]), Pacioli.ONE);
 }
 Pacioli.compute_bom_cost_breakdown = function () {
   return Pacioli.$base_matrix_multiply(
 Pacioli.fetchValue('bom', 'ingredient_breakdown'), 
+Pacioli.fetchValue('bom', 'price'));
+}
+
+Pacioli.compute_u_$base_matrix__ = function () {
+    return new Pacioli.IndexType([]);
+}
+Pacioli.compute_$base_matrix__ = function () {
+  return Pacioli.createCoordinates([]);
+}
+
+Pacioli.compute_u_bom_product_cost = function () {
+    return Pacioli.createMatrixType(Pacioli.unitType('dollar').expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_trade_unit', 0).expt(-1), new Pacioli.IndexType([]), Pacioli.ONE);
+}
+Pacioli.compute_bom_product_cost = function () {
+  return Pacioli.$base_matrix_mmult(
+Pacioli.$base_matrix_transpose(
+Pacioli.$standard_matrix_closure(
+Pacioli.fetchValue('bom', 'trade_BoM'))), 
 Pacioli.fetchValue('bom', 'price'));
 }
 
@@ -297,13 +296,17 @@ Pacioli.$base_matrix_total(
 Pacioli.fetchValue('bom', 'cost_breakdown'))));
 }
 
-Pacioli.compute_u_bom_product_cost = function () {
-    return Pacioli.createMatrixType(Pacioli.unitType('dollar').expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_trade_unit', 0).expt(-1), new Pacioli.IndexType([]), Pacioli.ONE);
+Pacioli.compute_u_bom_BoM_closure = function () {
+    return Pacioli.createMatrixType(Pacioli.ONE, new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1), new Pacioli.IndexType(['bom_Product']), Pacioli.unitVectorType('bom', 'Product_unit', 0).expt(1));
 }
-Pacioli.compute_bom_product_cost = function () {
-  return Pacioli.$base_matrix_mmult(
-Pacioli.$base_matrix_transpose(
-Pacioli.$standard_matrix_closure(
-Pacioli.fetchValue('bom', 'trade_BoM'))), 
-Pacioli.fetchValue('bom', 'price'));
+Pacioli.compute_bom_BoM_closure = function () {
+  return Pacioli.$standard_matrix_closure(
+Pacioli.fetchValue('bom', 'BoM'));
+}
+
+Pacioli.compute_u_$standard_standard_percent_conv = function () {
+    return Pacioli.createMatrixType(Pacioli.unitType('percent').expt(1), new Pacioli.IndexType([]), Pacioli.ONE, new Pacioli.IndexType([]), Pacioli.ONE);
+}
+Pacioli.compute_$standard_standard_percent_conv = function () {
+  return Pacioli.initialNumbers(1, 1, [[0,0,100.0000000000000000000000000]]);
 }
