@@ -222,11 +222,12 @@ function buildAsciiMatrix(
 
   // The column width is the maximum of the header width and the magnitude
   // plus unit width (plus 1 space)
-  const columnWidths = columnHeaders.map((header, i) =>
-    units
-      ? Math.max(header.length, maxMagnitudeWidths[i] + maxUnitWidths[i] + 1)
-      : Math.max(header.length, maxMagnitudeWidths[i]),
-  );
+  const columnWidths = columnHeaders.map((header, i) => {
+    const headerLength = headers ? header.length : 0;
+    return units
+      ? Math.max(headerLength, maxMagnitudeWidths[i] + maxUnitWidths[i] + 1)
+      : Math.max(headerLength, maxMagnitudeWidths[i]);
+  });
 
   // Set all column widths to the maximum if event width is requested
   if (evenWidth) {
