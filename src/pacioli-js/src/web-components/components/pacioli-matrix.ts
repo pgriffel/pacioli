@@ -49,13 +49,21 @@ export interface MatrixOptions extends NumberOptions {
 }
 
 const STYLES = `
-.pacioli-table {
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
 
-border-spacing: 0;
-border-collapse: collapse;
+.fixed {
+  table-layout: fixed;
+}
 
 tr {
-   height: 28px;
+   height: 16pt;
+}
+
+th.value {
+   height: 24pt;
 }
 
 td {
@@ -64,33 +72,31 @@ td {
 
 th {
   border-width: 1px 1px 1px 1px;
-  padding-left: 1em;
+  padding-left: 8pt;
   text-align: left;
+  white-space: nowrap;
+  font-weight: normal;
 }
 
 td.key {
-  padding-left: 1em;
-  padding-right: 0.25em;
+  padding-left: 8pt;
+  padding-right: 8pt;
   border-width: 1px 1px 1px 1px;
 }
 
 td.value {
-  padding-left: 1em;
+  padding-left: 8pt;
   border-width: 1px 0px 1px 1px;
   text-align: right;
-}
-
-td.unit {
-  padding-left: 0.25em;
-  padding-right: 0.25em;
-  border-width: 1px 1px 1px 0px;
-  text-align: left;
   white-space: nowrap;
 }
 
-td.total {
-  font-weight: bold;
-}
+td.unit {
+  padding-left: 2pt;
+  padding-right: 8pt;
+  border-width: 1px 1px 1px 0px;
+  text-align: left;
+  white-space: nowrap;
 }
 `;
 

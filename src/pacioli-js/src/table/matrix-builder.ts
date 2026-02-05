@@ -15,6 +15,7 @@ export interface MatrixBuilderOptions extends NumberOptions {
   nounits: boolean;
   headerunits: boolean;
   evenwidth: boolean;
+  width?: number;
 }
 
 /**
@@ -134,6 +135,7 @@ export class MatrixBuilder {
       this.options.headers === true,
       this.options.evenwidth === true,
       this.options.nounits !== true,
+      this.options.width,
     );
   }
 
@@ -284,25 +286,33 @@ function createMatrixTable(
   rowHeaders: string[],
   columnHeaders: string[],
   headers: boolean,
-  _evenwidth: boolean, // TODO: handle eventwidth
+  evenwidth: boolean,
   units: boolean,
+  width: number | undefined,
 ): HTMLTableElement {
   const table = document.createElement("table");
-  table.className = "pacioli-table";
+  table.className = evenwidth ? "fixed" : "";
+  table.part = "table";
+  if (width !== undefined) {
+    table.style.width = `${width.toString()}px`;
+  }
 
   if (headers) {
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
+    headerRow.part = "header row";
 
-    const corner = document.createElement("td");
+    const corner = document.createElement("th");
     corner.className = "key";
+    corner.part = "header key";
     corner.innerHTML = "";
     headerRow.appendChild(corner);
 
     for (const header of columnHeaders) {
-      const th = document.createElement("td");
+      const th = document.createElement("th");
 
       th.className = "value";
+      th.part = "header value";
       th.innerHTML = header;
 
       if (units) {
@@ -321,10 +331,12 @@ function createMatrixTable(
 
   for (const [i, row] of data.entries()) {
     const rowElt = document.createElement("tr");
+    rowElt.part = "body row";
 
     if (headers) {
-      const rowHeader = document.createElement("td");
+      const rowHeader = document.createElement("th");
       rowHeader.className = "key";
+      rowHeader.part = "body key";
       rowHeader.innerHTML = rowHeaders[i];
       rowElt.appendChild(rowHeader);
     }
@@ -333,6 +345,7 @@ function createMatrixTable(
       const valueCell = document.createElement("td");
 
       valueCell.className = "value";
+      valueCell.part = "body value";
       valueCell.innerHTML = cell.magnitude;
 
       rowElt.appendChild(valueCell);
@@ -341,6 +354,7 @@ function createMatrixTable(
         const unitCell = document.createElement("td");
 
         unitCell.className = "unit";
+        unitCell.part = "body unit";
         unitCell.appendChild(document.createTextNode(cell.unit));
 
         rowElt.appendChild(unitCell);
