@@ -96,10 +96,10 @@ const VALID_TABLE_DATA_MESSAGE = `Valid chart data for a table is
  * Style sheet for the table component
  */
 const STYLES = ` 
-.pacioli-table {
-
-border-spacing: 0;
-border-collapse: collapse;
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
 
 tr {
    height: 28px;
@@ -137,7 +137,6 @@ td.unit {
 
 td.total {
   font-weight: bold;
-}
 }
 `;
 

@@ -27,7 +27,7 @@ import { defaultContext } from "../cache";
 import { stringifyCell } from "./util";
 
 /**
- * Exactly the same as DOMOptions. TODO: consider merging.
+ * Options for the TableBuilder
  */
 export interface TableBuilderOptions {
   decimals: number;
@@ -305,7 +305,7 @@ function domFromTable(data: TableBuilder): HTMLElement {
   }
 
   const table = document.createElement("table");
-  table.className = "pacioli-table";
+  table.part = "table";
 
   // Create the table
   const thead = document.createElement("thead");
@@ -315,11 +315,13 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
   // Create the header row
   const row = document.createElement("tr");
+  row.part = "header row";
 
   // Add the index headers
   for (const text of data.indexHeaders()) {
     const header = document.createElement("th");
     header.className = "key";
+    header.part = "header key";
     header.innerHTML = text;
     row.appendChild(header);
   }
@@ -330,6 +332,7 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
     headerElement.innerHTML = header;
     headerElement.className = "value";
+    headerElement.part = "header value";
     headerElement.colSpan = 2;
 
     row.appendChild(headerElement);
@@ -341,11 +344,13 @@ function domFromTable(data: TableBuilder): HTMLElement {
   for (const row of data.rows()) {
     // Create a new row
     const rowElt = document.createElement("tr");
+    rowElt.part = "body row";
 
     // Add the index
     for (const idx of row.index) {
       const cell = document.createElement("td");
       cell.className = "key";
+      cell.part = "body key";
       cell.innerHTML = idx;
       rowElt.appendChild(cell);
     }
@@ -356,9 +361,11 @@ function domFromTable(data: TableBuilder): HTMLElement {
       const unitCell = document.createElement("td");
 
       valueCell.className = "value";
+      valueCell.part = "body value";
       valueCell.innerHTML = value.magnitude;
 
       unitCell.className = "unit";
+      unitCell.part = "body unit";
       unitCell.innerHTML = value.unit;
 
       rowElt.appendChild(valueCell);
@@ -376,15 +383,18 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
   if (showTotals && indexWidth > 0) {
     const totalRow = document.createElement("tr");
+    totalRow.part = "total row";
 
     const cell = document.createElement("td");
     cell.className = "total key";
+    cell.part = "total title";
     cell.innerHTML = "Total";
     totalRow.appendChild(cell);
 
     for (let i = 1; i < indexWidth; i++) {
       const cell = document.createElement("td");
       cell.className = "key";
+      cell.part = "total key";
       cell.innerHTML = "";
       totalRow.appendChild(cell);
     }
@@ -392,11 +402,13 @@ function domFromTable(data: TableBuilder): HTMLElement {
     for (const value of data.totals()) {
       let cell = document.createElement("td");
       cell.className = "total value";
+      cell.part = "total value";
       cell.innerHTML = value ? value.magnitude : "";
       totalRow.appendChild(cell);
 
       cell = document.createElement("td");
       cell.className = "total unit";
+      cell.part = "total unit";
       cell.appendChild(document.createTextNode(value ? value.unit : ""));
 
       totalRow.appendChild(cell);

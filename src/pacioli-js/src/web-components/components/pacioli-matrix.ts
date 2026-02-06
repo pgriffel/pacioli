@@ -59,15 +59,18 @@ table {
 }
 
 tr {
-   height: 16pt;
+   height: 24pt;
 }
 
 th.value {
    height: 24pt;
 }
 
-td {
+td, th {
   border-bottom: solid lightgrey;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 th {
