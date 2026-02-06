@@ -43,7 +43,7 @@ with popup menu "Generate mvm code".
 
 You can print the types of all definitions in the current file.
 
-Choose the right-mouse menu `Pacioli types` or use command `pacioli type foo.pacioli` to infer the
+Choose the right-mouse menu `Pacioli types` or use command `pacioli types foo.pacioli` to infer the
 types.
 
 Typing is optional. Add declaration
