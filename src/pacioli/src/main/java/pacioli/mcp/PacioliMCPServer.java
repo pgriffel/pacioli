@@ -12,10 +12,14 @@ public class PacioliMCPServer {
     private final MCPTransport transport;
 
     public PacioliMCPServer(List<File> libs) {
+        this(libs, new MCPTransport());
+    }
+
+    public PacioliMCPServer(List<File> libs, MCPTransport transport) {
         this.libs = libs;
         this.resources = new MCPResourceManager(libs);
         this.tools = new MCPToolHandler(resources);
-        this.transport = new MCPTransport();
+        this.transport = transport;
     }
 
     public void start() throws Exception {
