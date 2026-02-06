@@ -26,6 +26,10 @@ public class PacioliMCPServer {
         transport.start(this::handleMessage);
     }
 
+    public void stop() {
+        transport.close();
+    }
+
     private void handleMessage(JsonObject message) {
         try {
             String method = message.has("method") ? message.get("method").getAsString() : null;

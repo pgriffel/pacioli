@@ -40,4 +40,17 @@ public class MCPTransport {
         out.println(gson.toJson(obj));
         out.flush();
     }
+
+    public void close() {
+        try {
+            in.close();
+        } catch (Exception e) {
+            // ignore
+        }
+        try {
+            out.close();
+        } catch (Exception e) {
+            // ignore
+        }
+    }
 }
