@@ -47,6 +47,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import pacioli.mcp.PacioliMCPServer;
 
 import mvm.MVMException;
 import mvm.Machine;
@@ -280,6 +281,8 @@ public class Pacioli {
                 infoCommand(libs);
             } else if (command.equals("lsp")) {
                 lspCommand(libs);
+            } else if (command.equals("mcp")) {
+                mcpCommand(libs);
             } else {
                 displayError(String.format("Command '%s' unknown", command));
             }
@@ -637,6 +640,16 @@ public class Pacioli {
         println("   -debug        toggles stack traces on or off");
         println("   -trace X      turns tracing on for function X");
         println("   -traceall     toggles tracing of all functions on or off");
+    }
+
+    private static void mcpCommand(List<File> libs) {
+        try {
+            PacioliMCPServer server = new PacioliMCPServer(libs);
+            server.start();
+        } catch (Exception e) {
+            Pacioli.logToFile("pacioli_mcp_error.log", e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /*
