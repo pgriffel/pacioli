@@ -207,7 +207,7 @@ For a vector or matrix the domain is its index set. For a list of numbers the do
 set `{"0", "1", "2", ..., n-1}` with `n` the size of the list.
 
 <p>
-<pacioli-table>
+<pacioli-table decimals=0>
     <column header="Squares" definition="tables:squares"></column>
     <column header="Cubes" definition="tables:cubes"></column>
     <column header="Exponents" definition="tables:exponents"></column>
@@ -226,7 +226,7 @@ Add the following code to `tables.pacioli`.
 
 Add the following HTML
 
-    <pacioli-table>
+    <pacioli-table decimals=0>
         <column header="Squares" definition="tables:squares"></column>
         <column header="Cubes" definition="tables:cubes"></column>
         <column header="Exponents" definition="tables:exponents"></column>
