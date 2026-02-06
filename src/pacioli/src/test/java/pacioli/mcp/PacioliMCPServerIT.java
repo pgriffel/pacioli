@@ -33,7 +33,7 @@ public class PacioliMCPServerIT {
 
         MCPTransport transport = new MCPTransport(serverIn, serverToClientPos);
 
-        File libDir = new File("lib");
+        File libDir = new File("D:\\code\\pacioli\\lib\\");
         List<File> libs = List.of(libDir);
 
         PacioliMCPServer server = new PacioliMCPServer(libs, transport);
@@ -77,7 +77,7 @@ public class PacioliMCPServerIT {
         JsonObject callParams = new JsonObject();
         callParams.addProperty("name", "analyze_file");
         JsonObject arguments = new JsonObject();
-        arguments.addProperty("filepath", "lib/base/base.pacioli");
+        arguments.addProperty("filepath", "D:\\code\\pacioli\\lib\\planets\\planets.pacioli");
         callParams.add("arguments", arguments);
         call.add("params", callParams);
 
