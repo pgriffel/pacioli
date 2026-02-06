@@ -16,11 +16,10 @@
     <h2>Bill of Material Matrix</h2>
 
     <style>
-        pacioli-matrix {
-            margin: 16pt
-        }
-
         .panel {
+            margin-left: 8pt;
+            margin-bottom: 16pt;
+
             input {
                 margin-right: 16pt
             }
@@ -40,6 +39,9 @@
         <label for="units">Units</label>
         <input id="units" type="checkbox" onchange="update()" checked />
 
+        <label for="headerunits">Header units</label>
+        <input id="headerunits" type="checkbox" onchange="update()" />
+
         <label for="evenwidth">Even width</label>
         <input id="evenwidth" type="checkbox" onchange="update()" />
 
@@ -47,11 +49,11 @@
         <input id="ascii" type="checkbox" onchange="update()" />
     </div>
 
-    <pacioli-matrix id="bom" definition="bom:BoM" zero="-" headers headerunits raw evenwidth>
+    <pacioli-matrix id="bom" definition="bom:BoM" zero="-" headers headerunits raw evenwidth width="1000">
     </pacioli-matrix>
 
-    <h2>Bill of Material</h2>
 
+    <h2>Bill of Material</h2>
 
     <div id="bomsection"></div>
 
@@ -59,7 +61,6 @@
     <h2>Exploded Bill of Material</h2>
 
     <div id="explodedsection"></div>
-
 
 
     <h2>Cost Breakdown</h2>
@@ -82,7 +83,7 @@
             bomComponent.headers = document.getElementById('headers').checked
             bomComponent.raw = document.getElementById('raw').checked
             bomComponent.nounits = !document.getElementById('units').checked
-            bomComponent.headerunits = document.getElementById('units').checked
+            bomComponent.headerunits = document.getElementById('headerunits').checked
             bomComponent.ascii = document.getElementById('ascii').checked
             bomComponent.evenwidth = document.getElementById('evenwidth').checked
             bomComponent.definition = document.getElementById('exploded').checked ? "bom:BoM_closure" : "bom:BoM"
