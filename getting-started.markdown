@@ -25,7 +25,7 @@ If you work with the Visual Studio Code extension you must open a directory or w
 VS Code requires an open workspace to run compiler tasks. After opening a workspace it should recognize
 .pacioli files when you view them.
 
-Now run the file. In vs-code you can choose "Run Pacioli" in the popup menu or press ctrl-F9. On the
+Now run the file. In vs-code you can choose `Pacioli run` in the popup menu or press `ctrl-F9`. On the
 command line you can run `pacioli run foo.pacioli`.
 
 You should see something like the following with the answer 5050.
@@ -43,8 +43,8 @@ with popup menu "Generate mvm code".
 
 You can print the types of all definitions in the current file.
 
-Choose the right-mouse menu 'Type Pacioli file Run' or use command `type Pacioli file` to infer the
-types in the current file.
+Choose the right-mouse menu `Pacioli types` or use command `pacioli type foo.pacioli` to infer the
+types.
 
 Typing is optional. Add declaration
 
