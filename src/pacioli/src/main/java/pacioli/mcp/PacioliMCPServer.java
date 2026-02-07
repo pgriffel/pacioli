@@ -3,6 +3,7 @@ package pacioli.mcp;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.Date;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -12,8 +13,8 @@ import com.google.gson.JsonObject;
 
 public class PacioliMCPServer {
     private final List<File> libs;
-    private final MCPResourceManager resources;
-    private final MCPToolHandler tools;
+    private final MCPResourceManager resourceManager;
+    private final MCPToolHandler toolHandler;
     private final MCPTransport transport;
 
     public PacioliMCPServer(List<File> libs) {
@@ -22,8 +23,8 @@ public class PacioliMCPServer {
 
     public PacioliMCPServer(List<File> libs, MCPTransport transport) {
         this.libs = libs;
-        this.resources = new MCPResourceManager(libs);
-        this.tools = new MCPToolHandler(resources);
+        this.resourceManager = new MCPResourceManager(libs);
+        this.toolHandler = new MCPToolHandler(resourceManager);
         this.transport = transport;
     }
 
@@ -40,18 +41,41 @@ public class PacioliMCPServer {
             String method = message.has("method") ? message.get("method").getAsString() : null;
 
             BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true));
-            writer.write(String.format("[%s] Handling '%s' message\n",
+            writer.write(String.format("[%s] Handling '%s' message%n",
                     ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
                     method));
             writer.close();
 
             if ("initialize".equals(method)) {
-                JsonObject resp = new JsonObject();
-                resp.addProperty("jsonrpc", "2.0");
-                resp.add("result", new JsonObject());
+                JsonObject prompts = new JsonObject();
+                JsonObject resources = new JsonObject();
+                JsonObject tools = new JsonObject();
+
+                JsonObject capabilities = new JsonObject();
+
+                capabilities.add("prompts", prompts);
+                capabilities.add("resources", resources);
+                capabilities.add("tools", tools);
+
+                JsonObject serverinfo = new JsonObject();
+                serverinfo.addProperty("name", "Pacioli MCP");
+                serverinfo.addProperty("version", "0.0.0");
+
+                JsonObject result = new JsonObject();
+
+                result.addProperty("protocolVersion", "2025-11-25");
+                result.add("capabilities", capabilities);
+                result.add("serverInfo", serverinfo);
+
+                JsonObject response = new JsonObject();
+
+                response.addProperty("jsonrpc", "2.0");
                 if (message.has("id"))
-                    resp.add("id", message.get("id"));
-                transport.send(resp);
+                    response.add("id", message.get("id"));
+                response.add("result", result);
+
+                transport.send(response);
+
                 return;
             }
             if ("notifications/initialized".equals(method)) {
@@ -72,7 +96,7 @@ public class PacioliMCPServer {
             }
             if ("tools/call".equals(method)) {
                 JsonObject params = message.getAsJsonObject("params");
-                JsonObject result = tools.callTool(params);
+                JsonObject result = toolHandler.callTool(params);
                 JsonObject resp = new JsonObject();
                 resp.addProperty("jsonrpc", "2.0");
                 resp.add("result", result);
@@ -92,6 +116,16 @@ public class PacioliMCPServer {
                 errResp.add("id", message.get("id"));
             transport.send(errResp);
         } catch (Exception e) {
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true));
+                writer.write(String.format("[%s] Error:\n%s\n",
+                        ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
+                        e.getMessage()));
+                writer.close();
+            } catch (IOException e1) {
+                // Ai
+            }
+
             JsonObject resp = new JsonObject();
             resp.addProperty("jsonrpc", "2.0");
             JsonObject error = new JsonObject();
