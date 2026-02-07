@@ -1,6 +1,11 @@
 package pacioli.mcp;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.sql.Date;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.google.gson.JsonObject;
@@ -33,6 +38,13 @@ public class PacioliMCPServer {
     private void handleMessage(JsonObject message) {
         try {
             String method = message.has("method") ? message.get("method").getAsString() : null;
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true));
+            writer.write(String.format("[%s] Handling '%s' message\n",
+                    ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
+                    method));
+            writer.close();
+
             if ("initialize".equals(method)) {
                 JsonObject resp = new JsonObject();
                 resp.addProperty("jsonrpc", "2.0");
@@ -40,6 +52,12 @@ public class PacioliMCPServer {
                 if (message.has("id"))
                     resp.add("id", message.get("id"));
                 transport.send(resp);
+                return;
+            }
+            if ("notifications/initialized".equals(method)) {
+                // Client has completed initialization handshake
+                // This is a notification, so no response is sent
+                // Server is now ready to handle tool calls from client
                 return;
             }
             if ("tools/list".equals(method)) {
