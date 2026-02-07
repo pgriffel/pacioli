@@ -22,6 +22,15 @@ public class MCPToolHandler {
             return analyzeTool.call(args);
         } else if ("list_symbols".equals(name)) {
             return listSymbolsTool.call(args);
+        } else if ("list_libraries".equals(name)) {
+            // Return list of library directories
+            var res = new com.google.gson.JsonObject();
+            var arr = new com.google.gson.JsonArray();
+            for (java.io.File f : resources.listLibraries()) {
+                arr.add(f.getAbsolutePath());
+            }
+            res.add("libraries", arr);
+            return res;
         } else {
             throw new MCPException("Unknown tool: " + name);
         }
