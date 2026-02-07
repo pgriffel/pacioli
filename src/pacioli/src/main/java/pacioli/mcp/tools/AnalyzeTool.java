@@ -55,7 +55,7 @@ public class AnalyzeTool {
                 s.addProperty("hasDefinition", info.definition().isPresent());
                 s.addProperty("hasInferredType", info.inferredType().isPresent());
                 s.addProperty("type", info.inferredType().isPresent() ? info.inferredType().get().pretty()
-                        : (info.declaredType().isPresent() ? info.declaredType().get().toString() : "unknown"));
+                        : (info.declaredType().isPresent() ? info.declaredType().get().pretty() : "unknown"));
                 symbols.add(s);
             }
 

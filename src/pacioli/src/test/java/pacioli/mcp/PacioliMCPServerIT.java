@@ -93,6 +93,29 @@ public class PacioliMCPServerIT {
         if (analyzeResp.has("result")) {
             JsonObject r = analyzeResp.getAsJsonObject("result");
             assertTrue(r.has("symbols") || r.has("error"));
+
+            assertTrue(r.getAsJsonArray("symbols").size() == 254);
+
+            JsonObject record0 = r.getAsJsonArray("symbols").get(0).getAsJsonObject();
+
+            assertTrue(r.getAsJsonArray("symbols").size() == 254);
+
+            assertEquals("eigenvalue_decomposition", record0.get("name").getAsString());
+            assertEquals("$base_matrix", record0.get("module").getAsString());
+            assertEquals(true, record0.get("isPublic").getAsBoolean());
+            assertEquals(true, record0.get("isGlobal").getAsBoolean());
+            assertEquals(false, record0.get("isUserDefined").getAsBoolean());
+            assertEquals(false, record0.get("hasDefinition").getAsBoolean());
+            assertEquals(false, record0.get("hasInferredType").getAsBoolean());
+            assertEquals("for_unit a, P!u: for_index P: (a*P!u per P!u) -> Tuple(a*P!u per P!u, a*P!u per P!u)",
+                    record0.get("type").getAsString());
+
+            System.out.println(String.format("%s", r.getAsJsonArray("symbols").size()));
+
+            System.out.println(
+                    String.format("%s", r.getAsJsonArray("symbols").get(0).getAsJsonObject().toString()));
+
+            // System.out.println(String.format("%s", r.get("planetary_mass").toString()));
         }
 
         // Stop server gracefully and wait for thread completion
