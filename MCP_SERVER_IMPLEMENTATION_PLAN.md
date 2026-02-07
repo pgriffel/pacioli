@@ -136,6 +136,7 @@ class PacioliMCPServer {
     - handleMessage(request): JSONObject // Process JSON-RPC request
     - getToolDefinitions(): List<Tool>   // List available tools
     - getResources(): List<Resource>     // List available resources
+    - listTools(): JSONObject            // Dynamic capability discovery
 }
 ```
 
@@ -151,6 +152,7 @@ class PacioliMCPServer {
 
 | Tool Name           | Input                          | Output                                  | Purpose                        |
 | ------------------- | ------------------------------ | --------------------------------------- | ------------------------------ |
+| `tools/list`        | (none)                         | Array of tool definitions with schemas  | Dynamic capability discovery   |
 | `analyze_file`      | `filepath`, `libdir`           | JSON with type info, symbols, errors    | Parse and analyze Pacioli file |
 | `list_symbols`      | `filepath`, `libdir`           | Array of symbol definitions with types  | Extract public API from module |
 | `get_documentation` | `name`, `libdir`               | Markdown documentation                  | Get API documentation          |
@@ -211,6 +213,7 @@ class MCPResourceManager {
 3. Implement `PacioliMCPServer` class:
    - Protocol initialization and version negotiation
    - Request routing
+   - **Implement `tools/list` method for dynamic capability discovery**
 4. Implement `MCPResourceManager`:
    - Library discovery and indexing
 5. Implement `MCPToolHandler` with first 2 tools:
@@ -348,7 +351,119 @@ public class AnalysisResult {
 
 ## 7. MCP Tool Specifications
 
-### 7.1 analyze_file Tool
+### 7.1 tools/list Method (Dynamic Capability Discovery)
+
+**Purpose**: List all available tools with their specifications, input schemas, and documentation. This enables clients to dynamically discover capabilities without hardcoding tool names.
+
+**Input Schema**: None (no parameters required)
+
+**Output Schema**:
+
+```json
+{
+  "tools": [
+    {
+      "name": "analyze_file",
+      "description": "Parse and analyze a Pacioli file, returning symbols, types, and diagnostics",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filepath": {
+            "type": "string",
+            "description": "Path to the Pacioli file to analyze"
+          },
+          "libdir": {
+            "type": "string",
+            "description": "Path to the library directory"
+          }
+        },
+        "required": ["filepath", "libdir"]
+      }
+    },
+    {
+      "name": "list_symbols",
+      "description": "Extract all public symbols from a module (API listing)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filepath": {
+            "type": "string",
+            "description": "Path to the Pacioli module file"
+          },
+          "libdir": {
+            "type": "string",
+            "description": "Path to the library directory"
+          }
+        },
+        "required": ["filepath", "libdir"]
+      }
+    },
+    {
+      "name": "compile",
+      "description": "Compile Pacioli code to a target language",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filepath": {
+            "type": "string",
+            "description": "Path to the Pacioli file to compile"
+          },
+          "libdir": {
+            "type": "string",
+            "description": "Path to the library directory"
+          },
+          "target": {
+            "type": "string",
+            "description": "Target language (mvm, javascript, matlab, python)",
+            "enum": ["mvm", "javascript", "matlab", "python"]
+          }
+        },
+        "required": ["filepath", "libdir", "target"]
+      }
+    }
+  ]
+}
+```
+
+**Implementation Notes**:
+
+- The `tools/list` method is handled directly by the server (not as a tool in MCPToolHandler)
+- Implement as a special case in `PacioliMCPServer.handleMessage()` when `method == "tools/list"`
+- Return tool definitions with full JSON schemas for client introspection
+- Update tool definitions when tools are dynamically added (Phase 3+)
+- Tool descriptions should include parameter requirements and output format
+
+**Request Example**:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list"
+}
+```
+
+**Response Example**:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "tools": [
+      {
+        "name": "analyze_file",
+        "description": "...",
+        "inputSchema": {...}
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 7.2 analyze_file Tool
 
 **Purpose**: Parse and analyze a Pacioli file, returning symbols, types, and diagnostics.
 
@@ -387,7 +502,7 @@ public class AnalysisResult {
 }
 ```
 
-### 7.2 list_symbols Tool
+### 7.3 list_symbols Tool
 
 **Purpose**: Extract all public symbols from a module (API listing).
 
@@ -415,7 +530,7 @@ public class AnalysisResult {
 }
 ```
 
-### 7.3 compile Tool
+### 7.4 compile Tool
 
 **Purpose**: Compile code to a target language.
 
@@ -443,7 +558,7 @@ public class AnalysisResult {
 
 **Supported targets**: `mvm`, `javascript`, `matlab`, `python`
 
-### 7.4 infer_types Tool
+### 7.5 infer_types Tool
 
 **Purpose**: Show type inference for expressions and definitions.
 
@@ -673,6 +788,7 @@ mcp.analysis.includePrivate=false
 ### Phase 1 Complete When:
 
 - ✅ MCP server starts and responds to initialization
+- ✅ `tools/list` method dynamically discovers and describes available tools
 - ✅ `analyze_file` tool returns accurate symbol/type information
 - ✅ `list_symbols` extracts public API correctly
 - ✅ Command: `pacioli mcp -lib /path/to/lib` works from CLI
