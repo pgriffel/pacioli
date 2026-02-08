@@ -15,17 +15,17 @@ import pacioli.mcp.MCPException;
 import pacioli.mcp.MCPResourceManager;
 
 public class AnalyzeTool {
-    private final MCPResourceManager resources;
+    private final List<File> libs;
+    private final MCPResourceManager resourceManager;
 
-    public AnalyzeTool(MCPResourceManager resources) {
-        this.resources = resources;
+    public AnalyzeTool(List<File> libs, MCPResourceManager resourceManager) {
+        this.resourceManager = resourceManager;
+        this.libs = new ArrayList<>(libs);
     }
 
     public JsonObject call(JsonObject args) throws MCPException {
         try {
             String path = args.has("filepath") ? args.get("filepath").getAsString() : null;
-
-            List<File> libs = resources.listLibraries();
 
             JsonObject out = new JsonObject();
 

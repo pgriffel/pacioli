@@ -1,6 +1,7 @@
 package pacioli.mcp.tools;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.JsonArray;
@@ -14,17 +15,17 @@ import pacioli.mcp.MCPException;
 import pacioli.mcp.MCPResourceManager;
 
 public class ListSymbolsTool {
+    private final List<File> libs;
     private final MCPResourceManager resources;
 
-    public ListSymbolsTool(MCPResourceManager resources) {
+    public ListSymbolsTool(List<File> libs, MCPResourceManager resources) {
         this.resources = resources;
+        this.libs = new ArrayList<>(libs);
     }
 
     public JsonObject call(JsonObject args) throws MCPException {
         try {
             String path = args.has("filepath") ? args.get("filepath").getAsString() : null;
-
-            List<File> libs = resources.listLibraries();
 
             JsonObject out = new JsonObject();
 

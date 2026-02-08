@@ -2,55 +2,32 @@ package pacioli.mcp;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-public class PacioliMCPServerIT {
+class PacioliMCPServerIT {
+
+    static final List<File> LIBS = List.of(new File("D:\\code\\pacioli\\lib\\"));
 
     @Test
-    public void startServerAndCallAnalyze() throws Exception {
-        // Wire piped streams between client and server
-        PipedOutputStream clientToServerPos = new PipedOutputStream();
-        PipedInputStream serverIn = new PipedInputStream(clientToServerPos);
+    void startServerAndCallAnalyze() throws Exception {
 
-        PipedOutputStream serverToClientPos = new PipedOutputStream();
-        PipedInputStream clientIn = new PipedInputStream(serverToClientPos);
-
-        MCPTransport transport = new MCPTransport(serverIn, serverToClientPos);
-
-        File libDir = new File("D:\\code\\pacioli\\lib\\");
-        List<File> libs = List.of(libDir);
-
-        PacioliMCPServer server = new PacioliMCPServer(libs, transport);
-
+        // Setup
+        TestConnection testConnection = new TestConnection();
+        PacioliMCPServer server = MPCContainer.fromTransport(LIBS, testConnection.transport).server;
         ExecutorService exec = Executors.newSingleThreadExecutor();
-        var future = exec.submit(() -> {
+        exec.submit(() -> {
             try {
                 server.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientToServerPos));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(clientIn));
-
-        Gson gson = new Gson();
 
         // initialize
         JsonObject init = new JsonObject();
@@ -61,12 +38,10 @@ public class PacioliMCPServerIT {
         params.addProperty("protocolVersion", "2024-11-05");
         init.add("params", params);
 
-        writer.write(gson.toJson(init) + "\n");
-        writer.flush();
+        testConnection.writeln(init);
 
-        String respLine = reader.readLine();
-        assertNotNull(respLine, "No response to initialize");
-        JsonObject resp = gson.fromJson(respLine, JsonObject.class);
+        JsonObject resp = testConnection.readJson();
+        assertNotNull(resp, "No response to initialize");
         assertTrue(resp.has("result") || resp.has("error"));
 
         // call analyze_file on a known library file
@@ -81,12 +56,10 @@ public class PacioliMCPServerIT {
         callParams.add("arguments", arguments);
         call.add("params", callParams);
 
-        writer.write(gson.toJson(call) + "\n");
-        writer.flush();
+        testConnection.writeln(call);
 
-        String analyzeRespLine = reader.readLine();
-        assertNotNull(analyzeRespLine, "No response to analyze_file");
-        JsonObject analyzeResp = gson.fromJson(analyzeRespLine, JsonObject.class);
+        JsonObject analyzeResp = testConnection.readJson();
+        assertNotNull(analyzeResp, "No response to analyze_file");
         assertTrue(analyzeResp.has("result") || analyzeResp.has("error"));
 
         // If we have a result, assert it contains symbols array
@@ -94,11 +67,11 @@ public class PacioliMCPServerIT {
             JsonObject r = analyzeResp.getAsJsonObject("result");
             assertTrue(r.has("symbols") || r.has("error"));
 
-            assertTrue(r.getAsJsonArray("symbols").size() == 254);
+            assertEquals(254, r.getAsJsonArray("symbols").size());
 
             JsonObject record0 = r.getAsJsonArray("symbols").get(0).getAsJsonObject();
 
-            assertTrue(r.getAsJsonArray("symbols").size() == 254);
+            assertEquals(254, r.getAsJsonArray("symbols").size());
 
             assertEquals("eigenvalue_decomposition", record0.get("name").getAsString());
             assertEquals("$base_matrix", record0.get("module").getAsString());
@@ -109,30 +82,11 @@ public class PacioliMCPServerIT {
             assertEquals(false, record0.get("hasInferredType").getAsBoolean());
             assertEquals("for_unit a, P!u: for_index P: (a*P!u per P!u) -> Tuple(a*P!u per P!u, a*P!u per P!u)",
                     record0.get("type").getAsString());
-
-            System.out.println(String.format("%s", r.getAsJsonArray("symbols").size()));
-
-            System.out.println(
-                    String.format("%s", r.getAsJsonArray("symbols").get(0).getAsJsonObject().toString()));
-
-            // System.out.println(String.format("%s", r.get("planetary_mass").toString()));
         }
 
-        // Stop server gracefully and wait for thread completion
+        // Teardown
         server.stop();
-
-        // Close client/server piped streams to ensure readLine unblocks
-        clientToServerPos.close();
-        serverToClientPos.close();
-
-        writer.close();
-        reader.close();
-
         exec.shutdown();
-        try {
-            future.get(5, TimeUnit.SECONDS);
-        } catch (TimeoutException te) {
-            fail("Server did not terminate within timeout");
-        }
+        testConnection.close();
     }
 }

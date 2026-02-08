@@ -47,6 +47,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+
+import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
 import mvm.MVMException;
@@ -644,11 +646,10 @@ public class Pacioli {
 
     private static void mcpCommand(List<File> libs) {
         try {
-            PacioliMCPServer server = new PacioliMCPServer(libs);
+            PacioliMCPServer server = MPCContainer.fromSystemIO(libs).server;
             server.start();
         } catch (Exception e) {
-            Pacioli.logToFile("pacioli_mcp_error.log", e.getMessage());
-            e.printStackTrace();
+            Pacioli.logToFile("D:\\pacioli_mcp_error.log", e.getMessage());
         }
     }
 

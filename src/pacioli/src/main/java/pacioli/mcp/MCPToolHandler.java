@@ -1,5 +1,10 @@
 package pacioli.mcp;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+
 import com.google.gson.JsonObject;
 import pacioli.mcp.tools.AnalyzeTool;
 import pacioli.mcp.tools.ListSymbolsTool;
@@ -9,10 +14,10 @@ public class MCPToolHandler {
     private final AnalyzeTool analyzeTool;
     private final ListSymbolsTool listSymbolsTool;
 
-    public MCPToolHandler(MCPResourceManager resources) {
+    public MCPToolHandler(List<File> libs, MCPResourceManager resources) {
         this.resources = resources;
-        this.analyzeTool = new AnalyzeTool(resources);
-        this.listSymbolsTool = new ListSymbolsTool(resources);
+        this.analyzeTool = new AnalyzeTool(libs, resources);
+        this.listSymbolsTool = new ListSymbolsTool(libs, resources);
     }
 
     public JsonObject callTool(JsonObject params) throws MCPException {
@@ -26,8 +31,12 @@ public class MCPToolHandler {
             // Return list of library directories
             var res = new com.google.gson.JsonObject();
             var arr = new com.google.gson.JsonArray();
-            for (java.io.File f : resources.listLibraries()) {
-                arr.add(f.getAbsolutePath());
+            try {
+                for (Path f : resources.listLibraries()) {
+                    arr.add(f.getFileName().toString());
+                }
+            } catch (IOException e) {
+                // TODO handle error
             }
             res.add("libraries", arr);
             return res;

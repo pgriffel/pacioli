@@ -2,55 +2,32 @@ package pacioli.mcp;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-public class InitializationFlowIT {
+class InitializationFlowIT {
+
+    static final List<File> LIBS = List.of(new File("D:\\code\\pacioli\\lib\\"));
 
     @Test
-    public void completeInitializationHandshake() throws Exception {
-        // Wire piped streams between client and server
-        PipedOutputStream clientToServerPos = new PipedOutputStream();
-        PipedInputStream serverIn = new PipedInputStream(clientToServerPos);
+    void completeInitializationHandshake() throws Exception {
 
-        PipedOutputStream serverToClientPos = new PipedOutputStream();
-        PipedInputStream clientIn = new PipedInputStream(serverToClientPos);
-
-        MCPTransport transport = new MCPTransport(serverIn, serverToClientPos);
-
-        File libDir = new File("D:\\code\\pacioli\\lib\\");
-        List<File> libs = List.of(libDir);
-
-        PacioliMCPServer server = new PacioliMCPServer(libs, transport);
-
+        // Setup
+        TestConnection testConnection = new TestConnection();
+        PacioliMCPServer server = MPCContainer.fromTransport(LIBS, testConnection.transport).server;
         ExecutorService exec = Executors.newSingleThreadExecutor();
-        var future = exec.submit(() -> {
+        exec.submit(() -> {
             try {
                 server.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-
-        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(clientToServerPos));
-        BufferedReader reader = new BufferedReader(new InputStreamReader(clientIn));
-
-        Gson gson = new Gson();
 
         // Step 1: Send initialize request
         JsonObject init = new JsonObject();
@@ -61,13 +38,11 @@ public class InitializationFlowIT {
         params.addProperty("protocolVersion", "2024-11-05");
         init.add("params", params);
 
-        writer.write(gson.toJson(init) + "\n");
-        writer.flush();
+        testConnection.writeln(init);
 
         // Step 2: Receive initialize response
-        String respLine = reader.readLine();
-        assertNotNull(respLine, "No response to initialize");
-        JsonObject initResp = gson.fromJson(respLine, JsonObject.class);
+        JsonObject initResp = testConnection.readJson();
+        assertNotNull(initResp, "No response to initialize");
         assertTrue(initResp.has("result"), "Initialize response should have result");
 
         // Step 3: Send notifications/initialized (client is ready)
@@ -76,8 +51,7 @@ public class InitializationFlowIT {
         initialized.addProperty("method", "notifications/initialized");
         // Note: notifications don't have an id field per MCP spec
 
-        writer.write(gson.toJson(initialized) + "\n");
-        writer.flush();
+        testConnection.writeln(initialized);
 
         // Step 4: Server should acknowledge initialization silently (no response)
         // and be ready for tools/list or tools/call requests
@@ -88,30 +62,17 @@ public class InitializationFlowIT {
         listRequest.addProperty("id", 2);
         listRequest.addProperty("method", "tools/list");
 
-        writer.write(gson.toJson(listRequest) + "\n");
-        writer.flush();
+        testConnection.writeln(listRequest);
 
         // Step 6: Receive tools/list response
-        String listRespLine = reader.readLine();
-        assertNotNull(listRespLine, "No response to tools/list after initialization");
-        JsonObject listResp = gson.fromJson(listRespLine, JsonObject.class);
+        JsonObject listResp = testConnection.readJson();
+        assertNotNull(listResp, "No response to tools/list after initialization");
         assertTrue(listResp.has("result"), "tools/list should have result");
         assertTrue(listResp.getAsJsonObject("result").has("tools"), "Result should have tools");
 
-        // Stop server gracefully and wait for thread completion
+        // Teardown
         server.stop();
-
-        clientToServerPos.close();
-        serverToClientPos.close();
-
-        writer.close();
-        reader.close();
-
         exec.shutdown();
-        try {
-            future.get(5, TimeUnit.SECONDS);
-        } catch (TimeoutException te) {
-            fail("Server did not terminate within timeout");
-        }
+        testConnection.close();
     }
 }
