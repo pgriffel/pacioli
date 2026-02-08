@@ -17,6 +17,10 @@ public class MCPResourceManager {
         this.libs = new ArrayList<>(libs);
     }
 
+    public String fetch(String uri) {
+        return uri;
+    }
+
     public List<Path> listLibraries() throws IOException {
         return collectLibraries(libs);
     }

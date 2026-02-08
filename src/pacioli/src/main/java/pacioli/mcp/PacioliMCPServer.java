@@ -117,6 +117,28 @@ public class PacioliMCPServer {
 
                     return;
                 }
+                case "resources/read": {
+                    // Resource request
+                    JsonObject params = message.getAsJsonObject("params");
+                    String uri = params.get("uri").getAsString();
+
+                    String text = resourceManager.fetch(uri);
+
+                    JsonObject body = new JsonObject();
+                    body.addProperty("uri", uri);
+                    body.addProperty("mimeType", "text");
+                    body.addProperty("text", text);
+
+                    JsonArray contents = new JsonArray();
+                    contents.add(body);
+
+                    JsonObject result = new JsonObject();
+                    result.add("contents", contents);
+
+                    this.sendResponse(message.get("id"), result);
+
+                    return;
+                }
                 default: {
                     sendErrorResponse(message.get("id"), -32603, String.format("Unexpected method '%s'", method));
                     break;
