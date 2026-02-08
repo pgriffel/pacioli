@@ -7,7 +7,10 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class PacioliMCPServer {
@@ -16,7 +19,19 @@ public class PacioliMCPServer {
     private final MCPToolHandler toolHandler;
     private final MCPTransport transport;
 
-    public PacioliMCPServer(List<File> libs, MCPTransport transport, MCPResourceManager resourceManager,
+    /**
+     * Constructor that expects all dependencies. Use the MPCContainer to create a
+     * server including its dependencies.
+     * 
+     * @param libs            Pacioli library directories.
+     * @param transport
+     * @param resourceManager
+     * @param toolHandler
+     */
+    public PacioliMCPServer(
+            List<File> libs,
+            MCPTransport transport,
+            MCPResourceManager resourceManager,
             MCPToolHandler toolHandler) {
         this.libs = libs;
         this.resourceManager = resourceManager;
@@ -32,265 +47,211 @@ public class PacioliMCPServer {
         transport.close();
     }
 
+    private void sendResponse(JsonElement id, JsonObject result) {
+        JsonObject response = new JsonObject();
+
+        response.addProperty("jsonrpc", "2.0");
+        response.add("id", id);
+        response.add("result", result);
+
+        this.transport.send(response);
+    }
+
+    private void sendErrorResponse(JsonElement id, int code, String message) {
+        JsonObject error = new JsonObject();
+        error.addProperty("code", code);
+        error.addProperty("message", "Internal error: " + message);
+
+        JsonObject response = new JsonObject();
+        response.addProperty("jsonrpc", "2.0");
+        response.add("error", error);
+        response.add("id", id);
+
+        transport.send(response);
+    }
+
     private void handleMessage(JsonObject message) {
         try {
             String method = message.has("method") ? message.get("method").getAsString() : null;
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true));
-            writer.write(String.format("[%s] Handling '%s' message%n",
-                    ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
-                    method));
-            writer.close();
-
-            if ("initialize".equals(method)) {
-                JsonObject prompts = new JsonObject();
-                JsonObject resources = new JsonObject();
-                resources.addProperty("subscribe", false);
-                resources.addProperty("listChanged", false);
-                JsonObject tools = new JsonObject();
-
-                JsonObject capabilities = new JsonObject();
-
-                capabilities.add("prompts", prompts);
-                capabilities.add("resources", resources);
-                capabilities.add("tools", tools);
-
-                JsonObject serverinfo = new JsonObject();
-                serverinfo.addProperty("name", "Pacioli MCP");
-                serverinfo.addProperty("version", "0.0.0");
-
-                JsonObject result = new JsonObject();
-
-                result.addProperty("protocolVersion", "2025-11-25");
-                result.add("capabilities", capabilities);
-                result.add("serverInfo", serverinfo);
-
-                JsonObject response = new JsonObject();
-
-                response.addProperty("jsonrpc", "2.0");
-                if (message.has("id"))
-                    response.add("id", message.get("id"));
-                response.add("result", result);
-
-                transport.send(response);
-
-                return;
+            // Tmp log
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true))) {
+                writer.write(String.format("[%s] Handling '%s' message%n",
+                        ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
+                        method));
             }
-            if ("notifications/initialized".equals(method)) {
-                // Client has completed initialization handshake
-                // This is a notification, so no response is sent
-                // Server is now ready to handle tool calls from client
+
+            if (method == null)
                 return;
+
+            switch (method) {
+                case "initialize": {
+                    this.sendResponse(message.get("id"), initializationResponse());
+
+                    return;
+                }
+                case "notifications/initialized": {
+                    // Client has completed initialization handshake
+                    // This is a notification, so no response is sent
+                    // Server is now ready to handle tool calls from client
+                    return;
+                }
+                case "tools/list": {
+                    // Discovery call to see our tool capabilities
+                    this.sendResponse(message.get("id"), listTools());
+
+                    return;
+                }
+                case "resources/list": {
+                    // Discovery call to see our resource capabilities
+                    this.sendResponse(message.get("id"), listResources());
+
+                    return;
+                }
+                case "tools/call": {
+                    // Tool invocation
+                    JsonObject params = message.getAsJsonObject("params");
+                    JsonObject result = toolHandler.callTool(params);
+
+                    this.sendResponse(message.get("id"), result);
+
+                    return;
+                }
+                default: {
+                    sendErrorResponse(message.get("id"), -32603, String.format("Unexpected method '%s'", method));
+                    break;
+                }
             }
-            if ("tools/list".equals(method)) {
-                JsonObject result = listTools();
-                JsonObject resp = new JsonObject();
-                resp.addProperty("jsonrpc", "2.0");
-                resp.add("result", result);
-                if (message.has("id"))
-                    resp.add("id", message.get("id"));
-                transport.send(resp);
-                return;
-            }
-            if ("resources/list".equals(method)) {
-                JsonObject result = listResources();
-                JsonObject resp = new JsonObject();
-                resp.addProperty("jsonrpc", "2.0");
-                resp.add("result", result);
-                if (message.has("id"))
-                    resp.add("id", message.get("id"));
-                transport.send(resp);
-                return;
-            }
-            if ("tools/call".equals(method)) {
-                JsonObject params = message.getAsJsonObject("params");
-                JsonObject result = toolHandler.callTool(params);
-                JsonObject resp = new JsonObject();
-                resp.addProperty("jsonrpc", "2.0");
-                resp.add("result", result);
-                if (message.has("id"))
-                    resp.add("id", message.get("id"));
-                transport.send(resp);
-                return;
-            }
-            // Unknown method: respond with method not found
-            JsonObject errResp = new JsonObject();
-            errResp.addProperty("jsonrpc", "2.0");
-            JsonObject error = new JsonObject();
-            error.addProperty("code", -32601);
-            error.addProperty("message", "Method not found");
-            errResp.add("error", error);
-            if (message.has("id"))
-                errResp.add("id", message.get("id"));
-            transport.send(errResp);
+
         } catch (Exception e) {
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true));
-                writer.write(String.format("[%s] Error:\n%s\n",
+            // Tmp log
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true))) {
+                writer.write(String.format("[%s] Error:%n%s%n",
                         ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
                         e.getMessage()));
-                writer.close();
             } catch (IOException e1) {
-                // Ai
+                System.out.println(String.format("%s%n%s", e.getMessage(), e1.getMessage()));
             }
 
-            JsonObject resp = new JsonObject();
-            resp.addProperty("jsonrpc", "2.0");
-            JsonObject error = new JsonObject();
-            error.addProperty("code", -32603);
-            error.addProperty("message", "Internal error: " + e.getMessage());
-            resp.add("error", error);
-            if (message.has("id"))
-                resp.add("id", message.get("id"));
-            transport.send(resp);
+            sendErrorResponse(message.get("id"), -32603, "Internal error: " + e.getMessage());
         }
     }
 
-    private JsonObject listTools() {
-        com.google.gson.JsonArray toolsArray = new com.google.gson.JsonArray();
+    private static JsonObject initializationResponse() {
+        JsonObject prompts = new JsonObject();
+        JsonObject resources = new JsonObject();
+        resources.addProperty("subscribe", false);
+        resources.addProperty("listChanged", false);
+        JsonObject tools = new JsonObject();
 
-        // analyze_file tool
-        JsonObject analyzeTool = new JsonObject();
-        analyzeTool.addProperty("name", "analyze_file");
-        analyzeTool.addProperty("description",
-                "Parse and analyze a Pacioli file, returning symbols, types, and diagnostics");
-        JsonObject analyzeSchema = new JsonObject();
-        analyzeSchema.addProperty("type", "object");
-        com.google.gson.JsonObject analyzeProps = new com.google.gson.JsonObject();
-        com.google.gson.JsonObject filepathProp = new com.google.gson.JsonObject();
-        filepathProp.addProperty("type", "string");
-        filepathProp.addProperty("description", "Path to the Pacioli file to analyze");
-        analyzeProps.add("filepath", filepathProp);
-        com.google.gson.JsonObject libdirProp = new com.google.gson.JsonObject();
-        libdirProp.addProperty("type", "string");
-        libdirProp.addProperty("description", "Path to the library directory");
-        analyzeProps.add("libdir", libdirProp);
-        analyzeSchema.add("properties", analyzeProps);
-        com.google.gson.JsonArray analyzeRequired = new com.google.gson.JsonArray();
-        analyzeRequired.add("filepath");
-        analyzeRequired.add("libdir");
-        analyzeSchema.add("required", analyzeRequired);
-        analyzeTool.add("inputSchema", analyzeSchema);
-        toolsArray.add(analyzeTool);
+        JsonObject capabilities = new JsonObject();
 
-        // list_symbols tool
-        JsonObject listSymbolsTool = new JsonObject();
-        listSymbolsTool.addProperty("name", "list_symbols");
-        listSymbolsTool.addProperty("description", "Extract all public symbols from a module (API listing)");
-        JsonObject listSymbolsSchema = new JsonObject();
-        listSymbolsSchema.addProperty("type", "object");
-        com.google.gson.JsonObject listSymbolsProps = new com.google.gson.JsonObject();
-        com.google.gson.JsonObject filepathProp2 = new com.google.gson.JsonObject();
-        filepathProp2.addProperty("type", "string");
-        filepathProp2.addProperty("description", "Path to the Pacioli module file");
-        listSymbolsProps.add("filepath", filepathProp2);
-        // com.google.gson.JsonObject libdirProp2 = new com.google.gson.JsonObject();
-        // libdirProp2.addProperty("type", "string");
-        // libdirProp2.addProperty("description", "Path to the library directory");
-        // listSymbolsProps.add("libdir", libdirProp2);
-        listSymbolsSchema.add("properties", listSymbolsProps);
-        com.google.gson.JsonArray listSymbolsRequired = new com.google.gson.JsonArray();
-        listSymbolsRequired.add("filepath");
-        // listSymbolsRequired.add("libdir");
-        listSymbolsSchema.add("required", listSymbolsRequired);
-        listSymbolsTool.add("inputSchema", listSymbolsSchema);
-        toolsArray.add(listSymbolsTool);
+        capabilities.add("prompts", prompts);
+        capabilities.add("resources", resources);
+        capabilities.add("tools", tools);
 
-        // list_libraries tool
-        JsonObject listLibrariesTool = new JsonObject();
-        listLibrariesTool.addProperty("name", "list_libraries");
-        listLibrariesTool.addProperty("description", "List all available Pacioli libraries");
-        JsonObject listLibrariesSchema = new JsonObject();
-        listLibrariesSchema.addProperty("type", "object");
-        // com.google.gson.JsonObject listLibrariesProps = new
-        // com.google.gson.JsonObject();
-        // com.google.gson.JsonObject libdirProp3 = new com.google.gson.JsonObject();
-        // libdirProp3.addProperty("type", "string");
-        // libdirProp3.addProperty("description", "Path to the library directory");
-        // listLibrariesProps.add("libdir", libdirProp3);
-        // listLibrariesSchema.add("properties", listLibrariesProps);
-        // com.google.gson.JsonArray listLibrariesRequired = new
-        // com.google.gson.JsonArray();
-        // listLibrariesRequired.add("libdir");
-        // listLibrariesSchema.add("required", listLibrariesRequired);
-        listLibrariesTool.add("inputSchema", listLibrariesSchema);
-        toolsArray.add(listLibrariesTool);
+        JsonObject serverinfo = new JsonObject();
+        serverinfo.addProperty("name", "Pacioli MCP");
+        serverinfo.addProperty("version", "0.0.0");
 
         JsonObject result = new JsonObject();
-        result.add("tools", toolsArray);
+
+        result.addProperty("protocolVersion", "2025-11-25");
+        result.add("capabilities", capabilities);
+        result.add("serverInfo", serverinfo);
+
         return result;
     }
 
-    private JsonObject listResources() {
-        com.google.gson.JsonArray toolsArray = new com.google.gson.JsonArray();
+    private static JsonObject listTools() {
+        JsonArray toolArray = new JsonArray();
 
-        // analyze_file tool
-        JsonObject analyzeTool = new JsonObject();
-        analyzeTool.addProperty("name", "analyze_file");
-        analyzeTool.addProperty("description",
-                "Parse and analyze a Pacioli file, returning symbols, types, and diagnostics");
-        JsonObject analyzeSchema = new JsonObject();
-        analyzeSchema.addProperty("type", "object");
-        com.google.gson.JsonObject analyzeProps = new com.google.gson.JsonObject();
-        com.google.gson.JsonObject filepathProp = new com.google.gson.JsonObject();
-        filepathProp.addProperty("type", "string");
-        filepathProp.addProperty("description", "Path to the Pacioli file to analyze");
-        analyzeProps.add("filepath", filepathProp);
-        com.google.gson.JsonObject libdirProp = new com.google.gson.JsonObject();
-        libdirProp.addProperty("type", "string");
-        libdirProp.addProperty("description", "Path to the library directory");
-        analyzeProps.add("libdir", libdirProp);
-        analyzeSchema.add("properties", analyzeProps);
-        com.google.gson.JsonArray analyzeRequired = new com.google.gson.JsonArray();
-        analyzeRequired.add("filepath");
-        analyzeRequired.add("libdir");
-        analyzeSchema.add("required", analyzeRequired);
-        analyzeTool.add("inputSchema", analyzeSchema);
-        toolsArray.add(analyzeTool);
+        toolArray.add(toolInfo(
+                "analyze_file",
+                "Parse and analyze a Pacioli file, returning symbols, types, and diagnostics",
+                Map.ofEntries(
+                        Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to analyze")))));
 
-        // list_symbols tool
-        JsonObject listSymbolsTool = new JsonObject();
-        listSymbolsTool.addProperty("name", "list_symbols");
-        listSymbolsTool.addProperty("description", "Extract all public symbols from a module (API listing)");
-        JsonObject listSymbolsSchema = new JsonObject();
-        listSymbolsSchema.addProperty("type", "object");
-        com.google.gson.JsonObject listSymbolsProps = new com.google.gson.JsonObject();
-        com.google.gson.JsonObject filepathProp2 = new com.google.gson.JsonObject();
-        filepathProp2.addProperty("type", "string");
-        filepathProp2.addProperty("description", "Path to the Pacioli module file");
-        listSymbolsProps.add("filepath", filepathProp2);
-        com.google.gson.JsonObject libdirProp2 = new com.google.gson.JsonObject();
-        libdirProp2.addProperty("type", "string");
-        libdirProp2.addProperty("description", "Path to the library directory");
-        listSymbolsProps.add("libdir", libdirProp2);
-        listSymbolsSchema.add("properties", listSymbolsProps);
-        com.google.gson.JsonArray listSymbolsRequired = new com.google.gson.JsonArray();
-        listSymbolsRequired.add("filepath");
-        listSymbolsRequired.add("libdir");
-        listSymbolsSchema.add("required", listSymbolsRequired);
-        listSymbolsTool.add("inputSchema", listSymbolsSchema);
-        toolsArray.add(listSymbolsTool);
+        toolArray.add(toolInfo(
+                "list_symbols",
+                "Extract all public symbols from a module (API listing)",
+                Map.ofEntries(
+                        Map.entry("filepath",
+                                toolProperty("string", "Path to the Pacioli file to analyze")))));
 
-        // list_libraries tool
-        JsonObject listLibrariesTool = new JsonObject();
-        listLibrariesTool.addProperty("name", "list_libraries");
-        listLibrariesTool.addProperty("description", "List all available Pacioli libraries");
-        JsonObject listLibrariesSchema = new JsonObject();
-        listLibrariesSchema.addProperty("type", "object");
-        com.google.gson.JsonObject listLibrariesProps = new com.google.gson.JsonObject();
-        com.google.gson.JsonObject libdirProp3 = new com.google.gson.JsonObject();
-        libdirProp3.addProperty("type", "string");
-        libdirProp3.addProperty("description", "Path to the library directory");
-        listLibrariesProps.add("libdir", libdirProp3);
-        listLibrariesSchema.add("properties", listLibrariesProps);
-        com.google.gson.JsonArray listLibrariesRequired = new com.google.gson.JsonArray();
-        listLibrariesRequired.add("libdir");
-        listLibrariesSchema.add("required", listLibrariesRequired);
-        listLibrariesTool.add("inputSchema", listLibrariesSchema);
-        toolsArray.add(listLibrariesTool);
+        // Is also a resource? Remove this as tool?
+        toolArray.add(toolInfo(
+                "list_libraries",
+                "List all available Pacioli libraries",
+                Map.ofEntries()));
 
         JsonObject result = new JsonObject();
-        result.add("tools", toolsArray);
+
+        result.add("tools", toolArray);
+
         return result;
+    }
+
+    private static JsonObject toolInfo(String name, String description, Map<String, JsonObject> properties) {
+
+        JsonObject schemaProperties = new JsonObject();
+        JsonArray schemaRequired = new JsonArray();
+
+        for (Map.Entry<String, JsonObject> entry : properties.entrySet()) {
+            schemaProperties.add(entry.getKey(), entry.getValue());
+            schemaRequired.add(entry.getKey());
+        }
+
+        JsonObject schema = new JsonObject();
+        schema.addProperty("type", "object");
+        schema.add("properties", schemaProperties);
+        schema.add("required", schemaRequired);
+
+        JsonObject info = new JsonObject();
+        info.addProperty("name", name);
+        info.addProperty("description", description);
+        info.add("inputSchema", schema);
+
+        return info;
+    }
+
+    private static JsonObject toolProperty(String type, String description) {
+        JsonObject property = new JsonObject();
+
+        property.addProperty("type", type);
+        property.addProperty("description", description);
+
+        return property;
+    }
+
+    private static JsonObject listResources() {
+        JsonArray resourceArray = new JsonArray();
+
+        resourceArray.add(resourceInfo(
+                "libraries",
+                "libraries",
+                "List of all libraries",
+                "List of all available Pacioli libraries"));
+
+        JsonObject result = new JsonObject();
+
+        result.add("resources", resourceArray);
+
+        return result;
+    }
+
+    private static JsonObject resourceInfo(
+            String uri,
+            String name,
+            String title,
+            String description) {
+
+        JsonObject info = new JsonObject();
+        info.addProperty("uri", uri);
+        info.addProperty("name", name);
+        info.addProperty("title", title);
+        info.addProperty("description", description);
+
+        return info;
     }
 }

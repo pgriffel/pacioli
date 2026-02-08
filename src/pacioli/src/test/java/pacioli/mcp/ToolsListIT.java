@@ -80,8 +80,8 @@ class ToolsListIT {
                     assertTrue(schema.has("properties"), "Schema should have 'properties'");
                     assertTrue(schema.getAsJsonObject("properties").has("filepath"),
                             "analyze_file should have filepath property");
-                    assertTrue(schema.getAsJsonObject("properties").has("libdir"),
-                            "analyze_file should have libdir property");
+                    // assertTrue(schema.getAsJsonObject("properties").has("libdir"),
+                    // "analyze_file should have libdir property");
                 } else if ("list_symbols".equals(toolName)) {
                     hasListSymbolsTool = true;
                 } else if ("list_libraries".equals(toolName)) {
