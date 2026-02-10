@@ -25,21 +25,18 @@ The `pacioli-pie-chart` element adds a Pacioli pie chart to a web page.
 ## Pie Chart
 
 <dl>
+  <dt>caption</dt>
+  <dd>A title for the chart</dd>
+
   <dt>unit</dt>
   <dd>Unit of measurement to display the value in. Must be compatible with the value's unit.</dd>
 
-  <dt>gap</dt>
-  <dd>Distance between the bars. Dimensionless?</dd>
-  
-  <dt>xlabel</dt>
-  <dd>Label on the x-axis</dd>
+  <dt>label</dt>
+  <dd>Label in the popup windows.</dd>
 
-  <dt>ylabel</dt>
-  <dd>Label on the y-axis</dd>
+  <dt>radius</dt>
+  <dd>Radius of the pie chart.</dd>
 
-  <dt>ylower</dt>
-  <dd>Start of the y-axis range</dd>
-
-  <dt>yupper</dt>
-  <dd>End of the y-axis range</dd>
+  <dt>labelOffset</dt>
+  <dd>Distance of the label from the pie chart edge</dd>
 </dl>

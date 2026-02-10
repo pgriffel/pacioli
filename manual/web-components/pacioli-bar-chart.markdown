@@ -30,8 +30,11 @@ The value can be
 ## Bar Chart Attritubes
 
 <dl>
-  <dt>gap</dt>
-  <dd>Distance between the bars. Dimensionless?</dd>
+  <dt>caption</dt>
+  <dd>A title for the chart</dd>
+
+  <dt>unit</dt>
+  <dd>Unit of measurement to display the value in. Must be compatible with the value's unit.</dd>
   
   <dt>xlabel</dt>
   <dd>Label on the x-axis</dd>
@@ -44,4 +47,7 @@ The value can be
 
   <dt>yupper</dt>
   <dd>End of the y-axis range</dd>
+
+  <dt>padding</dt>
+  <dd>Distance between the bars</dd>
 </dl>
