@@ -77,6 +77,12 @@ When the columns are defined in Pacioli the value must be a tuple of column valu
 
   <dt>yupper</dt>
   <dd>End of the y-axis range</dd>
+
+  <dt>ascii</dt>
+  <dd>Display the table in ascii format.</dd>
+
+  <dt>clipboard</dt>
+  <dd>Display the table in clipboard format.</dd>
 </dl>
 
 ## Column
@@ -87,10 +93,4 @@ When the columns are defined in Pacioli the value must be a tuple of column valu
 
   <dt>totals</dt>
   <dd>Add a row with totals</dd>
-
-  <dt>ascii</dt>
-  <dd>Display the table in ascii format.</dd>
-
-  <dt>clipboard</dt>
-  <dd>Display the table in clipboard format.</dd>
 </dl>
