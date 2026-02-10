@@ -42,4 +42,10 @@ The definition refers to a Pacioli matrix.
 
   <dt>order</dt>
   <dd>Tensor order. For example order="2,0"</dd>
+    
+  <dt>ascii</dt>
+  <dd>Display the table in ascii format.</dd>
+
+  <dt>clipboard</dt>
+  <dd>Display the table in clipboard format.</dd>
 </dl>
