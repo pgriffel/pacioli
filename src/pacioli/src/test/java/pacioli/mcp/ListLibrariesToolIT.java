@@ -10,12 +10,15 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
-class PacioliLibraryDiscoveryIT {
+/**
+ * Test for the 'list_libraries' tool. Should be a resource?!
+ */
+class ListLibrariesToolIT {
 
     static final List<File> LIBS = TestEnvironment.LIBS;
 
     @Test
-    void libDiscoveryViaMCPServer() throws Exception {
+    void listLibrariesTool() throws Exception {
 
         // Setup
         TestConnection testConnection = new TestConnection();
@@ -30,15 +33,15 @@ class PacioliLibraryDiscoveryIT {
         });
         testConnection.initialize();
 
-        // Call 'list_libraries' tool
+        // When the 'list_libraries' tool is called
         JsonObject arguments = new JsonObject();
         JsonObject listResp = testConnection.callTool("list_libraries", arguments);
 
-        // Call should succeed
+        // Then the call should succeed
         assertNotNull(listResp, "No response to analyze_file");
         assertTrue(listResp.has("result"));
 
-        // Result should contain 'libraries' property
+        // And the result should contain property 'libraries'
         JsonObject r = listResp.getAsJsonObject("result");
         assertTrue(r.has("libraries"));
 

@@ -11,7 +11,10 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-class ToolsListIT {
+/**
+ * Test for the 'tools/list' discovery call.
+ */
+class ToolsListDiscoveryIT {
 
     static final List<File> LIBS = TestEnvironment.LIBS;
 
@@ -31,15 +34,6 @@ class ToolsListIT {
         testConnection.initialize();
 
         // When 'tools/list' is called
-        // JsonObject listRequest = new JsonObject();
-        // listRequest.addProperty("jsonrpc", "2.0");
-        // listRequest.addProperty("id", 2);
-        // listRequest.addProperty("method", "tools/list");
-
-        // testConnection.writeln(listRequest);
-
-        // JsonObject listResp = testConnection.readJson();
-
         JsonObject listResp = testConnection.call("tools/list", new JsonObject());
 
         // Then the response should be okay

@@ -10,12 +10,15 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
-class PacioliMCPServerIT {
+/**
+ * Tests the 'analyze_file' tool.
+ */
+class AnalyzeFileToolIT {
 
     static final List<File> LIBS = TestEnvironment.LIBS;
 
     @Test
-    void startServerAndCallAnalyze() throws Exception {
+    void callAnalyzeFileTool() throws Exception {
 
         // Setup
         TestConnection testConnection = new TestConnection();
@@ -30,22 +33,24 @@ class PacioliMCPServerIT {
         });
         testConnection.initialize();
 
-        // Call 'analyze_file' tool
+        // When the 'analyze_file' tool is called
         JsonObject arguments = new JsonObject();
         arguments.addProperty("filepath", LIBS.get(0).toString() + "/planets/planets.pacioli");
         JsonObject analyzeResp = testConnection.callTool("analyze_file", arguments);
 
-        // Call should succeed
+        // Then the call should succeed
         assertNotNull(analyzeResp, "No response to analyze_file");
         assertTrue(analyzeResp.has("result"));
 
-        // Result should contain 'symbols'
+        // And the result should contain 'symbols'
         JsonObject r = analyzeResp.getAsJsonObject("result");
         assertTrue(r.has("symbols"));
 
+        // And the number of symbols should be correct
         assertEquals(273, r.getAsJsonArray("symbols").size());
 
-        // The first symbol (eigenvalue_decomposition) should have correct properties
+        // And the first symbol (eigenvalue_decomposition) should have correct
+        // properties
         JsonObject record0 = r.getAsJsonArray("symbols").get(0).getAsJsonObject();
 
         assertEquals("eigenvalue_decomposition", record0.get("name").getAsString());
