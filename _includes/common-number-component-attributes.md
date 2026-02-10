@@ -9,9 +9,3 @@
 
 <dt>exponential</dt>
 <dd>Display numbers in exopnential format.</dd>
-
-<dt>ascii</dt>
-<dd>Display the table in ascii format.</dd>
-
-<dt>clipboard</dt>
-<dd>Display the table in clipboard format.</dd>

@@ -34,4 +34,8 @@ depends on the value.
 
 ## Pacioli Value Attributes
 
-No specific attributes.
+<dt>ascii</dt>
+<dd>Display tables in ascii format.</dd>
+
+<dt>clipboard</dt>
+<dd>Display tables in clipboard format.</dd>

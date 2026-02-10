@@ -82,13 +82,15 @@ When the columns are defined in Pacioli the value must be a tuple of column valu
 ## Column
 
 <dl>  
-  <dt>decimals</dt>
-  <dd></dd>
+  <dt>nozerorows</dt>
+  <dd>Don't show rows with all zeros</dd>
 
-  <dt>ignoredecimals</dt>
-  <dd></dd>
+  <dt>totals</dt>
+  <dd>Add a row with totals</dd>
 
-  <dt>todo</dt>
-  <dd>todo</dd>
+  <dt>ascii</dt>
+  <dd>Display the table in ascii format.</dd>
 
+  <dt>clipboard</dt>
+  <dd>Display the table in clipboard format.</dd>
 </dl>
