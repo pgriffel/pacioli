@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -108,6 +109,12 @@ public class PacioliMCPServer {
 
                     return;
                 }
+                case "resources/templates/list": {
+                    // Discovery call to see our resource capabilities
+                    this.sendResponse(message.get("id"), listResourceTemplates());
+
+                    return;
+                }
                 case "tools/call": {
                     // Tool invocation
                     JsonObject params = message.getAsJsonObject("params");
@@ -175,6 +182,8 @@ public class PacioliMCPServer {
         JsonObject serverinfo = new JsonObject();
         serverinfo.addProperty("name", "Pacioli MCP");
         serverinfo.addProperty("version", "0.0.0");
+        serverinfo.addProperty("description",
+                String.format("Pacioli MCP running in %s", Path.of("").toAbsolutePath().toString()));
 
         JsonObject result = new JsonObject();
 
@@ -250,7 +259,7 @@ public class PacioliMCPServer {
         JsonArray resourceArray = new JsonArray();
 
         resourceArray.add(resourceInfo(
-                "libraries",
+                "libraries?foo=bar&baz=hai",
                 "libraries",
                 "List of all libraries",
                 "List of all available Pacioli libraries"));
@@ -270,6 +279,37 @@ public class PacioliMCPServer {
 
         JsonObject info = new JsonObject();
         info.addProperty("uri", uri);
+        info.addProperty("name", name);
+        info.addProperty("title", title);
+        info.addProperty("description", description);
+
+        return info;
+    }
+
+    private static JsonObject listResourceTemplates() {
+        JsonArray resourceArray = new JsonArray();
+
+        resourceArray.add(resourceTemplateInfo(
+                "definition{?file,library,definition}",
+                "definition",
+                "Value or function definition",
+                "Definition of a user or library function or value. Use the file parameter for a user function or value. Use the library parameter for a library function or value."));
+
+        JsonObject result = new JsonObject();
+
+        result.add("resourceTemplates", resourceArray);
+
+        return result;
+    }
+
+    private static JsonObject resourceTemplateInfo(
+            String uri,
+            String name,
+            String title,
+            String description) {
+
+        JsonObject info = new JsonObject();
+        info.addProperty("uriTemplate", uri);
         info.addProperty("name", name);
         info.addProperty("title", title);
         info.addProperty("description", description);

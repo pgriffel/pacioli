@@ -63,7 +63,7 @@ public class AnalyzeTool {
             out.addProperty("file", path);
             return out;
         } catch (Exception e) {
-            throw new MCPException("analyze failed", e);
+            throw new MCPException("analyze failed: " + e.getMessage());
         }
     }
 }
