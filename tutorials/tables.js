@@ -125,6 +125,9 @@ Pacioli.compute_index_$base_matrix_One = function () {return Pacioli.makeIndexSe
 Pacioli.compute_sbase_ohm = function () {
     return {definition: Pacioli.DimNum.fromNumber(1.0000000000000000000000000, Pacioli.unit('ampere').expt(-1).mult(Pacioli.unit('volt').expt(1))), symbol: "Ω"}
 }
+Pacioli.compute_sbase_sunmass = function () {
+    return {definition: Pacioli.DimNum.fromNumber(1988920000, Pacioli.unit('yotta:gram').expt(1)), symbol: "sun"}
+}
 Pacioli.compute_sbase_tesla = function () {
     return {definition: Pacioli.DimNum.fromNumber(1.0000000000000000000000000, Pacioli.unit('weber').expt(1).mult(Pacioli.unit('metre').expt(-2))), symbol: "T"}
 }

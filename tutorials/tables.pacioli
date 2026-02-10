@@ -19,6 +19,13 @@ defunit earthmass "earth" = 5972 * yotta:gram;
 
 # ------------------------------------------------------------------------------
 
+doc sunmass
+    "The mass of the sun as unit of measurement.";
+
+defunit sunmass "sun" = 1988920000 * yotta:gram;
+
+# ------------------------------------------------------------------------------
+
 doc planetary_mass
     "Mass of the planets.";
 

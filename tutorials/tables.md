@@ -37,6 +37,12 @@ and the data can be vectors or lists or combinations. Type checks are done at ru
         definition="tables:planetary_mass"
         unit="earthmass">
     </column>
+    <column
+        header="Sun Mass"
+        definition="tables:planetary_mass"
+        unit="sunmass"
+        decimals=10>
+    </column>
 </pacioli-table>
 </p>
 
@@ -44,6 +50,7 @@ Create Pacioli file `tables.pacioli`.
 Add the following code to Pacioli file `tables.pacioli` and compile it
 
     defunit earthmass "earth" = 5972 * yotta:gram;
+    defunit sunmass "sun" = 1988920000 * yotta:gram;
 
     defindex Planet =
         {Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune};
@@ -98,6 +105,12 @@ Now add the following to the HTML page
             header="Earth Mass"
             definition="tables:planetary_mass"
             unit="earthmass">
+        </column>
+        <column
+            header="Sun Mass"
+            definition="tables:planetary_mass"
+            unit="sunmass"
+            decimals=10>
         </column>
     </pacioli-table>
 
