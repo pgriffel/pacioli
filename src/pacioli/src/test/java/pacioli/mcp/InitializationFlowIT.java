@@ -10,9 +10,19 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
+/**
+ * Tests the correct handling of the initial handshake between an mcp client and
+ * the PacioliMCPServer.
+ * 
+ * Connects with the server and sends the 'tools/list' discovery message to see
+ * if the server actually works. Checks that a result is produced, but not the
+ * contents of the result.
+ * 
+ * Does not use the TestConnection 'call' or 'callTool' methods.
+ */
 class InitializationFlowIT {
 
-    static final List<File> LIBS = List.of(new File("D:\\code\\pacioli\\lib\\"));
+    static final List<File> LIBS = TestEnvironment.LIBS;
 
     @Test
     void completeInitializationHandshake() throws Exception {

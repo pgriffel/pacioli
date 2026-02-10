@@ -1,5 +1,9 @@
 package pacioli.mcp;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -68,6 +72,21 @@ public class TestConnection {
         this.transport = new MCPTransport(serverIn, serverToClientPos);
     }
 
+    void initialize() throws IOException, MCPException {
+        JsonObject params = new JsonObject();
+        params.addProperty("protocolVersion", "2024-11-05");
+
+        JsonObject response = this.call("initialize", params);
+
+        if (response == null) {
+            throw new MCPException("No response to initialize");
+        }
+
+        if (response.has("error")) {
+            throw new MCPException("Error reponse in initialize: " + response.get("error"));
+        }
+    }
+
     void close() throws IOException {
         clientToServerPos.close();
         serverToClientPos.close();
@@ -92,5 +111,29 @@ public class TestConnection {
 
     JsonObject readJson() throws JsonSyntaxException, IOException {
         return gson.fromJson(reader.readLine(), JsonObject.class);
+    }
+
+    public JsonObject call(String method, JsonObject parameters) throws IOException {
+        JsonObject call = new JsonObject();
+
+        call.addProperty("jsonrpc", "2.0");
+        call.addProperty("id", 2);
+        call.addProperty("method", method);
+
+        call.add("params", parameters);
+
+        this.writeln(call);
+
+        return this.readJson();
+    }
+
+    public JsonObject callTool(String tool, JsonObject arguments) throws IOException {
+
+        JsonObject callParams = new JsonObject();
+
+        callParams.addProperty("name", tool);
+        callParams.add("arguments", arguments);
+
+        return this.call("tools/call", callParams);
     }
 }
