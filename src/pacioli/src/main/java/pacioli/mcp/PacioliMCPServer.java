@@ -15,6 +15,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class PacioliMCPServer {
+    // TODO: better logging
+    private static final String LOGFILE = "/home/paul/code/pacioli/mcp-server.log";
+
     private final List<File> libs;
     private final MCPResourceManager resourceManager;
     private final MCPToolHandler toolHandler;
@@ -76,7 +79,7 @@ public class PacioliMCPServer {
             String method = message.has("method") ? message.get("method").getAsString() : null;
 
             // Tmp log
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOGFILE, true))) {
                 writer.write(String.format("[%s] Handling '%s' message%n",
                         ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
                         method));
@@ -154,7 +157,7 @@ public class PacioliMCPServer {
 
         } catch (Exception e) {
             // Tmp log
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("D:\\yo.txt", true))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOGFILE, true))) {
                 writer.write(String.format("[%s] Error:%n%s%n",
                         ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
                         e.getMessage()));

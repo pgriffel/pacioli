@@ -2,27 +2,19 @@ package pacioli.mcp;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import pacioli.compiler.Bundle;
 import pacioli.compiler.PacioliFile;
-import pacioli.compiler.Printable;
-import pacioli.compiler.Program;
-import pacioli.compiler.Project;
-import pacioli.symboltable.info.ValueInfo;
 
 public class MCPResourceManager {
+
     private final List<File> libs;
 
     public MCPResourceManager(List<File> libs) {
@@ -30,26 +22,18 @@ public class MCPResourceManager {
     }
 
     public String fetch(String uri) throws Exception {
-        // URIBuilder. builder;
 
         String path = uriPath(uri);
+
         Map<String, String> parameters = uriParameters(uri);
-
-        // List<NameValuePair> params = new URIBuilder(uri,
-        // StandardCharsets.UTF_8).getQueryParams();
-
-        // // return params.toString();
 
         switch (path) {
             case "libraries": {
 
-                // List<String> read = Files.readAllLines(docFile.toPath());
+                return handleLibraries();
 
-                // Optional<PacioliFile> lib = PacioliFile.findLibrary("planets", libs);
+                // return handleLibrariesTEXT();
 
-                // String docu = libraryDocumentation(lib.get().docFile());
-
-                return "[\"lib1\", \"lib1\"]";
             }
             case "definition": {
                 String file = parameters.get("file");
@@ -61,11 +45,11 @@ public class MCPResourceManager {
                 }
 
                 if (lib != null) {
-                    return lookupLibDefinition(lib, URLDecoder.decode(definition, StandardCharsets.UTF_8));
+                    return handleLibraryDefinition(lib, definition);
                 }
 
                 if (file != null) {
-                    return lookupDefinition(file, definition);
+                    return handleDefinition(file, definition);
                 }
 
                 throw new MCPException(
@@ -75,58 +59,61 @@ public class MCPResourceManager {
                 throw new MCPException(String.format("Resource '%s' unknown", path));
             }
         }
-        // return uriParameters(uri).toString();
     }
 
-    String libraryDocumentation(File docFile) throws IOException {
-        List<String> read = Files.readAllLines(docFile.toPath());
-        return String.join("\n", read);
+    String handleLibraries() throws IOException {
+        var arr = new com.google.gson.JsonArray();
+
+        for (PacioliFile file : CompilerAPI.collectLibFiles(libs)) {
+
+            var lib = new JsonObject();
+
+            lib.addProperty("name", file.moduleName());
+            lib.addProperty("file", file.fsFile().toString());
+            try {
+                String docu = CompilerAPI.libraryDocumentation(file.docFile());
+                lib.addProperty("documentation", docu);
+            } catch (IOException e) {
+            }
+
+            arr.add(lib);
+
+            // arr.add(CompilerAPI.pacioliFileJson(file));
+
+        }
+
+        return arr.toString();
     }
 
-    String lookupLibDefinition(String lib, String definition) {
+    String handleLibrariesTEXT() throws IOException {
+        var out = new StringBuilder();
+
+        for (PacioliFile file : CompilerAPI.collectLibFiles(libs)) {
+
+            out.append(file.moduleName());
+
+            out.append("\n\n");
+
+            try {
+                String docu = CompilerAPI.libraryDocumentation(file.docFile());
+                out.append(docu);
+            } catch (IOException e) {
+            }
+        }
+
+        return out.toString();
+    }
+
+    String handleDefinition(String file, String definition) throws Exception {
+        return CompilerAPI.lookupDefinition(file, definition);
+    }
+
+    String handleLibraryDefinition(String lib, String definition) {
+        return lookupDefinitionFromLib(lib, definition);
+    }
+
+    String lookupDefinitionFromLib(String lib, String definition) {
         return "todo: lookupLibDefinition" + lib + definition;
-    }
-
-    String lookupDefinition(String path, String definition) throws Exception {
-        var opt = PacioliFile.get(path, 0);
-
-        if (opt.isEmpty()) {
-            throw new MCPException("file not found: " + path);
-        }
-
-        PacioliFile file = opt.get();
-        Program program = Program.load(file);
-
-        var infos = program.generateInfos();
-
-        ValueInfo info = infos.values().lookup(definition);
-
-        if (info == null) {
-            throw new MCPException("definition not found: " + definition);
-        }
-
-        JsonObject result = valueInfoJson(info);
-
-        return result.toString();
-    }
-
-    private JsonObject valueInfoJson(ValueInfo info) {
-
-        Optional<String> type = info.inferredType()
-                .map(Printable::pretty)
-                .or(() -> info.declaredType().map(Printable::pretty));
-
-        JsonObject json = new JsonObject();
-
-        json.addProperty("name", info.name());
-        json.addProperty("module", info.generalInfo().module());
-        json.addProperty("isPublic", info.isPublic());
-        json.addProperty("isGlobal", info.isGlobal());
-        json.addProperty("isUserDefined", info.isUserDefined());
-        info.definition().ifPresent(def -> json.addProperty("definition", def.pretty()));
-        type.ifPresent(t -> json.addProperty("type", t));
-
-        return json;
     }
 
     private String uriPath(String uri) {
@@ -152,25 +139,4 @@ public class MCPResourceManager {
 
         return map;
     }
-
-    // public List<Path> listLibraries() throws IOException {
-    // return collectLibraries(libs);
-    // }
-
-    // static List<Path> collectLibraries(List<File> libs) throws IOException {
-    // var libraries = new ArrayList<Path>();
-
-    // Files.walkFileTree(libs.get(0).toPath(), new SimpleFileVisitor<Path>() {
-    // @Override
-    // public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-    // throws IOException {
-    // libraries.add(dir);
-    // return super.preVisitDirectory(dir, attrs);
-    // }
-    // });
-
-    // libraries.remove(0);
-
-    // return libraries;
-    // }
 }
