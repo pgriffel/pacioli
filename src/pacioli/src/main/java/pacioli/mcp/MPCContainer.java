@@ -25,8 +25,8 @@ public class MPCContainer {
 
     public static MPCContainer fromTransport(List<File> libs, MCPTransport transport) {
         var resourceManager = new MCPResourceManager(libs);
-        var toolHandler = new MCPToolHandler(libs, resourceManager);
-        var server = new PacioliMCPServer(libs, transport, resourceManager, toolHandler);
+        var toolHandler = new MCPToolHandler(libs);
+        var server = new PacioliMCPServer(transport, resourceManager, toolHandler);
 
         return new MPCContainer(transport, resourceManager, toolHandler, server);
     }

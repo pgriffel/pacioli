@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
@@ -43,7 +44,16 @@ class ListLibrariesToolIT {
 
         // And the result should contain property 'libraries'
         JsonObject r = listResp.getAsJsonObject("result");
-        assertTrue(r.has("libraries"));
+        assertTrue(r.has("content"));
+
+        JsonArray contents = r.getAsJsonArray("content");
+        assertEquals(1, contents.size());
+
+        String text = contents.get(0).getAsJsonObject().get("text").getAsString();
+
+        // assertTrue(text.startsWith("{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"name\\\":\\\"base\\\","));
+        // assertTrue(text.endsWith("naturals(5) = [0, 1, 2, 3, 4]\\\\n )\\\\n ]);
+        // \\\\n</pre>\\\"}\"}]}"));
 
         // Teardown
         server.stop();

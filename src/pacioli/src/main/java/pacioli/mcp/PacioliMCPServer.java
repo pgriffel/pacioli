@@ -16,9 +16,11 @@ import com.google.gson.JsonObject;
 
 public class PacioliMCPServer {
     // TODO: better logging
-    private static final String LOGFILE = "/home/paul/code/pacioli/mcp-server.log";
+    // private static final String LOGFILE =
+    // "/home/paul/code/pacioli/mcp-server.log";
+    private static final String LOGFILE = null;
+    // private static final String LOGFILE = "D:\\code\\pacioli\\mcp-server.log";
 
-    private final List<File> libs;
     private final MCPResourceManager resourceManager;
     private final MCPToolHandler toolHandler;
     private final MCPTransport transport;
@@ -33,11 +35,9 @@ public class PacioliMCPServer {
      * @param toolHandler
      */
     public PacioliMCPServer(
-            List<File> libs,
             MCPTransport transport,
             MCPResourceManager resourceManager,
             MCPToolHandler toolHandler) {
-        this.libs = libs;
         this.resourceManager = resourceManager;
         this.toolHandler = toolHandler;
         this.transport = transport;
@@ -78,12 +78,7 @@ public class PacioliMCPServer {
         try {
             String method = message.has("method") ? message.get("method").getAsString() : null;
 
-            // Tmp log
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOGFILE, true))) {
-                writer.write(String.format("[%s] Handling '%s' message%n",
-                        ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
-                        method));
-            }
+            log(String.format("Handling method: %s", method));
 
             if (method == null)
                 return;
@@ -156,16 +151,20 @@ public class PacioliMCPServer {
             }
 
         } catch (Exception e) {
-            // Tmp log
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOGFILE, true))) {
-                writer.write(String.format("[%s] Error:%n%s%n",
-                        ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
-                        e.getMessage()));
-            } catch (IOException e1) {
-                System.out.println(String.format("%s%n%s", e.getMessage(), e1.getMessage()));
-            }
-
+            log(String.format("Error: %s", e.getMessage()));
             sendErrorResponse(message.get("id"), -32603, "Internal error: " + e.getMessage());
+        }
+    }
+
+    // Tmp log
+    private void log(String message) {
+        if (LOGFILE != null) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOGFILE, true))) {
+                writer.write(String.format("[%s] %s%n",
+                        ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME),
+                        message));
+            } catch (IOException e) {
+            }
         }
     }
 
@@ -205,6 +204,12 @@ public class PacioliMCPServer {
                 "Parse and analyze a Pacioli file, returning symbols, types, and diagnostics",
                 Map.ofEntries(
                         Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to analyze")))));
+
+        toolArray.add(toolInfo(
+                "infer_types",
+                "Runs type inference on a file.",
+                Map.ofEntries(
+                        Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to infer types for")))));
 
         toolArray.add(toolInfo(
                 "list_symbols",
@@ -262,7 +267,7 @@ public class PacioliMCPServer {
         JsonArray resourceArray = new JsonArray();
 
         resourceArray.add(resourceInfo(
-                "libraries?foo=bar&baz=hai",
+                "pacioli:///libraries",
                 "libraries",
                 "List of all libraries",
                 "List of all available Pacioli libraries"));
@@ -293,7 +298,7 @@ public class PacioliMCPServer {
         JsonArray resourceArray = new JsonArray();
 
         resourceArray.add(resourceTemplateInfo(
-                "definition{?file,library,definition}",
+                "pacioli:///definition{?file,library,definition}",
                 "definition",
                 "Value or function definition",
                 "Definition of a user or library function or value. Use the file parameter for a user function or value. Use the library parameter for a library function or value."));

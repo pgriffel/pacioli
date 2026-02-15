@@ -16,10 +16,8 @@ import pacioli.mcp.MCPResourceManager;
 
 public class ListSymbolsTool {
     private final List<File> libs;
-    private final MCPResourceManager resources;
 
-    public ListSymbolsTool(List<File> libs, MCPResourceManager resources) {
-        this.resources = resources;
+    public ListSymbolsTool(List<File> libs) {
         this.libs = new ArrayList<>(libs);
     }
 

@@ -28,14 +28,14 @@ public class MCPResourceManager {
         Map<String, String> parameters = uriParameters(uri);
 
         switch (path) {
-            case "libraries": {
+            case "pacioli:///libraries": {
 
                 return handleLibraries();
 
                 // return handleLibrariesTEXT();
 
             }
-            case "definition": {
+            case "pacioli:///definition": {
                 String file = parameters.get("file");
                 String lib = parameters.get("library");
                 String definition = parameters.get("definition");
