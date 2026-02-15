@@ -39,24 +39,17 @@ import pacioli.ast.definition.Documentation;
 import pacioli.types.type.TypeObject;
 
 /**
- * A Program corresponds to a Pacioli file and is the unit of compilation.
- * 
- * A Program contains the AST and the symboltables for the Pacioli code in
- * a file. It can be constructed by loading a PacioliFile.
- * 
- * Once a program has been loaded it can be used to generate code, display
- * types, etc.
+ * Creates documentation for a Pacioli module.
  *
  */
 public class DocumentationGenerator {
 
-    // Setting
-    boolean showTypeDefBody = false;
+    private static final boolean FLAG_USE_DEFINTIONS = false;
+    private static final boolean FLAG_SHOW_TYPE_DEF_BODY = false;
 
     // Info for the entire module
     private final String module;
     private final String version;
-    private final Writer writer;
 
     // Info per value/function
     Map<String, String> typeTable = new HashMap<>();
@@ -84,10 +77,9 @@ public class DocumentationGenerator {
     // Constructors
     // -------------------------------------------------------------------------
 
-    public DocumentationGenerator(Writer writer, String module, String version) {
+    public DocumentationGenerator(String module, String version) {
         this.module = module;
         this.version = version;
-        this.writer = writer;
     }
 
     public void addValue(String name, TypeObject type) {
@@ -179,236 +171,21 @@ public class DocumentationGenerator {
     // todo: Parts van naam af.
     private String getDoc(String name) {
         Documentation docu = documentationTable.get(name);
-        return docu == null ? "" : docu.asHtml();
+        return docu == null ? "" : docu.rawText();
     }
 
     private String getIndexSetDoc(String name) {
         Documentation docu = indexSetDocs.get(name);
-        return docu == null ? "" : docu.asHtml();
+        return docu == null ? "" : docu.rawText();
     }
 
     private String getTypeDoc(String name) {
         Documentation docu = typeDocs.get(name);
-        return docu == null ? "" : docu.asHtml();
+        return docu == null ? "" : docu.rawText();
     }
 
     public String argsString(String name) {
         return String.join(", ", argumentsTable.get(name));
-    }
-
-    private void println(String string, Object... args) throws IOException {
-        writer.write(String.format(string, args));
-        writer.write("\n");
-    }
-
-    /**
-     * Generates a html page with documentation for the bundle's module.
-     * 
-     * @param includes A filter. Only code in the includes is included.
-     * @param version  A description of the module's version that is added to the
-     *                 output
-     * @throws PacioliException
-     * @throws IOException
-     */
-    // void generateMarkdown() throws PacioliException, IOException {
-
-    // List<String> vals = new ArrayList<String>(values);
-    // Collections.sort(vals);
-
-    // List<String> funs = new ArrayList<String>(functions);
-    // Collections.sort(funs);
-
-    // // Generate a general section about the module
-    // println("# Module %s", module);
-    // println("Interface for the %s module", module);
-    // println("");
-    // println("Version %s, %s", version, ZonedDateTime.now());
-
-    // // Print the types for the values and the function in a synopsis section
-    // println("## Synopsis");
-    // println("");
-    // for (String value : vals) {
-    // println("%s :: %s", value, typeTable.get(value));
-    // }
-    // if (values.size() > 0) {
-    // println("");
-    // }
-    // for (String function : funs) {
-    // println("%s :: %s", function, typeTable.get(function));
-    // }
-    // println("");
-
-    // // Print details for the values
-    // println("## Values");
-    // if (values.size() == 0) {
-    // println("n/a");
-    // } else {
-    // println("");
-    // for (String value : vals) {
-    // println("### %s", value);
-    // println("");
-    // println(":: %s", typeTable.get(value));
-    // for (String part : getDocuParts(value)) {
-    // println("\n%s\n", part);
-    // }
-    // println("");
-    // }
-    // println("");
-    // }
-
-    // // Print details for the functions
-    // println("## Functions");
-    // println("");
-    // for (String function : funs) {
-    // String args = String.format("(%s)", argsString(function));
-    // println("### %s%s", function, args);
-    // println("");
-    // println(":: %s", lookupType(function));
-    // for (String part : getDocuParts(function)) {
-    // println("\n%s\n", part);
-    // }
-    // println("");
-
-    // }
-    // println("");
-
-    // }
-
-    /**
-     * Generates a html page with documentation for the bundle's module.
-     * 
-     * @param includes A filter. Only code in the includes is included.
-     * @param version  A description of the module's version that is added to the
-     *                 output
-     * @throws PacioliException
-     * @throws IOException
-     */
-    void generate() throws PacioliException, IOException {
-
-        List<String> vals = new ArrayList<String>(values);
-        Collections.sort(vals);
-
-        List<String> funs = new ArrayList<String>(functions);
-        Collections.sort(funs);
-
-        // Generate the general HTML headers
-        println("<!DOCTYPE html>");
-        println("<html>");
-        println("<head>");
-        println("<title>%s</title>", module);
-        println("</head>");
-        println("<body>");
-
-        // Generate a general section about the module
-        println("<h1>The <code>%s</code> library</h1>", module);
-        if (this.intro != null) {
-            println(intro);
-        } else {
-            println("<p>Interface for the <code>%s</code> library</p>", module);
-        }
-
-        // Print the types for the values and the function in a synopsis section
-        println("<h2>Synopsis</h2>");
-        println("<pre>");
-        for (String value : vals) {
-            println("<a href=\"#%s\">%s</a> :: %s", value, value, typeTable.get(value));
-        }
-        if (values.size() > 0) {
-            println("");
-        }
-        for (String function : funs) {
-            println("<a href=\"#%s\">%s</a> :: %s", function, function, typeTable.get(function));
-        }
-        println("</pre>");
-
-        // Print details for the index sets
-        if (indexSetDocs.size() > 0) {
-            println("<h2>Index sets</h2>");
-            println("<dl>");
-            for (String name : indexSetDocs.keySet()) {
-                println("<dt id=\"%s\"><code>%s</code></dt>",
-                        name, name);
-                println("<dd>");
-                println("%s", getIndexSetDoc(name));
-                println("</dd>");
-            }
-            println("</dl>");
-        }
-
-        // Print details for the types
-        if (typeDocs.size() > 0) {
-            println("<h2>Types</h2>");
-            println("<dl>");
-            for (String name : typeDocs.keySet()) {
-                println("<dt id=\"%s\"><code>%s</code></dt>",
-                        name, name);
-                println("<dd>");
-                if (showTypeDefBody) {
-                    println("<pre>%s%s = %s</pre>", typeDecl.get(name), typeLHS.get(name), typeRHS.get(name));
-                } else {
-                    println("<pre>%s%s</pre>", typeDecl.get(name), typeLHS.get(name));
-                }
-                println("%s", getTypeDoc(name));
-                println("</dd>");
-            }
-            println("</dl>");
-        }
-
-        // Print details for the values
-        if (values.size() > 0) {
-            println("<h2>Values</h2>");
-            println("<dl>");
-            for (String name : vals) {
-                println("<dt id=\"%s\"><code>%s</code></dt>", name, name);
-                println("<dd>");
-                println("<pre>:: %s</pre>", typeTable.get(name));
-                if (this.primitives.contains(name)) {
-                    println("Primitive value");
-                }
-                println("%s", getDoc(name));
-                println("</dd>");
-            }
-            println("</dl>");
-        }
-
-        // Print details for the functions
-        if (funs.size() > 0) {
-
-            if (false) {
-                println("<h2>Functions</h2>");
-                println("<dl>");
-                for (String name : funs) {
-                    String args = String.format("(%s)", argsString(name));
-                    println("<dt id=\"%s\"><code>%s%s</code></dt>", name, name, args);
-                    println("<dd>");
-                    println("<pre>:: %s</pre>", lookupType(name));
-                    if (this.primitives.contains(name)) {
-                        println("Primitive function");
-                    }
-                    println(getDoc(name));
-                    println("</dd>");
-
-                }
-                println("</dl>");
-            } else {
-                println("<h2>Functions</h2>");
-
-                for (String name : funs) {
-                    println("<h3 id=\"%s\">%s</h3>", name, name);
-                    println("<p><code>:: %s</code>", lookupType(name));
-                    if (this.primitives.contains(name)) {
-                        println("<p>Primitive function");
-                    }
-                    println("%s", getDoc(name));
-                }
-            }
-        }
-
-        println("<p><small>Version %s, %s</small>", version, ZonedDateTime.now());
-
-        // Finish the html
-        println("</body>");
-        println("</html>");
     }
 
     public void setIntro(String intro) {
@@ -423,4 +200,250 @@ public class DocumentationGenerator {
         }
         this.setIntro(total);
     }
+
+    /**
+     * Generates a documentation page with documentation for the bundle's module.
+     * 
+     * @param writer Writer the page is written to
+     * @param target One of markdown, structore or html
+     * @throws PacioliException
+     * @throws IOException
+     */
+    public void generate(final Writer writer, String target) throws PacioliException, IOException {
+        switch (target) {
+            case "markdown": {
+                this.markdown(writer);
+                break;
+            }
+            case "structure": {
+                this.structure(writer);
+                break;
+            }
+            case "", "html": {
+                this.html(writer);
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
+    }
+
+    /**
+     * Generates a markdown page with documentation for the bundle's module.
+     * 
+     * @param writer Writer the page is written to
+     * @throws PacioliException
+     * @throws IOException
+     */
+    public void markdown(final Writer writer) throws PacioliException, IOException {
+        writer.write(this.docBuilder().markdown());
+        writer.write(String.format("\nVersion %s, %s", version, ZonedDateTime.now()));
+    }
+
+    /**
+     * Generates a html page with documentation for the bundle's module.
+     * 
+     * @param writer Writer the page is written to
+     * @throws PacioliException
+     * @throws IOException
+     */
+    public void html(final Writer writer) throws PacioliException, IOException {
+        writeHTMLHeader(writer);
+        writer.write(this.docBuilder().html());
+        writeHTMLFooter(writer);
+    }
+
+    public void structure(final Writer writer) throws PacioliException, IOException {
+        writer.write(this.docBuilder().structure());
+    }
+
+    private void writeHTMLHeader(final Writer writer) throws IOException {
+        writer.write("<!DOCTYPE html>\n");
+        writer.write("<html>\n");
+        writer.write("<head>\n");
+        writer.write(String.format("<title>%s</title>\n", module));
+    }
+
+    private void writeHTMLFooter(final Writer writer) throws IOException {
+
+        writer.write("<p><small>");
+        writer.write(String.format("Version %s, %s", version, ZonedDateTime.now()));
+        writer.write("</small>");
+
+        writer.write("</body>\n");
+        writer.write("</html>\n");
+    }
+
+    private DocBuilder docBuilder() throws PacioliException {
+
+        DocBuilder docbuilder = new DocBuilder();
+
+        List<String> vals = new ArrayList<String>(values);
+        Collections.sort(vals);
+
+        List<String> funs = new ArrayList<String>(functions);
+        Collections.sort(funs);
+
+        // A general section about the module
+        docbuilder
+                .header(1)
+                .text("The %s library", module)
+                .newline();
+
+        if (this.intro != null) {
+            docbuilder.parse(intro);
+        } else {
+            docbuilder.text("Interface for the ");
+            docbuilder.code(module);
+            docbuilder.text(" library");
+        }
+
+        // Print the types for the values and the function in a synopsis section
+        docbuilder.header(2).text("Synopsis");
+
+        docbuilder.startCode();
+
+        for (String value : vals) {
+            docbuilder.link(value, value);
+            docbuilder.text(String.format(" :: %s", typeTable.get(value)));
+            docbuilder.newline();
+        }
+        if (!values.isEmpty()) {
+            docbuilder.line("");
+        }
+        for (String function : funs) {
+            docbuilder.link(function, function);
+            docbuilder.text(String.format(" :: %s", typeTable.get(function)));
+            docbuilder.newline();
+        }
+
+        docbuilder.endCode();
+
+        // Print details for the index sets
+        if (indexSetDocs.size() > 0) {
+
+            docbuilder.header(2).text("Index sets");
+
+            for (String name : indexSetDocs.keySet()) {
+
+                // Index set name
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.definition(name);
+                    docbuilder.code(name);
+                    docbuilder.body();
+                } else {
+                    docbuilder.header(3, name).text(name).newline();
+                }
+
+                // The index set documentation
+                docbuilder.parse(getIndexSetDoc(name));
+
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.endBody();
+                }
+            }
+        }
+
+        // Print details for the types
+        if (typeDocs.size() > 0) {
+
+            docbuilder.header(2).text("Types");
+
+            for (String name : typeDocs.keySet()) {
+                // The type name
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.definition(name);
+                    docbuilder.code(name);
+                    docbuilder.body();
+                } else {
+                    docbuilder.header(3, name).text(name).newline();
+                }
+
+                // The type definition
+                if (FLAG_SHOW_TYPE_DEF_BODY) {
+                    docbuilder.startCode();
+                    docbuilder.text("%s%s = %s", typeDecl.get(name), typeLHS.get(name), typeRHS.get(name));
+                    docbuilder.endCode();
+                } else {
+                    docbuilder.startCode();
+                    docbuilder.text("%s%s", typeDecl.get(name), typeLHS.get(name));
+                    docbuilder.endCode();
+                }
+
+                // The type documentation
+                docbuilder.parse(getTypeDoc(name));
+
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.endBody();
+                }
+            }
+        }
+
+        // Print details for the values
+        if (!values.isEmpty()) {
+
+            docbuilder.header(2).text("Values");
+
+            for (String name : vals) {
+
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.definition(name);
+                    docbuilder.code(name);
+                    docbuilder.body();
+                } else {
+                    docbuilder.header(3, name).text(name).newline();
+                }
+
+                docbuilder.startCode();
+                docbuilder.text(":: %s", lookupType(name));
+                docbuilder.endCode();
+
+                if (this.primitives.contains(name)) {
+                    docbuilder.text("Primitive value");
+                }
+
+                docbuilder.parse(getDoc(name));
+
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.endBody();
+                }
+            }
+        }
+
+        // Print details for the functions
+        if (!funs.isEmpty()) {
+
+            docbuilder.header(2).text("Functions").newline();
+
+            for (String name : funs) {
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.definition(name);
+                    docbuilder.code(name);
+                    docbuilder.body();
+                } else {
+                    docbuilder.header(3, name).text(name).newline();
+                }
+
+                docbuilder.startCode();
+                docbuilder.text(":: %s", lookupType(name));
+                docbuilder.endCode();
+
+                Documentation docu = documentationTable.get(name);
+
+                docbuilder.parse(docu == null ? "" : docu.rawText());
+
+                if (this.primitives.contains(name)) {
+                    docbuilder.text(" Primitive function");
+                }
+
+                if (FLAG_USE_DEFINTIONS) {
+                    docbuilder.endBody();
+                }
+            }
+        }
+
+        return docbuilder;
+    }
+
 }

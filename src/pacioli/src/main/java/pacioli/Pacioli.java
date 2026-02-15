@@ -146,6 +146,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
+            String target = "";
 
             // Load options first
             loadOptionsFile();
@@ -162,19 +163,7 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-target")) {
                     if (i < args.length) {
-                        String target = args[i++];
-                        if (target.equals("javascript")) {
-                            settings.setTarget(Target.JS);
-                        } else if (target.equals("matlab")) {
-                            settings.setTarget(Target.MATLAB);
-                        } else if (target.equals("mvm")) {
-                            settings.setTarget(Target.MVM);
-                        } else if (target.equals("python")) {
-                            settings.setTarget(Target.PYTHON);
-                        } else {
-                            throw new RuntimeException(
-                                    "Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
-                        }
+                        target = args[i++];
                     } else {
                         displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
                     }
@@ -199,6 +188,21 @@ public class Pacioli {
                     command = arg;
                 } else {
                     files.add(arg);
+                }
+            }
+
+            if (command.equals("run") || command.equals("interpret") || command.equals("compile")) {
+                if (target.equals("javascript")) {
+                    settings.setTarget(Target.JS);
+                } else if (target.equals("matlab")) {
+                    settings.setTarget(Target.MATLAB);
+                } else if (target.equals("mvm")) {
+                    settings.setTarget(Target.MVM);
+                } else if (target.equals("python")) {
+                    settings.setTarget(Target.PYTHON);
+                } else {
+                    throw new RuntimeException(
+                            "Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
                 }
             }
 
@@ -264,14 +268,14 @@ public class Pacioli {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    apiCommand(file, libs);
+                    apiCommand(file, libs, target);
                 }
             } else if (command.equals("baseapi")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    baseApiCommand(file, libs);
+                    baseApiCommand(file, libs, target);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
@@ -406,7 +410,7 @@ public class Pacioli {
 
     }
 
-    private static void apiCommand(String fileName, List<File> libs)
+    private static void apiCommand(String fileName, List<File> libs, String target)
             throws Exception {
 
         log("Generating documentation for %s\n", fileName);
@@ -429,9 +433,9 @@ public class Pacioli {
             project.includeTree(file).forEach(x -> {
                 includes.add(x.fsFile());
             });
-            File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
 
-            project.loadBundle().printAPI(out, includes, VERSION, project.docFile()); // TODO: version, see above
+            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
+                                                                                         // above
 
             Pacioli.log("\nDocumentation ready");
 
@@ -441,9 +445,9 @@ public class Pacioli {
 
     }
 
-    private static void baseApiCommand(String dirName, List<File> libs)
+    private static void baseApiCommand(String dirName, List<File> libs, String target)
             throws Exception {
-        new PrimitivesDocumentation(dirName, libs).generate(VERSION);
+        new PrimitivesDocumentation(dirName, libs, target).generate(VERSION);
     }
 
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)

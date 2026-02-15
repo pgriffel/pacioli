@@ -445,14 +445,12 @@ public class Bundle {
      * @throws IOException
      */
     public void printAPI(
-            File output,
             List<File> includes,
             String version,
-            File docFile) throws PacioliException, IOException {
+            File docFile,
+            String target) throws PacioliException, IOException {
 
-        FileWriter out = new FileWriter(output, Pacioli.CHARSET, false);
-        PrintWriter writer = new PrintWriter(out);
-        DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
+        DocumentationGenerator generator = new DocumentationGenerator(file.moduleName(), version);
 
         int nrValues = 0;
         int nrFunctions = 0;
@@ -531,12 +529,35 @@ public class Bundle {
         Pacioli.log("  values:      %s", nrValues);
         Pacioli.log("  functions:   %s", nrFunctions);
 
-        generator.generate();
+        String extension;
 
-        Pacioli.log("Writing file %s...", output.getAbsolutePath());
+        switch (target) {
+            case "markdown": {
+                extension = ".md";
+                break;
+            }
+            case "structure": {
+                extension = ".txt";
+                break;
+            }
+            case "", "html": {
+                extension = ".html";
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
 
-        out.close();
-        writer.close();
+        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
+
+        Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
+
+        try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
+        }
+
     }
 
     public void printSymbolTables() {

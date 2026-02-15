@@ -44,24 +44,46 @@ public class PrimitivesDocumentation {
 
     private final String dirName;
     private final List<File> libs;
+    private String target;
 
-    public PrimitivesDocumentation(String dirName, List<File> libs) {
+    public PrimitivesDocumentation(String dirName, List<File> libs, String target) {
         this.dirName = dirName;
         this.libs = libs;
+        this.target = target;
     }
 
     public void generate(String version) throws Exception {
 
-        Pacioli.log("Generating built-in documentation in directory %s", dirName);
+        String extension;
 
-        writeAPIFile("io.html", version, "io", true, true);
-        writeAPIFile("string.html", version, "string", true, true);
-        writeAPIFile("list.html", version, "list", true, true);
-        writeAPIFile("array.html", version, "array", true, false);
-        writeAPIFile("matrix.html", version, "matrix", true, true);
-        writeAPIFile("base.html", version, "base", true, false);
-        writeAPIFile("system.html", version, "system", true, false);
-        writeAPIFile("standard.html", version, "standard", false, true);
+        switch (this.target) {
+            case "markdown": {
+                extension = ".md";
+                break;
+            }
+            case "structure": {
+                extension = ".txt";
+                break;
+            }
+            case "", "html": {
+                extension = ".html";
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
+
+        Pacioli.log("Generating built-in %s documentation in directory %s", this.target, dirName);
+
+        writeAPIFile("io" + extension, version, "io", true, true);
+        writeAPIFile("string" + extension, version, "string", true, true);
+        writeAPIFile("list" + extension, version, "list", true, true);
+        writeAPIFile("array" + extension, version, "array", true, false);
+        writeAPIFile("matrix" + extension, version, "matrix", true, true);
+        writeAPIFile("base" + extension, version, "base", true, false);
+        writeAPIFile("system" + extension, version, "system", true, false);
+        writeAPIFile("standard" + extension, version, "standard", false, true);
     }
 
     private void writeAPIFile(String name, String version, String module, boolean base, boolean standard)
@@ -80,7 +102,7 @@ public class PrimitivesDocumentation {
 
         List<ValueInfo> infos = new ArrayList<>();
 
-        DocumentationGenerator generator = new DocumentationGenerator(writer, module, version);
+        DocumentationGenerator generator = new DocumentationGenerator(module, version);
 
         File docFile = null;
 
@@ -197,6 +219,6 @@ public class PrimitivesDocumentation {
             }
         }
 
-        generator.generate();
+        generator.generate(writer, target);
     }
 }
