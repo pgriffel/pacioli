@@ -442,7 +442,37 @@ public class Bundle {
             String version,
             File docFile,
             String target) throws PacioliException, IOException {
-        printAPIold(includes, version, docFile, target);
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, true);
+
+        String extension;
+
+        switch (target) {
+            case "markdown": {
+                extension = ".md";
+                break;
+            }
+            case "structure": {
+                extension = ".txt";
+                break;
+            }
+            case "", "html": {
+                extension = ".html";
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
+
+        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
+
+        Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
+
+        try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
+        }
     }
 
     public void printAPI(
@@ -549,6 +579,7 @@ public class Bundle {
             }
         }
 
+        // TODO: move to the caller!?
         Pacioli.logIf(verbose, "Generating documentation entries...");
         Pacioli.logIf(verbose, "  types:       %s", nrTypes);
         Pacioli.logIf(verbose, "  index sets:  %s", nrIndexSets);
@@ -556,131 +587,6 @@ public class Bundle {
         Pacioli.logIf(verbose, "  functions:   %s", nrFunctions);
 
         return generator;
-    }
-
-    /**
-     * Generates a html page with documentation for the bundle's module.
-     * 
-     * @param includes A filter. Only code in the includes is included.
-     * @param version  A description of the module's version that is added to the
-     *                 output
-     * @throws PacioliException
-     * @throws IOException
-     */
-    public void printAPIold(
-            List<File> includes,
-            String version,
-            File docFile,
-            String target) throws PacioliException, IOException {
-
-        DocumentationGenerator generator = new DocumentationGenerator(file.moduleName(), version);
-
-        int nrValues = 0;
-        int nrFunctions = 0;
-        int nrTypes = 0;
-        int nrIndexSets = 0;
-
-        if (docFile.exists()) {
-            Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
-            generator.setIntroFromDocFile(docFile);
-        } else {
-            Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
-        }
-
-        Pacioli.log("Collecting exports...");
-
-        for (String name : environment.values().allNames()) {
-            ValueInfo info = environment.values().lookup(name);
-            if (info.isPublic()
-                    && info.location().file().isPresent()
-                    && includes.contains(info.location().file().get())
-                    && info.definition().isPresent()
-                    && info.isUserDefined()) {
-                ExpressionNode body = info.definition().get().body;
-                if (body instanceof LambdaNode) {
-                    LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.publicType());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.log("  no documentation for function %s", info.name());
-                    }
-                    nrFunctions++;
-                } else {
-                    generator.addValue(info.name(), info.publicType());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.log("  no documentation for value %s", info.name());
-                    }
-                    nrValues++;
-                }
-            }
-        }
-
-        for (String name : environment.types().allNames()) {
-            TypeInfo info = environment.types().lookup(name);
-            if (info.location().file().isPresent() && includes.contains(info.location().file().get())
-                    && info.definition().isPresent() && info.isPublic()) {
-                if (info instanceof ParametricInfo def) {
-                    generator.addType(info.name(),
-                            def.definition().get().createContext().pretty(),
-                            def.definition().get().lhs.pretty(),
-                            def.definition().get().rhs.pretty());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addTypeDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.log("  no documentation for type %s", info.name());
-                    }
-                    nrTypes++;
-                }
-                if (info instanceof IndexSetInfo def) {
-                    generator.addIndexSet(info.name());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addIndexSetDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.log("  no documentation for index set %s", info.name());
-                    }
-                    nrIndexSets++;
-                }
-            }
-        }
-
-        Pacioli.log("Generating documentation entries...");
-        Pacioli.log("  types:       %s", nrTypes);
-        Pacioli.log("  index sets:  %s", nrIndexSets);
-        Pacioli.log("  values:      %s", nrValues);
-        Pacioli.log("  functions:   %s", nrFunctions);
-
-        String extension;
-
-        switch (target) {
-            case "markdown": {
-                extension = ".md";
-                break;
-            }
-            case "structure": {
-                extension = ".txt";
-                break;
-            }
-            case "", "html": {
-                extension = ".html";
-                break;
-            }
-            default: {
-                throw new PacioliException("Unknown target: " + target);
-            }
-        }
-
-        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
-
-        Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
-
-        try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
-                PrintWriter writer = new PrintWriter(fileWriter)) {
-            generator.generate(writer, target);
-        }
-
     }
 
     public void printSymbolTables() {
