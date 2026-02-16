@@ -199,11 +199,13 @@ public class PacioliMCPServer {
     private static JsonObject listTools() {
         JsonArray toolArray = new JsonArray();
 
-        toolArray.add(toolInfo(
-                "analyze_file",
-                "Parse and analyze a Pacioli file, returning symbols, types, and diagnostics",
-                Map.ofEntries(
-                        Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to analyze")))));
+        // toolArray.add(toolInfo(
+        // "analyze_file",
+        // "Parse and analyze a Pacioli file, returning symbols, types, and
+        // diagnostics",
+        // Map.ofEntries(
+        // Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to
+        // analyze")))));
 
         toolArray.add(toolInfo(
                 "infer_types",
@@ -211,12 +213,19 @@ public class PacioliMCPServer {
                 Map.ofEntries(
                         Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to infer types for")))));
 
+        // toolArray.add(toolInfo(
+        // "list_symbols",
+        // "Extract all public symbols from a module (API listing)",
+        // Map.ofEntries(
+        // Map.entry("filepath",
+        // toolProperty("string", "Path to the Pacioli file to analyze")))));
+
         toolArray.add(toolInfo(
-                "list_symbols",
-                "Extract all public symbols from a module (API listing)",
+                "library_documentation",
+                "Library documentation",
                 Map.ofEntries(
-                        Map.entry("filepath",
-                                toolProperty("string", "Path to the Pacioli file to analyze")))));
+                        Map.entry("name",
+                                toolProperty("string", "Name of the library")))));
 
         // Is also a resource? Remove this as tool?
         toolArray.add(toolInfo(

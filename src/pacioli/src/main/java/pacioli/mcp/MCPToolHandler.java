@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 
 import pacioli.mcp.tools.AnalyzeTool;
 import pacioli.mcp.tools.InferTypesTool;
+import pacioli.mcp.tools.LibraryDocumentationTool;
 import pacioli.mcp.tools.ListLibrariesTool;
 import pacioli.mcp.tools.ListSymbolsTool;
 
@@ -18,15 +19,17 @@ public class MCPToolHandler {
     private final ListSymbolsTool listSymbolsTool;
     private final InferTypesTool inferTypesTool;
     private final ListLibrariesTool listLibrariesTool;
+    private final LibraryDocumentationTool libraryDocumentationTool;
 
     public MCPToolHandler(List<File> libs) {
         this.analyzeTool = new AnalyzeTool(libs);
         this.listSymbolsTool = new ListSymbolsTool(libs);
         this.inferTypesTool = new InferTypesTool(libs);
         this.listLibrariesTool = new ListLibrariesTool(libs);
+        this.libraryDocumentationTool = new LibraryDocumentationTool(libs);
     }
 
-    public JsonObject callTool(JsonObject params) throws MCPException, IOException {
+    public JsonObject callTool(JsonObject params) throws Exception {
         return mpcCallToolResult(dispatch(params));
     }
 
@@ -47,7 +50,7 @@ public class MCPToolHandler {
         return result;
     }
 
-    public String dispatch(JsonObject params) throws MCPException, IOException {
+    public String dispatch(JsonObject params) throws Exception {
         String name = params.has("name") ? params.get("name").getAsString() : null;
         JsonObject args = params.has("arguments") ? params.getAsJsonObject("arguments") : new JsonObject();
         if ("analyze_file".equals(name)) {
@@ -58,6 +61,8 @@ public class MCPToolHandler {
             return inferTypesTool.call(args).toString();
         } else if ("list_libraries".equals(name)) {
             return listLibrariesTool.call(args);
+        } else if ("library_documentation".equals(name)) {
+            return libraryDocumentationTool.call(args);
         } else {
             throw new MCPException("Unknown tool: " + name);
         }

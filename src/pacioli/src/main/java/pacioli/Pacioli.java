@@ -270,6 +270,13 @@ public class Pacioli {
                 for (String file : files) {
                     apiCommand(file, libs, target);
                 }
+            } else if (command.equals("man")) {
+                if (files.isEmpty()) {
+                    displayError("No files to read.");
+                }
+                for (String file : files) {
+                    manCommand(file, libs, target);
+                }
             } else if (command.equals("baseapi")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
@@ -434,10 +441,41 @@ public class Pacioli {
                 includes.add(x.fsFile());
             });
 
-            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
-                                                                                         // above
+            project.loadBundle().genAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
+                                                                                       // above
 
             Pacioli.log("\nDocumentation ready");
+
+        } catch (IOException e) {
+            println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
+        }
+
+    }
+
+    private static void manCommand(String fileName, List<File> libs, String target)
+            throws Exception {
+
+        Integer version = 0; // TODO, see below
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+
+        if (!optionalFile.isPresent()) {
+            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+
+        if (!optionalFile.isPresent()) {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        }
+
+        try {
+            PacioliFile file = optionalFile.get();
+            Project project = Project.load(file, libs);
+            List<File> includes = new ArrayList<>();
+            project.includeTree(file).forEach(x -> {
+                includes.add(x.fsFile());
+            });
+
+            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
+                                                                                         // above
 
         } catch (IOException e) {
             println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
@@ -838,7 +876,7 @@ public class Pacioli {
      * @param args
      *               Format arguments
      */
-    private static void logIf(boolean show, String string, Object... args) {
+    public static void logIf(boolean show, String string, Object... args) {
         if (show) {
             log(string, args);
         }

@@ -51,6 +51,11 @@ public class CompilerAPI {
         return String.join("\n", read);
     }
 
+    public static String libraryAPI(File docFile) throws IOException {
+        List<String> read = Files.readAllLines(docFile.toPath());
+        return String.join("\n", read);
+    }
+
     public static List<PacioliFile> collectLibFiles(List<File> libs) throws IOException {
         var libraries = new ArrayList<PacioliFile>();
 

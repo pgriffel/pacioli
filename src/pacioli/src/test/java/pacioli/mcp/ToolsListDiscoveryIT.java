@@ -50,8 +50,8 @@ class ToolsListDiscoveryIT {
         assertTrue(tools.size() > 0, "Should return at least one tool");
 
         // Verify tools exists
-        boolean hasAnalyzeTool = false;
-        boolean hasListSymbolsTool = false;
+        boolean hasLibraryDocumentationTool = false;
+        boolean hasInferTypesTool = false;
         boolean hasListLibrariesTool = false;
 
         for (var toolElem : tools) {
@@ -64,26 +64,26 @@ class ToolsListDiscoveryIT {
 
             String toolName = tool.get("name").getAsString();
 
-            if ("analyze_file".equals(toolName)) {
-                hasAnalyzeTool = true;
+            if ("library_documentation".equals(toolName)) {
+                hasLibraryDocumentationTool = true;
 
                 JsonObject schema = tool.getAsJsonObject("inputSchema");
 
                 // And the 'analyze_file' tools should have property 'filepath'
                 assertTrue(schema.has("properties"), "Schema should have 'properties'");
-                assertTrue(schema.getAsJsonObject("properties").has("filepath"),
-                        "analyze_file should have filepath property");
+                assertTrue(schema.getAsJsonObject("properties").has("name"),
+                        "library_documentation should have name property");
 
-            } else if ("list_symbols".equals(toolName)) {
-                hasListSymbolsTool = true;
+            } else if ("infer_types".equals(toolName)) {
+                hasInferTypesTool = true;
             } else if ("list_libraries".equals(toolName)) {
                 hasListLibrariesTool = true;
             }
         }
 
         // And tools 'analyze_file', 'list_symbols' and 'list_libraries' should exist
-        assertTrue(hasAnalyzeTool, "Should have analyze_file tool");
-        assertTrue(hasListSymbolsTool, "Should have list_symbols tool");
+        assertTrue(hasLibraryDocumentationTool, "Should have library_documentation tool");
+        assertTrue(hasInferTypesTool, "Should have infer_types tool");
         assertTrue(hasListLibrariesTool, "Should have list_libraries tool");
 
         // Teardown
