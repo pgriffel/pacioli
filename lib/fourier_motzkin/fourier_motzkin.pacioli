@@ -50,8 +50,8 @@ export fourier_motzkin;
 # ------------------------------------------------------------------------------
 
 doc fourier_motzkin
-    "All nullifiers of the matrix. That is, all integer vectors <code>v</code>
-    such that <code>matrix '*' v</code> is zero.
+    "All nullifiers of the matrix. That is, all integer vectors `v`
+    such that `matrix '*' v` is zero.
     
     The matrix must be an integer matrix.
     

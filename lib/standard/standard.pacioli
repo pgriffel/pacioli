@@ -142,9 +142,8 @@ doc approx_equal
     TODO: check IEEE standards etc. This is a quick solution.
 
     Defined as
-    <pre>
-    approximates(A, B, precision())
-    </pre>";
+    
+        approximates(A, B, precision())";
 
 declare approx_equal ::
     for_unit a, P!u, Q!v: for_index P, Q:
@@ -203,21 +202,17 @@ doc printf
 
     Shorthand for
   
-    <pre>
-    print(format(...))
-    </pre>
+        print(format(...))
   
     For example
 
-    <pre>
-    let n = 20 in
-        printf(\"pi to %s decimals is %s\", int2str(n, 1), num2string(pi, n, 1))
-    end;
-    </pre>
+        let n = 20 in
+            printf(\"pi to %s decimals is %s\", int2str(n, 1), num2string(pi, n, 1))
+        end;
     
     prints
 
-    <code>pi to 20 decimals is 3,14159265358979300000</code>";
+    `pi to 20 decimals is 3,14159265358979300000`";
 
 declare printf ::
     for_type t: t -> Void;

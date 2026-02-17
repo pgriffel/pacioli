@@ -46,8 +46,9 @@ export
 
 doc Arrow
     "An arrow is a colored line segment from from one position to another,
-    with an arrowhead at the end. Is an element of a <code>Scene(a)</code> 
-    scene.";
+    with an arrowhead at the end.
+    
+    Is an element of a scene.";
 
 defrecord for_unit a, Geom3!u: Arrow(a, Geom3!u) as arrow where
     src: a*Geom3!u,

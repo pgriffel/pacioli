@@ -72,8 +72,13 @@ declare_primitive char_at(string, position) ::
 doc split_string
     "Splits a string for all occurences of the second string.
     
-    For example <code>split_string(\"x + y++ + z--\", \"+\")</code> is
-    <code>[\"x \", \" y\", \"\",  \" \", \" \", \"z--\"]</code>";
+    For example 
+        
+        split_string(\"x + y++ + z--\", \"+\")
+        
+    gives
+    
+        [\"x \", \" y\", \"\",  \" \", \" \", \"z--\"]";
 
 declare_primitive split_string(string, separator) ::
     (String, String) -> List(String);
@@ -93,8 +98,7 @@ doc pad
     "Adds characters between the left and the right string to make the 
     concatenation at least as long as the requested size.
     
-    For example <code>pad_left(\"foo\", \"bar\", 10, \"abc\")</code> is
-    <code>\"fooabcabar\"</code>
+    For example `pad_left(\"foo\", \"bar\", 10, \"abc\")` is `\"fooabcabar\"`
     
     Returns the string unchanged if it is not smaller than the requested
     size";
@@ -110,12 +114,12 @@ doc format
     "Limited string interpolation. Supports limited forms of the %s, %d and %f
     directives.
     
-    The <code>%s</code> directive prints any value, not just strings.
+    The `%s` directive prints any value, not just strings.
     
-    The <code>%nd</code> directive prints a matrix. If the n parameter is
+    The `%nd` directive prints a matrix. If the n parameter is
     provided the string is padded to size n.
     
-    The <code>%n.kf</code> directive prints a matrix. If the n parameter is
+    The `%n.kf` directive prints a matrix. If the n parameter is
     provided the string is padded to size n. If the k parameter is provided
     the string is pritned with k number of decimals.
 
@@ -144,7 +148,7 @@ doc unit2string
     
     The second argument is the number of decimals.
 
-    For example <code>num2string(1/3*|metre|, 5, |metre|)</code> <code>\"0,33333m\"</code>";
+    For example `num2string(1/3*|metre|, 5, |metre|)` gives `\"0,33333m\"`";
 
 declare_primitive unit2string(unit) ::
     for_unit a: (a) -> String;

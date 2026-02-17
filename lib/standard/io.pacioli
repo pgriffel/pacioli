@@ -46,7 +46,7 @@ define set_nr_decimals(n) =
 doc nr_decimals
     "The number of decimals that is used when printing numbers.
     
-    See <code>set_nr_decimals</code>";
+    See `set_nr_decimals`";
 
 declare nr_decimals :: () -> decimals;
 
@@ -99,7 +99,7 @@ define set_show_zeros(show) =
 doc show_zeros
     "Are zero lines shown when printing numbers?
     
-    See <code>set_show_zeros</code>";
+    See `set_show_zeros`";
 
 declare show_zeros :: () -> Boole;
 

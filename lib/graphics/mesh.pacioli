@@ -50,7 +50,7 @@ export
 
 doc Mesh
     "A 3D shape composed from faces and vertices. Is an element of a 
-    <code>Scene(a, Geom3!u)</code> scene.";
+    `Scene(a, Geom3!u)` scene.";
 
 defrecord for_unit a, Geom3!u: Mesh(a, Geom3!u) as mesh where
     vertices: List(Vertex(a, Geom3!u)),
@@ -64,7 +64,7 @@ defrecord for_unit a, Geom3!u: Mesh(a, Geom3!u) as mesh where
 # ------------------------------------------------------------------------------
 
 doc Vertex
-    "A point in a <code>Mesh(a, Geom3!u)</code> mesh.";
+    "A point in a `Mesh(a, Geom3!u)` mesh.";
 
 deftype for_unit a, Geom3!u:
     Vertex(a, Geom3!u) = Tuple(a*Geom3!u, Color);
@@ -81,7 +81,7 @@ deftype
 
 doc vertex
     "Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
-    element of a <code>Scene(a, Geom3!u)</code> scene.";
+    element of a `Scene(a, Geom3!u)` scene.";
 
 declare vertex ::
     for_unit a, Geom3!u: (a * Geom3!u, Color) -> Vertex(a, Geom3!u);
@@ -116,7 +116,7 @@ define default_mesh(vertices, faces) =
 # ------------------------------------------------------------------------------
 
 doc named_mesh
-    "The same as <code>make_mesh</code> except the mesh is also given a name. The name is used
+    "The same as `make_mesh` except the mesh is also given a name. The name is used
     during animation to locate it when updating the scene.";
 
 declare named_mesh ::
@@ -153,7 +153,7 @@ define rotate_mesh(mesh, x_angle, y_angle, z_angle) =
 doc set_wireframe
     "Copy of the mesh, but with the wireframe property changed.
     
-    Deprecated. Use <code>with_mesh_wireframe</code> instead";
+    Deprecated. Use `with_mesh_wireframe` instead";
 
 declare set_wireframe ::
     for_unit a, Geom3!u: (Mesh(a, Geom3!u), Boole) -> Mesh(a, Geom3!u);
@@ -177,7 +177,7 @@ define cube_mesh(size, color) =
 # ------------------------------------------------------------------------------
 
 doc named_cube_mesh
-    "The same as <code>make_cube_mesh</code> except the cube is also given a name. The name is used
+    "The same as `make_cube_mesh` except the cube is also given a name. The name is used
     during animation to locate it when updating the scene.";
 
 declare named_cube_mesh ::

@@ -121,39 +121,38 @@ define default_parametric_plot_options =
 doc plot_parametric_surface
     "Plots a parametric surface in a 3D space.
 
-    The function parameter is a function from the given range to <code>Geom3</code>
+    The function parameter is a function from the given range to `Geom3`
     vectors. The function is sampled for the given range to give the surface points.
     
     The number of samples, and other parameters like color, can be set in the options.
 
     For example
 
-    <pre>
-    let
-        u_interval = make_interval(-5*|metre|, 5*|metre|),  
-        v_interval = make_interval(-5*|metre|, 5*|metre|)
-    in  
-        plot_parametric_surface(
-            (u, v) -> vector3d(u, v, 3*|metre| - 0.5*u - 0.2*v),
-            make_range2d(u_interval, v_interval),
-            default_parametric_plot_options,
-            scene)
-    end  
-    </pre>
+    
+        let
+            u_interval = make_interval(-5*|metre|, 5*|metre|),  
+            v_interval = make_interval(-5*|metre|, 5*|metre|)
+        in  
+            plot_parametric_surface(
+                (u, v) -> vector3d(u, v, 3*|metre| - 0.5*u - 0.2*v),
+                make_range2d(u_interval, v_interval),
+                default_parametric_plot_options,
+                scene)
+        end  
 
     plots a part of a plane, using default options. It yields a scene of
-    type <code>Scene(metre, Geom3!)</code>";
+    type `Scene(metre, Geom3!)`";
 
 
 doc plot_parametric_surface_grid
     "Plots a parametric grid in a 3D space.
 
-    The function parameter is a function from the given range to <code>Geom3</code>
+    The function parameter is a function from the given range to `Geom3`
     vectors. The function is sampled for the given range to give the grid points.
     
     The number of samples, and other parameters like color, can be set in the options.
 
-    It is similar to plotting a surface using <code>plot_parametric_surface</code> with
+    It is similar to plotting a surface using `plot_parametric_surface` with
     the option wireframe, but it displays rectangles instead of triangles.";
 
 declare plot_parametric_surface, plot_parametric_surface_grid ::
