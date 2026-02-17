@@ -27,9 +27,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
+
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
+import org.commonmark.renderer.markdown.MarkdownRenderer;
 
 /**
  * A fluent api to create documentation.
@@ -37,11 +39,12 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
  * Experiment to improve the documentation generator. At least its better than
  * the old code.
  * 
- * Transforms doc strings from Pacioli code and library doc files into markdown
- * or HTML.
+ * The builder maintains an intermediate form. From this intermediate form
+ * HTML and markdown output can be generated.
  * 
- * The doc text is parsed to an intermediate form. The output is generated from
- * this intermediate form.
+ * Parses doc strings from Pacioli code and library doc files with the
+ * commonmark-java parser. The 'parse' fluent api adds the parsed node
+ * to the builder's intermediate form.
  * 
  * Two dev features:
  * 1. FLAG_SHOW_NEWLINE_DEBUG_TAGS
@@ -168,7 +171,7 @@ public class DocBuilder {
         }
     }
 
-    sealed interface Section permits Header, TextBlock, CodeBlock, Definition {
+    sealed interface Section permits Header, TextBlock, CodeBlock, MarkdownBlock, Definition {
         void appendMarkdown(StringBuilder builder);
 
         void appendHTML(StringBuilder builder);
@@ -233,6 +236,24 @@ public class DocBuilder {
             for (Line element : text) {
                 element.appendStructure(builder, level + 1);
             }
+        }
+    }
+
+    public record MarkdownBlock(Node text) implements Section {
+        public void appendMarkdown(StringBuilder builder) {
+            MarkdownRenderer renderer = MarkdownRenderer.builder().build();
+            builder.append(renderer.render(text));
+        }
+
+        public void appendHTML(StringBuilder builder) {
+            HtmlRenderer renderer = HtmlRenderer.builder().build();
+            builder.append(renderer.render(text));
+        }
+
+        public void appendStructure(StringBuilder builder, int level) {
+            builder.append("\n");
+            builder.append(" ".repeat(level * 2));
+            builder.append("MarkdownBlock");
         }
     }
 
@@ -352,10 +373,7 @@ public class DocBuilder {
     boolean definitionMode = false;
 
     public static DocBuilder fromDocText(String text) {
-        DocBuilder builder = new DocBuilder();
-        DocBuilder.parseDocText(text, builder);
-        return builder;
-
+        return new DocBuilder().parse(text);
     }
 
     /**
@@ -652,7 +670,12 @@ public class DocBuilder {
      * @return
      */
     public DocBuilder parse(String text) {
-        parseDocText(text, this);
+        this.flushLines();
+
+        Parser parser = Parser.builder().build();
+        Node document = parser.parse(text);
+        this.sections.add(new MarkdownBlock(document));
+
         return this;
     }
 
@@ -767,87 +790,5 @@ public class DocBuilder {
         content.append("\n");
 
         return content.toString();
-    }
-
-    private static void parseDocText(String text, DocBuilder content) {
-        for (Either<String, String> textOrCodeBlock : splitCodeBlocks(text)) {
-            if (textOrCodeBlock.isLeft()) {
-                parseDocTextBlock(textOrCodeBlock.getLeft(), content);
-            } else {
-                content.startCode();
-                content.inject(textOrCodeBlock.getRight());
-                content.endCode();
-            }
-        }
-    }
-
-    private static void parseDocTextBlock(String text, DocBuilder content) {
-
-        // Split by empty line (not by newline!)
-        String[] paragraphs = text.split("\\r?\\n\s*\\r?\\n");
-
-        for (String par : paragraphs) {
-
-            String[] lines = par.split("\\r?\\n");
-
-            for (String line : lines) {
-                parseDocLine(line, content);
-                content.newline();
-            }
-
-            content.endBlock();
-        }
-    }
-
-    private static void parseDocLine(String line, DocBuilder content) {
-        for (Either<String, String> textOrCode : splitLine(line)) {
-            if (textOrCode.isLeft()) {
-                content.text(textOrCode.getLeft());
-            } else {
-                content.code(textOrCode.getRight());
-            }
-        }
-    }
-
-    private static List<Either<String, String>> splitCodeBlocks(String doc) {
-        return splitByDelimiters(doc, "\\r?\\n?<pre>\\r?\\n", "\\r?\\n</pre>\\r?\\n?");
-    }
-
-    private static List<Either<String, String>> splitLine(String doc) {
-        return splitByDelimiters(doc, "<code>", "</code>");
-    }
-
-    /**
-     * Use StringTokenizer?
-     * 
-     * @param doc
-     * @param leftDelimiter
-     * @param rightDelimiter
-     * @return
-     */
-    private static List<Either<String, String>> splitByDelimiters(
-            String doc,
-            String leftDelimiter,
-            String rightDelimiter) {
-
-        Pattern regex = Pattern.compile(leftDelimiter + "(.*?)" + rightDelimiter, Pattern.DOTALL);
-
-        List<Either<String, String>> parts = new ArrayList<>();
-
-        int beginRemainder = 0;
-
-        Matcher matcher = regex.matcher(doc);
-
-        while (matcher.find()) {
-            parts.add(Either.forLeft(doc.substring(beginRemainder, matcher.start())));
-            parts.add(Either.forRight(matcher.group(1)));
-            beginRemainder = matcher.end();
-        }
-
-        if (beginRemainder < doc.length()) {
-            parts.add(Either.forLeft(doc.substring(beginRemainder)));
-        }
-
-        return parts;
     }
 }

@@ -33,55 +33,83 @@ import pacioli.compiler.Location;
 
 class DocumentationIT {
 
-  @Test
-  void documentationShouldStripLeftMargin() {
+    @Test
+    void documentationShouldStripLeftMargin() {
 
-    // Given some text with a left margin of four spaces, except in the first line
-    String testText = """
-        The docu <code>foo</code>ff <code>abc</code>
-        ****
-        *******
-        ****
-        ****f
-        ****
-        ****<pre>
-        ****yo
-        *****yo2
-        ****</pre>
-        ******tada**
-        ****<pre>**
-        ****s
-        ******yo
-        ****</pre>
-        """.replace("*", " ");
+        // Given some text with a left margin of four spaces, except in the first line
+        String testText = """
+                The docu <code>foo</code>ff <code>abc</code>
+                ~~~~
+                ~~~~~~~
+                ~~~~
+                ~~~~f
+                ~~~~
+                ~~~~<pre>
+                ~~~~yo
+                ~~~~~yo2
+                ~~~~</pre>
+                ~~~~~~tada~~
+                ~~~~<pre>~~
+                ~~~~s
+                ~~~~~~yo
+                ~~~~</pre>
+                """.replace("~", " ");
 
-    // And some irrelevant location
-    var fakeLoc = new Location(null, 0, 0, 0);
+        // And some irrelevant location
+        var fakeLoc = new Location(null, 0, 0, 0);
 
-    // And a Documentation created from the text
-    var doc = new Documentation(fakeLoc, new IdentifierNode("foo", fakeLoc),
-        new StringNode(testText, fakeLoc));
+        // And a Documentation created from the text
+        var doc = new Documentation(fakeLoc, new IdentifierNode("foo", fakeLoc),
+                new StringNode(testText, fakeLoc));
 
-    // Then method rawText should strip the margin and nothing else
-    String expected = """
-        The docu <code>foo</code>ff <code>abc</code>
+        // Then method rawText should strip the margin and nothing else
+        String expected = """
+                The docu <code>foo</code>ff <code>abc</code>
 
-        ***
+                ~~~
 
-        f
+                f
 
-        <pre>
-        yo
-        *yo2
-        </pre>
-        **tada**
-        <pre>**
-        s
-        **yo
-        </pre>
-        """.replace("*", " ");
+                <pre>
+                yo
+                ~yo2
+                </pre>
+                ~~tada~~
+                <pre>~~
+                s
+                ~~yo
+                </pre>
+                """.replace("~", " ");
 
-    assertEquals(expected, doc.rawText());
-  }
+        assertEquals(expected, doc.rawText());
+    }
+
+    @Test
+    void htmlShouldAllowHTMLPar() {
+
+        // Given some text with a left margin of four spaces, except in the first line
+        String testText = """
+                Creates a `Geom2` vector.
+                ~~~~
+                ~~~~<p>
+                ~~~~bla bla""".replace("~", " ");
+
+        // And some irrelevant location
+        var fakeLoc = new Location(null, 0, 0, 0);
+
+        // And a Documentation created from the text
+        var doc = new Documentation(fakeLoc, new IdentifierNode("foo", fakeLoc),
+                new StringNode(testText, fakeLoc));
+
+        // Then method rawText should strip the margin and nothing else
+        String expected = """
+                Creates a `Geom2` vector.
+
+                <p>
+                bla bla
+                """.replace("*", " ");
+
+        assertEquals(expected, doc.asMarkdown());
+    }
 
 }

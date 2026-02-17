@@ -30,203 +30,247 @@ import pacioli.compiler.DocBuilder;
 
 class DocBuilderIT {
 
-  static final String TEST_DOC = """
-      This is the first paragraph. There is a <code>code fragment</code> and
-      two more <code>abc</code><code>efg</code>.
+    private static DocBuilder docBuilderWithFluentCalls() {
+        DocBuilder docbuilder = new DocBuilder();
 
-      **The second paragraph start with two spaces and has three trailing spaces.***
+        // Test calls
+        docbuilder.header(1).text("My Doc");
+        docbuilder.header(2).text("My Section");
+        docbuilder.line("Some documentation text");
+        docbuilder.startCode();
+        docbuilder.line("Some code");
+        docbuilder.endCode();
+        docbuilder.line("Some documentation text");
+        docbuilder.header(2).text("My Section");
+        docbuilder.line("Some documentation text");
+        docbuilder.startCode();
+        docbuilder.line("Some code");
+        docbuilder.line(" Some code 2");
+        docbuilder.endCode();
+        docbuilder.text("Link to ");
+        docbuilder.link("my text", "#my_text");
+        docbuilder.link("my url", "http://example.com/my_text");
+        docbuilder.text(" is here");
+        docbuilder.line("Some documentation text");
 
+        return docbuilder;
+    }
 
-      The third paragraph begins after two newlines.
+    private static final String TEST_DOC = """
+            This is the first paragraph. There is a `code fragment` and
+            two more `abc`<code>efg</code>.
 
+            ~~The second paragraph start with two spaces and has three trailing spaces.~~~
 
-      Next we have some code
-      <pre>
-      ****statement1;
-      ****statement2;
-      </pre>
-
-      and some code with irregular layout
-
-      <pre>
-      **statement1;
-      ******statement2;
-      ****
-      ******statement3;**
-
-      **
-      </pre>
-
-      *****And finally some text
-      ***And finally some text***
-      *****And   finally some text
-      """.replace("*", " ");
-
-  @Test
-  void fluentAPIShouldGiveCorrectMarkdown() {
-
-    // Given a fresh DocBuilder
-    DocBuilder docbuilder = new DocBuilder();
-
-    // When the fluent API is used
-    docbuilder.header(1).text("My Doc");
-    docbuilder.header(2).text("My Section");
-    docbuilder.line("Some documentation text");
-    docbuilder.startCode();
-    docbuilder.line("Some code");
-    docbuilder.endCode();
-    docbuilder.line("Some documentation text");
-    docbuilder.header(2).text("My Section");
-    docbuilder.line("Some documentation text");
-    docbuilder.startCode();
-    docbuilder.line("Some code");
-    docbuilder.line(" Some code 2");
-    docbuilder.endCode();
-    docbuilder.text("Link to ");
-    docbuilder.link("my text", "#my_text");
-    docbuilder.link("my url", "http://example.com/my_text");
-    docbuilder.text(" is here");
-    docbuilder.line("Some documentation text");
-
-    // Then markdown should give correct markdown
-    assertEquals("""
-        # My Doc
-
-        ## My Section
-
-        Some documentation text
-
-            Some code
-
-        Some documentation text
-
-        ## My Section
-
-        Some documentation text
-
-            Some code
-             Some code 2
-
-        Link to my text[my url](http://example.com/my_text) is here
-        Some documentation text
-        """, docbuilder.markdown());
-  }
-
-  @Test
-  void parseShouldGiveCorrectStructure() {
-
-    // Given a fresh DocBuilder
-    DocBuilder builder = new DocBuilder();
-
-    // When the TEST_DOC is parsed
-    builder.parse(TEST_DOC);
-
-    // Then the structure should be correct
-    String expected = """
-        Doc
-          TextBlock
-            Line
-              Text: "This is the first paragraph. There is a "
-              Code: "code fragment"
-              Text: " and"
-            Line
-              Text: "two more "
-              Code: "abc"
-              Text: ""
-              Code: "efg"
-              Text: "."
-          TextBlock
-            Line
-              Text: "  The second paragraph start with two spaces and has three trailing spaces.   "
-          TextBlock
-            Line
-              Text: "The third paragraph begins after two newlines."
-          TextBlock
-            Line
-              Text: "Next we have some code"
-          CodeBlock
-            Line
-              Text: "    statement1;"
-            Line
-              Text: "    statement2;"
-          TextBlock
-            Line
-              Text: "and some code with irregular layout"
-          CodeBlock
-            Line
-              Text: "  statement1;"
-            Line
-              Text: "      statement2;"
-            Line
-              Text: "    "
-            Line
-              Text: "      statement3;  "
-            Line
-              Text: ""
-            Line
-              Text: "  "
-          TextBlock
-            Line
-              Text: "     And finally some text"
-            Line
-              Text: "   And finally some text   "
-            Line
-              Text: "     And   finally some text"
-        """;
-
-    String structure = builder.structure();
-
-    assertEquals(expected, structure);
-  }
-
-  @Test
-  void htmlShouldGiveCorrectHTML() {
-
-    // Given a fresh DocBuilder
-    DocBuilder builder = new DocBuilder();
-
-    // When the TEST_DOC is parsed
-    builder.parse(TEST_DOC);
-
-    // Then the HTML output should be correct
-    String expected = """
-        <p>This is the first paragraph. There is a <code>code fragment</code> and
-        two more <code>abc</code><code>efg</code>.
+            The third paragraph begins after two newlines.
 
 
-        <p>**The second paragraph start with two spaces and has three trailing spaces.***
+            Next we have some code
+
+            ~~~~statement1;
+            ~~~~statement2;
 
 
-        <p>The third paragraph begins after two newlines.
+            and some code with irregular layout
 
+            ```
+            ~~statement1;
+            ~~~~~~statement2;
+            ~~~~
+            ~~~~~~statement3;~~
 
-        <p>Next we have some code
+            ~~
+            ```
 
+            A list
 
-        <pre>
-        ****statement1;
-        ****statement2;
-        </pre>
+            * foo
+            * bar
+            * baz
 
-        <p>and some code with irregular layout
+            And another list
 
+            - foo
+            - bar
+            - baz
 
-        <pre>
-        **statement1;
-        ******statement2;
-        ****
-        ******statement3;**
+            + foo
+            + bar
+            + baz
 
-        **
-        </pre>
+            1. foo
+            2. bar
+            3. baz
 
-        <p>*****And finally some text
-        ***And finally some text***
-        *****And   finally some text
-        """.replace("*", " ");
+            A [link](https://example.com) to somewhere.
 
-    String html = builder.html();
+            ~~~~~And finally some text
+            ~~~And finally some text~~~
+            ~~~~~And   finally some text
+            """.replace("~", " ");
 
-    assertEquals(expected, html);
-  }
+    @Test
+    void fluentAPIShouldGiveCorrectStructure() {
+
+        // Given builder docBuilderWithFluentCalls
+        DocBuilder docbuilder = docBuilderWithFluentCalls();
+
+        // Then markdown should give the correct structure
+        assertEquals("""
+                Doc
+                  Header id='null'
+                    Line
+                      Text: "My Doc"
+                  Header id='null'
+                    Line
+                      Text: "My Section"
+                  TextBlock
+                    Line
+                      Text: "Some documentation text"
+                  CodeBlock
+                    Line
+                      Text: "Some code"
+                  TextBlock
+                    Line
+                      Text: "Some documentation text"
+                  Header id='null'
+                    Line
+                      Text: "My Section"
+                  TextBlock
+                    Line
+                      Text: "Some documentation text"
+                  CodeBlock
+                    Line
+                      Text: "Some code"
+                    Line
+                      Text: " Some code 2"
+                  TextBlock
+                    Line
+                      Text: "Link to "
+                      Link: my text, #my_text
+                      Link: my url, http://example.com/my_text
+                      Text: " is here"
+                    Line
+                      Text: "Some documentation text"
+                  """, docbuilder.structure());
+    }
+
+    @Test
+    void fluentAPIShouldGiveCorrectMarkdown() {
+
+        // Given builder docBuilderWithFluentCalls
+        DocBuilder docbuilder = docBuilderWithFluentCalls();
+
+        // Then markdown should give correct markdown
+        assertEquals("""
+                # My Doc
+
+                ## My Section
+
+                Some documentation text
+
+                    Some code
+
+                Some documentation text
+
+                ## My Section
+
+                Some documentation text
+
+                    Some code
+                     Some code 2
+
+                Link to my text[my url](http://example.com/my_text) is here
+                Some documentation text
+                """, docbuilder.markdown());
+    }
+
+    @Test
+    void parseShouldGiveCorrectStructure() {
+
+        // Given a fresh DocBuilder
+        DocBuilder builder = new DocBuilder();
+
+        // When the TEST_DOC is parsed
+        builder.parse(TEST_DOC);
+
+        // Then the structure should be correct
+        String expected = """
+                Doc
+                  MarkdownBlock
+                """;
+
+        String structure = builder.structure();
+
+        assertEquals(expected, structure);
+    }
+
+    @Test
+    void htmlShouldGiveCorrectHTML() {
+
+        // Given a fresh DocBuilder
+        DocBuilder builder = new DocBuilder();
+
+        // When the TEST_DOC is parsed
+        builder.parse(TEST_DOC);
+
+        // Then the HTML output should be correct
+        String expected = """
+                <p>This is the first paragraph. There is a <code>code fragment</code> and
+                two more <code>abc</code><code>efg</code>.</p>
+                <p>The second paragraph start with two spaces and has three trailing spaces.</p>
+                <p>The third paragraph begins after two newlines.</p>
+                <p>Next we have some code</p>
+                <pre><code>statement1;
+                statement2;
+                </code></pre>
+                <p>and some code with irregular layout</p>
+                <pre><code>  statement1;
+                      statement2;
+                ~~~~
+                ~~~~~~statement3;~~
+
+                ~~
+                </code></pre>
+                <p>A list</p>
+                <ul>
+                <li>foo</li>
+                <li>bar</li>
+                <li>baz</li>
+                </ul>
+                <p>And another list</p>
+                <ul>
+                <li>foo</li>
+                <li>bar</li>
+                <li>baz</li>
+                </ul>
+                <ul>
+                <li>foo</li>
+                <li>bar</li>
+                <li>baz</li>
+                </ul>
+                <ol>
+                <li>foo</li>
+                <li>bar</li>
+                <li>baz</li>
+                </ol>
+                <p>A <a href="https://example.com">link</a> to somewhere.</p>
+                <pre><code> And finally some text
+                </code></pre>
+                <p>And finally some text<br />
+                And   finally some text</p>
+                """.replace("~", " ");
+
+        String html = builder.html();
+
+        for (int i = 0; i < Math.min(expected.length(), html.length()); i++) {
+            if (expected.charAt(i) != html.charAt(i)) {
+                System.out.println(expected.substring(0, i));
+                System.out.println(String.format("'%s' != '%s'", expected.charAt(i), html.charAt(i)));
+                throw new RuntimeException("yo");
+            }
+        }
+
+        assertEquals(expected, html);
+    }
 }
