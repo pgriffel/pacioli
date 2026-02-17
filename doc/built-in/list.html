@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>list</title>
-</head>
-<body>
-<h1>The <code>list</code> library</h1>
-<p>Interface for the <code>list</code> library</p>
+<h1>The list library</h1>
+
+<p>Interface for the <code>list</code> library
+
+
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#append">append</a> :: for_type t: (List(t), List(t)) -> List(t)
 <a href="#combis">combis</a> :: for_type t: (List(t)) -> List(Tuple(t, t))
@@ -33,129 +35,278 @@
 <a href="#zip">zip</a> :: for_type s, t: (List(s), List(t)) -> List(Tuple(s, t))
 <a href="#zip_with">zip_with</a> :: for_type s, t, u: ((s, t) -> u, List(s), List(t)) -> List(u)
 </pre>
-<h2>Functions</h2>
-<h3 id="append">append</h3>
-<p><code>:: for_type t: (List(t), List(t)) -> List(t)</code>
-<p>Primitive function
 
-<p>A list that is the concatenation of the two given lists.
+<h2>Functions</h2>
+
+<h3 id="append">append</h3>
+
+<pre>
+:: for_type t: (List(t), List(t)) -> List(t)
+</pre>
+
+<p>A list that is the concatenation of the two given lists.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="combis">combis</h3>
-<p><code>:: for_type t: (List(t)) -> List(Tuple(t, t))</code>
+
+<pre>
+:: for_type t: (List(t)) -> List(Tuple(t, t))
+</pre>
 
 <p>A list of pairs containing all combinations of elements from the two given
-lists. 
-<p>For example <code>combis([1,2,3])</code> contains the elements
-<code>(1,2)</code>, <code>(1,3)</code> and <code>(2,3)</code>.
-<p>The order is undefined.
+lists.</p>
+<p>For example <code>combis([1,2,3])</code> contains the elements <code>(1,2)</code>, <code>(1,3)</code> and
+<code>(2,3)</code>.</p>
+<p>The order is undefined.</p>
+
+
 <h3 id="cons">cons</h3>
-<p><code>:: for_type t: (t, List(t)) -> List(t)</code>
-<p>Primitive function
 
-<p>Addes an element to the head of the list.
+<pre>
+:: for_type t: (t, List(t)) -> List(t)
+</pre>
+
+<p>Addes an element to the head of the list.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="contains">contains</h3>
-<p><code>:: for_type t: (List(t), t) -> Boole</code>
-<p>Primitive function
 
-<p>Checks if the element is member of the list.
+<pre>
+:: for_type t: (List(t), t) -> Boole
+</pre>
+
+<p>Checks if the element is member of the list.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="empty_list">empty_list</h3>
-<p><code>:: for_type t: () -> List(t)</code>
-<p>Primitive function
 
-<p>Constructs an empty list.
+<pre>
+:: for_type t: () -> List(t)
+</pre>
+
+<p>Constructs an empty list.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="flat_map">flat_map</h3>
-<p><code>:: for_type a, b: ((a) -> List(b), List(a)) -> List(b)</code>
 
-<p>Combines flatten and map.
+<pre>
+:: for_type a, b: ((a) -> List(b), List(a)) -> List(b)
+</pre>
+
+<p>Combines flatten and map.</p>
+
+
 <h3 id="flatten">flatten</h3>
-<p><code>:: for_type t: (List(List(t))) -> List(t)</code>
 
-<p>Turns a list of lists into a list. All lists are appened.
+<pre>
+:: for_type t: (List(List(t))) -> List(t)
+</pre>
+
+<p>Turns a list of lists into a list. All lists are appened.</p>
+
+
 <h3 id="fold_list">fold_list</h3>
-<p><code>:: for_type t: ((t, t) -> t, List(t)) -> t</code>
-<p>Primitive function
 
-<p>Folds the list with the given function.
+<pre>
+:: for_type t: ((t, t) -> t, List(t)) -> t
+</pre>
+
+<p>Folds the list with the given function.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="head">head</h3>
-<p><code>:: for_type t: (List(t)) -> t</code>
-<p>Primitive function
 
-<p>The head element of the list (the last consed value).
-<p>It is an error if the list is empty.
+<pre>
+:: for_type t: (List(t)) -> t
+</pre>
+
+<p>The head element of the list (the last consed value).</p>
+<p>It is an error if the list is empty.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="list_size">list_size</h3>
-<p><code>:: for_type t: (List(t)) -> 1</code>
-<p>Primitive function
 
-<p>The number of elements in the list.
+<pre>
+:: for_type t: (List(t)) -> 1
+</pre>
+
+<p>The number of elements in the list.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="loop_list">loop_list</h3>
-<p><code>:: for_type a, t: (a, (a, t) -> a, List(t)) -> a</code>
-<p>Primitive function
+
+<pre>
+:: for_type a, t: (a, (a, t) -> a, List(t)) -> a
+</pre>
 
 <p>Calls the given accumulator function for each element of the list and the
-accumulated value. Starts with the initial value.
+accumulated value. Starts with the initial value.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="map_list">map_list</h3>
-<p><code>:: for_type s, t: ((s) -> t, List(s)) -> List(t)</code>
-<p>Primitive function
 
-<p>Applies the given function to each element of a list.
+<pre>
+:: for_type s, t: ((s) -> t, List(s)) -> List(t)
+</pre>
+
+<p>Applies the given function to each element of a list.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="naturals">naturals</h3>
-<p><code>:: (1) -> List(1)</code>
-<p>Primitive function
 
-<p>The first x naturals numbers.
+<pre>
+:: (1) -> List(1)
+</pre>
+
+<p>The first x naturals numbers.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="nth">nth</h3>
-<p><code>:: for_type t: (1, List(t)) -> t</code>
-<p>Primitive function
 
-<p>The nth element of the list.
-<p>It is an error if the index is out of bounds.
+<pre>
+:: for_type t: (1, List(t)) -> t
+</pre>
+
+<p>The nth element of the list.</p>
+<p>It is an error if the index is out of bounds.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="remove_nth">remove_nth</h3>
-<p><code>:: for_type t: (1, List(t)) -> List(t)</code>
 
-<p>Copy of the given list with the n-th element removed.
+<pre>
+:: for_type t: (1, List(t)) -> List(t)
+</pre>
+
+<p>Copy of the given list with the n-th element removed.</p>
+
+
 <h3 id="reverse">reverse</h3>
-<p><code>:: for_type t: (List(t)) -> List(t)</code>
-<p>Primitive function
 
-<p>The list in reversed order.
+<pre>
+:: for_type t: (List(t)) -> List(t)
+</pre>
+
+<p>The list in reversed order.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="scanl">scanl</h3>
-<p><code>:: for_type s, t: ((t, s) -> t, t, List(s)) -> List(t)</code>
 
-<p>
+<pre>
+:: for_type s, t: ((t, s) -> t, t, List(s)) -> List(t)
+</pre>
+
+
+
 <h3 id="scanl1">scanl1</h3>
-<p><code>:: for_type t: ((t, t) -> t, List(t)) -> List(t)</code>
 
-<p>
+<pre>
+:: for_type t: ((t, t) -> t, List(t)) -> List(t)
+</pre>
+
+
+
 <h3 id="singleton_list">singleton_list</h3>
-<p><code>:: for_type t: (t) -> List(t)</code>
-<p>Primitive function
 
-<p>A list containing the given item.
+<pre>
+:: for_type t: (t) -> List(t)
+</pre>
+
+<p>A list containing the given item.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="sort_list">sort_list</h3>
-<p><code>:: for_type t: (List(t), (t, t) -> 1) -> List(t)</code>
-<p>Primitive function
+
+<pre>
+:: for_type t: (List(t), (t, t) -> 1) -> List(t)
+</pre>
 
 <p>Sorts the list with the given order. The order function must return negative, 0
-or positive to indicate less, equal or greater.
+or positive to indicate less, equal or greater.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="tail">tail</h3>
-<p><code>:: for_type t: (List(t)) -> List(t)</code>
-<p>Primitive function
 
-<p>Copy of the list without the head element.
+<pre>
+:: for_type t: (List(t)) -> List(t)
+</pre>
+
+<p>Copy of the list without the head element.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="unzip">unzip</h3>
-<p><code>:: for_type s, t: (List(Tuple(s, t))) -> Tuple(List(s), List(t))</code>
 
-<p>Turns a list of pairs into a pair of lists.
+<pre>
+:: for_type s, t: (List(Tuple(s, t))) -> Tuple(List(s), List(t))
+</pre>
+
+<p>Turns a list of pairs into a pair of lists.</p>
+
+
 <h3 id="zip">zip</h3>
-<p><code>:: for_type s, t: (List(s), List(t)) -> List(Tuple(s, t))</code>
-<p>Primitive function
+
+<pre>
+:: for_type s, t: (List(s), List(t)) -> List(Tuple(s, t))
+</pre>
 
 <p>Turns a pair of lists into a list of pairs. Each element from the first
-list is coupled with the corresponding element from the second list.
+list is coupled with the corresponding element from the second list.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="zip_with">zip_with</h3>
-<p><code>:: for_type s, t, u: ((s, t) -> u, List(s), List(t)) -> List(u)</code>
+
+<pre>
+:: for_type s, t, u: ((s, t) -> u, List(s), List(t)) -> List(u)
+</pre>
 
 <p>Applies the given function to corresponding pairs of elements from the
-two given lists.
-<p><small>Version v0.5.0, 2026-01-31T02:19:44.434439700+01:00[Europe/Amsterdam]</small>
-</body>
+two given lists.</p>
+<p><small>Version v0.5.0, 2026-02-17T14:13:52.099715800+01:00[Europe/Amsterdam]</small></body>
 </html>

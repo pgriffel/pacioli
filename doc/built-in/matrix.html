@@ -2,40 +2,20 @@
 <html>
 <head>
 <title>matrix</title>
-</head>
-<body>
-<h1>The <code>matrix</code> library</h1>
-<p>
-Pacioli's built-in matrix operations.
+<h1>The matrix library</h1>
 
-<p> 
-Matrices in Pacioli are indexed by arbitrary sets. Given some index sets
-<math>
-  <mi>P</mi>
-</math>
-and
-<math>
-  <mi>Q</mi>
-</math>,
-a matrix is a map
-<math>
-  <mi>P</mi>
-  <mo>&times;</mo>
-  <mi>Q</mi>
-  <mo>&rarr;</mo>
-  <mi>&Ropf;</mi>
-</math>.
-
-<p>
-Further information can be found on the <a href="https://pgriffel.github.io/pacioli/">
-documentation pages</a>:
+<p>Pacioli's built-in matrix operations.</p>
+<p>Matrices in Pacioli are indexed by arbitrary sets. Given some index sets P and Q
+a matrix is a map P × Q → ℝ .</p>
+<p>Further information can be found on the <a href="https://pgriffel.github.io/pacioli/">github documentation pages</a>:</p>
 <ul>
-  <li>The <a href="http://pgriffel.github.io/pacioli/matrices.html">matrix tutorial</a> explains matrices and types</li>
-  <li>The <a href="https://pgriffel.github.io/pacioli/manual.html">manual</a> has more information on matrices and types</li>
+<li>The <a href="http://pgriffel.github.io/pacioli/matrices.html">matrix tutorial</a> explains matrices and types</li>
+<li>The <a href="https://pgriffel.github.io/pacioli/manual.html">manual</a> has more information on matrices and types</li>
 </ul>
-</p>
+
 
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#_">_</a> :: One
 
@@ -145,840 +125,1453 @@ documentation pages</a>:
 <a href="#truncate">truncate</a> :: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 <a href="#unit">unit</a> :: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
+
 <h2>Values</h2>
-<dl>
-<dt id="_"><code>_</code></dt>
-<dd>
-<pre>:: One</pre>
 
-<p>The single entry for the One index set. Shorthand for  <code>One@_</code>
+<h3 id="_">_</h3>
+
+<pre>
+:: One
+</pre>
+
+<p>The single entry for the One index set. Shorthand for  <code>One@_</code></p>
 <p>Use this as index for a column vector (n by 1 matrix) or a row vector
-(1 by n matrix).
-<p>For example <code>get(x, 2, _)</code> gets the 2 entry from a column 
-vector. 
-<p>If <code>x</code> is a scalar then <code>get(x, _, _)</code> equals
-<code>x</code>.
-</dd>
-</dl>
+(1 by n matrix).</p>
+<p>For example <code>get(x, 2, _)</code> gets the 2 entry from a column
+vector.</p>
+<p>If <code>x</code> is a scalar then <code>get(x, _, _)</code> equals <code>x</code>.</p>
+
+
 <h2>Functions</h2>
+
 <h3 id="abs">abs</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Absolute value of a matrix. Each entry is negated if it is negative.<pre>
-get(abs(A), p, q) = abs(get(A, p, q))
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Absolute value of a matrix. Each entry is negated if it is negative.</p>
+<pre><code>get(abs(A), p, q) = abs(get(A, p, q))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="abs_min">abs_min</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise absolute minimum.
-<p>The difference with the mod and rem functions is that the value is always
-between -B/2 and B/2.
-<p>Could be defined as<pre>
-abs_min(A, B) = A - B*round(A/B)
+<pre>
+:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Element-wise absolute minimum.</p>
+<p>The difference with the mod and rem functions is that the value is always
+between -B/2 and B/2.</p>
+<p>Could be defined as</p>
+<pre><code>abs_min(A, B) = A - B*round(A/B)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="acos">acos</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> radian*P! per Q!</code>
 
-<p>Element-wise arccos. The inverse of the cosine function.
+<pre>
+:: for_index P, Q: (P! per Q!) -> radian*P! per Q!
+</pre>
+
+<p>Element-wise arccos. The inverse of the cosine function.</p>
+
+
 <h3 id="asin">asin</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> radian*P! per Q!</code>
 
-<p>Element-wise arcsin. The inverse of the sine function.
+<pre>
+:: for_index P, Q: (P! per Q!) -> radian*P! per Q!
+</pre>
+
+<p>Element-wise arcsin. The inverse of the sine function.</p>
+
+
 <h3 id="atan">atan</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> radian*P! per Q!</code>
 
-<p>Element-wise arctan. The inverse of the tangent function.
+<pre>
+:: for_index P, Q: (P! per Q!) -> radian*P! per Q!
+</pre>
+
+<p>Element-wise arctan. The inverse of the tangent function.</p>
+
+
 <h3 id="atan2">atan2</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> radian*P! per Q!</code>
 
-<p>Element-wise arctan2. The complete inverse of the tangent function.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> radian*P! per Q!
+</pre>
+
+<p>Element-wise arctan2. The complete inverse of the tangent function.</p>
+
+
 <h3 id="bottom">bottom</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (1, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (1, a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
 
 <p>Matrix with only the x least elements. Every entry not in the bottom x is
-changed to zero.
+changed to zero.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="cbrt">cbrt</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a^3*P!u^3 per Q!v^3) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise cube root.
-<p><code>get_num(cbrt(A), p, q) = cbrt(get_num(A, p, q))</code>
-<p>or using the element-wise product <code>*</code><pre>
-cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a^3*P!u^3 per Q!v^3) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Element-wise cube root.</p>
+<p><code>get_num(cbrt(A), p, q) = cbrt(get_num(A, p, q))</code></p>
+<p>or using the element-wise product <code>*</code></p>
+<pre><code>cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="ceiling">ceiling</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise ceiling.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
+
+<p>Element-wise ceiling.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="cholesky_decomposition">cholesky_decomposition</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a^2/P!u per P!u) -> a/P!u per P!</code>
-<p>Primitive function
 
-<p>The Cholesky decomposition of a matrix.
-<p>Decomposes a matrix into product L '*' L^T, with L a lower triangular matrix.
-<p>It is an error if the matrix is not symmetric or is not positive definite.
+<pre>
+:: for_unit a, P!u: for_index P: (a^2/P!u per P!u) -> a/P!u per P!
+</pre>
+
+<p>The Cholesky decomposition of a matrix.</p>
+<p>Decomposes a matrix into product <code>L '*' L^T</code>, with <code>L</code> a lower triangular matrix.</p>
+<p>It is an error if the matrix is not symmetric or is not positive definite.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="closure">closure</h3>
-<p><code>:: for_unit P!u: for_index P: (P!u per P!u) -> P!u per P!u</code>
 
-<p>Kleene closure for matrices.
-<p>Equals the series<pre>
-A + A'^'2 + A'^'3 ...
+<pre>
+:: for_unit P!u: for_index P: (P!u per P!u) -> P!u per P!u
 </pre>
-<p>
+
+<p>Kleene closure for matrices.</p>
+<p>Equals the series</p>
+<pre><code>A + A'^'2 + A'^'3 ...
+</code></pre>
+
+
 <h3 id="column">column</h3>
-<p><code>:: for_unit a, P!v: for_index P, Q: (a*P!v per Q!, Q) -> a*P!v</code>
-<p>Primitive function
 
-<p>Extracts a single column from a matrix.
-<p>The matrix must be dimensionally uniform in the column dimension.
-<p>For all indices p it satisfies<pre>
-get_num(column(A, x), p, _) = get_num(A, p, x)
+<pre>
+:: for_unit a, P!v: for_index P, Q: (a*P!v per Q!, Q) -> a*P!v
 </pre>
-<p>
-<h3 id="column_domain">column_domain</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> List(Q)</code>
-<p>Primitive function
 
-<p>The matrix column domain. The index set elements for the column dimension.
+<p>Extracts a single column from a matrix.</p>
+<p>The matrix must be dimensionally uniform in the column dimension.</p>
+<p>For all indices p it satisfies</p>
+<pre><code>get_num(column(A, x), p, _) = get_num(A, p, x)
+</code></pre>
+
+
+<p> Primitive function
+
+
+<h3 id="column_domain">column_domain</h3>
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> List(Q)
+</pre>
+
+<p>The matrix column domain. The index set elements for the column dimension.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="column_unit">column_unit</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v
+</pre>
 
 <p>The matrix's units in column dimension. The co-variant part of the matrix
-units.
-<p>Is part of the unit of a matrix. For any matrix A:<pre>
-unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
-</pre>
-<p>
-<h3 id="columns">columns</h3>
-<p><code>:: for_unit a, P!u: for_index P, Q: (a*P!u per Q!) -> List(a*P!u)</code>
+units.</p>
+<p>Is part of the unit of a matrix. For any matrix A:</p>
+<pre><code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+</code></pre>
 
-<p>The columns of a matrix.
+
+<p> Primitive function
+
+
+<h3 id="columns">columns</h3>
+
+<pre>
+:: for_unit a, P!u: for_index P, Q: (a*P!u per Q!) -> List(a*P!u)
+</pre>
+
+<p>The columns of a matrix.</p>
+
+
 <h3 id="compare_index">compare_index</h3>
-<p><code>:: for_index P: (P, P) -> 1</code>
+
+<pre>
+:: for_index P: (P, P) -> 1
+</pre>
 
 <p>Comparison of indices. Negative if x comes before y, positive if y comes before
-x, zero if x and y are equal.
-<p>Is the order of the indices in the index set definition. See <code>index_less</code>
-<h3 id="complement">complement</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
+x, zero if x and y are equal.</p>
+<p>Is the order of the indices in the index set definition. See <code>index_less</code></p>
 
-<p>Logical complement.
-<p>Is defined as:<pre>
-complement(A) = unit(A) - A
+
+<h3 id="complement">complement</h3>
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
-<p>For example, with definitions<pre>
-defindex Nibble = {bit0, bit1, bit2, bit3};
+
+<p>Logical complement.</p>
+<p>Is defined as:</p>
+<pre><code>complement(A) = unit(A) - A
+</code></pre>
+<p>For example, with definitions</p>
+<pre><code>defindex Nibble = {bit0, bit1, bit2, bit3};
 
 defmatrix nibble :: Nibble! = {
-    bit0 -> 1,
-    bit3 -> 1
+    bit0 -&gt; 1,
+    bit3 -&gt; 1
 };
-</pre>
-<p>
-<p>expression <code>complement(nibble)</code> yields<pre>
-Nibble        Value
+</code></pre>
+<p>expression <code>complement(nibble)</code> gives</p>
+<pre><code>Nibble        Value
 -------------------
 bit1              1
 bit2              1
-</pre>
-<p>
+</code></pre>
+
+
 <h3 id="cos">cos</h3>
-<p><code>:: for_index P, Q: (radian*P! per Q!) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Element-wise cosine function.<pre>
-get(cos(A), p, q) = cos(get(A, p, q))
+<pre>
+:: for_index P, Q: (radian*P! per Q!) -> P! per Q!
 </pre>
-<p>
+
+<p>Element-wise cosine function.</p>
+<pre><code>get(cos(A), p, q) = cos(get(A, p, q))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="delta">delta</h3>
-<p><code>:: for_index P: (P) -> P!</code>
 
-<p>Kronecker delta.
-<p>For example <code>delta(Geom3@x)</code> gives a base vector in the x direction
-in 3D space.<pre>
-get(delta(p), x, _) = if p = x then 1 else 0 end
+<pre>
+:: for_index P: (P) -> P!
 </pre>
-<p>
+
+<p>Kronecker delta.</p>
+<p>For example <code>delta(Geom3@x)</code> gives a base vector in the x direction
+in 3D space.</p>
+<pre><code>get(delta(p), x, _) = if p = x then 1 else 0 end
+</code></pre>
+
+
 <h3 id="diagonal">diagonal</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a*P!u) -> a*P!u per P!u</code>
+
+<pre>
+:: for_unit a, P!u: for_index P: (a*P!u) -> a*P!u per P!u
+</pre>
+
+
 
 <h3 id="diagonal2">diagonal2</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a*P!u) -> a*P!u per P!</code>
+
+<pre>
+:: for_unit a, P!u: for_index P: (a*P!u) -> a*P!u per P!
+</pre>
+
+
 
 <h3 id="diagonal3">diagonal3</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a*P!u) -> P! per P!</code>
+
+<pre>
+:: for_unit a, P!u: for_index P: (a*P!u) -> P! per P!
+</pre>
+
+
 
 <h3 id="dim_div">dim_div</h3>
-<p><code>:: for_unit a, D!b, E!c, f, H!g: for_index D, E, H: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g</code>
-<p>Primitive function
 
-<p>Dimensional division. Equals multiplying with the 
-<a href="#dim_inv">dimensional inverse<a>.
+<pre>
+:: for_unit a, D!b, E!c, f, H!g: for_index D, E, H: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g
+</pre>
+
+<p>Dimensional division. Equals multiplying with the
+<a href="#dim_inv">dimensional inverse<a>.</p>
 <p>Corresponds with symbol <code>per</code>: <code>A per B</code> is parsed as
-<code>dim_div(A, B)</code>.<pre>
-dim_div(A, B) = A '*' B^D
-</pre>
-<p>
+<code>dim_div(A, B)</code>.</p>
+<pre><code>dim_div(A, B) = A '*' B^D
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="dim_inv">dim_inv</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u</code>
-<p>Primitive function
 
-<p>The dimensional inverse of a matrix.
-<p>Corresponds to the postfix <code>^D</code> operator: <code>dim_inv(A) = A^D</code>.
-<p>Combines the transpose and the reciprocal: <code>A^D = A^R^T = A^T^R</code>
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u
+</pre>
+
+<p>The dimensional inverse of a matrix.</p>
+<p>Corresponds to the postfix <code>^D</code> operator: <code>dim_inv(A) = A^D</code>.</p>
+<p>Combines the transpose and the reciprocal: <code>A^D = A^R^T = A^T^R</code></p>
+
+
+<p> Primitive function
+
+
 <h3 id="div">div</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y</code>
-<p>Primitive function
 
-<p>Element-wise integer division of two matrices.
-<p>For any a and b the following holds:<pre>
-a = div(a, b) * b + rem(a, b)
+<pre>
+:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y
 </pre>
-<p>
+
+<p>Element-wise integer division of two matrices.</p>
+<p>For any a and b the following holds:</p>
+<pre><code>a = div(a, b) * b + rem(a, b)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="divide">divide</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y</code>
-<p>Primitive function
 
-<p>Element-wise division of two matrices.
-<p>Corresponds with operator <code>/</code>. Expression <code>A / B</code>
-is parsed as <code>divide(A, B)</code>.
-<p>For all indices p and q it satisfies<pre>
-get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)
+<pre>
+:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y
 </pre>
-<p>
+
+<p>Element-wise division of two matrices.</p>
+<p>Corresponds with operator <code>/</code>. Expression <code>A / B</code>
+is parsed as <code>divide(A, B)</code>.</p>
+<p>For all indices p and q it satisfies</p>
+<pre><code>get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="eigenvalue_decomposition">eigenvalue_decomposition</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a*P!u per P!u) -> Tuple(a*P!u per P!u, a*P!u per P!u)</code>
-<p>Primitive function
 
-<p>The eigenvalue decomposition of a matrix.
-<p>   A pair of matrices (D, V) such that A = V '*' D '*' V'^'-1.
-<p>   The input matrix A, and the output matrices D and V are n x n matrices.
-<p>   Matrix D is a diagonal matrix. The diagonal elements are the eigenvalues.
-   The colunms of V are the corresponding eigenvectors.
+<pre>
+:: for_unit a, P!u: for_index P: (a*P!u per P!u) -> Tuple(a*P!u per P!u, a*P!u per P!u)
+</pre>
+
+<p>The eigenvalue decomposition of a matrix.</p>
+<p>A pair of matrices (D, V) such that <code>A = V '*' D '*' V'^'-1</code>.</p>
+<p>The input matrix A, and the output matrices D and V are n x n matrices.</p>
+<p>Matrix D is a diagonal matrix. The diagonal elements are the eigenvalues.
+The colunms of V are the corresponding eigenvectors.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="eigenvalue_list">eigenvalue_list</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a*P!u per P!u) -> List(Tuple(a, a, P!u))</code>
-<p>Primitive function
 
-<p>List form of the eigenvalue decomposition of a matrix.
-<p>   List of pairs (c, v) such that A '*' v = c '.*' v.
-<p>   The scalars c are the eigenvalues. The vectors v are the corresponding 
-   eigenvectors.
+<pre>
+:: for_unit a, P!u: for_index P: (a*P!u per P!u) -> List(Tuple(a, a, P!u))
+</pre>
+
+<p>List form of the eigenvalue decomposition of a matrix.</p>
+<p>List of pairs (c, v) such that <code>A '*' v = c '.*' v</code>.</p>
+<p>The scalars c are the eigenvalues. The vectors v are the corresponding
+eigenvectors.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="exp">exp</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_index P, Q: (P! per Q!) -> P! per Q!
+</pre>
 
 <p>Element-wise natural exponent <code>e^x</code>. Only defined for dimensionless
-matrices.<pre>
-get(exp(A), p, q) = exp(get(A, p, q))
-</pre>
-<p>
+matrices.</p>
+<pre><code>get(exp(A), p, q) = exp(get(A, p, q))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="expt">expt</h3>
-<p><code>:: for_index P, Q: (P! per Q!, 1) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Element-wise exponent of the matrix entries.
-<p>For all indices p and q it satisfies<pre>
-get(expt(A, x), p, q) = expt(get(A, p, q), x)
+<pre>
+:: for_index P, Q: (P! per Q!, 1) -> P! per Q!
 </pre>
-<p>
+
+<p>Element-wise exponent of the matrix entries.</p>
+<p>For all indices p and q it satisfies</p>
+<pre><code>get(expt(A, x), p, q) = expt(get(A, p, q), x)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="floor">floor</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element wise floor.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
+
+<p>Element wise floor.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="gcd">gcd</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Element-wise greatest common divisor of two matrices.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!
+</pre>
+
+<p>Element-wise greatest common divisor of two matrices.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="get">get</h3>
-<p><code>:: for_unit a: for_index P, Q: (a*P! per Q!, P, Q) -> a</code>
-<p>Primitive function
 
-<p>Gets a single entry from a matrix.
-<p>The matrix must be dimensionally uniform.
+<pre>
+:: for_unit a: for_index P, Q: (a*P! per Q!, P, Q) -> a
+</pre>
+
+<p>Gets a single entry from a matrix.</p>
+<p>The matrix must be dimensionally uniform.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="get_num">get_num</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, P, Q) -> 1</code>
-<p>Primitive function
 
-<p>Gets the magnitude of a single entry from a matrix. Using it 
-breaks unit safety so use with care!
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, P, Q) -> 1
+</pre>
+
+<p>Gets the magnitude of a single entry from a matrix. Using it
+breaks unit safety so use with care!</p>
+
+
+<p> Primitive function
+
+
 <h3 id="greater">greater</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole
+</pre>
 
 <p>Is every entry in matrix A greater than the corresponding entry in matrix
-B?
+B?</p>
+
+
+<p> Primitive function
+
+
 <h3 id="greater_eq">greater_eq</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole</code>
-<p>Primitive function
 
-<p>Is every entry in matrix A greater than or equal to the corresponding entry 
-in matrix B?
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole
+</pre>
+
+<p>Is every entry in matrix A greater than or equal to the corresponding entry
+in matrix B?</p>
+
+
+<p> Primitive function
+
+
 <h3 id="index_less">index_less</h3>
-<p><code>:: for_index P: (P, P) -> Boole</code>
-<p>Primitive function
 
-<p>Order on indices.
-<p>Is the order of the indices in the index set definition.
+<pre>
+:: for_index P: (P, P) -> Boole
+</pre>
+
+<p>Order on indices.</p>
+<p>Is the order of the indices in the index set definition.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="inner">inner</h3>
-<p><code>:: for_unit a, b, P!u: for_index P: (a*P!u, b/P!u) -> a*b</code>
+
+<pre>
+:: for_unit a, b, P!u: for_index P: (a*P!u, b/P!u) -> a*b
+</pre>
 
 <p>The inner product between two vectors. The usual product <code>x^T '*' y</code>
-between two vectors.
+between two vectors.</p>
+
+
 <h3 id="inverse">inverse</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u</code>
 
-<p>The inverse of a matrix. Solution to XA=AX=I
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u
+</pre>
+
+<p>The inverse of a matrix. Solution to XA=AX=I</p>
+
+
 <h3 id="is_zero">is_zero</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> Boole</code>
-<p>Primitive function
 
-<p>Is every entry in the matrix zero?
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> Boole
+</pre>
+
+<p>Is every entry in the matrix zero?</p>
+
+
+<p> Primitive function
+
+
 <h3 id="is_zero_column">is_zero_column</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c, E) -> Boole</code>
 
-<p>Is every entry in the column zero?
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c, E) -> Boole
+</pre>
+
+<p>Is every entry in the column zero?</p>
+
+
 <h3 id="is_zero_row">is_zero_row</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c, D) -> Boole</code>
 
-<p>Is every entry in the row zero?
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c, D) -> Boole
+</pre>
+
+<p>Is every entry in the row zero?</p>
+
+
 <h3 id="kleene">kleene</h3>
-<p><code>:: for_unit P!u: for_index P: (P!u per P!u) -> P!u per P!u</code>
 
-<p>Kleene star for matrices.
-<p>Equals the series<pre>
-I + A + A'^'2 + A'^'3 ...
+<pre>
+:: for_unit P!u: for_index P: (P!u per P!u) -> P!u per P!u
 </pre>
-<p>
+
+<p>Kleene star for matrices.</p>
+<p>Equals the series</p>
+<pre><code>I + A + A'^'2 + A'^'3 ...
+</code></pre>
+
+
 <h3 id="left_divide">left_divide</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v</code>
-<p>Primitive function
 
-<p>Element-wise left division of two matrices.
+<pre>
+:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v
+</pre>
+
+<p>Element-wise left division of two matrices.</p>
 <p>Corresponds with operator <code>\</code>. Expression <code>A \ B</code>
-is parsed as <code>left_divide(A, B)</code>.
-<p>Satisfies<pre>
-left_divide(A, B) = divide(B, A)
-</pre>
-<p>
+is parsed as <code>left_divide(A, B)</code>.</p>
+<p>Satisfies</p>
+<pre><code>left_divide(A, B) = divide(B, A)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="left_division">left_division</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w</code>
 
-<p>Left division of matrices. Matrix division means multiplying with the inverse.
+<pre>
+:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w
+</pre>
+
+<p>Left division of matrices. Matrix division means multiplying with the inverse.</p>
 <p>Corresponds with operator <code>'\'</code>. Expression <code>A '\' B</code>
-is parsed as <code>left_division(A, B)</code>.
-<p>Defined as:<pre>
-left_division(x,y) = inverse(x) '*' y
-</pre>
-<p>
+is parsed as <code>left_division(A, B)</code>.</p>
+<p>Defined as:</p>
+<pre><code>left_division(x,y) = inverse(x) '*' y
+</code></pre>
+
+
 <h3 id="left_identity">left_identity</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> P!u per P!u</code>
-<p>Primitive function
 
-<p>The left identify of a matrix. Solution to <code>X '*' A = A</code>
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> P!u per P!u
+</pre>
+
+<p>The left identify of a matrix. Solution to <code>X '*' A = A</code></p>
+
+
+<p> Primitive function
+
+
 <h3 id="left_inverse">left_inverse</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u</code>
 
-<p>The left_inverse of a matrix. Solution to XA=I
-<p>In code:<pre>
-left_inverse(A) '*' A = right_identity(A)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u
 </pre>
-<p>
+
+<p>The left_inverse of a matrix. Solution to XA=I</p>
+<p>In code:</p>
+<pre><code>left_inverse(A) '*' A = right_identity(A)
+</code></pre>
+
+
 <h3 id="less">less</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole</code>
-<p>Primitive function
 
-<p>Is every entry in matrix A less than the corresponding entry in matrix B?
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole
+</pre>
+
+<p>Is every entry in matrix A less than the corresponding entry in matrix B?</p>
+
+
+<p> Primitive function
+
+
 <h3 id="less_eq">less_eq</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole</code>
-<p>Primitive function
 
-<p>Is every entry in matrix A less than or equal to the corresponding entry 
-in matrix B?
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> Boole
+</pre>
+
+<p>Is every entry in matrix A less than or equal to the corresponding entry
+in matrix B?</p>
+
+
+<p> Primitive function
+
+
 <h3 id="ln">ln</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Element-wise natural logarithm<pre>
-get(ln(A), p, q) = ln(get(A, p, q))
+<pre>
+:: for_index P, Q: (P! per Q!) -> P! per Q!
 </pre>
-<p>
+
+<p>Element-wise natural logarithm</p>
+<pre><code>get(ln(A), p, q) = ln(get(A, p, q))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="log">log</h3>
-<p><code>:: for_index P, Q: (P! per Q!, 1) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Element-wise log.
-<p><code>get_num(log(A), p, q) = log(get_num(A, p, q))</code>
+<pre>
+:: for_index P, Q: (P! per Q!, 1) -> P! per Q!
+</pre>
+
+<p>Element-wise log.</p>
+<p><code>get_num(log(A), p, q) = log(get_num(A, p, q))</code></p>
 <p>Inverse of the exponent <code>exp</code> function. For scalars the following
-holds:<pre>
-expt(b, log(x, b)) = x
-</pre>
-<p>
-<h3 id="lscale_down">lscale_down</h3>
-<p><code>:: for_unit a, b, P!u, Q!v: for_index P, Q: (a, b*P!u per Q!v) -> a*P!u per b*Q!v</code>
-<p>Primitive function
+holds:</p>
+<pre><code>expt(b, log(x, b)) = x
+</code></pre>
 
-<p>Divides a scalar factor by a matrix.
-<p>Corresponds with operator <code>'./'</code>. Expression <code>x '/.' A</code>
-is parsed as <code>lscale_down(x, A)</code>.<pre>
-get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)
+
+<p> Primitive function
+
+
+<h3 id="lscale_down">lscale_down</h3>
+
+<pre>
+:: for_unit a, b, P!u, Q!v: for_index P, Q: (a, b*P!u per Q!v) -> a*P!u per b*Q!v
 </pre>
-<p>
+
+<p>Divides a scalar factor by a matrix.</p>
+<p>Corresponds with operator <code>'./'</code>. Expression <code>x '/.' A</code>
+is parsed as <code>lscale_down(x, A)</code>.</p>
+<pre><code>get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="magnitude">magnitude</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> P! per Q!
+</pre>
 
 <p>The magnitude of a matrix. The magnitude of a dimensioned number is the
-scaling factor without the unit of measurement.
+scaling factor without the unit of measurement.</p>
 <p>A dimensioned matrix A is an element-wise product RU with R a dimensionless
-magnitude matrix and U a unit matrix.
-<p>Using function <code>unit</code> this can be expressed as:<pre>
-A = magnitude(A) * unit(A)
-</pre>
-<p>
+magnitude matrix and U a unit matrix.</p>
+<p>Using function <code>unit</code> this can be expressed as:</p>
+<pre><code>A = magnitude(A) * unit(A)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="make_matrix">make_matrix</h3>
-<p><code>:: for_unit a: for_index P, Q: (List(Tuple(P, Q, a))) -> a*P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a: for_index P, Q: (List(Tuple(P, Q, a))) -> a*P! per Q!
+</pre>
 
 <p>Constructs a dimensionally uniform matrix from a list of entries. Each entry
-is a tuple with the entry's indices and the value.
-<p>For example<pre>
-defindex Direction = {longitude, lattitude};
+is a tuple with the entry's indices and the value.</p>
+<p>For example</p>
+<pre><code>defindex Direction = {longitude, lattitude};
 
 define foo =
     make_matrix([
         tuple(Direction@longitude, _, 10*|degree|), 
         tuple(Direction@lattitude, _, 20*|degree|)]);
-</pre>
-<p>
-<p>creates a vector of type <code>degree*Direction!</code>
-<h3 id="map_matrix">map_matrix</h3>
-<p><code>:: for_unit a, b: for_index P, Q: ((a) -> b, a*P! per Q!) -> b*P! per Q!</code>
+</code></pre>
+<p>creates a vector of type <code>degree*Direction!</code></p>
 
-<p>Applies a function to every matrix entry.
-<p>The matrix must be dimensionally uniform.
-<p>For example<pre>
-map_matrix((x) -> x + 10*|metre|, A)
+
+<p> Primitive function
+
+
+<h3 id="map_matrix">map_matrix</h3>
+
+<pre>
+:: for_unit a, b: for_index P, Q: ((a) -> b, a*P! per Q!) -> b*P! per Q!
 </pre>
-<p>
-<p>adds 10 metre to each matrix entry of A.
+
+<p>Applies a function to every matrix entry.</p>
+<p>The matrix must be dimensionally uniform.</p>
+<p>For example</p>
+<pre><code>map_matrix((x) -&gt; x + 10*|metre|, A)
+</code></pre>
+<p>adds 10 metre to each matrix entry of A.</p>
+
+
 <h3 id="mapnz">mapnz</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: ((1) -> 1, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: ((1) -> 1, a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
 
 <p>Maps only the non-zero matrix elements. Experiment for more efficient handling
-of sparse matrices.
+of sparse matrices.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="max">max</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise maximum of two matrices.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
+
+<p>Element-wise maximum of two matrices.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="mexpt">mexpt</h3>
-<p><code>:: for_unit P!u: for_index P: (P!u per P!u, 1) -> P!u per P!u</code>
-<p>Primitive function
 
-<p>Exponent of a matrix.
-<p>For any matrices <code>A</code> and <code>B</code> it satisfies<pre>
-get(expt(A, x), p, q) = expt(get(A, p, q), x)
+<pre>
+:: for_unit P!u: for_index P: (P!u per P!u, 1) -> P!u per P!u
 </pre>
-<p>
+
+<p>Exponent of a matrix.</p>
+<p>For any matrices <code>A</code> and <code>B</code> it satisfies</p>
+<pre><code>get(expt(A, x), p, q) = expt(get(A, p, q), x)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="min">min</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise minimum of two matrices.
-<h3 id="minus">minus</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
-
-<p>Difference of two matrices.
-<p>Corresponds with operator <code>-</code>. Expression <code>A - B</code>
-is parsed as <code>minus(A, B)</code>.
-<p>For all indices p and q it satisfies<pre>
-get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
-<h3 id="mmult">mmult</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w</code>
-<p>Primitive function
 
-<p>Matrix multiplication.
+<p>Element-wise minimum of two matrices.</p>
+
+
+<p> Primitive function
+
+
+<h3 id="minus">minus</h3>
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
+
+<p>Difference of two matrices.</p>
+<p>Corresponds with operator <code>-</code>. Expression <code>A - B</code>
+is parsed as <code>minus(A, B)</code>.</p>
+<p>For all indices p and q it satisfies</p>
+<pre><code>get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
+<h3 id="mmult">mmult</h3>
+
+<pre>
+:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w
+</pre>
+
+<p>Matrix multiplication.</p>
 <p>Corresponds with operator <code>'*'</code>. Expression <code>A '*' B</code>
-is parsed as <code>mmult(A, B)</code>.
+is parsed as <code>mmult(A, B)</code>.</p>
+
+
+<p> Primitive function
+
 
 <h3 id="mod">mod</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise mod of two matrices.
-<p>Could be defined as<pre>
-mod(A, B) = A - abs(B)*floor(A/abs(B))
+<pre>
+:: for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Element-wise mod of two matrices.</p>
+<p>Could be defined as</p>
+<pre><code>mod(A, B) = A - abs(B)*floor(A/abs(B))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="multiply">multiply</h3>
-<p><code>:: for_unit a, b, P!u, P!w, Q!v, Q!z: for_index P, Q: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z</code>
-<p>Primitive function
 
-<p>Element-wise product of two matrices.
-<p>Corresponds with operator <code>*</code>. Expression <code>A * B</code>
-is parsed as <code>multiply(A, B)</code>.
-<p>For all indices p and q it satisfies<pre>
-get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)
+<pre>
+:: for_unit a, b, P!u, P!w, Q!v, Q!z: for_index P, Q: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z
 </pre>
-<p>
+
+<p>Element-wise product of two matrices.</p>
+<p>Corresponds with operator <code>*</code>. Expression <code>A * B</code>
+is parsed as <code>multiply(A, B)</code>.</p>
+<p>For all indices p and q it satisfies</p>
+<pre><code>get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="neg">neg</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> a*D!b per E!c</code>
+
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> a*D!b per E!c
+</pre>
+
+
 
 <h3 id="negative">negative</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>The negation of a matrix. 
-<p>Corresponds with prefix operator <code>'-'</code>. Expression <code>-A</code>
-is parsed as <code>negative(A)</code>.<pre>
-get_num(negative(A), p, q) = -get_num(A, p, q)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>The negation of a matrix.</p>
+<p>Corresponds with prefix operator <code>'-'</code>. Expression <code>-A</code>
+is parsed as <code>negative(A)</code>.</p>
+<pre><code>get_num(negative(A), p, q) = -get_num(A, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="negative_support">negative_support</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!
+</pre>
 
 <p>A matrix's support is a mask for the non-zero entries. It contains
-a 1 where the original is negative and a 0 where the original is zero.
-<p>Satisfies:<pre>
-get(support(A), p, q) = if get_num(A, p, q) < 0 then 1 else 0 end
-</pre>
-<p>
-<h3 id="negatives">negatives</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
+a 1 where the original is negative and a 0 where the original is zero.</p>
+<p>Satisfies:</p>
+<pre><code>get(support(A), p, q) = if get_num(A, p, q) &lt; 0 then 1 else 0 end
+</code></pre>
 
-<p>Matrix with only the negative entries. The positive entries become zero.
-<p>A matrix A can be factored in a positive and negative part as follows:<pre>
-A = positives(A) + negatives(A)
+
+<p> Primitive function
+
+
+<h3 id="negatives">negatives</h3>
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Matrix with only the negative entries. The positive entries become zero.</p>
+<p>A matrix A can be factored in a positive and negative part as follows:</p>
+<pre><code>A = positives(A) + negatives(A)
+</code></pre>
+
+
 <h3 id="norm">norm</h3>
-<p><code>:: for_unit a: for_index P: (a*P!) -> a</code>
+
+<pre>
+:: for_unit a: for_index P: (a*P!) -> a
+</pre>
 
 <p>The norm of a vector. The square root of the inner product
- <code>sqrt(x^T '*' x)</code>
-<p>The vector must be dimensionally uniform.
+<code>sqrt(x^T '*' x)</code></p>
+<p>The vector must be dimensionally uniform.</p>
+
+
 <h3 id="normalized">normalized</h3>
-<p><code>:: for_unit a: for_index P: (a*P!) -> a*P!</code>
+
+<pre>
+:: for_unit a: for_index P: (a*P!) -> a*P!
+</pre>
 
 <p>Vector in the same direction with norm 1. Scales the vector by dividing
-by the vector's norm.
+by the vector's norm.</p>
+
+
 <h3 id="outer">outer</h3>
-<p><code>:: for_unit a, b, P!u, Q!v: for_index P, Q: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1</code>
+
+<pre>
+:: for_unit a, b, P!u, Q!v: for_index P, Q: (a*P!u, b*Q!v) -> a*b*P!u per Q!v^-1
+</pre>
 
 <p>The outer product between two vectors. The usual product <code>x '*' y^T</code>
-between a column and row vector.
-<h3 id="plu_decomposition">plu_decomposition</h3>
-<p><code>:: for_unit a, P!u: for_index P: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u)</code>
-<p>Primitive function
+between a column and row vector.</p>
 
-<p>The PLU decomposition of a matrix.
+
+<h3 id="plu_decomposition">plu_decomposition</h3>
+
+<pre>
+:: for_unit a, P!u: for_index P: (a*P!u per P!u) -> Tuple(P!u per P!u, P!u per P!u, a*P!u per P!u)
+</pre>
+
+<p>The PLU decomposition of a matrix.</p>
 <p>Decomposes the matrix in product A=PLU with P a permutation matrix,
-L a lower triangular matrix, and U an upper triangular matrix.
+L a lower triangular matrix, and U an upper triangular matrix.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="positive_support">positive_support</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!
+</pre>
 
 <p>A matrix's support is a bit matrix that indicates the positive entries of
-another matrix. It contains a 1 where the matrix is positive and a 0 
-where the matrix is zero.
-<p>Satisfies:<pre>
-get(support(A), p, q) = if get_num(A, p, q) > 0 then 1 else 0 end
-</pre>
-<p>
+another matrix. It contains a 1 where the matrix is positive and a 0
+where the matrix is zero.</p>
+<p>Satisfies:</p>
+<pre><code>get(support(A), p, q) = if get_num(A, p, q) &gt; 0 then 1 else 0 end
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="positives">positives</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
 
-<p>Matrix with only the positive entries. The negative entries become zero.
-<p>A matrix A can be factored in a positive and negative part as follows:<pre>
-A = positives(A) + negatives(A)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Matrix with only the positive entries. The negative entries become zero.</p>
+<p>A matrix A can be factored in a positive and negative part as follows:</p>
+<pre><code>A = positives(A) + negatives(A)
+</code></pre>
+
+
 <h3 id="precision">precision</h3>
-<p><code>:: () -> decimals</code>
 
-<p>The number of decimals that is used as treshold in approximations.
-<p>It is also used as a treshold to determine if a matrix entry is printed.
-<p>See <code>set_precision</code>
+<pre>
+:: () -> decimals
+</pre>
+
+<p>The number of decimals that is used as treshold in approximations.</p>
+<p>It is also used as a treshold to determine if a matrix entry is printed.</p>
+<p>See <code>set_precision</code></p>
+
+
 <h3 id="qr_decomposition">qr_decomposition</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v)</code>
-<p>Primitive function
 
-<p>The QR decomposition of a matrix.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Tuple(P!u per P!u, a*P!u per Q!v)
+</pre>
+
+<p>The QR decomposition of a matrix.</p>
 <p>Decomposes the matrix in product A=QR with Q an orthonormal matrix and R an
-upper triangular matrix.
+upper triangular matrix.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="random">random</h3>
-<p><code>:: () -> 1</code>
-<p>Primitive function
 
-<p>A random number at least zero and below one.
+<pre>
+:: () -> 1
+</pre>
+
+<p>A random number at least zero and below one.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="ranking">ranking</h3>
-<p><code>:: for_unit a: for_index P, Q: (a*P! per Q!) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Replaces each entry with its position when ordered.
+<pre>
+:: for_unit a: for_index P, Q: (a*P! per Q!) -> P! per Q!
+</pre>
+
+<p>Replaces each entry with its position when ordered.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="reciprocal">reciprocal</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1</code>
-<p>Primitive function
 
-<p>The element-wise reciprocal of a matrix.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1
+</pre>
+
+<p>The element-wise reciprocal of a matrix.</p>
 <p>Corresponds with postfix operator <code>^R</code>. Expression <code>A^R</code>
-is parsed as <code>reciprocal(A)</code>.<pre>
-get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)
-</pre>
-<p>
+is parsed as <code>reciprocal(A)</code>.</p>
+<pre><code>get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="rem">rem</h3>
-<p><code>:: for_index P, Q: for_unit a, b, P!u, Q!v, P!x, Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise integer division remainder of two matrices.
-<p>Could be defined as<pre>
-rem(A, B) = A - B*truncate(A/B)
+<pre>
+:: for_index P, Q: for_unit a, b, P!u, Q!v, P!x, Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v
 </pre>
-<p>
-<p>For any a and b the following holds:<pre>
-a = div(a, b) * b + rem(a, b)
-</pre>
-<p>
+
+<p>Element-wise integer division remainder of two matrices.</p>
+<p>Could be defined as</p>
+<pre><code>rem(A, B) = A - B*truncate(A/B)
+</code></pre>
+<p>For any a and b the following holds:</p>
+<pre><code>a = div(a, b) * b + rem(a, b)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="right_division">right_division</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w</code>
 
-<p>Division of matrices. Matrix division means multiplying with the inverse.
+<pre>
+:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w
+</pre>
+
+<p>Division of matrices. Matrix division means multiplying with the inverse.</p>
 <p>Corresponds with operator <code>'/'</code>. Expression <code>A '/' B</code>
-is parsed as <code>right_division(A, B)</code>.
-<p>Defined as:<pre>
-right_division(x,y) = x '*' inverse(y)
-</pre>
-<p>
+is parsed as <code>right_division(A, B)</code>.</p>
+<p>Defined as:</p>
+<pre><code>right_division(x,y) = x '*' inverse(y)
+</code></pre>
+
+
 <h3 id="right_identity">right_identity</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per Q!v</code>
-<p>Primitive function
 
-<p>The right identify of a matrix. Solution to <code>A '*' X = A</code>
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per Q!v
+</pre>
+
+<p>The right identify of a matrix. Solution to <code>A '*' X = A</code></p>
+
+
+<p> Primitive function
+
+
 <h3 id="right_inverse">right_inverse</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u</code>
 
-<p>The right-inverse of a matrix. Solution to AX=I
-<p>In code:<pre>
-A '*' right_inverse(A) = left_identity(A)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> Q!v per a*P!u
 </pre>
-<p>
+
+<p>The right-inverse of a matrix. Solution to AX=I</p>
+<p>In code:</p>
+<pre><code>A '*' right_inverse(A) = left_identity(A)
+</code></pre>
+
+
 <h3 id="round">round</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Rounds every matrix entry to the nearest integer. Halves are rounded up.
-<p>Could be defined as<pre>
-round(A) = floor(A + 0.5 '.*' unit(A))
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Rounds every matrix entry to the nearest integer. Halves are rounded up.</p>
+<p>Could be defined as</p>
+<pre><code>round(A) = floor(A + 0.5 '.*' unit(A))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="row">row</h3>
-<p><code>:: for_unit a, Q!v: for_index P, Q: (a*P! per Q!v, P) -> a per Q!v</code>
-<p>Primitive function
 
-<p>Extracts a single row from a matrix.
-<p>The matrix must be dimensionally uniform in the row dimension.
-<p>For all indices q it satisfies<pre>
-get_num(row(A, x), _, q) = get_num(A, x, q)
+<pre>
+:: for_unit a, Q!v: for_index P, Q: (a*P! per Q!v, P) -> a per Q!v
 </pre>
-<p>
-<h3 id="row_domain">row_domain</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> List(P)</code>
-<p>Primitive function
 
-<p>The matrix row domain. The index set elements for the row dimension.
+<p>Extracts a single row from a matrix.</p>
+<p>The matrix must be dimensionally uniform in the row dimension.</p>
+<p>For all indices q it satisfies</p>
+<pre><code>get_num(row(A, x), _, q) = get_num(A, x, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
+<h3 id="row_domain">row_domain</h3>
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> List(P)
+</pre>
+
+<p>The matrix row domain. The index set elements for the row dimension.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="row_unit">row_unit</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> P!u</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> P!u
+</pre>
 
 <p>The matrix's units in row dimension. The contra-variant part of the matrix
-units.
-<p>Is part of the unit of a matrix. For any matrix A:<pre>
-unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
-</pre>
-<p>
+units.</p>
+<p>Is part of the unit of a matrix. For any matrix A:</p>
+<pre><code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="rows">rows</h3>
-<p><code>:: for_unit a, Q!v: for_index P, Q: (a*P! per Q!v) -> List(a per Q!v)</code>
 
-<p>The rows of a matrix.
+<pre>
+:: for_unit a, Q!v: for_index P, Q: (a*P! per Q!v) -> List(a per Q!v)
+</pre>
+
+<p>The rows of a matrix.</p>
+
+
 <h3 id="rscale">rscale</h3>
-<p><code>:: for_unit a, b, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, b) -> a*b*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Multiplies a matrix by a scalar factor.
+<pre>
+:: for_unit a, b, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, b) -> a*b*P!u per Q!v
+</pre>
+
+<p>Multiplies a matrix by a scalar factor.</p>
 <p>Corresponds with operator <code>'*.'</code>. Expression <code>A '*.' x</code>
-is parsed as <code>rscale(A, x)</code>.<pre>
-get_num(rscale(A, x), p, q) = get_num(A, p, q) * x
-</pre>
-<p>
+is parsed as <code>rscale(A, x)</code>.</p>
+<pre><code>get_num(rscale(A, x), p, q) = get_num(A, p, q) * x
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="scalar_unit">scalar_unit</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a</code>
-<p>Primitive function
 
-<p>The scalar unit factor of a matrix. 
-<p>Is part of the unit of a matrix. For any matrix A:<pre>
-unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a
 </pre>
-<p>
+
+<p>The scalar unit factor of a matrix.</p>
+<p>Is part of the unit of a matrix. For any matrix A:</p>
+<pre><code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="scale">scale</h3>
-<p><code>:: for_unit a, b, P!u, Q!v: for_index P, Q: (a, b*P!u per Q!v) -> a*b*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Multiplies a matrix with a scalar factor.
+<pre>
+:: for_unit a, b, P!u, Q!v: for_index P, Q: (a, b*P!u per Q!v) -> a*b*P!u per Q!v
+</pre>
+
+<p>Multiplies a matrix with a scalar factor.</p>
 <p>Corresponds with operator <code>'.*'</code>. Expression <code>x '.*' A</code>
-is parsed as <code>scale(x, A)</code>.<pre>
-get_num(scale(x, A), p, q) = x * get_num(A, p, q)
-</pre>
-<p>
+is parsed as <code>scale(x, A)</code>.</p>
+<pre><code>get_num(scale(x, A), p, q) = x * get_num(A, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="scale_down">scale_down</h3>
-<p><code>:: for_unit a, b, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, b) -> a*P!u per b*Q!v</code>
-<p>Primitive function
 
-<p>Divides a matrix by a scalar factor.
+<pre>
+:: for_unit a, b, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, b) -> a*P!u per b*Q!v
+</pre>
+
+<p>Divides a matrix by a scalar factor.</p>
 <p>Corresponds with operator <code>'/.'</code>. Expression <code>A '/.' x</code>
-is parsed as <code>scale_down(A, x)</code>.    <pre>
-get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x
-</pre>
-<p>
+is parsed as <code>scale_down(A, x)</code>.</p>
+<pre><code>get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="set_precision">set_precision</h3>
-<p><code>:: (decimals) -> Void</code>
 
-<p>Sets the number of decimals that is used in approximations.
-<p>It is also used as a treshold to determine if a matrix entry is printed.
-<p>This is a global effect.
-<p>See function <code>precision</code>
+<pre>
+:: (decimals) -> Void
+</pre>
+
+<p>Sets the number of decimals that is used in approximations.</p>
+<p>It is also used as a treshold to determine if a matrix entry is printed.</p>
+<p>This is a global effect.</p>
+<p>See function <code>precision</code></p>
+
+
 <h3 id="signum">signum</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!</code>
-<p>Primitive function
 
-<p>A matrix with the sign of the matrix entries. An entry is 1 if the original 
-value is positive, -1 if the value is negative, and 0 when the value is zero.
-<p>Satisfies:<pre>
-signum(A) = positive_support(A) - negative_support(A)
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!
 </pre>
-<p>
+
+<p>A matrix with the sign of the matrix entries. An entry is 1 if the original
+value is positive, -1 if the value is negative, and 0 when the value is zero.</p>
+<p>Satisfies:</p>
+<pre><code>signum(A) = positive_support(A) - negative_support(A)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="sin">sin</h3>
-<p><code>:: for_index P, Q: (radian*P! per Q!) -> P! per Q!</code>
-<p>Primitive function
 
-<p>Element-wise sine function.<pre>
-get(sin(A), p, q) = sin(get(A, p, q))
+<pre>
+:: for_index P, Q: (radian*P! per Q!) -> P! per Q!
 </pre>
-<p>
+
+<p>Element-wise sine function.</p>
+<pre><code>get(sin(A), p, q) = sin(get(A, p, q))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="singular_value_list">singular_value_list</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1))</code>
-<p>Primitive function
 
-<p>List form of the singular value decomposition of a matrix.
-<p>List of tuples (s,v,w) such that<pre>
-A = sum[s '.*' v '*' w^T | (s,v,w) <- svd(A)]
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> List(Tuple(a, P!u, Q!v^-1))
 </pre>
-<p>
-<p>with scalar s the singular values, and vectors v and w the singular vectors.
+
+<p>List form of the singular value decomposition of a matrix.</p>
+<p>List of tuples (s,v,w) such that</p>
+<pre><code>A = sum[s '.*' v '*' w^T | (s,v,w) &lt;- svd(A)]
+</code></pre>
+<p>with scalar s the singular values, and vectors v and w the singular vectors.</p>
 <p>Note: for dimensionally non-uniform matrices the inner product is not defined.
 Therefore the orthogonality of the singular vectors assumes the identity metric
-(which is equivalent to ignoring the units) instead of the inner product. See
+instead of the inner product (which is equivalent to ignoring the units). See
 function gsvd from the metrics library for a more general version that accepts
-other metrics.
+other metrics.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="solve">solve</h3>
-<p><code>:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w</code>
-<p>Primitive function
 
-<p>Solves AX=B. Generalization of vector case Ax=b.
+<pre>
+:: for_unit a, b, P!u, Q!v, R!w: for_index P, Q, R: (a*P!u per Q!v, b*P!u per R!w) -> a^-1*b*Q!v per R!w
+</pre>
+
+<p>Solves AX=B. Generalization of vector case Ax=b.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="sqrt">sqrt</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Element-wise square root.
-<p><code>get_num(sqrt(A), p, q) = sqrt(get_num(A, p, q))</code>
-<p>or using the element-wise product <code>*</code><pre>
-sqrt(A) * sqrt(A) = sqrt(A)^2 = A
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Element-wise square root.</p>
+<p><code>get_num(sqrt(A), p, q) = sqrt(get_num(A, p, q))</code></p>
+<p>or using the element-wise product <code>*</code></p>
+<pre><code>sqrt(A) * sqrt(A) = sqrt(A)^2 = A
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="sum">sum</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Sum of two matrices.
-<p>Corresponds with operator <code>+</code>. Expression <code>A + B</code>
-is parsed as <code>sum(A, B)</code>.
-<p>For all indices p and q it satisfies<pre>
-get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Sum of two matrices.</p>
+<p>Corresponds with operator <code>+</code>. Expression <code>A + B</code>
+is parsed as <code>sum(A, B)</code>.</p>
+<p>For all indices p and q it satisfies</p>
+<pre><code>get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="support">support</h3>
-<p><code>:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, D!b, E!c: for_index D, E: (a*D!b per E!c) -> D! per E!
+</pre>
 
 <p>A matrix's support is a mask for the non-zero entries. It contains
-a 1 where the original is non-zero and a 0 where the original is zero.
-<p>Satisfies:<pre>
-get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end
-</pre>
-<p>
-<h3 id="tan">tan</h3>
-<p><code>:: for_index P, Q: (radian*P! per Q!) -> P! per Q!</code>
-<p>Primitive function
+a 1 where the original is non-zero and a 0 where the original is zero.</p>
+<p>Satisfies:</p>
+<pre><code>get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end
+</code></pre>
 
-<p>Element-wise tangent function.<pre>
-get(tan(A), p, q) = tan(get(A, p, q))
+
+<p> Primitive function
+
+
+<h3 id="tan">tan</h3>
+
+<pre>
+:: for_index P, Q: (radian*P! per Q!) -> P! per Q!
 </pre>
-<p>
+
+<p>Element-wise tangent function.</p>
+<pre><code>get(tan(A), p, q) = tan(get(A, p, q))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="top">top</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (1, a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (1, a*P!u per Q!v) -> a*P!u per Q!v
+</pre>
 
 <p>Matrix with only the x greates elements. Every entry not in the top x is
-changed to zero.
+changed to zero.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="total">total</h3>
-<p><code>:: for_unit a: for_index P, Q: (a*P! per Q!) -> a</code>
-<p>Primitive function
 
-<p>The sum of all matrix entries.
-<p>The matrix must be dimensionally uniform.
+<pre>
+:: for_unit a: for_index P, Q: (a*P! per Q!) -> a
+</pre>
+
+<p>The sum of all matrix entries.</p>
+<p>The matrix must be dimensionally uniform.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="transpose">transpose</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*Q!v^-1 per P!u^-1</code>
-<p>Primitive function
 
-<p>The transpose of a matrix. Swaps the row and column dimensions.
-<p>Corresponds with postfix operator <code>^T</code>: <code>A^T</code>
-is parsed as <code>transpose(A)</code>.
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*Q!v^-1 per P!u^-1
+</pre>
+
+<p>The transpose of a matrix. Swaps the row and column dimensions.</p>
+<p>Corresponds with postfix operator <code>^T</code>: <code>A^T</code></p>
+<p>Is parsed as <code>transpose(A)</code>.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="truncate">truncate</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
-<p>Primitive function
 
-<p>Gives the integral part of every matrix entry. Rounds towards zero.
-<p>Could be defined as<pre>
-ceiling(negatives(A)) + floor(positives(A))
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
+
+<p>Gives the integral part of every matrix entry. Rounds towards zero.</p>
+<p>Could be defined as</p>
+<pre><code>ceiling(negatives(A)) + floor(positives(A))
+</code></pre>
+
+
+<p> Primitive function
+
+
 <h3 id="unit">unit</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v</code>
 
-<p>The unit of a matrix.
-<p>Is defined as:<pre>
-unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v) -> a*P!u per Q!v
 </pre>
-<p>
-<p>Any matrix A is the product of a magnitude and a unit:<pre>
-A = magnitude(A) * unit(A)
-</pre>
-<p>
-<p><small>Version v0.5.0, 2026-01-31T02:19:44.592959200+01:00[Europe/Amsterdam]</small>
-</body>
+
+<p>The unit of a matrix.</p>
+<p>Is defined as:</p>
+<pre><code>unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
+</code></pre>
+<p>Any matrix A is the product of a magnitude and a unit:</p>
+<pre><code>A = magnitude(A) * unit(A)
+</code></pre>
+<p><small>Version v0.5.0, 2026-02-17T14:13:52.268021200+01:00[Europe/Amsterdam]</small></body>
 </html>

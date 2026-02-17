@@ -2,18 +2,15 @@
 <html>
 <head>
 <title>quaternion</title>
-</head>
-<body>
-<h1>The <code>quaternion</code> library</h1>
-<p>
-Dimensioned quaternions. Hamilton's numbers of the form a + bi + cj + dk with a unit of measurement.
-</p>
-<p>
-Quaternions have homogeneous units of measurement. In a quaternion of type <code>Quaternion(a)</code> the 
-scalar part has unit <code>a</code> and the vector part has unit <code>a*Geom3!</code>.
-</p>
+<h1>The quaternion library</h1>
+
+<p>Dimensioned quaternions. Hamilton's numbers of the form a + bi + cj + dk with a unit of measurement.</p>
+<p>Quaternions have homogeneous units of measurement. In a quaternion of type <code>Quaternion(a)</code> the
+scalar part has unit <code>a</code> and the vector part has unit <code>a*Geom3!</code>.</p>
+
 
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#make_quaternion">make_quaternion</a> :: for_unit a: (a, a, a, a) -> Quaternion(a)
 <a href="#make_quaternion2">make_quaternion2</a> :: for_unit a: (a, a*Geom3!) -> Quaternion(a)
@@ -29,73 +26,139 @@ scalar part has unit <code>a</code> and the vector part has unit <code>a*Geom3!<
 <a href="#scale_quaternion">scale_quaternion</a> :: for_unit a, b: (a, Quaternion(b)) -> Quaternion(a*b)
 <a href="#unit_quaternion">unit_quaternion</a> :: for_unit a: (Quaternion(a)) -> Quaternion(1)
 </pre>
+
 <h2>Types</h2>
-<dl>
-<dt id="Quaternion"><code>Quaternion</code></dt>
-<dd>
-<pre>for_unit a: Quaternion(a)</pre>
 
-<p>The type of Hamilton's quaternions.
-</dd>
-</dl>
+<h3 id="Quaternion">Quaternion</h3>
+
+<pre>
+for_unit a: Quaternion(a)
+</pre>
+
+<p>The type of Hamilton's quaternions.</p>
+
+
 <h2>Functions</h2>
-<h3 id="make_quaternion">make_quaternion</h3>
-<p><code>:: for_unit a: (a, a, a, a) -> Quaternion(a)</code>
 
-<p>Constructs quaternion a + bi + cj + dk from parameters a, b, c and d.
+<h3 id="make_quaternion">make_quaternion</h3>
+
+<pre>
+:: for_unit a: (a, a, a, a) -> Quaternion(a)
+</pre>
+
+<p>Constructs quaternion a + bi + cj + dk from parameters a, b, c and d.</p>
+
+
 <h3 id="make_quaternion2">make_quaternion2</h3>
-<p><code>:: for_unit a: (a, a*Geom3!) -> Quaternion(a)</code>
+
+<pre>
+:: for_unit a: (a, a*Geom3!) -> Quaternion(a)
+</pre>
 
 <p>Constructs quaternion a + bi + cj + dk from parameters a and v where
-  v = vector3d(b, c, d).
+v = vector3d(b, c, d).</p>
+
+
 <h3 id="quaternion2str">quaternion2str</h3>
-<p><code>:: for_unit a: (Quaternion(a), a) -> String</code>
 
-<p>String representation of a quaternion with nr_decimals() decimals.
+<pre>
+:: for_unit a: (Quaternion(a), a) -> String
+</pre>
+
+<p>String representation of a quaternion with nr_decimals() decimals.</p>
+
+
 <h3 id="quaternion2string">quaternion2string</h3>
-<p><code>:: for_unit a: (Quaternion(a), decimals, a) -> String</code>
 
-<p>String representation of a quaternion.
+<pre>
+:: for_unit a: (Quaternion(a), decimals, a) -> String
+</pre>
+
+<p>String representation of a quaternion.</p>
+
+
 <h3 id="quaternion_conjugate">quaternion_conjugate</h3>
-<p><code>:: for_unit a: (Quaternion(a)) -> Quaternion(a)</code>
+
+<pre>
+:: for_unit a: (Quaternion(a)) -> Quaternion(a)
+</pre>
 
 <p>The conjugate of a quaternion. For some quaternion a + bi + cj + dk it is
-a - bi - cj - dk.
-<h3 id="quaternion_inverse">quaternion_inverse</h3>
-<p><code>:: for_unit a: (Quaternion(a)) -> Quaternion(1/a)</code>
+a - bi - cj - dk.</p>
 
-<p>The inverse of a quaternion. quaternion_product(q, inverse(q)) = 1
+
+<h3 id="quaternion_inverse">quaternion_inverse</h3>
+
+<pre>
+:: for_unit a: (Quaternion(a)) -> Quaternion(1/a)
+</pre>
+
+<p>The inverse of a quaternion. quaternion_product(q, inverse(q)) = 1</p>
+
+
 <h3 id="quaternion_norm">quaternion_norm</h3>
-<p><code>:: for_unit a: (Quaternion(a)) -> a</code>
+
+<pre>
+:: for_unit a: (Quaternion(a)) -> a
+</pre>
 
 <p>The norm of a quaternion. For some quaternion a + bi + cj + dk it is
-the square root of a^2 + b^2 + c^2 + d^2.
-<h3 id="quaternion_product">quaternion_product</h3>
-<p><code>:: for_unit a, b: (Quaternion(a), Quaternion(b)) -> Quaternion(a*b)</code>
+the square root of a^2 + b^2 + c^2 + d^2.</p>
 
-<p>Multiplies two quaternions.
+
+<h3 id="quaternion_product">quaternion_product</h3>
+
+<pre>
+:: for_unit a, b: (Quaternion(a), Quaternion(b)) -> Quaternion(a*b)
+</pre>
+
+<p>Multiplies two quaternions.</p>
+
+
 <h3 id="quaternion_scalar">quaternion_scalar</h3>
-<p><code>:: for_unit a: (Quaternion(a)) -> a</code>
+
+<pre>
+:: for_unit a: (Quaternion(a)) -> a
+</pre>
 
 <p>The scalar part of a quaternion. For quaterion a + bi + cj + dk it is
-scalar a.
-<h3 id="quaternion_sum">quaternion_sum</h3>
-<p><code>:: for_unit a: (Quaternion(a), Quaternion(a)) -> Quaternion(a)</code>
+scalar a.</p>
 
-<p>Adds two quaternions.
+
+<h3 id="quaternion_sum">quaternion_sum</h3>
+
+<pre>
+:: for_unit a: (Quaternion(a), Quaternion(a)) -> Quaternion(a)
+</pre>
+
+<p>Adds two quaternions.</p>
+
+
 <h3 id="quaternion_vector">quaternion_vector</h3>
-<p><code>:: for_unit a: (Quaternion(a)) -> a*Geom3!</code>
+
+<pre>
+:: for_unit a: (Quaternion(a)) -> a*Geom3!
+</pre>
 
 <p>The vector part of a quaternion. For quaterion a + bi + cj + dk it is
-vector3d(b, c, d).
+vector3d(b, c, d).</p>
+
+
 <h3 id="scale_quaternion">scale_quaternion</h3>
-<p><code>:: for_unit a, b: (a, Quaternion(b)) -> Quaternion(a*b)</code>
 
-<p>Scales a quaternion with some factor.
+<pre>
+:: for_unit a, b: (a, Quaternion(b)) -> Quaternion(a*b)
+</pre>
+
+<p>Scales a quaternion with some factor.</p>
+
+
 <h3 id="unit_quaternion">unit_quaternion</h3>
-<p><code>:: for_unit a: (Quaternion(a)) -> Quaternion(1)</code>
 
-<p>Scales a quaternion to one with norm 1.
-<p><small>Version v0.5.0, 2026-01-31T02:20:08.535387800+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_unit a: (Quaternion(a)) -> Quaternion(1)
+</pre>
+
+<p>Scales a quaternion to one with norm 1.</p>
+<p><small>Version v0.5.0, 2026-02-17T14:14:21.923535200+01:00[Europe/Amsterdam]</small></body>
 </html>

@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>base</title>
-</head>
-<body>
-<h1>The <code>base</code> library</h1>
-<p>Interface for the <code>base</code> library</p>
+<h1>The base library</h1>
+
+<p>Interface for the <code>base</code> library
+
+
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#apply">apply</a> :: for_type s, t: (s -> t, s) -> t
 <a href="#equal">equal</a> :: for_type t: (t, t) -> Boole
@@ -22,74 +24,164 @@
 <a href="#tuple">tuple</a> :: for_type t: t -> t
 <a href="#type_of">type_of</a> :: for_type t: (t) -> Identifier
 </pre>
+
 <h2>Functions</h2>
+
 <h3 id="apply">apply</h3>
-<p><code>:: for_type s, t: (s -> t, s) -> t</code>
-<p>Primitive function
 
-<p>Applies a function to a tuple of arguments.
+<pre>
+:: for_type s, t: (s -> t, s) -> t
+</pre>
+
+<p>Applies a function to a tuple of arguments.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="equal">equal</h3>
-<p><code>:: for_type t: (t, t) -> Boole</code>
-<p>Primitive function
 
-<p>Are the given values equal?
+<pre>
+:: for_type t: (t, t) -> Boole
+</pre>
+
+<p>Are the given values equal?</p>
+
+
+<p> Primitive function
+
+
 <h3 id="error">error</h3>
-<p><code>:: for_type t: (String) -> t</code>
-<p>Primitive function
 
-<p>Temporary stub for a proper error handling mechanism. Signals an error.
+<pre>
+:: for_type t: (String) -> t
+</pre>
+
+<p>Temporary stub for a proper error handling mechanism. Signals an error.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="from_just">from_just</h3>
-<p><code>:: for_type t: (Maybe(t)) -> t</code>
-<p>Primitive function
 
-<p>Temporary stub for a proper Maybe type.
+<pre>
+:: for_type t: (Maybe(t)) -> t
+</pre>
+
+<p>Temporary stub for a proper Maybe type.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="identity">identity</h3>
-<p><code>:: for_type t: (t) -> t</code>
-<p>Primitive function
 
-<p>The identity function. Just returns its single argument.
+<pre>
+:: for_type t: (t) -> t
+</pre>
+
+<p>The identity function. Just returns its single argument.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="is_nothing">is_nothing</h3>
-<p><code>:: for_type t: (Maybe(t)) -> Boole</code>
-<p>Primitive function
 
-<p>Temporary stub for a proper Maybe type.
+<pre>
+:: for_type t: (Maybe(t)) -> Boole
+</pre>
+
+<p>Temporary stub for a proper Maybe type.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="just">just</h3>
-<p><code>:: for_type t: (t) -> Maybe(t)</code>
-<p>Primitive function
 
-<p>Temporary stub for a proper Maybe type.
+<pre>
+:: for_type t: (t) -> Maybe(t)
+</pre>
+
+<p>Temporary stub for a proper Maybe type.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="not">not</h3>
-<p><code>:: (Boole) -> Boole</code>
-<p>Primitive function
 
-<p>Logical complement
+<pre>
+:: (Boole) -> Boole
+</pre>
+
+<p>Logical complement</p>
+
+
+<p> Primitive function
+
+
 <h3 id="not_equal">not_equal</h3>
-<p><code>:: for_type t: (t, t) -> Boole</code>
-<p>Primitive function
 
-<p>Shorthand for <code>not(equal(x, y))</code>.
+<pre>
+:: for_type t: (t, t) -> Boole
+</pre>
+
+<p>Shorthand for <code>not(equal(x, y))</code>.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="nothing">nothing</h3>
-<p><code>:: for_type t: () -> Maybe(t)</code>
-<p>Primitive function
 
-<p>Temporary stub for a proper Maybe type.
+<pre>
+:: for_type t: () -> Maybe(t)
+</pre>
+
+<p>Temporary stub for a proper Maybe type.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="try_catch">try_catch</h3>
-<p><code>:: for_type t: (() -> t, (String) -> t) -> t</code>
-<p>Primitive function
 
-<p>Temporary stub for a proper error handling mechanism.
+<pre>
+:: for_type t: (() -> t, (String) -> t) -> t
+</pre>
+
+<p>Temporary stub for a proper error handling mechanism.</p>
 <p>Calls the function. If an error occurs, the handler function is called
-with the error message as argument.
+with the error message as argument.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="tuple">tuple</h3>
-<p><code>:: for_type t: t -> t</code>
-<p>Primitive function
 
-<p>Creates a tuple from the arguments.
+<pre>
+:: for_type t: t -> t
+</pre>
+
+<p>Creates a tuple from the arguments.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="type_of">type_of</h3>
-<p><code>:: for_type t: (t) -> Identifier</code>
-<p>Primitive function
 
-<p>One of 'string', 'matrix' and 'generic'.
-<p><small>Version v0.5.0, 2026-01-31T02:19:44.627049800+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_type t: (t) -> Identifier
+</pre>
+
+<p>One of 'string', 'matrix' and 'generic'.</p>
+
+
+<p> Primitive function
+<p><small>Version v0.5.0, 2026-02-17T14:13:52.278023200+01:00[Europe/Amsterdam]</small></body>
 </html>

@@ -2,13 +2,11 @@
 <html>
 <head>
 <title>petri_net</title>
-</head>
-<body>
-<h1>The <code>petri_net</code> library</h1>
+<h1>The petri_net library</h1>
+
 <p>
 The Petri net library provides a matrix representation of dimensioned Petri nets. In a dimensioned
 Petri net a unit of measurement is associated with the net's places.
-
 <p>
 A Petri net is a tuple
 <math>
@@ -28,8 +26,7 @@ A Petri net is a tuple
   </msup>
   <ms>)</ms>
 </math>
-
-with 
+<p>with</p>
 <ul>
   <li>
     <math>
@@ -78,8 +75,6 @@ with
     called the pre matrix.
   </li>
 </ul>
-
-
 <p>
 A Petri net's state is defined by its marking. A marking
 <math>
@@ -91,22 +86,20 @@ is a vector
   <mo>&rarr;</mo>
   <mi>&Nopf;</mi>
 </math>.
-
-For any place
+<p>For any place
 <math>
-  <mi>p</mi>
-  <mo>&isin;</mo>
-  <mi>P</mi>
+<mi>p</mi>
+<mo>∈</mo>
+<mi>P</mi>
 </math>
 value
 <math>
-  <msub>
-    <mi>m</mi>
-    <mi>p</mi>
-  </msub>
+<msub>
+<mi>m</mi>
+<mi>p</mi>
+</msub>
 </math>
-is the number of <it>tokens</it> in that place.
-
+is the number of <it>tokens</it> in that place.</p>
 <p>
 A Petri net changes state by firing transitions. 
 Given a marking
@@ -164,8 +157,6 @@ tokens from each place, and produces
   </msubsup>
 </math>
 tokens for each place.
-
-
 <p>
 In a matrix setting it is natural to define firing of transitions in parallel.
 Given a transition vector
@@ -197,7 +188,6 @@ fires, the new marking
   <mi>'</mi>
 </math>
 is given by
-
 <blockquote>
   <math>
     <mi>m</mi>
@@ -221,27 +211,28 @@ is given by
     <mn>m</mn>
   </math>
 </blockquote>
-
-where flow matrix
+<p>where flow matrix
 <math>
-  <mi>F</mi>
+<mi>F</mi>
 </math>,
 is defined as
 <math>
-  <mi>F</mi>
-  <mo>=</mo>
-  <msup>
-    <mi>F</mi>
-    <mi>&plus;</mi>
-  </msup>
-  <mo>-</mo>
-  <msup>
-    <mi>F</mi>
-    <mi>&minus;</mi>
-  </msup>
-</math>
+<mi>F</mi>
+<mo>=</mo>
+<msup>
+<mi>F</mi>
+<mi>+</mi>
+</msup>
+<mo>-</mo>
+<msup>
+<mi>F</mi>
+<mi>−</mi>
+</msup>
+</math></p>
+
 
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#fire_petri_net">fire_petri_net</a> :: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!)
 <a href="#make_petri_net">make_petri_net</a> :: for_index P, T: for_unit a, P!u: (a*P!u per T!, a*P!u per T!, a*P!u) -> PetriNet(a, P!u, T!)
@@ -259,80 +250,156 @@ is defined as
 <a href="#semi_flows">semi_flows</a> :: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(T!)
 <a href="#transition_unit">transition_unit</a> :: for_index P, T: for_unit a, mon, P!u: (PetriNet(a, P!u, T!)) -> T!
 </pre>
+
 <h2>Types</h2>
-<dl>
-<dt id="PetriNet"><code>PetriNet</code></dt>
-<dd>
-<pre>for_index P, T: for_unit a, P!u: PetriNet(a, P!u, T!)</pre>
 
-<p>A dimensioned Petri nets. In a dimensioned Petri net a unit of measurement 
-is associated with the net's places.
-</dd>
-</dl>
+<h3 id="PetriNet">PetriNet</h3>
+
+<pre>
+for_index P, T: for_unit a, P!u: PetriNet(a, P!u, T!)
+</pre>
+
+<p>A dimensioned Petri nets. In a dimensioned Petri net a unit of measurement
+is associated with the net's places.</p>
+
+
 <h2>Functions</h2>
+
 <h3 id="fire_petri_net">fire_petri_net</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!)</code>
 
-<p>Fires the Petri net. Results in a Petri net with the new marking.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!)
+</pre>
+
+<p>Fires the Petri net. Results in a Petri net with the new marking.</p>
+
+
 <h3 id="make_petri_net">make_petri_net</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (a*P!u per T!, a*P!u per T!, a*P!u) -> PetriNet(a, P!u, T!)</code>
 
-<p>Constructor for record <code>PetriNet(a, P!u, T!)</code>
+<pre>
+:: for_index P, T: for_unit a, P!u: (a*P!u per T!, a*P!u per T!, a*P!u) -> PetriNet(a, P!u, T!)
+</pre>
+
+<p>Constructor for record <code>PetriNet(a, P!u, T!)</code></p>
+
+
 <h3 id="make_zero_net">make_zero_net</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (a*P!u per T!, a*P!u per T!) -> PetriNet(a, P!u, T!)</code>
 
-<p>Creates a Petri net from incidence matrices with a zero marking.
+<pre>
+:: for_index P, T: for_unit a, P!u: (a*P!u per T!, a*P!u per T!) -> PetriNet(a, P!u, T!)
+</pre>
+
+<p>Creates a Petri net from incidence matrices with a zero marking.</p>
+
+
 <h3 id="petri_net_enabled">petri_net_enabled</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> Boole</code>
 
-<p>Is firing the Petri net enabled for the given transition count?
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> Boole
+</pre>
+
+<p>Is firing the Petri net enabled for the given transition count?</p>
+
+
 <h3 id="petri_net_flow">petri_net_flow</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!</code>
 
-<p>The Petri net's flow matrix. Defined as the difference between the 
-net's post matrix and the net's pre matrix.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!
+</pre>
+
+<p>The Petri net's flow matrix. Defined as the difference between the
+net's post matrix and the net's pre matrix.</p>
+
+
 <h3 id="petri_net_marking">petri_net_marking</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u</code>
 
-<p>Getter for record <code>PetriNet(a, P!u, T!)</code>
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u
+</pre>
+
+<p>Getter for record <code>PetriNet(a, P!u, T!)</code></p>
+
+
 <h3 id="petri_net_places">petri_net_places</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(P)</code>
 
-<p>The places in a petri net.
-<p>Equals the row domain of the incidence matrices.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(P)
+</pre>
+
+<p>The places in a petri net.</p>
+<p>Equals the row domain of the incidence matrices.</p>
+
+
 <h3 id="petri_net_post">petri_net_post</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!</code>
 
-<p>Getter for record <code>PetriNet(a, P!u, T!)</code>
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!
+</pre>
+
+<p>Getter for record <code>PetriNet(a, P!u, T!)</code></p>
+
+
 <h3 id="petri_net_pre">petri_net_pre</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!</code>
 
-<p>Getter for record <code>PetriNet(a, P!u, T!)</code>
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!
+</pre>
+
+<p>Getter for record <code>PetriNet(a, P!u, T!)</code></p>
+
+
 <h3 id="petri_net_transitions">petri_net_transitions</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(T)</code>
 
-<p>The transitions in a petri net.
-<p>Equals the column domain of the incidence matrices.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(T)
+</pre>
+
+<p>The transitions in a petri net.</p>
+<p>Equals the column domain of the incidence matrices.</p>
+
+
 <h3 id="petri_net_unit">petri_net_unit</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!</code>
 
-<p>The units of measurement of the Petri net's pre and post matrices.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u per T!
+</pre>
+
+<p>The units of measurement of the Petri net's pre and post matrices.</p>
+
+
 <h3 id="petri_subnet">petri_subnet</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!)</code>
 
-<p>Filters the net's transitions.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!)
+</pre>
+
+<p>Filters the net's transitions.</p>
+
+
 <h3 id="place_unit">place_unit</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u</code>
 
-<p>Unit vector for the net's places.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> a*P!u
+</pre>
+
+<p>Unit vector for the net's places.</p>
+
+
 <h3 id="semi_flows">semi_flows</h3>
-<p><code>:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(T!)</code>
 
-<p>All transition vector that leaves the net's marking unchanged when fired.
+<pre>
+:: for_index P, T: for_unit a, P!u: (PetriNet(a, P!u, T!)) -> List(T!)
+</pre>
+
+<p>All transition vector that leaves the net's marking unchanged when fired.</p>
+
+
 <h3 id="transition_unit">transition_unit</h3>
-<p><code>:: for_index P, T: for_unit a, mon, P!u: (PetriNet(a, P!u, T!)) -> T!</code>
 
-<p>Unit vector for the net's transitions.
-<p><small>Version v0.5.0, 2026-01-31T02:20:06.405674900+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_index P, T: for_unit a, mon, P!u: (PetriNet(a, P!u, T!)) -> T!
+</pre>
+
+<p>Unit vector for the net's transitions.</p>
+<p><small>Version v0.5.0, 2026-02-17T14:14:20.893849400+01:00[Europe/Amsterdam]</small></body>
 </html>

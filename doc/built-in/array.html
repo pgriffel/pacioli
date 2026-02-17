@@ -2,40 +2,69 @@
 <html>
 <head>
 <title>array</title>
-</head>
-<body>
-<h1>The <code>array</code> library</h1>
-<p>Interface for the <code>array</code> library</p>
+<h1>The array library</h1>
+
+<p>Interface for the <code>array</code> library
+
+
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#array_get">array_get</a> :: for_type t: (Array(t), 1) -> t
 <a href="#array_put">array_put</a> :: for_type t: (Array(t), 1, t) -> Void
 <a href="#array_size">array_size</a> :: for_type t: (Array(t)) -> 1
 <a href="#make_array">make_array</a> :: for_type t: (1) -> Array(t)
 </pre>
+
 <h2>Functions</h2>
+
 <h3 id="array_get">array_get</h3>
-<p><code>:: for_type t: (Array(t), 1) -> t</code>
-<p>Primitive function
 
-<p>Retrieves a previously stored item from an array.
+<pre>
+:: for_type t: (Array(t), 1) -> t
+</pre>
+
+<p>Retrieves a previously stored item from an array.</p>
 <p>It is an error if the index is out of bounds or no item was stored
-previously.
+previously.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="array_put">array_put</h3>
-<p><code>:: for_type t: (Array(t), 1, t) -> Void</code>
-<p>Primitive function
 
-<p>Stores an item in the array at the asked position.
+<pre>
+:: for_type t: (Array(t), 1, t) -> Void
+</pre>
+
+<p>Stores an item in the array at the asked position.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="array_size">array_size</h3>
-<p><code>:: for_type t: (Array(t)) -> 1</code>
-<p>Primitive function
 
-<p>The size of the array that was given at construction.
+<pre>
+:: for_type t: (Array(t)) -> 1
+</pre>
+
+<p>The size of the array that was given at construction.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="make_array">make_array</h3>
-<p><code>:: for_type t: (1) -> Array(t)</code>
-<p>Primitive function
 
-<p>Constructs an array of the asked size.
-<p><small>Version v0.5.0, 2026-01-31T02:19:44.441438700+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_type t: (1) -> Array(t)
+</pre>
+
+<p>Constructs an array of the asked size.</p>
+
+
+<p> Primitive function
+<p><small>Version v0.5.0, 2026-02-17T14:13:52.108717300+01:00[Europe/Amsterdam]</small></body>
 </html>

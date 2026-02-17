@@ -2,42 +2,33 @@
 <html>
 <head>
 <title>graphics</title>
-</head>
-<body>
-<h1>The <code>graphics</code> library</h1>
-<p>
-    The grapics libaray provides functions to create a scene with 3D geometric shapes. Works together with
-    the <code>pacioli.js</code> library to display a 3D geometric space in the browser. Depends on the 
-    <code>geometry</code> library.
-</p>
+<h1>The graphics library</h1>
 
-The following example creates a scene with 8 arrows pointing in various directions from the origin. 
-The parameters <code>a</code>, <code>b</code> and <code>c</code> get passed at runtime.
-<pre>
-import geometry;
+<p>The grapics libaray provides functions to create a scene with 3D geometric shapes. Works together with
+the <code>pacioli.js</code> library to display a 3D geometric space in the browser. Depends on the
+<code>geometry</code> library.</p>
+<p>The following example creates a scene with 8 arrows pointing in various directions from the origin.
+The parameters <code>a</code>, <code>b</code> and <code>c</code> get passed at runtime.</p>
+<pre><code>import geometry;
 
 define my_scene(a, b, c) =
-    let scene = empty_scene("My nice scene!") in
+    let scene = empty_scene(&quot;My nice scene!&quot;) in
         add_arrows(my_arrows(a, b, c), scene)
     end;
 
 define my_arrows(a, b, c) =
-    [origin_arrow(vec, "blue") | i <- [-1, 1],
-                                 j <- [-1, 1],
-                                 k <- [-1, 1],
+    [origin_arrow(vec, &quot;blue&quot;) | i &lt;- [-1, 1],
+                                 j &lt;- [-1, 1],
+                                 k &lt;- [-1, 1],
                                  vec := vector3d(i*a*|metre|, j*b*|metre|, k*c*|metre|)];                               
-</pre>
+</code></pre>
+<p>After compilation the function <code>my_scene</code> can be used to connect the scene to a web component or it can be called directly
+from javascript code to create the scene at runtime. See the <code>pacioli.js</code> library for the runtime API.</p>
+<p>The library also provides some elementary animation.</p>
 
-<p>
-After compilation the function <code>my_scene</code> can be used to connect the scene to a web component or it can be called directly
-from javascript code to create the scene at runtime. See the <code>pacioli.js</code> library for the runtime API. 
-</p>
-
-<p>
-The library also provides some elementary animation.
-</p>
 
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#add_animation_callback">add_animation_callback</a> :: for_unit a, Geom3!u: ((second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u), Scene(a, Geom3!u)) -> Animation(a, Geom3!u)
 <a href="#add_arrows">add_arrows</a> :: for_unit a, Geom3!u: (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
@@ -90,310 +81,593 @@ The library also provides some elementary animation.
 <a href="#with_scene_meshes">with_scene_meshes</a> :: for_unit a, Geom3!u: (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
 <a href="#with_scene_paths">with_scene_paths</a> :: for_unit a, Geom3!u: (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
 </pre>
+
 <h2>Types</h2>
-<dl>
-<dt id="Arrow"><code>Arrow</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Arrow(a, Geom3!u)</pre>
+
+<h3 id="Arrow">Arrow</h3>
+
+<pre>
+for_unit a, Geom3!u: Arrow(a, Geom3!u)
+</pre>
 
 <p>An arrow is a colored line segment from from one position to another,
-with an arrowhead at the end. Is an element of a <code>Scene(a)</code> 
-scene.
-</dd>
-<dt id="Path"><code>Path</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Path(a, Geom3!u)</pre>
+with an arrowhead at the end.</p>
+<p>Is an element of a scene.</p>
 
-<p>A series of lines between succesive points. Is an element of a 
-<code>Scene(a, Geom3!u)</code> scene.
-</dd>
-<dt id="Vertex"><code>Vertex</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Vertex(a, Geom3!u)</pre>
 
-<p>A point in a <code>Mesh(a, Geom3!u)</code> mesh.
-</dd>
-<dt id="Color"><code>Color</code></dt>
-<dd>
-<pre>Color</pre>
+<h3 id="Path">Path</h3>
 
-<p>The color of a graphics element.
-<p>Uses the html color format. For example "#ffffff" and "white" both 
-represent the color white
-</dd>
-<dt id="Label"><code>Label</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Label(a, Geom3!u)</pre>
+<pre>
+for_unit a, Geom3!u: Path(a, Geom3!u)
+</pre>
 
-<p>
-</dd>
-<dt id="Animation"><code>Animation</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Animation(a, Geom3!u)</pre>
+<p>A series of lines between succesive points. Is an element of a
+<code>Scene(a, Geom3!u)</code> scene.</p>
 
-<p>Combines a Scene with an animation callback.
-</dd>
-<dt id="Mesh"><code>Mesh</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Mesh(a, Geom3!u)</pre>
 
-<p>A 3D shape composed from faces and vertices. Is an element of a 
-<code>Scene(a, Geom3!u)</code> scene.
-</dd>
-<dt id="Text"><code>Text</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Text(a, Geom3!u)</pre>
+<h3 id="Vertex">Vertex</h3>
 
-<p>A spotlight. Is an element of a <code>Scene(a, Geom3!u)</code> scene.
-</dd>
-<dt id="Scene"><code>Scene</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: Scene(a, Geom3!u)</pre>
+<pre>
+for_unit a, Geom3!u: Vertex(a, Geom3!u)
+</pre>
 
-<p>A scene is a geometric space that can contain vectors, meshes and paths. It 
-is a space with vectors of type <code>a*Geom3!u</code>.
-<p>Currently it can only be displayed in a browser.
-</dd>
-<dt id="Face"><code>Face</code></dt>
-<dd>
-<pre>Face</pre>
+<p>A point in a <code>Mesh(a, Geom3!u)</code> mesh.</p>
 
-<p>A suface between a mesh's vertices.
-</dd>
-<dt id="SpotLight"><code>SpotLight</code></dt>
-<dd>
-<pre>for_unit a, Geom3!u: SpotLight(a, Geom3!u)</pre>
 
-<p>A spotlight. Is an element of a <code>Scene(a, Geom3!u)</code> scene.
-</dd>
-<dt id="StatefulAnimation"><code>StatefulAnimation</code></dt>
-<dd>
-<pre>for_type t: for_unit a, Geom3!u: StatefulAnimation(a, Geom3!u, t)</pre>
+<h3 id="Color">Color</h3>
 
-<p>Combines a Scene with an animation callback that accepts a state parameter.
-</dd>
-</dl>
+<pre>
+Color
+</pre>
+
+<p>The color of a graphics element.</p>
+<p>Uses the html color format. For example &quot;#ffffff&quot; and &quot;white&quot; both
+represent the color white</p>
+
+
+<h3 id="Label">Label</h3>
+
+<pre>
+for_unit a, Geom3!u: Label(a, Geom3!u)
+</pre>
+
+
+
+<h3 id="Animation">Animation</h3>
+
+<pre>
+for_unit a, Geom3!u: Animation(a, Geom3!u)
+</pre>
+
+<p>Combines a Scene with an animation callback.</p>
+
+
+<h3 id="Mesh">Mesh</h3>
+
+<pre>
+for_unit a, Geom3!u: Mesh(a, Geom3!u)
+</pre>
+
+<p>A 3D shape composed from faces and vertices. Is an element of a
+<code>Scene(a, Geom3!u)</code> scene.</p>
+
+
+<h3 id="Text">Text</h3>
+
+<pre>
+for_unit a, Geom3!u: Text(a, Geom3!u)
+</pre>
+
+<p>A spotlight. Is an element of a <code>Scene(a, Geom3!u)</code> scene.</p>
+
+
+<h3 id="Scene">Scene</h3>
+
+<pre>
+for_unit a, Geom3!u: Scene(a, Geom3!u)
+</pre>
+
+<p>A scene is a geometric space that can contain vectors, meshes and paths. It
+is a space with vectors of type <code>a*Geom3!u</code>.</p>
+<p>Currently it can only be displayed in a browser.</p>
+
+
+<h3 id="Face">Face</h3>
+
+<pre>
+Face
+</pre>
+
+<p>A suface between a mesh's vertices.</p>
+
+
+<h3 id="SpotLight">SpotLight</h3>
+
+<pre>
+for_unit a, Geom3!u: SpotLight(a, Geom3!u)
+</pre>
+
+<p>A spotlight. Is an element of a <code>Scene(a, Geom3!u)</code> scene.</p>
+
+
+<h3 id="StatefulAnimation">StatefulAnimation</h3>
+
+<pre>
+for_type t: for_unit a, Geom3!u: StatefulAnimation(a, Geom3!u, t)
+</pre>
+
+<p>Combines a Scene with an animation callback that accepts a state parameter.</p>
+
+
 <h2>Functions</h2>
+
 <h3 id="add_animation_callback">add_animation_callback</h3>
-<p><code>:: for_unit a, Geom3!u: ((second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u), Scene(a, Geom3!u)) -> Animation(a, Geom3!u)</code>
+
+<pre>
+:: for_unit a, Geom3!u: ((second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u), Scene(a, Geom3!u)) -> Animation(a, Geom3!u)
+</pre>
 
 <p>Adds an animation callback to the scene. The function is called during animation
-with the current frame number and the current named scene.
-<p>The function must return a scene with the same element names. The existing scene 
-elements then get updated with the properties from the returned elements.
-<p>The scene is filtered for named elements.
+with the current frame number and the current named scene.</p>
+<p>The function must return a scene with the same element names. The existing scene
+elements then get updated with the properties from the returned elements.</p>
+<p>The scene is filtered for named elements.</p>
+
+
 <h3 id="add_arrows">add_arrows</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Adds arrows to a scene
+<pre>
+:: for_unit a, Geom3!u: (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Adds arrows to a scene</p>
+
+
 <h3 id="add_labels">add_labels</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Label(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Adds labels to a scene
+<pre>
+:: for_unit a, Geom3!u: (List(Label(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Adds labels to a scene</p>
+
+
 <h3 id="add_meshes">add_meshes</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Adds meshes to a scene
+<pre>
+:: for_unit a, Geom3!u: (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Adds meshes to a scene</p>
+
+
 <h3 id="add_paths">add_paths</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Adds paths to a scene
+<pre>
+:: for_unit a, Geom3!u: (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Adds paths to a scene</p>
+
+
 <h3 id="add_spotlights">add_spotlights</h3>
-<p><code>:: for_unit a, Geom3!u: (List(SpotLight(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Adds spotlights to a scene
+<pre>
+:: for_unit a, Geom3!u: (List(SpotLight(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Adds spotlights to a scene</p>
+
+
 <h3 id="add_stateful_animation_callback">add_stateful_animation_callback</h3>
-<p><code>:: for_type t: for_unit a, Geom3!u: (t, (second, t, Scene(a, Geom3!u)) -> Tuple(t, Scene(a, Geom3!u)), Scene(a, Geom3!u)) -> StatefulAnimation(a, Geom3!u, t)</code>
+
+<pre>
+:: for_type t: for_unit a, Geom3!u: (t, (second, t, Scene(a, Geom3!u)) -> Tuple(t, Scene(a, Geom3!u)), Scene(a, Geom3!u)) -> StatefulAnimation(a, Geom3!u, t)
+</pre>
 
 <p>Adds an animation callback to the scene. The function is called during animation
 with the current frame number, the current state and the current scene.
-In the first call the initial value is passed to the callback.
-<p>The function must return a tuple of the new state and scene with the same 
+In the first call the initial value is passed to the callback.</p>
+<p>The function must return a tuple of the new state and scene with the same
 element names as the elements in the passed scene. The existing scene elements
-then get updated with the properties from the returned elements.
-<p>The scene is filtered for named elements.
+then get updated with the properties from the returned elements.</p>
+<p>The scene is filtered for named elements.</p>
+
+
 <h3 id="arrow_color">arrow_color</h3>
-<p><code>:: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> Color</code>
 
-<p>Getter for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> Color
+</pre>
+
+<p>Getter for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="arrow_label">arrow_label</h3>
-<p><code>:: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String</code>
 
-<p>Getter for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String
+</pre>
+
+<p>Getter for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="arrow_name">arrow_name</h3>
-<p><code>:: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String</code>
 
-<p>Getter for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Arrow(a, Geom3!u)) -> String
+</pre>
+
+<p>Getter for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="color_string">color_string</h3>
-<p><code>:: (Color) -> String</code>
 
-<p>The html string representation of the color.
+<pre>
+:: (Color) -> String
+</pre>
+
+<p>The html string representation of the color.</p>
+
+
 <h3 id="cube_mesh">cube_mesh</h3>
-<p><code>:: for_unit a: (a, Color) -> Mesh(a, Geom3!)</code>
 
-<p>Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.
+<pre>
+:: for_unit a: (a, Color) -> Mesh(a, Geom3!)
+</pre>
+
+<p>Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.</p>
+
+
 <h3 id="default_arrow">default_arrow</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u)</code>
 
-<p>Creates an arrow between two points.
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Creates an arrow between two points.</p>
+
+
 <h3 id="default_label">default_label</h3>
-<p><code>:: for_unit a, Geom3!b: (String, a*Geom3!b) -> Label(a, Geom3!b)</code>
+
+<pre>
+:: for_unit a, Geom3!b: (String, a*Geom3!b) -> Label(a, Geom3!b)
+</pre>
+
+
 
 <h3 id="default_line">default_line</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Path(a, Geom3!u)</code>
 
-<p>A line between two points. Each point is indicated by a vector.
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Path(a, Geom3!u)
+</pre>
+
+<p>A line between two points. Each point is indicated by a vector.</p>
+
+
 <h3 id="default_mesh">default_mesh</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face)) -> Mesh(a, Geom3!u)</code>
 
-<p>Creates a mesh from vertices and faces
+<pre>
+:: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face)) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Creates a mesh from vertices and faces</p>
+
+
 <h3 id="default_path">default_path</h3>
-<p><code>:: for_unit a, Geom3!u: (List(a*Geom3!u)) -> Path(a, Geom3!u)</code>
 
-<p>Constructs a path from a list of points.
+<pre>
+:: for_unit a, Geom3!u: (List(a*Geom3!u)) -> Path(a, Geom3!u)
+</pre>
+
+<p>Constructs a path from a list of points.</p>
+
+
 <h3 id="empty_scene">empty_scene</h3>
-<p><code>:: for_unit a, Geom3!u: (String) -> Scene(a, Geom3!u)</code>
 
-<p>Constructs a scene.
+<pre>
+:: for_unit a, Geom3!u: (String) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Constructs a scene.</p>
 <p>The scene has ambient white light of intensity 0.3. Set the ambient light
 intensity to zero with function with_ambient_light to remove this default
-ambient light.
-<p>The argument is a description of the scene that can be used as a caption.
+ambient light.</p>
+<p>The argument is a description of the scene that can be used as a caption.</p>
+
+
 <h3 id="face">face</h3>
-<p><code>:: (1, 1, 1) -> Face</code>
+
+<pre>
+:: (1, 1, 1) -> Face
+</pre>
 
 <p>Creates a mesh face. Each argument is the index of a vertex. The mesh must
-contains sufficient vertices.
+contains sufficient vertices.</p>
+
+
 <h3 id="make_arrow">make_arrow</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, String, String, Color) -> Arrow(a, Geom3!u)</code>
 
-<p>Constructor for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, String, String, Color) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Constructor for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="make_color">make_color</h3>
-<p><code>:: (String) -> Color</code>
 
-<p>Create a color from a html color string. For example <code>make_color("#ffffff")</code> 
-and <code>make_color("white")</code> both create the color white.
+<pre>
+:: (String) -> Color
+</pre>
+
+<p>Create a color from a html color string. For example <code>make_color(&quot;#ffffff&quot;)</code>
+and <code>make_color(&quot;white&quot;)</code> both create the color white.</p>
+
+
 <h3 id="make_label">make_label</h3>
-<p><code>:: for_unit a, Geom3!u: (String, a*Geom3!u, Color, String, 1) -> Label(a, Geom3!u)</code>
 
-<p>Constructor for record <code>Label(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (String, a*Geom3!u, Color, String, 1) -> Label(a, Geom3!u)
+</pre>
+
+<p>Constructor for record <code>Label(a, Geom3!u)</code></p>
+
+
 <h3 id="make_line">make_line</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, Color) -> Path(a, Geom3!u)</code>
 
-<p>A line between two points. Each point is indicated by a vector.
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, Color) -> Path(a, Geom3!u)
+</pre>
+
+<p>A line between two points. Each point is indicated by a vector.</p>
+
+
 <h3 id="make_mesh">make_mesh</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face), Maybe(a*Geom3!u), Tuple(radian, radian, radian), String, Boole, String) -> Mesh(a, Geom3!u)</code>
 
-<p>Constructor for record <code>Mesh(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face), Maybe(a*Geom3!u), Tuple(radian, radian, radian), String, Boole, String) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Constructor for record <code>Mesh(a, Geom3!u)</code></p>
+
+
 <h3 id="make_path">make_path</h3>
-<p><code>:: for_unit a, Geom3!u: (List(a*Geom3!u), Color) -> Path(a, Geom3!u)</code>
 
-<p>Constructor for record <code>Path(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (List(a*Geom3!u), Color) -> Path(a, Geom3!u)
+</pre>
+
+<p>Constructor for record <code>Path(a, Geom3!u)</code></p>
+
+
 <h3 id="make_spotlight">make_spotlight</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, Color, candela) -> SpotLight(a, Geom3!u)</code>
 
-<p>Constructor for record <code>SpotLight(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u, Color, candela) -> SpotLight(a, Geom3!u)
+</pre>
+
+<p>Constructor for record <code>SpotLight(a, Geom3!u)</code></p>
+
+
 <h3 id="make_text">make_text</h3>
-<p><code>:: for_unit a, Geom3!u: (String, a*Geom3!u, a*Geom3!u, Color, String) -> Text(a, Geom3!u)</code>
 
-<p>Constructor for record <code>Text(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (String, a*Geom3!u, a*Geom3!u, Color, String) -> Text(a, Geom3!u)
+</pre>
+
+<p>Constructor for record <code>Text(a, Geom3!u)</code></p>
+
+
 <h3 id="move_arrow">move_arrow</h3>
-<p><code>:: for_unit a, Geom3!u: (Arrow(a, Geom3!u), a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u)</code>
 
-<p>Updates the start and end position of the arrow
+<pre>
+:: for_unit a, Geom3!u: (Arrow(a, Geom3!u), a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Updates the start and end position of the arrow</p>
+
+
 <h3 id="move_mesh">move_mesh</h3>
-<p><code>:: for_unit a, Geom3!u: (Mesh(a, Geom3!u), a*Geom3!u) -> Mesh(a, Geom3!u)</code>
 
-<p>Moves a mesh by offset 'vec'.
+<pre>
+:: for_unit a, Geom3!u: (Mesh(a, Geom3!u), a*Geom3!u) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Moves a mesh by offset 'vec'.</p>
+
+
 <h3 id="named_cube_mesh">named_cube_mesh</h3>
-<p><code>:: for_unit a: (String, a, Color) -> Mesh(a, Geom3!)</code>
+
+<pre>
+:: for_unit a: (String, a, Color) -> Mesh(a, Geom3!)
+</pre>
 
 <p>The same as <code>make_cube_mesh</code> except the cube is also given a name. The name is used
-during animation to locate it when updating the scene.
+during animation to locate it when updating the scene.</p>
+
+
 <h3 id="named_mesh">named_mesh</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face), String) -> Mesh(a, Geom3!u)</code>
+
+<pre>
+:: for_unit a, Geom3!u: (List(Vertex(a, Geom3!u)), List(Face), String) -> Mesh(a, Geom3!u)
+</pre>
 
 <p>The same as <code>make_mesh</code> except the mesh is also given a name. The name is used
-during animation to locate it when updating the scene.
+during animation to locate it when updating the scene.</p>
+
+
 <h3 id="origin_arrow">origin_arrow</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u) -> Arrow(a, Geom3!u)</code>
 
-<p>Creates an arrow from the origin to some point.
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Creates an arrow from the origin to some point.</p>
+
+
 <h3 id="rgb">rgb</h3>
-<p><code>:: (1, 1, 1) -> Color</code>
 
-<p>Create a color from rgb values in the range 0 to 255.
+<pre>
+:: (1, 1, 1) -> Color
+</pre>
+
+<p>Create a color from rgb values in the range 0 to 255.</p>
+
+
 <h3 id="rotate_mesh">rotate_mesh</h3>
-<p><code>:: for_unit a, Geom3!u: (Mesh(a, Geom3!u), radian, radian, radian) -> Mesh(a, Geom3!u)</code>
 
-<p>Rotates a mesh by radians.
+<pre>
+:: for_unit a, Geom3!u: (Mesh(a, Geom3!u), radian, radian, radian) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Rotates a mesh by radians.</p>
+
+
 <h3 id="scene_arrows">scene_arrows</h3>
-<p><code>:: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Arrow(a, Geom3!u))</code>
 
-<p>Getter for record <code>Scene(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Arrow(a, Geom3!u))
+</pre>
+
+<p>Getter for record <code>Scene(a, Geom3!u)</code></p>
+
+
 <h3 id="scene_meshes">scene_meshes</h3>
-<p><code>:: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Mesh(a, Geom3!u))</code>
 
-<p>Getter for record <code>Scene(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Mesh(a, Geom3!u))
+</pre>
+
+<p>Getter for record <code>Scene(a, Geom3!u)</code></p>
+
+
 <h3 id="scene_paths">scene_paths</h3>
-<p><code>:: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Path(a, Geom3!u))</code>
 
-<p>Getter for record <code>Scene(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Scene(a, Geom3!u)) -> List(Path(a, Geom3!u))
+</pre>
+
+<p>Getter for record <code>Scene(a, Geom3!u)</code></p>
+
+
 <h3 id="set_wireframe">set_wireframe</h3>
-<p><code>:: for_unit a, Geom3!u: (Mesh(a, Geom3!u), Boole) -> Mesh(a, Geom3!u)</code>
 
-<p>Copy of the mesh, but with the wireframe property changed.
-<p>Deprecated. Use <code>with_mesh_wireframe</code> instead
+<pre>
+:: for_unit a, Geom3!u: (Mesh(a, Geom3!u), Boole) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Copy of the mesh, but with the wireframe property changed.</p>
+<p>Deprecated. Use <code>with_mesh_wireframe</code> instead</p>
+
+
 <h3 id="vertex">vertex</h3>
-<p><code>:: for_unit a, Geom3!u: (a*Geom3!u, Color) -> Vertex(a, Geom3!u)</code>
 
-<p>Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
-element of a <code>Scene(a, Geom3!u)</code> scene.
+<pre>
+:: for_unit a, Geom3!u: (a*Geom3!u, Color) -> Vertex(a, Geom3!u)
+</pre>
+
+<p>Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an
+element of a <code>Scene(a, Geom3!u)</code> scene.</p>
+
+
 <h3 id="with_ambient_light">with_ambient_light</h3>
-<p><code>:: for_unit a, Geom3!u: (String, 1, Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Sets the ambient light of the scene. The intensity ranges from 1 to 5 
-(it seems).
+<pre>
+:: for_unit a, Geom3!u: (String, 1, Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Sets the ambient light of the scene. The intensity ranges from 1 to 5
+(it seems).</p>
+
+
 <h3 id="with_arrow_color">with_arrow_color</h3>
-<p><code>:: for_unit a, Geom3!u: (Color, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u)</code>
 
-<p>Setter for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Color, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="with_arrow_label">with_arrow_label</h3>
-<p><code>:: for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u)</code>
 
-<p>Setter for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="with_arrow_name">with_arrow_name</h3>
-<p><code>:: for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u)</code>
 
-<p>Setter for record <code>Arrow(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (String, Arrow(a, Geom3!u)) -> Arrow(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Arrow(a, Geom3!u)</code></p>
+
+
 <h3 id="with_mesh_material">with_mesh_material</h3>
-<p><code>:: for_unit a, Geom3!u: (String, Mesh(a, Geom3!u)) -> Mesh(a, Geom3!u)</code>
 
-<p>Setter for record <code>Mesh(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (String, Mesh(a, Geom3!u)) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Mesh(a, Geom3!u)</code></p>
+
+
 <h3 id="with_mesh_name">with_mesh_name</h3>
-<p><code>:: for_unit a, Geom3!u: (String, Mesh(a, Geom3!u)) -> Mesh(a, Geom3!u)</code>
 
-<p>Setter for record <code>Mesh(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (String, Mesh(a, Geom3!u)) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Mesh(a, Geom3!u)</code></p>
+
+
 <h3 id="with_mesh_wireframe">with_mesh_wireframe</h3>
-<p><code>:: for_unit a, Geom3!u: (Boole, Mesh(a, Geom3!u)) -> Mesh(a, Geom3!u)</code>
 
-<p>Setter for record <code>Mesh(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Boole, Mesh(a, Geom3!u)) -> Mesh(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Mesh(a, Geom3!u)</code></p>
+
+
 <h3 id="with_path_color">with_path_color</h3>
-<p><code>:: for_unit a, Geom3!u: (Color, Path(a, Geom3!u)) -> Path(a, Geom3!u)</code>
 
-<p>Setter for record <code>Path(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (Color, Path(a, Geom3!u)) -> Path(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Path(a, Geom3!u)</code></p>
+
+
 <h3 id="with_scene_arrows">with_scene_arrows</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Setter for record <code>Scene(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (List(Arrow(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Scene(a, Geom3!u)</code></p>
+
+
 <h3 id="with_scene_meshes">with_scene_meshes</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Setter for record <code>Scene(a, Geom3!u)</code>
+<pre>
+:: for_unit a, Geom3!u: (List(Mesh(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Scene(a, Geom3!u)</code></p>
+
+
 <h3 id="with_scene_paths">with_scene_paths</h3>
-<p><code>:: for_unit a, Geom3!u: (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)</code>
 
-<p>Setter for record <code>Scene(a, Geom3!u)</code>
-<p><small>Version v0.5.0, 2026-01-31T02:19:57.368221400+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_unit a, Geom3!u: (List(Path(a, Geom3!u)), Scene(a, Geom3!u)) -> Scene(a, Geom3!u)
+</pre>
+
+<p>Setter for record <code>Scene(a, Geom3!u)</code></p>
+<p><small>Version v0.5.0, 2026-02-17T14:14:16.958008200+01:00[Europe/Amsterdam]</small></body>
 </html>

@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>system</title>
-</head>
-<body>
-<h1>The <code>system</code> library</h1>
-<p>Interface for the <code>system</code> library</p>
+<h1>The system library</h1>
+
+<p>Interface for the <code>system</code> library
+
+
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#_runtime_environment">_runtime_environment</a> :: String
 
@@ -26,78 +28,186 @@
 <a href="#_system_time">_system_time</a> :: () -> 1
 <a href="#_three_question_marks">_three_question_marks</a> :: for_type t: () -> t
 </pre>
+
 <h2>Values</h2>
-<dl>
-<dt id="_runtime_environment"><code>_runtime_environment</code></dt>
-<dd>
-<pre>:: String</pre>
-Primitive value
+
+<h3 id="_runtime_environment">_runtime_environment</h3>
+
+<pre>
+:: String
+</pre>
+
+<p>Primitive value
+
 
 <p>The runtime environment the code is executing in, e.g., 'mvm' or
- 'javascript'.
-</dd>
-</dl>
+'javascript'.</p>
+
+
 <h2>Functions</h2>
+
 <h3 id="_acos">_acos</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_index P, Q: (P! per Q!) -> P! per Q!
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_add_mut">_add_mut</h3>
-<p><code>:: for_type a: (List(a), a) -> List(a)</code>
-<p>Primitive function
+
+<pre>
+:: for_type a: (List(a), a) -> List(a)
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_asin">_asin</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_index P, Q: (P! per Q!) -> P! per Q!
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_atan">_atan</h3>
-<p><code>:: for_index P, Q: (P! per Q!) -> P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_index P, Q: (P! per Q!) -> P! per Q!
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_atan2">_atan2</h3>
-<p><code>:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, P!u, Q!v: for_index P, Q: (a*P!u per Q!v, a*P!u per Q!v) -> P! per Q!
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_nr_decimals">_nr_decimals</h3>
-<p><code>:: () -> 1</code>
-<p>Primitive function
+
+<pre>
+:: () -> 1
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_num2string">_num2string</h3>
-<p><code>:: for_unit a, I!u, J!v: for_index I, J: (a*I!u per J!v, 1, a*I!u per J!v) -> String</code>
-<p>Primitive function
+
+<pre>
+:: for_unit a, I!u, J!v: for_index I, J: (a*I!u per J!v, 1, a*I!u per J!v) -> String
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_precision">_precision</h3>
-<p><code>:: () -> 1</code>
-<p>Primitive function
+
+<pre>
+:: () -> 1
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_set_nr_decimals">_set_nr_decimals</h3>
-<p><code>:: (1) -> Void</code>
-<p>Primitive function
+
+<pre>
+:: (1) -> Void
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_set_precision">_set_precision</h3>
-<p><code>:: (1) -> Void</code>
-<p>Primitive function
+
+<pre>
+:: (1) -> Void
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_set_show_zeros">_set_show_zeros</h3>
-<p><code>:: (Boole) -> Void</code>
-<p>Primitive function
+
+<pre>
+:: (Boole) -> Void
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_show_zeros">_show_zeros</h3>
-<p><code>:: () -> Boole</code>
-<p>Primitive function
+
+<pre>
+:: () -> Boole
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_skip">_skip</h3>
-<p><code>:: () -> Void</code>
-<p>Primitive function
+
+<pre>
+:: () -> Void
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_system_time">_system_time</h3>
-<p><code>:: () -> 1</code>
-<p>Primitive function
+
+<pre>
+:: () -> 1
+</pre>
+
+
+
+<p> Primitive function
+
 
 <h3 id="_three_question_marks">_three_question_marks</h3>
-<p><code>:: for_type t: () -> t</code>
-<p>Primitive function
 
-<p><small>Version v0.5.0, 2026-01-31T02:19:44.643046500+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_type t: () -> t
+</pre>
+
+
+
+<p> Primitive function
+<p><small>Version v0.5.0, 2026-02-17T14:13:52.284022400+01:00[Europe/Amsterdam]</small></body>
 </html>

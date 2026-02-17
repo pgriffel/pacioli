@@ -2,23 +2,20 @@
 <html>
 <head>
 <title>metrics</title>
-</head>
-<body>
-<h1>The <code>metrics</code> library</h1>
-<p>
-Some funtioncs to work with metrics.
+<h1>The metrics library</h1>
 
-<p>
-A metric matrix has form <code> a^2/P!u per P!u </code>
-
-<pre>
-define my_svd =
+<p>Some funtioncs to work with metrics.</p>
+<p>A metric matrix has form <code>a^2/P!u per P!u</code></p>
+<p>Example</p>
+<pre><code>define my_svd =
     gsvd(my_metric_left, my_metric_right);
 
 my_svd(A);
-</pre>
+</code></pre>
+
 
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#bilinear_form">bilinear_form</a> :: for_index P, Q: for_unit a, b, c, P!u, Q!v: (a/P!u per Q!v) -> (b*P!u, c*Q!v) -> a*b*c
 <a href="#gsvd">gsvd</a> :: for_index P, Q: for_unit r, c, a, P!u, Q!v: (r^2/P!u per P!u, c^2/Q!v per Q!v) -> (a*P!u per Q!v) -> List(Tuple(a*r/c, 1/r*P!u, c/Q!v))
@@ -26,50 +23,68 @@ my_svd(A);
 <a href="#metric_distance">metric_distance</a> :: for_index P: for_unit a, P!u, b: (a^2/P!u per P!u) -> (b*P!u, b*P!u) -> a*b
 <a href="#metric_norm">metric_norm</a> :: for_index P: for_unit a, b, P!u: (a^2/P!u per P!u) -> (b*P!u) -> a*b
 </pre>
+
 <h2>Functions</h2>
+
 <h3 id="bilinear_form">bilinear_form</h3>
-<p><code>:: for_index P, Q: for_unit a, b, c, P!u, Q!v: (a/P!u per Q!v) -> (b*P!u, c*Q!v) -> a*b*c</code>
 
-<p>Constructs a bilinear form from a metric matrix.
-<p>A bilinear form f satisfies
 <pre>
-(1) f(av+bw,u) = af(v,u) + bf(w,u)
-(2) f(u,av+bw) = af(u,v) + bf(u,w)
+:: for_index P, Q: for_unit a, b, c, P!u, Q!v: (a/P!u per Q!v) -> (b*P!u, c*Q!v) -> a*b*c
 </pre>
-<p>
-<p>The bilinear form functions is defined as   
-<pre>
-f(v,w) = v^T '*' M '*' w
-</pre>
-<p>
+
+<p>Constructs a bilinear form from a metric matrix.</p>
+<p>A bilinear form f satisfies</p>
+<ol>
+<li>f(av+bw,u) = af(v,u) + bf(w,u)</li>
+<li>f(u,av+bw) = af(u,v) + bf(u,w)</li>
+</ol>
+<p>The bilinear form functions is defined as</p>
+<p><code>f(v,w) = v^T '*' M '*' w</code></p>
+
+
 <h3 id="gsvd">gsvd</h3>
-<p><code>:: for_index P, Q: for_unit r, c, a, P!u, Q!v: (r^2/P!u per P!u, c^2/Q!v per Q!v) -> (a*P!u per Q!v) -> List(Tuple(a*r/c, 1/r*P!u, c/Q!v))</code>
 
-<p>Generalized Singular Value Decomposition.
-<p>Computes the generalized singular value decomposition of a matrix A with respect to
-two positive definite metric matrices.
-<p>The result is a list of tuples (s, u, v) where s are the generalized singular values,
-u are the left singular vectors and v are the right singular vectors.
-<p>The left singular vectors are orthogonal with respect to the first metric,
-and the right singular vectors are orthogonal with respect to the second metric.
-<p>Satisfies:
 <pre>
-svd(A) = gsvd(identity_metric(row_unit(A)), identity_metric(column_unit(A)))(A)
+:: for_index P, Q: for_unit r, c, a, P!u, Q!v: (r^2/P!u per P!u, c^2/Q!v per Q!v) -> (a*P!u per Q!v) -> List(Tuple(a*r/c, 1/r*P!u, c/Q!v))
 </pre>
-<p>
+
+<p>Generalized Singular Value Decomposition.</p>
+<p>Computes the generalized singular value decomposition of a matrix A with respect to
+two positive definite metric matrices.</p>
+<p>The result is a list of tuples (s, u, v) where s are the generalized singular values,
+u are the left singular vectors and v are the right singular vectors.</p>
+<p>The left singular vectors are orthogonal with respect to the first metric,
+and the right singular vectors are orthogonal with respect to the second metric.</p>
+<p>Satisfies:</p>
+<pre><code>svd(A) = gsvd(identity_metric(row_unit(A)), identity_metric(column_unit(A)))(A)
+</code></pre>
+
+
 <h3 id="identity_metric">identity_metric</h3>
-<p><code>:: for_index P: for_unit a, P!u: (1/a*P!u) -> a^2/P!u per P!u</code>
 
-<p>A metric with ones on the diagonal and zeros everywhere else.
+<pre>
+:: for_index P: for_unit a, P!u: (1/a*P!u) -> a^2/P!u per P!u
+</pre>
+
+<p>A metric with ones on the diagonal and zeros everywhere else.</p>
+
+
 <h3 id="metric_distance">metric_distance</h3>
-<p><code>:: for_index P: for_unit a, P!u, b: (a^2/P!u per P!u) -> (b*P!u, b*P!u) -> a*b</code>
 
-<p>Computes the distance between two vectors with respect to a given metric.
+<pre>
+:: for_index P: for_unit a, P!u, b: (a^2/P!u per P!u) -> (b*P!u, b*P!u) -> a*b
+</pre>
+
+<p>Computes the distance between two vectors with respect to a given metric.</p>
+
+
 <h3 id="metric_norm">metric_norm</h3>
-<p><code>:: for_index P: for_unit a, b, P!u: (a^2/P!u per P!u) -> (b*P!u) -> a*b</code>
 
-<p>Computes the norm of a vector with respect to a given metric.
-<p>Given some bilinear form f, the norm of a vector v is sqrt(f(v,v))
-<p><small>Version v0.5.0, 2026-01-31T02:20:03.811365100+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_index P: for_unit a, b, P!u: (a^2/P!u per P!u) -> (b*P!u) -> a*b
+</pre>
+
+<p>Computes the norm of a vector with respect to a given metric.</p>
+<p>Given some bilinear form <code>f</code>, the norm of a vector <code>v</code> is <code>sqrt(f(v,v))</code></p>
+<p><small>Version v0.5.0, 2026-02-17T14:14:19.700685100+01:00[Europe/Amsterdam]</small></body>
 </html>

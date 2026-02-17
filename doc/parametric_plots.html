@@ -2,25 +2,19 @@
 <html>
 <head>
 <title>parametric_plots</title>
-</head>
-<body>
-<h1>The <code>parametric_plots</code> library</h1>
-<p>
-The `parametric_plots` library is part of the graphics library.
+<h1>The parametric_plots library</h1>
 
-<p>
-Example
-
-<pre>
-import geometry;
+<p>The <code>parametric_plots</code> library is part of the graphics library.</p>
+<p>Example</p>
+<pre><code>import geometry;
 import graphics;
 import graphics/parametric_plots;
 
 define plot =
     begin
-        scene := empty_scene("plot");
+        scene := empty_scene(&quot;plot&quot;);
 
-        fun := (u, v) -> vector3d(u,v, 1/(u*v));
+        fun := (u, v) -&gt; vector3d(u,v, 1/(u*v));
 
         range := make_range(-5, 5, -5, 5);
 
@@ -32,11 +26,12 @@ define plot =
 
         return scene;
     end;
-</pre>
+</code></pre>
+<p>Use the <code>pacioli_scene</code> web-component to display the plot in a web-page.</p>
 
- Use the `pacioli_scene` web-component to display the plot in a web-page.
 
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#default_parametric_plot_options">default_parametric_plot_options</a> :: ParametricPlotOptions
 
@@ -84,210 +79,427 @@ define plot =
 <a href="#with_range2d_u">with_range2d_u</a> :: for_unit a, b: (Interval(a), Range2D(a, b)) -> Range2D(a, b)
 <a href="#with_range2d_v">with_range2d_v</a> :: for_unit a, b: (Interval(b), Range2D(a, b)) -> Range2D(a, b)
 </pre>
+
 <h2>Types</h2>
-<dl>
-<dt id="ParametricPlotOptions"><code>ParametricPlotOptions</code></dt>
-<dd>
-<pre>ParametricPlotOptions</pre>
 
-<p>Options for plotting parametric surfaces, grids and deltas.
-</dd>
-</dl>
+<h3 id="ParametricPlotOptions">ParametricPlotOptions</h3>
+
+<pre>
+ParametricPlotOptions
+</pre>
+
+<p>Options for plotting parametric surfaces, grids and deltas.</p>
+
+
 <h2>Values</h2>
-<dl>
-<dt id="default_parametric_plot_options"><code>default_parametric_plot_options</code></dt>
-<dd>
-<pre>:: ParametricPlotOptions</pre>
 
-<p>Default values for the options for parametric plots.
-</dd>
-</dl>
+<h3 id="default_parametric_plot_options">default_parametric_plot_options</h3>
+
+<pre>
+:: ParametricPlotOptions
+</pre>
+
+<p>Default values for the options for parametric plots.</p>
+
+
 <h2>Functions</h2>
+
 <h3 id="interval_length">interval_length</h3>
-<p><code>:: for_unit a: (Interval(a)) -> a</code>
+
+<pre>
+:: for_unit a: (Interval(a)) -> a
+</pre>
+
+
 
 <h3 id="interval_lower">interval_lower</h3>
-<p><code>:: for_unit a: (Interval(a)) -> a</code>
 
-<p>Getter for record <code>Interval(a)</code>
+<pre>
+:: for_unit a: (Interval(a)) -> a
+</pre>
+
+<p>Getter for record <code>Interval(a)</code></p>
+
+
 <h3 id="interval_upper">interval_upper</h3>
-<p><code>:: for_unit a: (Interval(a)) -> a</code>
 
-<p>Getter for record <code>Interval(a)</code>
+<pre>
+:: for_unit a: (Interval(a)) -> a
+</pre>
+
+<p>Getter for record <code>Interval(a)</code></p>
+
+
 <h3 id="make_interval">make_interval</h3>
-<p><code>:: for_unit a: (a, a) -> Interval(a)</code>
 
-<p>Constructor for record <code>Interval(a)</code>
+<pre>
+:: for_unit a: (a, a) -> Interval(a)
+</pre>
+
+<p>Constructor for record <code>Interval(a)</code></p>
+
+
 <h3 id="make_parametric_plot_options">make_parametric_plot_options</h3>
-<p><code>:: (1, 1, 1, 1, Boole, Boole, Boole, Boole, String, Color, Color, Color) -> ParametricPlotOptions</code>
 
-<p>Constructor for record <code>ParametricPlotOptions</code>
+<pre>
+:: (1, 1, 1, 1, Boole, Boole, Boole, Boole, String, Color, Color, Color) -> ParametricPlotOptions
+</pre>
+
+<p>Constructor for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="make_range">make_range</h3>
-<p><code>:: for_unit a, b: (a, a, b, b) -> Range2D(a, b)</code>
+
+<pre>
+:: for_unit a, b: (a, a, b, b) -> Range2D(a, b)
+</pre>
+
+
 
 <h3 id="make_range2d">make_range2d</h3>
-<p><code>:: for_unit a, b: (Interval(a), Interval(b)) -> Range2D(a, b)</code>
 
-<p>Constructor for record <code>Range2D(a, b)</code>
+<pre>
+:: for_unit a, b: (Interval(a), Interval(b)) -> Range2D(a, b)
+</pre>
+
+<p>Constructor for record <code>Range2D(a, b)</code></p>
+
+
 <h3 id="parametric_plot_options_color">parametric_plot_options_color</h3>
-<p><code>:: (ParametricPlotOptions) -> Color</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Color
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_delta_color">parametric_plot_options_delta_color</h3>
-<p><code>:: (ParametricPlotOptions) -> Color</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Color
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_m">parametric_plot_options_m</h3>
-<p><code>:: (ParametricPlotOptions) -> 1</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> 1
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_n">parametric_plot_options_n</h3>
-<p><code>:: (ParametricPlotOptions) -> 1</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> 1
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_normal_color">parametric_plot_options_normal_color</h3>
-<p><code>:: (ParametricPlotOptions) -> Color</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Color
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_scale_factor">parametric_plot_options_scale_factor</h3>
-<p><code>:: (ParametricPlotOptions) -> 1</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> 1
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_show_normals">parametric_plot_options_show_normals</h3>
-<p><code>:: (ParametricPlotOptions) -> Boole</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Boole
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_show_parts">parametric_plot_options_show_parts</h3>
-<p><code>:: (ParametricPlotOptions) -> Boole</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Boole
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_show_total">parametric_plot_options_show_total</h3>
-<p><code>:: (ParametricPlotOptions) -> Boole</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Boole
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="parametric_plot_options_wireframe">parametric_plot_options_wireframe</h3>
-<p><code>:: (ParametricPlotOptions) -> Boole</code>
 
-<p>Getter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (ParametricPlotOptions) -> Boole
+</pre>
+
+<p>Getter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="plot_parametric_path">plot_parametric_path</h3>
-<p><code>:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)</code>
+
+<pre>
+:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+</pre>
+
+
 
 <h3 id="plot_parametric_surface">plot_parametric_surface</h3>
-<p><code>:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)</code>
 
-<p>Plots a parametric surface in a 3D space.
+<pre>
+:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+</pre>
+
+<p>Plots a parametric surface in a 3D space.</p>
 <p>The function parameter is a function from the given range to <code>Geom3</code>
-vectors. The function is sampled for the given range to give the surface points.
-<p>The number of samples, and other parameters like color, can be set in the options.
-<p>For example<pre>
-let
+vectors. The function is sampled for the given range to give the surface points.</p>
+<p>The number of samples, and other parameters like color, can be set in the options.</p>
+<p>For example</p>
+<pre><code>let
     u_interval = make_interval(-5*|metre|, 5*|metre|),  
     v_interval = make_interval(-5*|metre|, 5*|metre|)
 in  
     plot_parametric_surface(
-        (u, v) -> vector3d(u, v, 3*|metre| - 0.5*u - 0.2*v),
+        (u, v) -&gt; vector3d(u, v, 3*|metre| - 0.5*u - 0.2*v),
         make_range2d(u_interval, v_interval),
         default_parametric_plot_options,
         scene)
 end  
-</pre>
-<p>
+</code></pre>
 <p>plots a part of a plane, using default options. It yields a scene of
-type <code>Scene(metre, Geom3!)</code>
+type <code>Scene(metre, Geom3!)</code></p>
+
+
 <h3 id="plot_parametric_surface_deltas">plot_parametric_surface_deltas</h3>
-<p><code>:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)</code>
+
+<pre>
+:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+</pre>
+
+
 
 <h3 id="plot_parametric_surface_grid">plot_parametric_surface_grid</h3>
-<p><code>:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)</code>
 
-<p>Plots a parametric grid in a 3D space.
+<pre>
+:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+</pre>
+
+<p>Plots a parametric grid in a 3D space.</p>
 <p>The function parameter is a function from the given range to <code>Geom3</code>
-vectors. The function is sampled for the given range to give the grid points.
-<p>The number of samples, and other parameters like color, can be set in the options.
+vectors. The function is sampled for the given range to give the grid points.</p>
+<p>The number of samples, and other parameters like color, can be set in the options.</p>
 <p>It is similar to plotting a surface using <code>plot_parametric_surface</code> with
-the option wireframe, but it displays rectangles instead of triangles.
+the option wireframe, but it displays rectangles instead of triangles.</p>
+
+
 <h3 id="range2d_u">range2d_u</h3>
-<p><code>:: for_unit a, b: (Range2D(a, b)) -> Interval(a)</code>
 
-<p>Getter for record <code>Range2D(a, b)</code>
+<pre>
+:: for_unit a, b: (Range2D(a, b)) -> Interval(a)
+</pre>
+
+<p>Getter for record <code>Range2D(a, b)</code></p>
+
+
 <h3 id="range2d_v">range2d_v</h3>
-<p><code>:: for_unit a, b: (Range2D(a, b)) -> Interval(b)</code>
 
-<p>Getter for record <code>Range2D(a, b)</code>
+<pre>
+:: for_unit a, b: (Range2D(a, b)) -> Interval(b)
+</pre>
+
+<p>Getter for record <code>Range2D(a, b)</code></p>
+
+
 <h3 id="range_height">range_height</h3>
-<p><code>:: for_unit a, b: (Range2D(a, b)) -> b</code>
+
+<pre>
+:: for_unit a, b: (Range2D(a, b)) -> b
+</pre>
+
+
 
 <h3 id="range_ustart">range_ustart</h3>
-<p><code>:: for_unit a, b: (Range2D(a, b)) -> a</code>
+
+<pre>
+:: for_unit a, b: (Range2D(a, b)) -> a
+</pre>
+
+
 
 <h3 id="range_vstart">range_vstart</h3>
-<p><code>:: for_unit a, b: (Range2D(a, b)) -> b</code>
+
+<pre>
+:: for_unit a, b: (Range2D(a, b)) -> b
+</pre>
+
+
 
 <h3 id="range_width">range_width</h3>
-<p><code>:: for_unit a, b: (Range2D(a, b)) -> a</code>
+
+<pre>
+:: for_unit a, b: (Range2D(a, b)) -> a
+</pre>
+
+
 
 <h3 id="scale_interval">scale_interval</h3>
-<p><code>:: for_unit a, b: (a, Interval(b)) -> Interval(a*b)</code>
+
+<pre>
+:: for_unit a, b: (a, Interval(b)) -> Interval(a*b)
+</pre>
+
+
 
 <h3 id="scale_range">scale_range</h3>
-<p><code>:: for_unit a, b, c, d: (a, b, Range2D(c, d)) -> Range2D(a*c, b*d)</code>
+
+<pre>
+:: for_unit a, b, c, d: (a, b, Range2D(c, d)) -> Range2D(a*c, b*d)
+</pre>
+
+
 
 <h3 id="with_interval_lower">with_interval_lower</h3>
-<p><code>:: for_unit a: (a, Interval(a)) -> Interval(a)</code>
 
-<p>Setter for record <code>Interval(a)</code>
+<pre>
+:: for_unit a: (a, Interval(a)) -> Interval(a)
+</pre>
+
+<p>Setter for record <code>Interval(a)</code></p>
+
+
 <h3 id="with_interval_upper">with_interval_upper</h3>
-<p><code>:: for_unit a: (a, Interval(a)) -> Interval(a)</code>
 
-<p>Setter for record <code>Interval(a)</code>
+<pre>
+:: for_unit a: (a, Interval(a)) -> Interval(a)
+</pre>
+
+<p>Setter for record <code>Interval(a)</code></p>
+
+
 <h3 id="with_parametric_plot_options_color">with_parametric_plot_options_color</h3>
-<p><code>:: (Color, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Color, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_delta_color">with_parametric_plot_options_delta_color</h3>
-<p><code>:: (Color, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Color, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_m">with_parametric_plot_options_m</h3>
-<p><code>:: (1, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (1, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_n">with_parametric_plot_options_n</h3>
-<p><code>:: (1, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (1, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_normal_color">with_parametric_plot_options_normal_color</h3>
-<p><code>:: (Color, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Color, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_scale_factor">with_parametric_plot_options_scale_factor</h3>
-<p><code>:: (1, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (1, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_show_normals">with_parametric_plot_options_show_normals</h3>
-<p><code>:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_show_parts">with_parametric_plot_options_show_parts</h3>
-<p><code>:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_show_total">with_parametric_plot_options_show_total</h3>
-<p><code>:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_parametric_plot_options_wireframe">with_parametric_plot_options_wireframe</h3>
-<p><code>:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions</code>
 
-<p>Setter for record <code>ParametricPlotOptions</code>
+<pre>
+:: (Boole, ParametricPlotOptions) -> ParametricPlotOptions
+</pre>
+
+<p>Setter for record <code>ParametricPlotOptions</code></p>
+
+
 <h3 id="with_range2d_u">with_range2d_u</h3>
-<p><code>:: for_unit a, b: (Interval(a), Range2D(a, b)) -> Range2D(a, b)</code>
 
-<p>Setter for record <code>Range2D(a, b)</code>
+<pre>
+:: for_unit a, b: (Interval(a), Range2D(a, b)) -> Range2D(a, b)
+</pre>
+
+<p>Setter for record <code>Range2D(a, b)</code></p>
+
+
 <h3 id="with_range2d_v">with_range2d_v</h3>
-<p><code>:: for_unit a, b: (Interval(b), Range2D(a, b)) -> Range2D(a, b)</code>
 
-<p>Setter for record <code>Range2D(a, b)</code>
-<p><small>Version v0.5.0, 2026-01-31T02:20:00.825068600+01:00[Europe/Amsterdam]</small>
-</body>
+<pre>
+:: for_unit a, b: (Interval(b), Range2D(a, b)) -> Range2D(a, b)
+</pre>
+
+<p>Setter for record <code>Range2D(a, b)</code></p>
+<p><small>Version v0.5.0, 2026-02-17T14:14:18.725999800+01:00[Europe/Amsterdam]</small></body>
 </html>

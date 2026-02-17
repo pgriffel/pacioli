@@ -2,11 +2,13 @@
 <html>
 <head>
 <title>io</title>
-</head>
-<body>
-<h1>The <code>io</code> library</h1>
-<p>Interface for the <code>io</code> library</p>
+<h1>The io library</h1>
+
+<p>Interface for the <code>io</code> library
+
+
 <h2>Synopsis</h2>
+
 <pre>
 <a href="#newline">newline</a> :: (File) -> Void
 <a href="#nr_decimals">nr_decimals</a> :: () -> decimals
@@ -18,52 +20,102 @@
 <a href="#write_string">write_string</a> :: (File, String) -> Void
 <a href="#writeln">writeln</a> :: (File, String) -> Void
 </pre>
+
 <h2>Functions</h2>
+
 <h3 id="newline">newline</h3>
-<p><code>:: (File) -> Void</code>
 
-<p>Writes a newline to a file.
+<pre>
+:: (File) -> Void
+</pre>
+
+<p>Writes a newline to a file.</p>
+
+
 <h3 id="nr_decimals">nr_decimals</h3>
-<p><code>:: () -> decimals</code>
 
-<p>The number of decimals that is used when printing numbers.
-<p>See <code>set_nr_decimals</code>
+<pre>
+:: () -> decimals
+</pre>
+
+<p>The number of decimals that is used when printing numbers.</p>
+<p>See <code>set_nr_decimals</code></p>
+
+
 <h3 id="print">print</h3>
-<p><code>:: (String) -> Void</code>
-<p>Primitive function
 
-<p>Writes a string to standard output.
+<pre>
+:: (String) -> Void
+</pre>
+
+<p>Writes a string to standard output.</p>
+
+
+<p> Primitive function
+
+
 <h3 id="set_nr_decimals">set_nr_decimals</h3>
-<p><code>:: (decimals) -> Void</code>
 
-<p>Sets the number of decimals that is used when printing numbers.
-<p>This is a global effect.
+<pre>
+:: (decimals) -> Void
+</pre>
+
+<p>Sets the number of decimals that is used when printing numbers.</p>
+<p>This is a global effect.</p>
+
+
 <h3 id="set_show_zeros">set_show_zeros</h3>
-<p><code>:: (Boole) -> Void</code>
 
-<p>Sets whether zero lines are shown or not when printing numbers.
-<p>This is a global effect.
+<pre>
+:: (Boole) -> Void
+</pre>
+
+<p>Sets whether zero lines are shown or not when printing numbers.</p>
+<p>This is a global effect.</p>
+
+
 <h3 id="show_zeros">show_zeros</h3>
-<p><code>:: () -> Boole</code>
 
-<p>Are zero lines shown when printing numbers?
-<p>See <code>set_show_zeros</code>
+<pre>
+:: () -> Boole
+</pre>
+
+<p>Are zero lines shown when printing numbers?</p>
+<p>See <code>set_show_zeros</code></p>
+
+
 <h3 id="with_output_file">with_output_file</h3>
-<p><code>:: (String, (File) -> Void) -> Void</code>
-<p>Primitive function
+
+<pre>
+:: (String, (File) -> Void) -> Void
+</pre>
 
 <p>Opens a file for writing and calls the callback with a handle to
-the file
+the file</p>
+
+
+<p> Primitive function
+
+
 <h3 id="write_string">write_string</h3>
-<p><code>:: (File, String) -> Void</code>
-<p>Primitive function
+
+<pre>
+:: (File, String) -> Void
+</pre>
 
 <p>Write a string to a file. Use <code>with_output_file</code> to get a file
-handle.
-<h3 id="writeln">writeln</h3>
-<p><code>:: (File, String) -> Void</code>
+handle.</p>
 
-<p>Writes a string to a file, followed by a newline.
-<p><small>Version v0.5.0, 2026-01-31T02:19:44.346960+01:00[Europe/Amsterdam]</small>
-</body>
+
+<p> Primitive function
+
+
+<h3 id="writeln">writeln</h3>
+
+<pre>
+:: (File, String) -> Void
+</pre>
+
+<p>Writes a string to a file, followed by a newline.</p>
+<p><small>Version v0.5.0, 2026-02-17T14:13:52.011485600+01:00[Europe/Amsterdam]</small></body>
 </html>
