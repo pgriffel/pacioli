@@ -1,23 +1,23 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import * as fc from "fast-check";
@@ -26,51 +26,49 @@ import {
   arbitraryIndexSetElement,
 } from "./index-set.spec.js";
 import { arrayEqual } from "./util";
-import { UOM } from "uom-ts";
-import { Coordinates } from "../src/values/coordinates.js";
-import { IndexSet } from "../src/values/index-set.js";
+import { SIUnit } from "uom-ts";
+import { PacioliCoordinates } from "../src/values/coordinates.js";
+import type { IndexSet } from "../src/values/index-set.js";
+import "jasmine";
 
 /**
- * A fast check Arbitrary for the {@link Coordinates} class.
+ * A fast check Arbitrary for the {@link PacioliCoordinates} class.
  *
- * @returns An arbitray Coordinates instance
+ * @returns An arbitray PacioliCoordinates instance
  */
-export function arbitraryCoordinates(): fc.Arbitrary<Coordinates> {
-  return fc
-    .array(arbitraryIndexSet())
-    .chain((indexSets) =>
-      fc
-        .integer({
-          min: 0,
-          max:
-            indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1) - 1,
-        })
-        .map((n) => Coordinates.fromIndex(indexSets, n))
-    );
+export function arbitraryCoordinates(): fc.Arbitrary<PacioliCoordinates> {
+  return fc.array(arbitraryIndexSet()).chain((indexSets) =>
+    fc
+      .integer({
+        min: 0,
+        max: indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1) - 1,
+      })
+      .map((n) => PacioliCoordinates.fromIndex(indexSets, n)),
+  );
 }
 
 function arbitraryCoordinatesParams(): fc.Arbitrary<[IndexSet[], string[]]> {
   return fc
     .array(
       arbitraryIndexSet().chain((set) =>
-        fc.tuple(fc.constant(set), arbitraryIndexSetElement(set))
-      )
+        fc.tuple(fc.constant(set), arbitraryIndexSetElement(set)),
+      ),
     )
     .map((pairs) => [pairs.map(([x, _]) => x), pairs.map(([_, y]) => y)]);
 }
 
-describe("Coordinates", () => {
+describe("PacioliCoordinates", () => {
   describe("equals", () => {
-    it("should be true for Coordinates constructed with the same arguments", () => {
+    it("should be true for PacioliCoordinates constructed with the same arguments", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // when a dimensioned number is created with dimless
-          const coordinatesA = new Coordinates(elements, indexSets);
-          const coordinatesB = new Coordinates(elements, indexSets);
+          const coordinatesA = new PacioliCoordinates(elements, indexSets);
+          const coordinatesB = new PacioliCoordinates(elements, indexSets);
 
           // then
           expect(coordinatesA.equals(coordinatesB)).toEqual(true);
-        })
+        }),
       );
     });
 
@@ -86,33 +84,33 @@ describe("Coordinates", () => {
             } else {
               expect(
                 arrayEqual(coordinatesA.names, coordinatesB.names) &&
-                  arrayEqual(coordinatesA.indexSets, coordinatesB.indexSets)
-              ).toBeFalse;
+                  arrayEqual(coordinatesA.indexSets, coordinatesB.indexSets),
+              ).toBeFalse();
               // expect(coordinatesA.indexSets).not.to.deep.equal(coordinatesB.indexSets)
             }
-          }
-        )
+          },
+        ),
       );
     });
   });
 
   describe("position", () => {
-    it("should give the same coordinates when passed to Coordinates.fromIndex", () => {
+    it("should give the same coordinates when passed to PacioliCoordinates.fromIndex", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // when a dimensioned number is created with dimless
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
-          const fromPostion = Coordinates.fromIndex(
+          const fromPostion = PacioliCoordinates.fromIndex(
             indexSets,
-            coordinates.position()
+            coordinates.position(),
           );
 
           // console.log('yo', coordinates, fromPostion)
 
           // and the factor should be the given factor
           expect(coordinates.equals(fromPostion)).toEqual(true);
-        })
+        }),
       );
     });
   });
@@ -122,11 +120,11 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // when a dimensioned number is created with dimless
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           // and the factor should be the given factor
           expect(coordinates.order()).toEqual(elements.length);
-        })
+        }),
       );
     });
   });
@@ -139,12 +137,12 @@ describe("Coordinates", () => {
             fc.tuple(
               fc.constant(indexSets),
               fc.constant(elements),
-              fc.array(fc.integer({ min: 0, max: indexSets.length }))
-            )
+              fc.array(fc.integer({ min: 0, max: indexSets.length })),
+            ),
           ),
           ([indexSets, elements, indices]) => {
             // Given some coordinates from some index sets and some elements
-            const coordinates = new Coordinates(elements, indexSets);
+            const coordinates = new PacioliCoordinates(elements, indexSets);
 
             // When the coordinates is project for some indices
             const projected = coordinates.project(indices);
@@ -154,8 +152,8 @@ describe("Coordinates", () => {
               expect(projected.names[i]).toEqual(elements[indices[i]]);
               expect(projected.indexSets[i]).toEqual(indexSets[indices[i]]);
             }
-          }
-        )
+          },
+        ),
       );
     });
   });
@@ -165,7 +163,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           const text = coordinates.toText();
 
@@ -179,7 +177,7 @@ describe("Coordinates", () => {
 
             expect(parts.reduce((x, y) => x + "%" + y)).toEqual(text);
           }
-        })
+        }),
       );
     });
   });
@@ -189,7 +187,7 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           const text = coordinates.shortText();
 
@@ -198,7 +196,7 @@ describe("Coordinates", () => {
           } else {
             expect(elements.reduce((x, y) => x + "%" + y)).toEqual(text);
           }
-        })
+        }),
       );
     });
   });
@@ -208,12 +206,12 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           expect(
-            indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1)
+            indexSets.map((set) => set.size()).reduce((x, y) => x * y, 1),
           ).toEqual(coordinates.size());
-        })
+        }),
       );
     });
   });
@@ -223,20 +221,20 @@ describe("Coordinates", () => {
       fc.assert(
         fc.property(arbitraryCoordinatesParams(), ([indexSets, elements]) => {
           // Given some coordinates from some index sets and some elements
-          const coordinates = new Coordinates(elements, indexSets);
+          const coordinates = new PacioliCoordinates(elements, indexSets);
 
           // When a shape is contructed from the coordinates
           const shape = coordinates.shape();
 
           // Then the shape elements should be correct
-          expect(shape.multiplier).toEqual(UOM.ONE);
+          expect(shape.multiplier).toEqual(SIUnit.ONE);
           expect(
-            arrayEqual(shape.rowDimension.indexSets, indexSets)
+            arrayEqual(shape.rowDimension.indexSets, indexSets),
           ).toBeTrue();
-          expect(shape.rowUnit).toEqual(UOM.ONE);
+          expect(shape.rowUnit).toEqual(SIUnit.ONE);
           expect(arrayEqual(shape.columnDimension.indexSets, [])).toBeTrue();
-          expect(shape.columnUnit).toEqual(UOM.ONE);
-        })
+          expect(shape.columnUnit).toEqual(SIUnit.ONE);
+        }),
       );
     });
   });

@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.transpilers;
 
 import java.util.ArrayList;
@@ -12,9 +34,10 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
+import pacioli.ast.visitors.JSGenerator;
 import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -43,7 +66,9 @@ public class JSTranspiler implements SymbolTableVisitor {
         // Infos without definition are filtered by the caller
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling value %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling value %s", info.globalName());
+        }
 
         ValueDefinition definition = info.definition().get();
         ExpressionNode transformedBody = definition.body;
@@ -101,10 +126,10 @@ public class JSTranspiler implements SymbolTableVisitor {
             // out.newlineDown();
             // out.format("}");
             out.newline();
-            out.format("Pacioli.%s = function (%s) {", info.globalName(), code.argsString("lcl_"));
+            out.format("Pacioli.%s = function (%s) {", info.globalName(), argsString(code, "lcl_"));
             out.newlineUp();
             out.format("return ");
-            code.expression.compileToJS(out, settings, false);
+            code.expression.compileToJS(out, settings);
             out.format(";");
             out.newlineDown();
             out.format("}");
@@ -118,7 +143,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.localType().reduce(i -> true).compileToJS(),
                     info.globalName());
-            transformedBody.compileToJS(out, settings, false);
+            transformedBody.compileToJS(out, settings);
             out.format(";\n}\n");
             // out.format("Pacioli.compute_b_%s = function () {\n return ",
             // info.globalName());
@@ -127,10 +152,28 @@ public class JSTranspiler implements SymbolTableVisitor {
         }
     }
 
+    private static String argsString(LambdaNode node, String prefix) {
+        if (node.varArgs) {
+            if (node.arguments.size() == 1) {
+                // TODO: Wegwerken hier. Alleen JSTranspiler roept dit aan
+                return "..." + prefix + node.arguments.get(0);
+            } else {
+                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+            }
+        }
+        List<String> args = new ArrayList<String>();
+        for (String arg : node.arguments) {
+            args.add(prefix + arg + "");
+        }
+        return String.join(", ", args);
+    }
+
     @Override
     public void visit(IndexSetInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling index set %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling index set %s", info.globalName());
+        }
 
         assert (info.definition().isPresent());
 
@@ -141,7 +184,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.globalName(),
                     definition.name());
-            definition.body().compileToJS(out, settings, false);
+            definition.body().compileToJS(out, settings);
             out.format(")}\n");
         } else {
 
@@ -153,7 +196,7 @@ public class JSTranspiler implements SymbolTableVisitor {
                     info.globalName(),
                     info.globalName(),
                     definition.name(),
-                    Utils.intercalate(",", quotedItems));
+                    String.join(",", quotedItems));
         }
 
     }
@@ -166,7 +209,9 @@ public class JSTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(ScalarBaseInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling unit %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling unit %s", info.globalName());
+        }
 
         Optional<UnitDefinition> optionalDefinition = info.definition();
 
@@ -175,14 +220,14 @@ public class JSTranspiler implements SymbolTableVisitor {
             if (optionalBody.isPresent()) {
                 UnitNode body = optionalBody.get();
                 DimensionedNumber<TypeBase> number = body.evalUnit();
-                number = number.flat();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                out.format("    return {definition: new Pacioli.DimNum(%s, %s), symbol: '%s'}\n",
-                        number.factor(), TypeBase.compileUnitToJS(number.unit()), info.symbol());
+                out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: \"%s\"}\n",
+                        number.factor(), TypeBase.compileUnitToJS(number.unit()),
+                        JSGenerator.escapeString(info.symbol()));
                 out.format("}\n");
             } else {
-                out.format("Pacioli.compute_%s = function () { return {symbol: '%s'}};\n",
-                        info.globalName(), info.symbol());
+                out.format("Pacioli.compute_%s = function () { return {symbol: \"%s\"}};\n",
+                        info.globalName(), JSGenerator.escapeString(info.symbol()));
             }
         } else {
             throw new RuntimeException("ScalarUnitInfo misses definition");
@@ -194,7 +239,9 @@ public class JSTranspiler implements SymbolTableVisitor {
 
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling vector unit %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling vector unit %s", info.globalName());
+        }
 
         IndexSetInfo setInfo = (IndexSetInfo) info.definition().get().indexSetNode.info;
         List<String> unitTexts = new ArrayList<String>();
@@ -207,7 +254,7 @@ public class JSTranspiler implements SymbolTableVisitor {
 
         String globalName = // info.globalName();//setInfo.globalName();
                 String.format("vbase_%s_%s", setInfo.generalInfo().module(), info.name().replace("!", "_"));
-        String args = Utils.intercalate(", ", unitTexts);
+        String args = String.join(", ", unitTexts);
 
         out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);
     }

@@ -1,0 +1,186 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# Utilities for random samples
+# ------------------------------------------------------------------------------
+
+export
+    random_nat,
+    pick,
+    choose,
+    sample,
+    shuffle;
+
+# ------------------------------------------------------------------------------
+# Public
+# ------------------------------------------------------------------------------
+
+declare random_nat ::
+    (1) -> 1;
+
+doc random_nat
+    "Random natural number below n. Parameter n must be a non-zero natural number.";
+
+define random_nat(n) =
+    floor(n * random());
+
+# ------------------------------------------------------------------------------
+
+doc pick
+    "Picks a random elements from a list. Each element is equally likely.";
+
+declare pick ::
+    for_type t: (List(t)) -> t;
+
+define pick(xs) =
+    nth(random_nat(list_size(xs)), xs);
+
+# ------------------------------------------------------------------------------
+
+doc choose
+    "Random sublist/subset of the list. For each element it flips a coin to
+    see whether it stays, or is removed.";
+
+declare choose ::
+    for_type a: (List(a)) -> List(a);
+
+define choose(xs) =
+    [x | x <- xs, random() < 0.5];
+
+# ------------------------------------------------------------------------------
+
+doc sample
+    "Random sublist/subset of a specific size. For each element it is equally 
+    likely that it stays, or is removed.";
+
+declare sample ::
+    for_type a: (List(a), 1) -> List(a);
+
+define sample(xs, n) =
+    [x | size := list_size(xs),
+         sel := if size/2 < n then full_scan(n, size) else floyd(n, size) end,
+         i <- naturals(n),
+         x := nth(array_get(sel, i), xs)];
+
+# ------------------------------------------------------------------------------
+
+doc shuffle
+    "A random permutation of a list. Each permutation is equally likely.";
+
+declare shuffle ::
+    for_type a: (List(a)) -> List(a);
+
+define shuffle(xs) =
+    [x | size := list_size(xs),
+         perm := fisher_yates(size),
+         i <- naturals(size),
+         x := nth(array_get(perm, i), xs)];
+
+# ------------------------------------------------------------------------------
+# Private
+# ------------------------------------------------------------------------------
+
+doc floyd
+    "Array containing M integers below N. Every possible subset of the
+    integers below N is equally likely. Performance is indepenent from N
+    but expensive for large M.";
+
+declare floyd ::
+    (1, 1) -> Array(1);
+
+define floyd(m, n) =
+    begin
+        nums := make_array(m);
+        i := n - m;
+        k := 0;
+        while i < n do
+            r := random_nat(i + 1);
+            found := false;
+            j := 0;
+            while not(found) and j < k do
+                if array_get(nums, j) = r then
+                    found := true;
+                end
+                j := j + 1;
+            end
+            array_put(nums, k, if found then i else r end);
+            k := k + 1;
+            i := i + 1;
+        end
+        return nums;
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc full_scan
+    "Array containing M integers below N. Every possible subset of the
+    integers below N is equally likely.";
+
+declare full_scan ::
+    (1, 1) -> Array(1);
+
+define full_scan(m, n) =
+    begin
+        nums := make_array(m);
+        to_select := m;
+        to_scan := n;
+        num := 0;
+        i := 0;
+        while 0 < to_select do
+            r := random();
+            if r < to_select / to_scan then
+                array_put(nums, i, num);
+                i := i + 1;
+                to_select := to_select - 1;
+            end
+            to_scan := to_scan - 1;
+            num := num + 1;
+        end
+        return nums;
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc fisher_yates
+    "Returns a permutation of the integers below n. Durstenfeld's version
+    of the Fisher and Yates shuffle. Each permutation is equally likely.";
+
+declare fisher_yates ::
+    (1) -> Array(1);
+
+define fisher_yates(n) =
+    if n = 0 then
+        make_array(0)
+    else
+        begin
+            perm := make_array(n);
+            array_put(perm, 0, 0);
+            i := 1;
+            while i < n do
+                r := random_nat(i + 1);
+                array_put(perm, i, array_get(perm, r));
+                array_put(perm, r, i);
+                i := i + 1;
+            end
+            return perm;
+        end
+    end;
+

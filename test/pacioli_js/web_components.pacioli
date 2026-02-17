@@ -1,0 +1,713 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import si;
+import geometry;
+# import geometric_algebra;
+import graphics;
+
+# ------------------------------------------------------------------------------
+# Empty list for empty charts
+# ------------------------------------------------------------------------------
+
+define some_empty_list = [];
+
+# ------------------------------------------------------------------------------
+# General
+# ------------------------------------------------------------------------------
+
+define second(x) =
+    let (_,a) = x in a end;
+
+define nth_tail(xs, n) = 
+  begin
+    tailed := xs;
+    i := n;
+    while i > 0 do
+        tailed := tail(tailed);
+        i := i - 1;
+    end
+    return tailed;
+  end;
+
+define sort_list_by(xs, pred, acc) =
+    sort_list(xs, (x, y) -> pred(acc(x), acc(y)));
+
+# ------------------------------------------------------------------------------
+# Chart data
+# ------------------------------------------------------------------------------
+
+define NR_NATS = 100;
+
+defindex Nats =
+    [pad_left(num2string(n, 0, |1|), 2, "0") | n <- naturals(NR_NATS)];
+
+define randomNums(factor) =
+    [x | i <- row_domain(|Nats!|),
+        x := tuple(i, factor * random() * random() * random() * random())];
+
+define randomNatVec(factor) =
+    make_matrix([tuple(k, _, v) | (k, v) <- randomNums(factor)]);
+
+define myRandomNats = 
+   [tuple(k, floor(v)) | (k, v) <- randomNums(100)];
+
+define myRandomVec = 
+   make_matrix([tuple(k, _, v) | (k, v) <- myRandomNats]);
+
+define myRandomCount = 
+    sort_list([ x | (_, x) <- element_count([ x | (_, x) <- sort_list_by(myRandomNats, compare, second)])], compare);
+
+# waarom zijn opties geen tuple? 
+define random_vec_histogram_options(factor) =
+    [
+        # tuple("upper",  int2str(factor, |1|)),
+    tuple("upper",  int2str(factor, |1|)),
+    tuple("yupper",  int2str(factor, |1|))];
+
+# ------------------------------------------------------------------------------
+
+define pair_list() = [
+    tuple("foo", 112),
+    tuple("bar", 23),
+    tuple("bax", 42)   
+];
+
+# ------------------------------------------------------------------------------
+
+define test_array() = 
+    begin 
+        array := make_array(3);
+        map := empty_map();
+        store("foo", 12, map);
+        array_put(array, 0, tuple(Geom3@x, true, (_) -> 1, begin a := 1; end, empty_map()));
+        array_put(array, 1, tuple(Geom3@y, false, (_) -> 2, begin a := 1; end, map));
+        array_put(array, 2, tuple(Geom3@z, false, (_) -> 3, begin a := 1; end, map));
+        return array;
+    end;
+
+# ------------------------------------------------------------------------------
+
+define scattered(n) =
+  tuple(randomNatVec(100), randomNatVec(200));
+
+define scattered_lists(n) =
+    unzip([tuple(a * |gram|, b * |gram|) | _ <- naturals(n), 
+                                           a := floor(6 * random()), 
+                                           b := floor(6 * random())]);
+
+# ------------------------------------------------------------------------------
+
+define dice(n, k) =
+    [sum[1 + floor(6 * random()) | _ <- naturals(k)] | _ <- naturals(n)];
+
+# ------------------------------------------------------------------------------
+
+define test_data_dimless =
+    sines(ceiling(random() * 200), ceiling(random() * 25));
+
+define test_data_metre = [5000 * x * |metre| | x <- test_data_dimless];
+
+define sines(n, k) =
+    [v | cs := [ tuple(j, random() - 0.5, random() - 0.5) | j <- naturals(k)],
+         arc := 2 * pi / n * |radian|,
+         decay := 1.2,
+         i <- naturals(n),
+         v := 0 + sum[ w | (j, c1, c2) <- cs,
+                       d := expt(decay, j + 1),
+                       w := (c1 / d) * sin(i * (j + 1) * arc) + (c2 / d) * cos(i * (j + 1) * arc)]];
+
+# ------------------------------------------------------------------------------
+
+# FIXME: units defined in a script are not known at runtime in js.
+defunit people "ppl";
+
+defindex Continent = {
+    Africa,
+    Asia,
+    Europe,
+    Oceania,
+    "North America",
+    "South America",
+    Antarctica,
+    Total
+};
+
+declare_primitive index_set(coordinate) :: for_index P: (P) -> List(P);
+
+# We need declare_primitive indexSet(coordinate) :: for_index P: (P) -> List(P);
+define make_totalizer(coordinate) = 
+    make_matrix([tuple(x, y, 1) | y <- index_set(coordinate), x <- [coordinate, y]]);
+
+# define totalizer = make_totalizer(Continent@Total);
+
+define totalizer = 
+    make_matrix([tuple(x, y, 1) | y <- row_domain(|Continent!|), x <- [Continent@Total, y]]);
+
+define earth_surface_area = c1 * c1 * 510064472 * |kilo:metre|^2;
+
+define earth_land_area = c1 * c1 * total(land_area);
+
+define earth_land_area_fraction = 
+    to_percentage(earth_land_area / earth_surface_area);
+    
+
+defmatrix land_area_raw :: kilo:metre^2 * Continent! = {
+    Asia -> 44614000,
+    Africa -> 30365000,
+    "North America" -> 24230000,
+    "South America" -> 17814000,
+    Antarctica -> 14200000, 
+    Europe -> 10000000,
+    Oceania -> 8510926
+};
+
+define land_area = totalizer '*' land_area_raw;
+
+defmatrix population_input :: people * Continent! = {
+    Asia -> 4694576167,
+    Africa -> 1393676444,
+    "North America" -> 595783465,
+    "South America" -> 434254119 ,
+    Antarctica -> 0,
+    Europe -> 745173774 ,
+    Oceania -> 44491724
+};
+
+define population = totalizer '*' population_input;
+
+
+define get_population() = 
+    begin
+        printf("test unit %s", |people|);
+        return population;
+    end;
+
+define test_columns() = 
+    tuple(
+        tuple("Land area", c1 * c1 '.*' land_area, just(1)),
+        tuple("Population", c2 '.*' population, just(2)),
+        tuple("Density", population/land_area, 3, true, just(12 * |people/kilo:metre^2|)),
+        tuple("Density", population/land_area, just(3), just(true), just(12 * |people/kilo:metre^2|)),
+        with_column_total(just(12 * |people/kilo:metre^2|), default_column("Density", population/land_area)),
+        with_column_total(just(total(population)/total(land_area)), default_column("Density", population/land_area)),
+        default_column_with_total("Density", population/land_area, total(population)/total(land_area)),
+        make_column("Density", population/land_area, just(3*|decimals|), false, just(12 * |people/kilo:metre^2|)));
+
+defconv c1 :: mega:metre/kilo:metre;
+defconv c2 :: mega:people/people;
+
+define get_population_with_coords() = 
+    [ tuple(r, get(population, r, _)) | r <- row_domain(population)];
+
+define population_pairs = [
+    tuple("Asia", 4694576167 * |people|),
+    tuple("Africa" , 1393676444 * |people|),
+    tuple("North America" , 595783465 * |people|),
+    tuple("South America" , 434254119 * |people|),
+    tuple("Antarctica" , 0 * |people|),
+    tuple("Europe" , 745173774 * |people|),
+    tuple("Oceania" , 44491724 * |people|)
+];
+
+# # ------------------------------------------------------------------------------
+# # The Column Type
+# # ------------------------------------------------------------------------------
+
+# doc Column
+#     "A column for the pacioli-table web-component. The component expects a 
+#     tuple of these columns.";
+
+# defrecord for_index P: for_unit a, b, P!u:
+#     Column(a, P!u, b) as column where
+#         header: String,
+#         value: a*P!u,
+#         decimals: decimals,
+#         show_total: Boole,
+#         total: Maybe(b);
+
+# declare default_column :: for_index P: for_unit a, P!u, b:
+#     (String, a*P!u) -> Tuple(String, a*P!u, decimals, Boole, Maybe(b));
+
+# define default_column(header, value) =
+#     make_column(header, value, 2*|decimals|, true, nothing());
+
+
+# ------------------------------------------------------------------------------
+# Tensors
+# ------------------------------------------------------------------------------
+
+defunit us_dollar "$";
+defunit barrel "bbl";
+defunit ounce "oz";
+
+defindex Commodity = {oil, gold};
+
+defindex Year = {y1990, y1991};
+
+defindex Region = {north, east, south, west};
+
+defindex Realm = {north_east, south_west};
+
+defunit Commodity!unit = {
+  oil: barrel,
+  gold: ounce
+};
+
+Commodity@oil%Year@y1990;
+
+declare sales :: us_dollar * Commodity! % Year! % Region!;
+
+defmatrix sales :: us_dollar * Commodity! % Year! % Region! = {
+  oil, y1990, north ->    5000.00,
+  oil, y1990, south ->   87000.00,
+  gold, y1990, west ->   64000.00,
+  gold, y1990, south ->  99000.00,
+  gold, y1991, north ->   8000.00,
+  gold, y1991, south ->   7000.00
+};
+
+get(sales, Commodity@gold%Year@y1990%Region@west, _);
+
+defmatrix amount :: Commodity!unit % Year! % Region! = {
+  oil, y1990, north ->    155.00,
+  oil, y1990, south ->    400.00,
+  gold, y1990, west ->    150.00,
+  gold, y1990, south ->   235.00,
+  gold, y1991, north ->    18.00,
+  gold, y1991, south ->    16.00
+};
+
+sales;
+
+amount;
+
+declare agg :: Realm! per Region!;
+
+defmatrix agg :: Realm! per Region! = {
+  north_east, north ->   1,
+  north_east, east ->    1,
+  south_west, south ->   1,
+  south_west, west ->    1
+};
+
+define commodity_columns = 
+    tuple(tuple("Amount", amount, just(4)), tuple("Sales", sales, nothing()));
+
+define dynamic_columns(c) = 
+    tuple(
+        tuple("Amount", scaled_amount(c), just(4)), 
+        tuple("Sales", scaled_sales(c), nothing()));
+
+define scaled_amount(c) = 
+    c '.*' amount;
+
+define scaled_sales(c) = 
+    c '.*' sales;
+
+# ------------------------------------------------------------------------------
+# Cubes I - My nice scene!
+# ------------------------------------------------------------------------------
+
+declare scene3 :: for_unit a: (metre, metre, metre) -> Scene(metre, Geom3!);
+
+define scene3(a, b, c) =
+    let scene = empty_scene("My nice scene!") in
+        add_arrows(my_arrows(a, b, c), scene)
+    end;
+
+define my_arrows(a, b, c) =
+    [origin_arrow(vec) | i <- [-1, 1],
+                                 j <- [-1, 1],
+                                 k <- [-1, 1],
+                                 vec := vector3d(i*a, j*b, k*c)];
+
+
+# ------------------------------------------------------------------------------
+# Cubes II - A simple static cube
+# ------------------------------------------------------------------------------
+
+declare scene2 :: () -> Scene(metre, Geom3!);
+    
+define scene2() =
+    let 
+        scene = empty_scene("A simple static cube")
+    in
+        add_paths([path1, path2],
+            add_meshes([set_wireframe(mesh2, true)],
+                scene))
+    end;
+
+define mesh2 =
+    let d = -5*|metre| in
+        move_mesh(cube_mesh(10*|metre|, make_color("blue")), space_vec(d, d, d))
+    end;
+
+define pathPoints = [
+    space_vec( 1, 1, 1),
+    space_vec( 1,-1, 1),
+    space_vec(-1,-1,-1),
+    space_vec(-1, 1,-1),
+    space_vec( 1, 1, 1)
+];
+
+define path1 = default_path([2.5 * |metre| '.*' x | x <- pathPoints]);
+define path2 = default_path([5 * |metre| '.*' x | x <- pathPoints]);
+
+# ------------------------------------------------------------------------------
+# Cubes III - Flying cubes
+# ------------------------------------------------------------------------------
+
+declare scene1 :: (1, 1, 1) -> StatefulAnimation(metre, Geom3!, Tuple(1, radian, 1));
+
+define scene1(n, k, f) =
+    let 
+        light1 = make_center_spot_light(vector3d(50*|metre|, 0*|metre|, 0*|metre|), 2000*|candela|),
+        light2 = make_center_spot_light(vector3d(0*|metre|, 50*|metre|, 0*|metre|), 5000*|candela|),
+        light3 = make_center_spot_light(vector3d(0*|metre|, 0*|metre|, 50*|metre|), 2500*|candela|),
+        scene = add_spotlights([light1, light2, light3],
+                    with_ambient_light("white", 0.5,
+                        empty_scene("Cube cloud"))),
+        f(i) = 
+            let
+                r1 = random(),
+                r2 = random(),
+                r3 = random()
+            in
+                (t) -> (10 / k ) * sqrt(k) * r1 * |metre| * sin(0.2 * f * r2 * t * pi * |radian| / (i+1)) 
+                                                          * cos(0.2 * f * r3 * t * pi * |radian| / (i+1))
+            end,
+        names = [format("fs%s", i) | i <- naturals(n)],
+        clr = color_generator(),
+        animation_callback =
+            let 
+                genFs(name) =
+                    tuple(
+                        mesh1(name, clr),
+                        [ f(i) | i <- naturals(k) ],
+                        [ f(i) | i <- naturals(k) ],
+                        [ f(i) | i <- naturals(k) ]),
+                fss = [ genFs(name) | name <- names ],
+                fsum(fs, t) = sum[ f(10 * t/|second|) | f <- fs ]
+            in
+                (t, state, scene) ->
+                    let 
+                        (limit, ang, prev) = state,
+                        amp = cos(ang/250),
+                        adj_limit = if amp < 0 and prev >= 0 then random() + 0.1 else limit end
+                    in 
+                        tuple(
+                            tuple(adj_limit, ang + 1*|radian|, amp),
+                            with_scene_meshes(
+                                [ move_mesh(mesh, 2 * limit * amp '.*' vector3d(fsum(xfs, t), fsum(yfs, t), fsum(zfs, t))) |
+                                    (mesh, xfs, yfs, zfs) <- fss],
+                                scene))
+                    end
+            end
+    in
+        add_stateful_animation_callback(
+            tuple(2, 0*|radian|, 0),
+            animation_callback,
+            add_meshes([set_wireframe(mesh1(name, clr), false) | name <- names], scene))
+    end;
+
+declare make_center_spot_light :: 
+    for_unit a: (a*Geom3!, candela) -> SpotLight(a, Geom3!);
+
+define make_center_spot_light(position, intensity) =
+    make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
+
+define mesh1(name, color_gen) =
+    with_mesh_material("Phong", named_cube_mesh(name, 1*|metre|, color_gen()));
+
+define color_generator() =
+    let
+        wr = random(),
+        wg = random(),
+        wb = random(),
+        random_num(w) = floor(255 * expt(w * random(), 1/5))
+    in
+        () -> rgb(random_num(wr), random_num(wg), random_num(wb))
+    end;
+
+# ------------------------------------------------------------------------------
+# Cubes IV - An icosahedron
+# ------------------------------------------------------------------------------
+
+declare scene4 :: (Boole, Boole, Boole, Boole, 1, metre) -> Scene(metre, Geom3!);
+    
+define scene4(arrows, planes, faces, fill, gap, size) =
+    let 
+        scene = empty_scene("Icosahedron"),
+        show_arrows = arrows,
+        show_planes = planes,
+        show_faces = faces,
+        fill_faces = fill
+    in
+        add_arrows(if show_arrows then icosahedron_arrows(size) else [] end,
+            add_paths(if show_planes then icosahedron_planes(size) else [] end,
+                if show_faces then
+                    if fill_faces then
+                        add_meshes(icosahedron_meshes(gap, size), scene)
+                    else 
+                        add_paths(icosahedron_lines(gap, size), scene)
+                    end
+                else 
+                    scene
+                end))
+    end;
+
+define pacioli_plane_coordinates(size) = 
+    let
+        g = (sqrt(5) + 1) / 2,
+        vec(x, y, z) = size '.*' vector3d(x, y, z)
+    in
+        [ v | x <- [1, -1], y <- [g, -g], v <- [vec(x, y, 0), vec(y, 0, x), vec(0, x, y)] ]
+    end;
+
+define icosahedron_meshes(gap, size) =
+    [make_triangle_mesh(a, b, c, gap) | (a, b, c) <- icosahedron(size)];
+
+define icosahedron_lines(gap, size) =
+    [make_triangle_lines(a, b, c, gap) | (a, b, c) <- icosahedron(size)];
+
+define icosahedron(size) =
+    let 
+        coords = pacioli_plane_coordinates(size),
+        triangle(a, b, c) = tuple(nth(a, coords), nth(c, coords), nth(b, coords))
+    in
+        [
+            # pentagonal antiprism 
+            triangle(0, 1, 2),
+            triangle(1, 2, 8),
+            triangle(2, 8, 4),
+            triangle(8, 4, 9),
+            triangle(4, 9, 10),
+            triangle(9, 10, 11),
+            triangle(10, 11, 5),
+            triangle(11, 5, 7),
+            triangle(5, 7, 0),
+            triangle(7, 0, 1),
+
+            # pentagonal pyramid
+            triangle(6, 0, 2),
+            triangle(6, 2, 4),
+            triangle(6, 4, 10),
+            triangle(6, 10, 5),
+            triangle(6, 5, 0),
+
+            # pentagonal pyramid
+            triangle(3, 1, 7),
+            triangle(3, 7, 11),
+            triangle(3, 11, 9),
+            triangle(3, 9, 8),
+            triangle(3, 8, 1)
+        ]
+    end;
+
+define icosahedron_planes(size) =
+    let
+        coords = pacioli_plane_coordinates(size),
+        plane_path(a,b,c,d) =
+            make_path([nth(a, coords), nth(b, coords), nth(c, coords), nth(d, coords), nth(a, coords)], make_color("green"))
+    in
+        [
+            plane_path(0, 3, 9, 6),
+            plane_path(1, 4, 10, 7),
+            plane_path(2, 5, 11, 8)
+        ]
+    end;
+
+define icosahedron_arrows(size) =
+    [with_arrow_color(
+        make_color("steelblue"),
+        with_arrow_label(format("p%s", i), origin_arrow(v))) | (i, v) <- zip(naturals(12), pacioli_plane_coordinates(size))];
+
+define make_triangle_lines(a, b, c, gap) =
+    let dir = gap '.*' (a + b + c) '/.' 3 in
+        make_path([a + dir, b + dir, c + dir, a + dir], make_color("steelblue"))
+    end;
+
+define make_triangle_mesh(a, b, c, gap) =
+    let
+        color = make_color("blue"),
+        dir = gap '.*' (a + b + c) '/.' 3,
+        v0 = vertex(a + dir, color),
+        v1 = vertex(b + dir, color),
+        v2 = vertex(c + dir, color)
+    in
+        with_mesh_wireframe(false,
+            with_mesh_material("normal",
+                default_mesh([v0, v2, v1], [face(0, 1, 2)])))
+    end;
+
+# ------------------------------------------------------------------------------
+# Weird arrows
+# ------------------------------------------------------------------------------
+
+declare the_scene :: (1, 1, hertz) -> Animation(metre, Geom3!);
+
+define the_scene(n, k, freq) =
+    let 
+        scene = empty_scene("Just some weird example to test graphics of vectors."),
+        dummy = print("Printing works!!!")
+    in
+        add_animation_callback(
+            scene_updater(k, freq),
+            add_arrows(weird_arrows(n, k), scene))
+    end;
+
+define weird_arrows(n, k) =
+    let 
+        c = 2*|metre|,
+        ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3)
+    in
+        [ arrow | i <- naturals(n),
+                  src := c '.*' ith_vec(i),
+                  dst := c '.*' ith_vec(i+1) - src,
+                  color := let m = mod(i, 3*k) in
+                                if m < k then 
+                                    make_color("red")
+                                else if m < 2*k then
+                                    make_color("green")
+                                else
+                                    make_color("blue")
+                                end
+                           end,
+                  name := format("arr_%s", i),
+                  arrow := with_arrow_name(name,
+                            with_arrow_color(color,
+                             default_arrow(src, dst)))]
+    end;
+
+declare scene_updater :: for_unit a, b, Geom3!c:
+    (1, hertz) -> (second, Scene(b, Geom3!c)) -> Scene(b, Geom3!c);
+
+define scene_updater(k, freq) = 
+    (time, elements) ->
+        with_scene_arrows(arrow_colors(k, time, freq, scene_arrows(elements)), elements);
+
+define arrow_colors(k, time, freq, arrows) =
+    [arrow | n := list_size(arrows),
+             i <- naturals(n),
+             arrow := nth(i, arrows),
+             arrow := with_arrow_color(shift_arrow_color(arrow, i, time, k, freq), arrow)];
+
+define shift_arrow_color(arrow, i, time, k, freq) =
+    let 
+        rounded = floor(-1*freq*time/|hertz|) + i*|second|/k,
+        m = mod(rounded, 3*|second|),
+        m = if m < 0*|second| then -m else m end
+    in
+        if m < |second| then 
+            make_color("red")
+        else if m < 2*|second| then
+            make_color("green")
+        else
+            make_color("blue")
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# Word cloud
+# ------------------------------------------------------------------------------
+
+define word_count(n) =
+    [tuple(word, 25 + 10*count) |
+        (word, count) <- count_words(wordcloud_text),
+        count >= n];
+
+define newline_char = "
+";
+
+define count_words(text) = 
+    element_count(
+        [y | x <- split_string(text, " "), 
+             y <- split_string(x, newline_char), 
+             y != ""]);
+
+declare element_count :: for_type a: (List(a)) -> List(Tuple(a, 1));
+
+define element_count(elements) =
+    begin
+        map := empty_map();
+        
+        for elt <- elements do
+            store(elt, 1 + or_else(0, lookup(elt, map)), map);
+        end
+
+        return as_tuples(map);
+    end;
+          
+# ------------------------------------------------------------------------------
+# Test data
+# ------------------------------------------------------------------------------
+
+define wordcloud_text =
+    "These theorems lead to the consideration of the theory of curved surfaces from
+    a new point of view, where a wide and still wholly uncultivated field is open to
+    investigation. If we consider surfaces not as boundaries of bodies, but as bodies
+    of which one dimension vanishes, and if at the same time we conceive them as
+    flexible but not extensible, we see that two essentially different relations must be
+    distinguished, namely, on the one hand, those that presuppose a definite form of
+    the surface in space; on the other hand, those that are independent of the various
+    forms which the surface may assume. This discussion is concerned with the latter.
+    In accordance with what has been said, the measure of curvature belongs to this
+    case. But it is easily seen that the consideration of figures constructed upon
+    the surface, their angles, their areas and their integral curvatures, the joining
+    of the points by means of shortest lines, and the like, also belong to this case.
+    All such investigations must start from this, that the very nature of the curved
+    surface is given by means of the expression of any linear element in the form
+    sqrt(E dp^2 + 2F dp dq + G dq^2).";
+ 
+# ------------------------------------------------------------------------------
+# Labels
+# ------------------------------------------------------------------------------
+
+define labels_scene() =
+    let
+       color_wheel = ["Red", "Yellow", "Green", "Cyan", "Blue", "Purple"]
+    in
+        begin
+            scene := empty_scene("labels scene");
+
+            scene := add_labels([default_label("Default label", vector3d(5*|metre|, 5*|metre|, 0.5*|metre|))], scene);
+
+            scene := add_arrows([with_arrow_label("Arrow label", origin_arrow(vector3d(5*|metre|, 0*|metre|, 0*|metre|)))], scene);
+
+            scene := add_labels(colored_labels(color_wheel), scene);
+
+            return scene;
+        end
+    end;
+
+define colored_labels(colors) = 
+    let 
+        n = list_size(colors),
+        angle = 2 * pi * |radian| / n,
+        scale = 2
+    in
+        [ make_label(
+            format("%s label", color),
+            vector3d(10 * cos(i*angle) * |metre|, 10 * sin(i*angle) * |metre|, |metre|),
+            make_color(color),
+            "Brush Script MT",
+            scale) | i <- naturals(n), color := nth(mod(i, n), colors)]
+    end;

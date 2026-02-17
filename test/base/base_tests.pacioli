@@ -1,63 +1,96 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import testing;
+import random;
 import si;
+import testdata;
+import geometry;
 
 declare base_suites :: List(TestSuite);
 
 define base_suites = [
-   indexing_suite,
-   comprehensions_suite,
-   sort_suite,
-   reverse_suite,
-   nth_suite,
-   top_suite,
-   bottom_suite,
-   total_suite,
-   #ranking_suite,   does not exist in MVM yet
-   min_suite,
-   max_suite,
-   tan_suite,
-   expt_suite,
-   mexpt_suite,
-   random_suite,
-   equal_suite,
-   pad_left_suite,
-   pad_right_suite
-   #mapnz_suite       does not exist in MVM yet
-   #kronecker_suite   TODO port in pacioli-ts
+    indexing_suite,
+    comprehensions_suite,
+    sort_suite,
+    reverse_suite,
+    nth_suite,
+    top_suite,
+    bottom_suite,
+    total_suite,
+    #ranking_suite,   does not exist in MVM yet
+    min_suite,
+    max_suite,
+    tan_suite,
+    expt_suite,
+    mexpt_suite,
+    random_suite,
+    equal_suite,
+    string_length_suite,
+    compare_string_suite,
+    substring_suite,
+    pad_suite,
+    pad_left_suite,
+    pad_right_suite,
+    index_element_suite,
+    format_suite,
+    plu_suite,
+    eigenvalue_decomposition_suite,
+    eigenvalue_list_suite,
+    scalar_inverse_suite,
+    matrix_inverse_suite,
+    scalar_svd_suite,
+    matrix_svd_suite,
+    matrix_svd_regression_suite,
+    qr_suite,
+    cholesky_suite,
+    solve_suite,
+    map_suite,
+    #mapnz_suite       does not exist in MVM yet
+    #kronecker_suite   TODO port in pacioli-ts
+    defconv_suite
 ];
 
 run_test_suites(base_suites); 
 
 # ------------------------------------------------------------------------------
-# Test vectors
+# General
 # ------------------------------------------------------------------------------
 
-defindex Bar = {v0, v1, v2, v3, v4, v5};
+define is_upper_trianular(A) = 
+    all[ get_num(A, i, j) = 0 |
+        i <- row_domain(A),
+        j <- column_domain(A),
+        index_less(j, i)];
 
-defunit Bar!unit = {
-    v0: second,
-    v4: metre,
-    v5: gram/second^2
-};
+define is_lower_trianular(A) = 
+    all[ get_num(A, i, j) = 0 |
+        i <- row_domain(A),
+        j <- column_domain(A),
+        index_less(i, j)];
 
-define test_vec(v0, v1, v2, v3, v4, v5) =
-   v0 '.*' delta(Bar@v0) +
-   v1 '.*' delta(Bar@v1) +
-   v2 '.*' delta(Bar@v2) +
-   v3 '.*' delta(Bar@v3) +
-   v4 '.*' delta(Bar@v4) +
-   v5 '.*' delta(Bar@v5);
 
-defindex Baz = {v0, v1};
+declare is_js :: Boole;
 
-defunit Baz!unit = {
-    v0: second,
-    v1: metre
-};
-
-define test_vec2(v0, v1) =
-   v0 '.*' delta(Baz@v0) +
-   v1 '.*' delta(Baz@v1);
+define is_js =
+    _runtime_environment = "javascript";
 
 # ------------------------------------------------------------------------------
 # Indexing
@@ -65,17 +98,14 @@ define test_vec2(v0, v1) =
 
 define indexing_suite = test_suite("Indexing", [
     
-   test("should work for scalars with _", () ->
-      get(42, _, _) = 42
-   ),
+    test("should work for scalars with _", () ->
+        get(42, _, _) = 42),
       
-   test("should work for vectors with _", () ->
-      get(test_vec(1,2,3,4,5,6), Bar@v3, _) = 4
-   ),
+    test("should work for vectors with _", () ->
+        get(test_vec(1,2,3,4,5,6), Bar@v3, _) = 4),
       
-   test("should work for transposed vectors with _", () ->
-      get(test_vec(1,2,3,4,5,6)^T, _, Bar@v3) = 4
-   )
+    test("should work for transposed vectors with _", () ->
+        get(test_vec(1,2,3,4,5,6)^T, _, Bar@v3) = 4)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -85,48 +115,37 @@ define indexing_suite = test_suite("Indexing", [
 define comprehensions_suite = test_suite("Comprehension", [
     
     test("should count empty list as zero", () ->
-        count[true | x <- []] = 0
-    ),
+        count[true | x <- []] = 0),
 
     test("should count true as one", () ->
-        count[true | x <- [1, 2, 3]] = 3
-    ),
+        count[true | x <- [1, 2, 3]] = 3),
 
     test("should count false as zero", () ->
-        count[false | x <- [1, 2, 3]] = 0
-    ),
+        count[false | x <- [1, 2, 3]] = 0),
             
     test("count comprehension should filter correctly I", () ->
-        count[mod(x, 2) = 0 | x <- naturals(10)] = 5
-    ),
+        count[mod(x, 2) = 0 | x <- naturals(10)] = 5),
          
     test("count comprehension should filter correctly II", () ->
-        count[ x < y | x <- naturals(10), y <- naturals(10)] = 45
-    ),
+        count[ x < y | x <- naturals(10), y <- naturals(10)] = 45),
              
     test("all comprehension should be true for empty list", () ->
-        all[x | x <- []] = true
-    ),
+        all[x | x <- []] = true),
          
     test("some comprehension should be false for empty list", () ->
-        some[x | x <- []] = false
-    ),
+        some[x | x <- []] = false),
              
     test("all comprehension should be true for non-empty list", () ->
-        all[x < 5 | x <- [1,2,3]] = true
-    ),
+        all[x < 5 | x <- [1,2,3]] = true),
          
     test("some comprehension should be true for non-empty list", () ->
-        some[x < 5 | x <- [1,2,3]] = true
-    ),
+        some[x < 5 | x <- [1,2,3]] = true),
              
     test("all comprehension should be false for non-empty list", () ->
-        all[x < 3 | x <- [1,2,3]] = false
-    ),
+        all[x < 3 | x <- [1,2,3]] = false),
          
     test("some comprehension should be true for non-empty list", () ->
-        some[x < 3 | x <- [1,2,3]] = true
-    )
+        some[x < 3 | x <- [1,2,3]] = true)
 ]);
 
 # ------------------------------------------------------------------------------
@@ -136,12 +155,10 @@ define comprehensions_suite = test_suite("Comprehension", [
 define sort_suite = test_suite("Function sort", [
     
     test("should sort ascending", () ->
-        sort_list([1, 9, 3, 2, 5], (x, y) -> x - y) = [1, 2, 3, 5, 9]
-    ),
+        sort_list([1, 9, 3, 2, 5], (x, y) -> x - y) = [1, 2, 3, 5, 9]),
             
     test("should sort decending", () ->
-        sort_list([1, 9, 3, 2, 5], (x, y) -> y - x) = [9, 5, 3, 2, 1]
-    )
+        sort_list([1, 9, 3, 2, 5], (x, y) -> y - x) = [9, 5, 3, 2, 1])
 ]);
 
 # ------------------------------------------------------------------------------
@@ -150,16 +167,12 @@ define sort_suite = test_suite("Function sort", [
 
 define reverse_suite = test_suite("Function reverse", [
     
-    test("should reverse the empty list",
-         () ->
-            reverse([]) = []
-         ),
+    test("should reverse the empty list", () ->
+        reverse([]) = []),
 
-    test("should reverse a list of numbers correctly",
-         () ->
-            reverse([1, 9, 3, 2, 5]) = [5, 2, 3, 9, 1]
-         )
-   ]);
+    test("should reverse a list of numbers correctly", () ->
+        reverse([1, 9, 3, 2, 5]) = [5, 2, 3, 9, 1])
+]);
 
 # ------------------------------------------------------------------------------
 # Function nth
@@ -167,16 +180,12 @@ define reverse_suite = test_suite("Function reverse", [
 
 define nth_suite = test_suite("Function nth", [
     
-    test("should get 0-th element",
-         () ->
-            nth(0, [1, 9, 3, 2, 5]) = 1
-         ),
+    test("should get 0-th element", () ->
+        nth(0, [1, 9, 3, 2, 5]) = 1),
 
-    test("should get last element",
-         () ->
-            nth(4, [1, 9, 3, 2, 5]) = 5
-         )
-   ]);
+    test("should get last element", () ->
+        nth(4, [1, 9, 3, 2, 5]) = 5)
+]);
 
 # ------------------------------------------------------------------------------
 # Function top
@@ -184,42 +193,28 @@ define nth_suite = test_suite("Function nth", [
 
 define top_suite = test_suite("Function top", [
     
-    test("should do nothing for a zero vector",
-         () ->
-            top(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-         ),
+    test("should do nothing for a zero vector", () ->
+        top(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)),
    
-    test("should do nothing for a vector with one entry",
-         () ->
-            top(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)
-         ),
+    test("should do nothing for a vector with one entry", () ->
+        top(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)),
    
-    test("should be zero for a vector with one entry and top 0",
-         () ->
-            top(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-         ),
+    test("should be zero for a vector with one entry and top 0", () ->
+        top(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)),
    
-    test("should get top 2 a vector with more entries",
-         () ->
-            top(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 0, 0, 0, 6, 5)
-         ),
+    test("should get top 2 a vector with more entries", () ->
+        top(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 0, 0, 0, 6, 5)),
    
-    test("should get top 2 a vector with entries with ties",
-         () ->
-            top(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 0, 0, 5, 6, 0)
-         ),
+    test("should get top 2 a vector with entries with ties", () ->
+        top(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 0, 0, 5, 6, 0)),
    
-    test("should get top 3 a vector with entries with ties",
-         () ->
-            top(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 0, 0, 5, 6, 5)
-         ),
+    test("should get top 3 a vector with entries with ties", () ->
+        top(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 0, 0, 5, 6, 5)),
    
-    test("should get top 4 a vector with entries with ties",
-         () ->
-            top(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 0, 5, 6, 5)
-         )
+    test("should get top 4 a vector with entries with ties", () ->
+        top(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 0, 5, 6, 5))
 
-   ]);
+]);
 
 # ------------------------------------------------------------------------------
 # Function bottom
@@ -228,32 +223,25 @@ define top_suite = test_suite("Function top", [
 define bottom_suite = test_suite("Function bottom", [
     
     test("should do nothing for a zero vector", () ->
-        bottom(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-    ),
+        bottom(3, test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)),
    
     test("should do nothing for a vector with one entry", () ->
-        bottom(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)
-    ),
+        bottom(3, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 1, 0, 0, 0)),
    
     test("should be zero for a vector with one entry and bottom 0", () ->
-        bottom(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-    ),
+        bottom(0, test_vec(0, 0, 1, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)),
    
     test("should get bottom 2 a vector with more entries", () ->
-        bottom(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
-    ),
+        bottom(2, test_vec(0, 2, 1, 4, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)),
    
     test("should get bottom 2 a vector with entries with ties", () ->
-        bottom(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)
-    ),
+        bottom(2, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 0, 0, 0)),
    
     test("should get bottom 3 a vector with entries with ties", () ->
-        bottom(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 0)
-    ),
+        bottom(3, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 0)),
    
     test("should get bottom 4 a vector with entries with ties", () ->
-        bottom(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 5)
-    )
+        bottom(4, test_vec(0, 2, 1, 5, 6, 5)) = test_vec(0, 2, 1, 5, 0, 5))
 
 ]);
 
@@ -263,26 +251,18 @@ define bottom_suite = test_suite("Function bottom", [
 
 define ranking_suite = test_suite("Function ranking", [
     
-    test("should do nothing for a zero vector",
-         () ->
-            ranking(test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)
-         ),
+    test("should do nothing for a zero vector", () ->
+        ranking(test_vec(0, 0, 0, 0, 0, 0)) = test_vec(0, 0, 0, 0, 0, 0)),
    
-   test("should partially rank a parially filled vector",
-         () ->
-            ranking(test_vec(1, 0, 3, 0, 2, 0)) = test_vec(1, 0, 3, 0, 2, 0)
-         ),
+    test("should partially rank a parially filled vector", () ->
+        ranking(test_vec(1, 0, 3, 0, 2, 0)) = test_vec(1, 0, 3, 0, 2, 0)),
    
-    test("should completely rank a sorted vector",
-         () ->
-            ranking(test_vec(2, 4, 5, 5, 6, 7)) = test_vec(1, 2, 3, 4, 5, 6)
-         ),
+    test("should completely rank a sorted vector", () ->
+        ranking(test_vec(2, 4, 5, 5, 6, 7)) = test_vec(1, 2, 3, 4, 5, 6)),
    
-    test("should rank an unsorted vector",
-         () ->
-            ranking(test_vec(7, 6, 5, 0, 4, 4)) = test_vec(5, 4, 3, 0, 1, 2)
-         )
-   ]);
+    test("should rank an unsorted vector", () ->
+        ranking(test_vec(7, 6, 5, 0, 4, 4)) = test_vec(5, 4, 3, 0, 1, 2))
+]);
 
 # ------------------------------------------------------------------------------
 # Function total
@@ -290,26 +270,18 @@ define ranking_suite = test_suite("Function ranking", [
 
 define total_suite = test_suite("Function total", [
     
-    test("should be zero for the zero vector",
-         () ->
-            total(test_vec(0, 0, 0, 0, 0, 0)) = 0
-         ),
+    test("should be zero for the zero vector", () ->
+            total(test_vec(0, 0, 0, 0, 0, 0)) = 0),
          
-   test("should be correct a vector with one non-zero entry",
-         () ->
-            total(test_vec(0, 0, 0, 0, 10, 0)) = 10
-         ),
+    test("should be correct a vector with one non-zero entry", () ->
+        total(test_vec(0, 0, 0, 0, 10, 0)) = 10),
          
-   test("should be correct for a vector with multiple positive entries",
-         () ->
-            total(test_vec(0, 4, 0, 7, 10, 0)) = 21
-         ),
+    test("should be correct for a vector with multiple positive entries", () ->
+        total(test_vec(0, 4, 0, 7, 10, 0)) = 21),
          
-   test("should be correct for a vector with multiple positive and negative entries",
-         () ->
-            total(test_vec(3, 6, -4, -7, 10, 0)) = 8
-         )
-   ]);
+    test("should be correct for a vector with multiple positive and negative entries", () ->
+        total(test_vec(3, 6, -4, -7, 10, 0)) = 8)
+]);
 
 # ------------------------------------------------------------------------------
 # Function min
@@ -317,16 +289,12 @@ define total_suite = test_suite("Function total", [
 
 define min_suite = test_suite("Function min", [
     
-    test("should give the vector for two identical vectors",
-         () ->
-            min(test_vec(0, 4, 0, 7, 10, 0), test_vec(0, 4, 0, 7, 10, 0)) = test_vec(0, 4, 0, 7, 10, 0)
-         ),
+    test("should give the vector for two identical vectors", () ->
+        min(test_vec(0, 4, 0, 7, 10, 0), test_vec(0, 4, 0, 7, 10, 0)) = test_vec(0, 4, 0, 7, 10, 0)),
 
-    test("should do element wise min",
-         () ->
-            min(test_vec(0, 12, 0, 7, -10, 0), test_vec(0, 4, 2, -7, -7, 1)) = test_vec(0, 4, 0, -7, -10, 0)
-         )
-   ]);
+    test("should do element wise min", () ->
+        min(test_vec(0, 12, 0, 7, -10, 0), test_vec(0, 4, 2, -7, -7, 1)) = test_vec(0, 4, 0, -7, -10, 0))
+]);
 
 # ------------------------------------------------------------------------------
 # Function max
@@ -334,16 +302,12 @@ define min_suite = test_suite("Function min", [
 
 define max_suite = test_suite("Function max", [
     
-    test("should give the vector for two identical vectors",
-         () ->
-            max(test_vec(0, 4, 0, 7, 10, 0), test_vec(0, 4, 0, 7, 10, 0)) = test_vec(0, 4, 0, 7, 10, 0)
-         ),
+    test("should give the vector for two identical vectors", () ->
+        max(test_vec(0, 4, 0, 7, 10, 0), test_vec(0, 4, 0, 7, 10, 0)) = test_vec(0, 4, 0, 7, 10, 0)),
 
-    test("should do element wise max",
-         () ->
-            max(test_vec(0, 12, 0, 7, -10, 0), test_vec(0, 4, 2, -7, -7, 1)) = test_vec(0, 12, 2, 7, -7, 1)
-         )
-   ]);
+    test("should do element wise max", () ->
+        max(test_vec(0, 12, 0, 7, -10, 0), test_vec(0, 4, 2, -7, -7, 1)) = test_vec(0, 12, 2, 7, -7, 1))
+]);
 
 # ------------------------------------------------------------------------------
 # Function tan
@@ -351,26 +315,18 @@ define max_suite = test_suite("Function max", [
 
 define tan_suite = test_suite("Function tan", [
     
-    test("should be correct for 0",
-         () ->
-            tan(0*|radian|) = 0
-         ),
+    test("should be correct for 0", () ->
+        tan(0*|radian|) = 0),
 
-    test("should be correct for pi/2",
-         () ->
-            tan(0.5*pi*|radian|) > 10^10
-         ),
+    test("should be correct for pi/2", () ->
+        tan(0.5*pi*|radian|) > 10^10),
 
-      test("should be correct for pi",
-         () ->
-            approximates(tan(pi*|radian|), 0, 15*|decimals|)
-         ),
+    test("should be correct for pi", () ->
+        approximates(tan(pi*|radian|), 0, 15*|decimals|)),
       
-      test("should be correct for -pi/4",
-         () ->
-            approximates(tan(-0.25*pi*|radian|), -1, 15*|decimals|)
-         )
-   ]);
+    test("should be correct for -pi/4", () ->
+        approximates(tan(-0.25*pi*|radian|), -1, 15*|decimals|))
+]);
 
 # ------------------------------------------------------------------------------
 # Function expt
@@ -378,30 +334,31 @@ define tan_suite = test_suite("Function tan", [
 
 define expt_suite = test_suite("Function expt", [
     
-    test("should be correct for scalars",
-         () ->
-            2 ^ 3 = 8
-         ),
+    test("should be correct for scalars", () ->
+        2 ^ 3 = 8),
 
-    test("should be correct matrices without units",
-         () ->
-            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
-               mat ^ 3 = mat * mat * mat
-            end
-         ),
+    test("should be correct for scalars and power zero", () ->
+        2 ^ 0 = 1),
 
-    test("should be correct for negative powers",
-         () ->
-            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
-               approximates(mat^-3 * mat^3,  mat^0, 15*|decimals|)
-            end
-         ),
+   test("should be correct for scalars and a negative power", () ->
+        2 ^ -1 = 1/2),
 
-    test("should be correct for non-integer powers",
-         () ->
-            approximates(expt(1.5, 1.5), 1.83711730709, 11*|decimals|)
-         )              
-   ]);
+   test("should be correct for negative scalars and a negative power", () ->
+        -2 ^ -1 = -1/2),         
+
+    test("should be correct matrices without units", () ->
+        let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+            mat ^ 3 = mat * mat * mat
+        end),
+
+    test("should be correct for negative powers", () ->
+        let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+            approximates(mat^-3 * mat^3,  mat^0, 15*|decimals|)
+        end),
+
+    test("should be correct for non-integer powers", () ->
+        approximates(expt(1.5, 1.5), 1.83711730709, 11*|decimals|))              
+]);
 
 # ------------------------------------------------------------------------------
 # Function mexpt
@@ -409,35 +366,36 @@ define expt_suite = test_suite("Function expt", [
 
 define mexpt_suite = test_suite("Function mexpt", [
     
-    test("should be correct for scalars",
-         () ->
-            2 '^' 3 = 8
-         ),
+   test("should be correct for scalars", () ->
+        2 '^' 3 = 8),
 
-   test("should be correct matrices without units",
-         () ->
-            let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
-               mat '^' 3 = mat '*' mat '*' mat
-            end
-         ),
+   test("should be correct for scalars and power zero", () ->
+        2 '^' 0 = 1),
 
-   test("should be correct for negative powers",
-         () ->
-            let invertible_matrix = test_vec2(1,1) '*' test_vec2(2,1)^T + test_vec2(1,3) '*' test_vec2(5,2)^T in
-               approximates(invertible_matrix'^'-3 '*' invertible_matrix'^'3, invertible_matrix'^'0, 9*|decimals|)
-            end
-         ),
+   test("should be correct for scalars and a negative power", () ->
+        2 '^' -1 = 1/2),
+ 
+   test("should be correct for negative scalars and a negative power", () ->
+        -2 '^' -1 = -1/2),    
 
-    test("should be correct for matrices with units",
-         () ->
-            let
-               vec = test_vec(1,2,3,4,5,6) * |Bar!unit|,
-               mat = vec '*' vec^D
-            in
-               approximates(mat '^' 3, mat '*' mat '*' mat, 14*|decimals|)
-            end
-         )       
-   ]);
+   test("should be correct matrices without units", () ->
+        let mat = test_vec(1,2,3,4,5,6) '*' test_vec(1,2,3,4,5,6)^T in
+            mat '^' 3 = mat '*' mat '*' mat
+        end),
+
+   test("should be correct for negative powers", () ->
+        let invertible_matrix = test_vec2(1,1) '*' test_vec2(2,1)^T + test_vec2(1,3) '*' test_vec2(5,2)^T in
+            approximates(invertible_matrix'^'-3 '*' invertible_matrix'^'3, invertible_matrix'^'0, 9*|decimals|)
+        end),
+
+    test("should be correct for matrices with units", () ->
+        let
+            vec = test_vec(1,2,3,4,5,6) * |Bar!unit|,
+            mat = vec '*' vec^D
+        in
+            approximates(mat '^' 3, mat '*' mat '*' mat, 14*|decimals|)
+        end)       
+]);
 
 # ------------------------------------------------------------------------------
 # Function random
@@ -445,13 +403,11 @@ define mexpt_suite = test_suite("Function mexpt", [
 
 define random_suite = test_suite("Function random", [
     
-    test("should do something",
-         () ->
-            let r = random() in
-               r >= 0 and r <= 1
-            end
-         )
-   ]);
+    test("should do something", () ->
+        let r = random() in
+            r >= 0 and r <= 1
+        end)
+]);
 
 # ------------------------------------------------------------------------------
 # Function mapnz
@@ -459,11 +415,9 @@ define random_suite = test_suite("Function random", [
 
 define mapnz_suite = test_suite("Function mapnz", [
     
-    test("should do something",
-         () ->
-            mapnz((x) -> x + 1, test_vec(0, 0, 1, 0, 3, 4)) = test_vec(0, 0, 2, 0, 4, 5)
-         )
-   ]);
+    test("should do something", () ->
+        mapnz((x) -> x + 1, test_vec(0, 0, 1, 0, 3, 4)) = test_vec(0, 0, 2, 0, 4, 5))
+]);
 
 # ------------------------------------------------------------------------------
 # Function equal
@@ -471,21 +425,36 @@ define mapnz_suite = test_suite("Function mapnz", [
 
 define equal_suite = test_suite("Function equal", [
     
-   test("should be true for equal indices", () ->
-      equal(Bar@v0, Bar@v0)
-   ),
+    test("should be true for equal indices", () ->
+        equal(Bar@v0, Bar@v0)),
 
-   test("should be false for unequal indices", () ->
-      not(equal(Bar@v0, Bar@v1))
-   ),
+    test("should be false for unequal indices", () ->
+        not(equal(Bar@v0, Bar@v1))),
    
-   test("should be true for equal compound indices", () ->
-      equal(Bar@v0%Bar@v1, Bar@v0%Bar@v1)
-   ),
+    test("should be true for equal compound indices", () ->
+        equal(Bar@v0%Bar@v1, Bar@v0%Bar@v1)),
 
-   test("should be false for unequal compound indices", () ->
-      not(equal(Bar@v0%Bar@v1, Bar@v1%Bar@v0))
-   )         
+    test("should be false for unequal compound indices", () ->
+        not(equal(Bar@v0%Bar@v1, Bar@v1%Bar@v0)))         
+]);
+
+# ------------------------------------------------------------------------------
+# Pad suite
+# ------------------------------------------------------------------------------
+
+define pad_suite = test_suite("Function pad", [
+        
+    test("should not pad if string longer than requested length", () ->
+        pad("foo", "bar", 1, " ") = "foobar"),
+    
+    test("should pad if string is shorter than requested length", () ->
+        pad("foo", "bar", 12, " ") = "foo      bar"),
+    
+    test("should not pad if the string length equals the requested length", () ->
+        pad("foo", "bar", 3, " ") = "foobar"),
+    
+    test("should pad a padding string of multiple characters", () ->
+        pad("foo", "bar", 12, "ab") = "fooabababbar")
 ]);
 
 # ------------------------------------------------------------------------------
@@ -495,21 +464,163 @@ define equal_suite = test_suite("Function equal", [
 define pad_left_suite = test_suite("Function pad_left", [
         
     test("should not pad if string longer than requested length", () ->
-        pad_left("foo", 1, " ") = "foo"
-    ),
+        pad_left("foo", 1, " ") = "foo"),
     
     test("should pad if string is shorter than requested length", () ->
-        pad_left("foo", 12, " ") = "         foo"
-    ),
+        pad_left("foo", 12, " ") = "         foo"),
     
     test("should not pad if the string length equals the requested length", () ->
-        pad_left("foo", 3, " ") = "foo"
-    ),
+        pad_left("foo", 3, " ") = "foo"),
     
     test("should pad a padding string of multiple characters", () ->
-        pad_left("foo", 12, "ab") = "ababababafoo"
-    )
+        pad_left("foo", 12, "ab") = "ababababafoo")
 ]);
+
+# ------------------------------------------------------------------------------
+# string_length suite
+# ------------------------------------------------------------------------------
+
+define string_length_suite = test_suite("Function string_length", [
+    
+    test("should be zero for the empty string", () ->
+        string_length("") = 0),
+ 
+    test("should be three for the string 'foo'", () ->
+        string_length("foo") = 3)
+]);
+
+# ------------------------------------------------------------------------------
+# compare_string suite
+# ------------------------------------------------------------------------------
+
+define compare_string_suite = test_suite("Function compare_string", [
+    
+    test("should be zero for two empty strings", () ->
+        compare_string("", "") = 0),
+ 
+    test("should be 1 for strings 'a' and 'b'", () ->
+        compare_string("a", "b") = -1)
+]);
+
+# ------------------------------------------------------------------------------
+# substring suite
+# ------------------------------------------------------------------------------
+
+
+define substring_suite = test_suite("Function substring", [
+
+    test("should give the empty string when called with indices zero and minus one", () ->
+        let str = "abc" in
+            substring(str, 0, -1) = ""
+        end),
+
+    test("should give the empty string when called with indices zero and zero", () ->
+        let str = "abc" in
+            substring(str, 0, 0) = ""
+        end),
+
+    test("should give the original string when called with zero and string_length", () ->
+        let str = "abc" in
+            substring(str, 0, string_length(str)) = str
+        end),
+
+    test("should give the empty string when called with string_length and string_length", () ->
+        let str = "abc" in
+            substring(str, string_length(str), string_length(str)) = ""
+        end),
+        
+    test("should give the first character of a string when called with zero and one", () ->
+        let
+            first_char = "a",
+            str = concatenate(first_char, "bc")
+        in
+            substring(str, 0, 1) = first_char
+        end),
+        
+    test("should give the first character of a string when called with string_length and string_length + 1", () ->
+        let
+            first_char = "a",
+            str = concatenate(first_char, "bc")
+        in
+            substring(str, string_length(str), string_length(str) + 1) = first_char
+        end),
+
+    test("should give the last character of a string when called with string_length - 1 and string_length", () ->
+        let
+            last_char = "c",
+            str = concatenate("ab", last_char)
+        in
+            substring(str, string_length(str) - 1, string_length(str)) = last_char
+        end),
+
+    test("should give the last character of a string when called with minus one and zero", () ->
+        let str = "abc" in
+            substring(str, -1, 0) = "c"
+        end),
+
+    test("should double the string when called with zero and double string_length", () ->
+        let str = "abc" in
+            substring(str, 0, 2 * string_length(str)) = concatenate(str, str)
+        end),
+
+    test("should permutate first char to end when called with 1 and string_length + 1", () ->
+        let 
+            char = "a",
+            rest = "bc",
+            str = concatenate(char, rest)
+        in
+            substring(str, 1, string_length(str) + 1) = concatenate(rest, char)
+        end),
+
+    test("should permutate last char to begin when called with -1 and string_length - 1", () ->
+        let 
+            char = "c",
+            rest = "ab",
+            str = concatenate(rest, char)
+        in
+            substring(str, -1, string_length(str) - 1) = concatenate(char, rest)
+        end),
+
+    random_test("should give a string of the right size", () ->
+        let
+            n = random_nat(10),
+            str = random_string(n),
+            startPos = random_nat(10) - 5,
+            endPos = random_nat(10) - 5,
+
+            substr = substring(str, startPos, endPos)
+        in
+            if n = 0 then
+                just(string_length(substr) = 0)
+            else
+                just(string_length(substr) = max(0, endPos - startPos))
+            end
+        end),
+        
+    random_test("should give a string with the right contents", () ->
+        let
+            n = random_nat(10),
+            str = random_string(n),
+            startPos = random_nat(10) - 5,
+            endPos = random_nat(10) - 5,
+
+            substr = substring(str, startPos, endPos)
+        in
+            if n = 0 then
+                just(substr = "")
+            else
+                just(all[char_at(substr, i) = char_at(str, mod(startPos + i, n)) | i <- naturals(string_length(substr))])
+            end
+        end)
+]);
+
+define random_string(n) =
+    concat[random_char() | _ <- naturals(n)];
+
+define random_char() =
+    let chars = ["a", "b", "c", "d", "e"] in
+        nth(random_nat(list_size(chars)), chars)
+    end;
 
 # ------------------------------------------------------------------------------
 # Pad right suite
@@ -518,20 +629,16 @@ define pad_left_suite = test_suite("Function pad_left", [
 define pad_right_suite = test_suite("Function pad_right", [
     
     test("should not pad if string longer than requested length", () ->
-        pad_right("foo", 1, " ") = "foo"
-    ),
+        pad_right("foo", 1, " ") = "foo"),
     
     test("should pad if string is shorter than requested length", () ->
-        pad_right("foo", 12, " ") = "foo         "
-    ),
+        pad_right("foo", 12, " ") = "foo         "),
     
     test("should not pad if the string length equals the requested length", () ->
-        pad_right("foo", 3, " ") = "foo"
-    ),
+        pad_right("foo", 3, " ") = "foo"),
     
     test("should pad a padding string of multiple characters", () ->
-        pad_right("foo", 12, "ab") = "fooababababa"
-    )
+        pad_right("foo", 12, "ab") = "fooababababa")
 ]);
 
 # ------------------------------------------------------------------------------
@@ -540,8 +647,692 @@ define pad_right_suite = test_suite("Function pad_right", [
 
 define kronecker_suite = test_suite("Function kronecker", [
     
-    test("should do something",
-         () ->
-            false
-         )
-   ]);
+    test("should do something", () ->
+        false)
+]);
+
+# ------------------------------------------------------------------------------
+# Index elements suite
+# ------------------------------------------------------------------------------
+
+defindex Foo = {foo, bar, baz};
+
+defmatrix foo :: metre * Foo! = {
+   foo -> 12,
+   bar -> 13
+};
+
+define index_element_suite = test_suite("Index element", [
+    
+    test("should do something", () ->
+        get(foo, Foo@foo, _) = 12*|metre|),
+         
+   test("should work with row_domain", () ->
+        [get(foo, x, _) | x <- row_domain(foo)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+
+   test("should work with row_domain and assignment", () ->
+        [value | x <- row_domain(foo), value := get(foo, x, _)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+         
+   test("should work with column_domain", () ->
+        [get(foo^T, _, y) | y <- column_domain(foo^T)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+
+   test("should work with column_domain and assignment", () ->
+        [value | y <- column_domain(foo^T), value := get(foo^T, _, y)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+         
+   test("should print test", () ->
+        begin print_test(); return "foo"; end = "foo")
+]);
+
+# ------------------------------------------------------------------------------
+# Index elements suite
+# ------------------------------------------------------------------------------
+
+define format_suite = test_suite("Function format", [
+    
+    test("should format empty string", () ->
+        format("") = ""),
+
+    test("should format %n as a newline", () ->
+        format("foo%nbar%n") = "foo\nbar\n" or
+        format("foo%nbar%n") = "foo\r\nbar\r\n"),
+         
+    test("should format %s with a string", () ->
+        format("prefix%ssuffix", "foo") = "prefixfoosuffix"),
+
+    test("should format %s with a scalar", () ->
+        format("num=%s", 12) = "num=12.00" or
+        format("num=%s", 12) = "num=12,00"),
+      
+    test("should format %d with a dimensionless number", () ->
+        format("prefix%dsuffix", 12) = "prefix12suffix"),   
+
+    test("should format %10d with a dimensionless number", () ->
+        format("prefix%10dsuffix", 12) = "prefix        12suffix"),   
+
+    test("should format %10d with a dimensioned number", () ->
+        format("prefix%10dsuffix", 12 * |metre|) = "prefix      12 msuffix" or
+        (is_js and format("prefix%10dsuffix", 12 * |metre|) = "prefix        12suffix")),   
+
+    test("should format %f with a dimensionless number", () ->
+        format("prefix%fsuffix", 12) = "prefix12,00suffix" or
+        format("prefix%fsuffix", 12) = "prefix12.00suffix"),   
+
+    test("should format %7.3f with a dimensionless number", () ->
+        format("prefix%7.3fsuffix", 12) = "prefix 12,000suffix" or
+        format("prefix%7.3fsuffix", 12) = "prefix 12.000suffix"),   
+
+    test("should format %7.3f with a dimensioned number", () ->
+        format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix     12,000 m/s^2suffix" or
+        (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12.000suffix")),   
+
+    test("should error on not number for %f", () ->
+        is_error(catch(() -> format("%f", "foo")))),   
+
+    test("should error on not number for %d", () ->
+        is_error(catch(() -> format("%d", "foo")))),   
+         
+    test("should error on trailing percentage character", () ->
+         is_error(catch(() -> format("%"))))
+]);
+
+declare print_test :: () -> Void;
+
+define print_test() =
+   print(format("Print test. This should show Foo@foo: '%s'", Foo@foo));
+
+# ------------------------------------------------------------------------------
+# Function plu
+# ------------------------------------------------------------------------------
+
+define plu_suite = test_suite("Function plu", [
+
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = random_4_by_4_matrix()
+        in
+            map_maybe(
+                (plu) ->
+                    let (P, L, U) = plu in
+                        approximates(P '*' A, L '*' U, precision)
+                    end,
+                non_singular_plu(A))
+        end),
+
+    random_test("should give upper triangular U", () ->
+        map_maybe(
+            (plu) ->
+                let (_, _, U) = plu in
+                    is_upper_trianular(U)
+                end,
+            non_singular_plu(random_4_by_4_matrix()))),
+
+    random_test("should give lower triangular L", () ->
+        map_maybe(
+            (plu) ->
+                let (_, L, _) = plu in
+                    is_lower_trianular(L)
+                end,
+            non_singular_plu(random_4_by_4_matrix()))),
+
+    random_test("should give permutation matrix P", () ->
+        let
+            A = random_4_by_4_matrix()
+        in
+            map_maybe(
+                (plu) ->
+                    let (P, _, _) = plu in
+                        P '*' P^T = left_identity(A)
+                    end,
+                non_singular_plu(A))
+        end)
+]);
+
+define non_singular_plu(A) =
+    try_catch(() -> just(plu_decomposition(A)),
+        (err) ->
+            if string_starts_with(err, "No PLU decomposition for") and
+                string_ends_with(err, "matrix is singular")
+            then
+                nothing()
+            else
+                error(err)
+            end);
+
+# ------------------------------------------------------------------------------
+# Functions eigenvalue_decomposition and eigenvalue_list
+#
+# TODO: 
+# - check completeness/correct rank
+# - imaginary case
+# ------------------------------------------------------------------------------
+
+
+define eigenvalue_decomposition_suite = test_suite("Function eigenvalue_decomposition", [
+
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 9*|decimals|,
+
+            A = random_4_by_4_matrix()
+        in
+            let (D, V) = eigenvalue_decomposition(A) in
+                just(approximates(A '*' V, V '*' D, precision))
+            end
+        end)
+]);
+
+define eigenvalue_list_suite = test_suite("Function eigenvalue_list", [
+
+    random_test("should give real eigenvalues and eigenvectors for symmetric matrices", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = symmetric_matrix_generator(random_4_by_4_matrix)()
+        in
+            just(all[ i ~= 0 | (_, i, _) <- eigenvalue_list(A)])
+        end),
+         
+    random_test("should give correct real eigenvalues and eigenvectors for symmetric matrices", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+
+            A = symmetric_matrix_generator(random_4_by_4_matrix)()
+        in
+            let 
+                ts = eigenvalue_list(A)
+            in
+                just(all[ approximates(A '*' v, r '.*' v, precision) | (r, _, v) <- eigenvalue_list(A)])
+            end
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+
+declare symmetric_matrix_generator :: for_index I: for_unit a, I!u:
+    (() -> a/I!u per I!u) -> () -> a/I!u per I!u;
+
+doc symmetric_matrix_generator
+    "Turns a function that generates matrices into a function that generates
+    symmetric matrices.";
+
+define symmetric_matrix_generator(matrix_generator) =
+    () ->
+        let r = matrix_generator() in
+            r^T + r 
+        end;
+
+# ------------------------------------------------------------------------------
+# Function qr
+# ------------------------------------------------------------------------------
+
+define qr_suite = test_suite("Function qr", [
+   
+    random_test("should be a proper factorization", () ->
+        let
+            # Doesn't make the default 14 decimals
+            precision = 10*|decimals|,
+            A = random_4_by_4_matrix(),
+            (Q, R) = qr_decomposition(A)
+        in
+            just(approximates(A, Q '*' R, precision))
+        end),
+
+    random_test("should give an upper triangular R", () ->
+        let
+            (_, R) = qr_decomposition(random_4_by_4_matrix())
+        in
+            just(is_upper_trianular(R))
+        end),
+
+    random_test("should give an orthonormal Q", () ->
+        let
+            A = random_4_by_4_matrix(),
+            I = left_identity(A),
+            (Q, _) = qr_decomposition(A)
+        in
+            just(Q '*' Q^T ~= I and Q^T '*' Q ~= I)
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+# Function inverse
+# ------------------------------------------------------------------------------
+
+define scalar_inverse_suite =
+    inverse_suite("inverse for dimensionless scalars", random_1_by_1_matrix, 5*|decimals|);
+
+define matrix_inverse_suite =
+    inverse_suite("inverse for matrices", () -> random_4_by_4_matrix() * |metre * Four!unit per Four!unit|, 5*|decimals|);
+
+# ------------------------------------------------------------------------------
+
+define inverse_suite(description, matrix_generator, precision) = test_suite(description, [
+
+    random_test("should satisfy A = A '*' inverse(A) '*' A", () ->
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(approximates(A, A '*' A_inv '*' A, precision))
+        end),
+    
+    random_test("should satisfy inverse(A) = inverse(A) '*' A '*' inverse(A)", () ->
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(approximates(A_inv, A_inv '*' A '*' A_inv, precision))
+        end),
+    
+    random_test("should satisfy (inverse(A) '*' A)^T = inverse(A) '*' A", () ->
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(is_symmetric(A_inv '*' A, precision))
+        end),
+    
+    random_test("should satisfy (A '*' inverse(A))^T = A '*' inverse(A)", () ->
+        let
+            A = matrix_generator(),
+            A_inv = inverse(A)
+        in
+            just(is_symmetric(A '*' A_inv, precision))
+        end)
+]);
+
+define is_symmetric(A, decimals) =
+    approximates(magnitude(A^T), magnitude(A), decimals);
+
+# ------------------------------------------------------------------------------
+# Function svd
+# ------------------------------------------------------------------------------
+
+define scalar_svd_suite =
+    svd_suite("svd for dimensionless scalars", random_1_by_1_matrix, 10*|decimals|);
+
+define matrix_svd_suite =
+    svd_suite("svd for matrices", () -> random_4_by_3_matrix() * |Four!unit per Three!unit|, 10*|decimals|);
+
+define matrix_svd_regression_suite =
+    begin
+    # print_svd(svd_reg);
+    return svd_suite("svd reg for matrices", () -> svd_reg, 10*|decimals|);
+    end;
+
+ # [[0.42025926416976755, 2.3909100543095816, -2.8223938905329136], [-1.1899934796618081, -6.770028926565032, 7.991805566515104], [-1.0075396878008331, -5.732025383040305, 6.766475130384711], [0.8826604407841495, 5.02157097376835, -5.927806113699193]]
+
+doc svd_reg
+    "Fails in numeric javascript (JAMA version is okay), succeeds in mvm.";
+
+defmatrix svd_reg :: Four!unit per Three!unit = {
+    one, one -> 0.42025926416976755,
+    one, two -> 2.3909100543095816,
+    one, three -> -2.8223938905329136,
+    two, one -> -1.1899934796618081,
+    two, two -> -6.770028926565032,
+    two, three -> 7.991805566515104,
+    three, one -> -1.0075396878008331,
+    three, two -> -5.732025383040305,
+    three, three -> 6.766475130384711,
+    four, one -> 0.8826604407841495,
+    four, two -> 5.02157097376835,
+    four, three -> -5.927806113699193
+};
+
+# ------------------------------------------------------------------------------
+
+define print_svd(A) =
+    let
+        precision = 14*|decimals|,
+        outcome = catch(() -> singular_value_list(A))
+    in
+        begin
+            printf("A=%.30f", A);
+            if is_error(outcome) then 
+                printf("error: %s", result_error(outcome));
+            else
+                triples := result_value(outcome); 
+
+                max_s := max[s | (s, _, _) <- triples];
+                min_s := min[s | (s, _, _) <- triples];
+
+                condition_number := max_s / min_s;
+
+                result := approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- triples], precision);
+
+                printf("%nCondition number: %.5f, svd correct=%s, precision=%d", condition_number, result, precision);
+                
+                for (s, v, w) <- triples do
+                    printf("%nSingular value: %.30f", s);
+                    printf("Left singular vector: %n%.30f", v);
+                    printf("Right singular vector: %n%.30f", w);
+                    printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                end
+                printf("Sum %n%.30f", sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                printf("Diff: %n%.30f", A - sum[a '.*' v '*' w^T | (a,v,w) <- triples]);
+                
+            end            
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+
+define svd_suite(description, matrix_generator, precision) = test_suite(description, [
+
+    random_test("should be a proper factorization the matrix", () ->
+        let A = matrix_generator() in
+            just(approximates(A, sum[a '.*' v '*' w^T | (a,v,w) <- singular_value_list(A)], precision))
+        end),
+
+    random_test("should give non-negative singular values", () ->
+        just(all[magnitude(s) >= 0 | (s, _, _) <- singular_value_list(matrix_generator())])),
+
+    random_test("should give an orthogonal set for the row dimension", () ->
+        just(pairwise_orthogonal_magnitudes([v | (_, v, _) <- singular_value_list(matrix_generator())], precision))),
+                
+    random_test("should give an orthogonal set for the column dimension", () ->
+        just(pairwise_orthogonal_magnitudes([w | (_, _, w) <- singular_value_list(matrix_generator())], precision)))
+]);
+
+# ------------------------------------------------------------------------------
+
+doc pairwise_orthogonal_magnitudes
+    "Not a true orthogonal set, just orthogonality of the magnitudes.";
+
+declare pairwise_orthogonal_magnitudes ::
+    for_index B: for_unit a, B!u: (List(a*B!u), decimals) -> Boole;
+
+define pairwise_orthogonal_magnitudes(vs, precision) =
+    let 
+        indexed = zip(naturals(list_size(vs)), [magnitude(v) | v <- vs])
+    in
+        all[approximates(inner(v, w), if i = j then 1 else 0 end, precision) | 
+            (i, v) <- indexed,
+            (j, w) <- indexed]
+    end;
+
+# ------------------------------------------------------------------------------
+# Function cholesky
+# ------------------------------------------------------------------------------
+
+defmatrix cholesky_input :: metre^2 * Four!unit per 1/Four!unit = {
+    one, one -> 4,
+    two, two -> 4,
+    one, two -> 3,
+    two, one -> 3,
+    three, three -> 4,
+    four, four -> 4
+};
+
+define cholesky_suite = test_suite("Cholesky decomposition tests", [
+
+    test("L '*' L^T should approximate A", () ->
+        let L = cholesky_decomposition(cholesky_input) in
+            L '*' L^T ~= cholesky_input
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+# Function solve
+# ------------------------------------------------------------------------------
+
+define solve_suite = test_suite("Function solve", [
+
+    random_test("should solve ax=b", () ->
+            let
+                # Doesn't make the default 14 decimals
+                precision = 9*|decimals|,
+
+                a = random(),
+                b = random(),
+                x = solve(a, b)
+            in
+                just(approximates( a '*' x, b, precision))
+            end),
+   
+    random_test("should solve AX=B for square matrices", () ->
+        
+            let
+                # Doesn't make the default 14 decimals
+                precision = 9*|decimals|,
+
+                A = random_4_by_4_matrix(),
+                B = random_4_by_4_matrix(),
+                X = solve(A, B)
+            in
+                begin
+                    if not(approximates(A^T '*' A '*' X, A^T '*' B, precision)) then
+                        printf("A=%30.f", A);
+                        printf("svd=%s", singular_value_list(A));
+                        printf("diff=%30.f", A^T '*' A '*' X - A^T '*' B);
+                    end
+                    return just(approximates(A^T '*' A '*' X, A^T '*' B, precision));
+                end
+            end),
+    
+    random_test("should solve AX=B when nr column < nr rows", () ->
+            let
+                # Doesn't make the default 14 decimals
+                precision = 9*|decimals|,
+
+                A = random_4_by_3_matrix(),
+                B = random_4_by_3_matrix(),
+                X = solve(A, B)
+            in
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end),
+      
+    random_test("should solve AX=B when nr column > nr rows", () ->
+            let
+                # Doesn't make the default 14 decimals
+                precision = 9*|decimals|,
+
+                A = random_4_by_3_matrix()^T,
+                B = random_4_by_3_matrix()^T,
+                X = solve(A, B)
+            in
+                just(approximates(A^T '*' A '*' X, A^T '*' B, precision))
+            end)
+]);
+
+
+# ------------------------------------------------------------------------------
+# Map contracts
+# 
+# empty_map - constructor
+# store - mutator
+# lookup - observer
+# keys - observer
+#
+# map_size - observer
+#   map_size(map) = list_size(keys(map))
+#
+# store(key, val, map)
+#  pre: true
+#  pst: keys(map') = union(keys(map'), {key}) and
+#       lookup(k, map') = if k = key then val else lookup(k, map) end
+#
+# map := empty_map()
+#  pre: true
+#  pst: keys(map) = {} and
+#       lookup(k, map) = nothing()
+#
+# Lists test_keys and test_values must be without duplicates.
+# ------------------------------------------------------------------------------
+
+define test_store_contract_for_lookup(test_keys, test_values) =
+    let
+        map = random_map(test_keys, test_values),
+
+        key = pick(test_keys()),
+        value = pick(test_values())
+    in
+        begin
+            old_values := [tuple(k, lookup(k, map)) | k <- keys(map)];
+
+            store(key, value, map);
+
+            return
+                from_just(lookup(key, map)) = value and
+                all[ k != key ==> lookup(k, map) = v | (k, v) <- old_values];
+
+        end
+    end;
+
+define test_store_contract_for_keys(test_keys, test_values) =
+    let
+        map = random_map(test_keys, test_values),
+        key = pick(test_keys()),
+        value = pick(test_values())
+    in
+        begin
+            old_keys := keys(map);
+
+            store(key, value, map);
+            
+            new_keys := keys(map);
+
+            return
+                all[ contains(old_keys, k) or k = key | k <- new_keys] and
+                all[ contains(new_keys, k) | k <- old_keys] and
+                contains(new_keys, key) and
+                if contains(old_keys, key) then
+                    list_size(old_keys) = list_size(new_keys)
+                else
+                    list_size(old_keys) + 1 = list_size(new_keys) 
+                end;
+
+        end
+    end;
+
+# ------------------------------------------------------------------------------
+# Random test data for maps
+#
+# The test data is in the form of functions to enforce re-evaulating the values.
+# By re-evaluating test_keys and test_values the tests test test equality well.
+# There is a difference between to identical matrices and two different matrices 
+# with the same contents. The map should handle deep equality well.
+# ------------------------------------------------------------------------------
+
+define test_strings(base) =
+    () ->[format("%s_%d", base, i) | i <- naturals(5)];
+
+# ------------------------------------------------------------------------------
+
+defindex Idx = {i0, i1, i2, i3, i4};
+
+define test_indices() =
+    [Idx@i0, Idx@i1, Idx@i2, Idx@i3, Idx@i4];
+
+# ------------------------------------------------------------------------------
+
+define test_pairs(lefts, rights) =
+    () -> zip(lefts(), rights());
+
+# ------------------------------------------------------------------------------
+
+define random_map(test_keys, test_values) =
+    let
+        mapped_keys = choose(test_keys()),
+        mapped_values = [pick(test_values()) | _ <- naturals(list_size(mapped_keys))]
+    in        
+        from_tuples(zip(mapped_keys, mapped_values))
+    end;
+
+define random_list(n, options) =
+    [pick(options) | _ <- naturals(n)];
+
+# ------------------------------------------------------------------------------
+# Random tests for maps
+# ------------------------------------------------------------------------------
+
+define map_suite = test_suite("Type Map", [
+
+    test("should give empty keys() for the empty map", () ->
+        keys(empty_map()) = []
+    ),
+
+    random_test("should store correct values for string keys", () ->
+        just(test_store_contract_for_lookup(test_strings("key"), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for string keys", () ->
+        just(test_store_contract_for_keys(test_strings("key"), test_strings("val")))
+    ),
+
+    random_test("should store correct values for scalar keys", () ->
+        just(test_store_contract_for_lookup(() -> naturals(5), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for scalar keys", () ->
+        just(test_store_contract_for_keys(() -> naturals(5), test_strings("val")))
+    ),
+
+    random_test("should store correct values for index keys", () ->
+        just(test_store_contract_for_lookup(test_indices, test_strings("val")))
+    ),
+
+    random_test("should use correct keys for index keys", () ->
+        just(test_store_contract_for_keys(test_indices, test_strings("val")))
+    ),
+
+    random_test("should store correct values for string pairs", () ->
+        just(test_store_contract_for_lookup(test_pairs(test_strings("left"), test_strings("right")), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for string pairs", () ->
+        just(test_store_contract_for_keys(test_pairs(test_strings("left"), test_strings("right")), test_strings("val")))
+    ),
+    
+    random_test("should store correct values for scalar pairs", () ->
+        just(test_store_contract_for_lookup(test_pairs(() -> [x/3 | x <- naturals(5)], () -> naturals(5)), test_strings("val")))
+    ),
+
+    random_test("should use correct keys for scalar pairs", () ->
+        just(test_store_contract_for_keys(test_pairs(() -> naturals(5), () -> naturals(5)), test_strings("val")))
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Conversions
+# ------------------------------------------------------------------------------
+
+defconv gram_per_kilogram :: gram per kilo:gram;
+
+defconv milligram_per_kilogram :: milli:gram per kilo:gram;
+
+defconv yottagram_per_gram :: yotta:gram per gram;
+
+defunit earthmass "earth" = 5972 * yotta:gram;
+
+defconv earthmass_per_yottagram :: earthmass / yotta:gram;
+
+define defconv_suite = test_suite("defconv", [
+
+    test("should give correct conversion for gram per kilo:gram I", () ->
+        gram_per_kilogram = 1000 * |gram per kilo:gram|
+    ),
+
+    test("should give correct conversion for gram per kilo:gram II", () ->
+        gram_per_kilogram * 50 * |kilo:gram| = 50000 * |gram|
+    ),
+
+    test("should give correct conversion for milli:gram per kilo:gram", () ->
+        milligram_per_kilogram = 1000000 * |milli:gram per kilo:gram|
+    ),
+
+    test("should give correct conversion for yotta:gram per kilo:gram", () ->
+        yottagram_per_gram ~= 10^-24 * |yotta:gram per gram|
+    ),
+
+    test("should give correct conversion for earthmass per yotta:gram", () ->
+        earthmass_per_yottagram = 1/5972 * |earthmass per yotta:gram|
+    )
+]);

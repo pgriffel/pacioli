@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.ast.expression;
@@ -26,23 +27,26 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.IndexSetInfo;
+import pacioli.types.ast.TypeIdentifierNode;
 
-public class KeyNode extends AbstractExpressionNode {
+public class KeyNode extends AbstractNode implements ExpressionNode {
 
-    public final List<String> indexSets;
-    public final List<String> keys;
+    public final List<TypeIdentifierNode> indexSets;
 
-    private Optional<List<IndexSetInfo>> infos = Optional.empty();
+    // The keys are not resolved. Could also be List<String>, but
+    // the IdentifierNode carries location info.
+    public final List<IdentifierNode> keys;
 
     public KeyNode(Location location) {
         super(location);
-        indexSets = new ArrayList<String>();
-        keys = new ArrayList<String>();
+        indexSets = new ArrayList<TypeIdentifierNode>();
+        keys = new ArrayList<IdentifierNode>();
     }
 
     public KeyNode(KeyNode old) {
@@ -51,25 +55,22 @@ public class KeyNode extends AbstractExpressionNode {
         keys = old.keys;
     }
 
-    public KeyNode(String indexSet, String key, Location location) {
+    public KeyNode(TypeIdentifierNode indexSet, IdentifierNode key, Location location) {
         super(location);
         indexSets = Arrays.asList(indexSet);
         keys = Arrays.asList(key);
     }
 
-    public KeyNode(Location location, List<String> indexSets, List<String> keys) {
+    public KeyNode(Location location, List<TypeIdentifierNode> indexSets, List<IdentifierNode> keys) {
         super(location);
-        this.indexSets = new ArrayList<String>(indexSets);
-        this.keys = new ArrayList<String>(keys);
+        this.indexSets = new ArrayList<TypeIdentifierNode>(indexSets);
+        this.keys = new ArrayList<IdentifierNode>(keys);
     }
 
     public KeyNode merge(KeyNode other) {
 
-        assert (!infos.isPresent());
-        assert (!other.infos.isPresent());
-
-        List<String> mergedIndexSets = new ArrayList<String>(indexSets);
-        List<String> mergedKeys = new ArrayList<String>(keys);
+        List<TypeIdentifierNode> mergedIndexSets = new ArrayList<>(indexSets);
+        List<IdentifierNode> mergedKeys = new ArrayList<IdentifierNode>(keys);
 
         Location mergedLocation = location().join(other.location());
 
@@ -79,20 +80,8 @@ public class KeyNode extends AbstractExpressionNode {
         return new KeyNode(mergedLocation, mergedIndexSets, mergedKeys);
     }
 
-    public List<IndexSetInfo> infos() {
-        if (infos.isPresent()) {
-            return infos.get();
-        } else {
-            throw new RuntimeException("Cannot get infos, key has not been resolved.");
-        }
-    }
-
     public IndexSetInfo getInfo(Integer index) {
-        return infos().get(index);
-    }
-
-    public void setInfos(List<IndexSetInfo> infos) {
-        this.infos = Optional.of(infos);
+        return (IndexSetInfo) this.indexSets.get(index).info;
     }
 
     @Override
@@ -102,7 +91,7 @@ public class KeyNode extends AbstractExpressionNode {
 
     public Integer position(Integer index) {
 
-        String key = keys.get(index);
+        String key = keys.get(index).name();
 
         Optional<IndexSetDefinition> definition = getInfo(index).definition();
         assert (definition.isPresent());
@@ -113,9 +102,12 @@ public class KeyNode extends AbstractExpressionNode {
                 return i;
             }
         }
-        // throw new RuntimeException("Key not found", new
-        // PacioliException(getLocation(), "index = %s", index));
+
         throw new PacioliException(location(), "Key %s not found", index);
+    }
+
+    public Integer width() {
+        return this.indexSets.size();
     }
 
     public Integer size(Integer index) {

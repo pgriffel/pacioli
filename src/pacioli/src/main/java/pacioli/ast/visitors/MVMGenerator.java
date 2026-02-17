@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.ast.visitors;
 
 import java.util.ArrayList;
@@ -12,15 +34,21 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataQueryNode;
+import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -33,7 +61,6 @@ import pacioli.ast.unit.UnitPowerNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ValueInfo;
@@ -139,7 +166,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.unmark();
     }
 
-    private String escapeString(String in) {
+    public static String escapeString(String in) {
         // Quick fix for the debug option for string literals
         // return in.replaceAll("\"", "\\\\\"");
 
@@ -155,7 +182,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("application(var(\"%s\"), var(\"", ValueInfo.global("lib_base_base", "_ref_set"));
+        out.format("application(var(\"%s\"), var(\"", ValueInfo.global("$base_base", "_ref_set"));
         out.print(node.var.name());
         out.print("\"), ");
         node.value.accept(this);
@@ -175,7 +202,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConstNode node) {
-        out.format("const(\"%s\")", node.valueString());
+        out.format("const(\"%s\")", escapeString(node.valueString()));
     }
 
     @Override
@@ -194,7 +221,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
                 : node.name();
 
         if (node.info().isRef()) {
-            out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("lib_base_base", "_ref_get"), full);
+            out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("$base_base", "_ref_get"), full);
         } else {
             out.format("var(\"%s\")", full);
         }
@@ -214,7 +241,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(KeyNode node) {
         out.write("key(");
-        int size = node.indexSets.size();
+        int size = node.width();
         for (int i = 0; i < size; i++) {
             if (0 < i) {
                 out.write(", ");
@@ -223,7 +250,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             // out.write("\"" + info.definition.globalName() + "\"");
             out.write("\"" + info.globalName() + "\"");
             out.write(", ");
-            out.write("\"" + node.keys.get(i) + "\"");
+            out.write("\"" + node.keys.get(i).name() + "\"");
         }
         out.write(")");
     }
@@ -231,13 +258,27 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(LambdaNode node) {
         List<String> quoted = new ArrayList<String>();
-        for (String arg : node.arguments) {
-            quoted.add("\"" + arg + "\"");
+        if (node.varArgs) {
+            if (node.arguments.size() == 1) {
+                quoted.add("\"" + node.arguments.get(0) + "\"");
+            } else {
+                throw new PacioliException(node.location(), "Varargs function must have 1 argument (for now), got %s",
+                        node.arguments.size());
+            }
+        } else {
+            for (String arg : node.arguments) {
+                quoted.add("\"" + arg + "\"");
+            }
         }
-        String args = Utils.intercalate(", ", quoted);
-        out.print("lambda (");
+        String args = String.join(", ", quoted);
+        out.print("lambda ");
+        if (!node.varArgs) {
+            out.print("(");
+        }
         out.print(args);
-        out.print(")");
+        if (!node.varArgs) {
+            out.print(")");
+        }
         out.newlineUp();
         node.expression.accept(this);
         out.newlineDown();
@@ -279,8 +320,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        out.format("application(var(\"%s\"), var(\"result\"), ", ValueInfo.global("lib_base_base", "_throw_result"));
+        out.format("application(var(\"%s\"), var(\"$result\"), ", ValueInfo.global("$base_base", "_throw_result"));
         node.value.accept(this);
+        out.print(")");
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        out.format("application(var(\"%s\"), var(\"$result\"), ", ValueInfo.global("$base_base", "_throw_void"));
+        // Quick fix for node.value.accept(this); above
+        out.print("application(var(\"$base__void\"))");
         out.print(")");
     }
 
@@ -293,7 +342,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             Integer n = node.items.size();
             out.mark();
             for (int i = 0; i < n - 1; i++) {
-                out.format("application(var(\"%s\"), ", ValueInfo.global("lib_base_base", "_seq"));
+                out.format("application(var(\"%s\"), ", ValueInfo.global("$base_base", "_seq"));
                 out.newlineUp();
                 node.items.get(i).accept(this);
                 out.print(", ");
@@ -330,7 +379,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print("application(lambda (");
 
         // Write the result lambda param
-        out.print("\"result\"");
+        out.print("\"$result\"");
 
         // Write the other lambda params
         for (IdentifierNode id : ids) {
@@ -345,7 +394,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newlineUp();
 
         // A catch to get the result
-        out.format("application(var(\"%s\"),", ValueInfo.global("lib_base_base", "_catch_result"));
+        String catcher = node.isVoid ? "_catch_void" : "_catch_result";
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", catcher));
 
         out.newlineUp();
 
@@ -361,7 +411,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newline();
 
         // Catch's second argument is the place name
-        out.print("var(\"result\")");
+        out.print("var(\"$result\")");
 
         // Close the catch application
         out.print("), ");
@@ -369,24 +419,24 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newlineDown();
 
         // The initial result place
-        out.format("application(var(\"%s\"))", ValueInfo.global("lib_base_base", "_empty_ref"));
+        out.format("application(var(\"%s\"))", ValueInfo.global("$base_base", "_empty_ref"));
 
         for (IdentifierNode id : ids) {
             out.print(", ");
             if (node.shadowed.contains(id.name())) {
                 if (node.shadowed.lookup(id.name()).isRef()) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
-                            ValueInfo.global("lib_base_base", "_new_ref"),
-                            ValueInfo.global("lib_base_base", "_ref_get"));
+                            ValueInfo.global("$base_base", "_new_ref"),
+                            ValueInfo.global("$base_base", "_ref_get"));
                     out.print(id.name());
                     out.print("\")))");
                 } else {
-                    out.format("application(var(\"%s\"), var(\"", ValueInfo.global("lib_base_base", "_new_ref"));
+                    out.format("application(var(\"%s\"), var(\"", ValueInfo.global("$base_base", "_new_ref"));
                     out.print(id.name());
                     out.print("\"))");
                 }
             } else {
-                out.format("application(var(\"%s\"))", ValueInfo.global("lib_base_base", "_empty_ref"));
+                out.format("application(var(\"%s\"))", ValueInfo.global("$base_base", "_empty_ref"));
             }
         }
 
@@ -422,7 +472,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // tuple elements and are used in the lambda body to assign the
         // variables. The lambda body is a sequence of these assignments.
         out.mark();
-        out.format("application(var(\"%s\"), lambda (", ValueInfo.global("lib_base_base", "apply"));
+        out.format("application(var(\"%s\"), lambda (", ValueInfo.global("$base_base", "apply"));
 
         // The lambda arguments
         Boolean first = true;
@@ -441,8 +491,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
             if (i < size - 1)
-                out.format("application(var(\"%s\"), ", ValueInfo.global("lib_base_base", "_seq"));
-            out.format("application(var(\"%s\"), var(\"", ValueInfo.global("lib_base_base", "_ref_set"));
+                out.format("application(var(\"%s\"), ", ValueInfo.global("$base_base", "_seq"));
+            out.format("application(var(\"%s\"), var(\"", ValueInfo.global("$base_base", "_ref_set"));
             out.print(names.get(i));
             out.print("\"), var(\"");
             out.print(freshNames.get(i));
@@ -470,7 +520,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(WhileNode node) {
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("lib_base_base", "_while"));
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_while"));
         out.newlineUp();
         out.print("lambda () ");
         out.newlineUp();
@@ -480,6 +530,30 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.print("lambda ()");
         out.newlineUp();
         node.body.accept(this);
+        out.print(")");
+        out.unmark();
+    }
+
+    @Override
+    public void visit(ForNode node) {
+
+        out.mark();
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_for"));
+        node.items.accept(this);
+        out.print(",");
+        node.lambdaBody.accept(this);
+        out.print(")");
+        out.unmark();
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        out.mark();
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_for"));
+        node.items.accept(this);
+        out.print(",");
+        node.lambdaBody.accept(this);
         out.print(")");
         out.unmark();
     }
@@ -629,5 +703,28 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(LetNode node) {
         node.asApplication().accept(this);
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        if (true)
+            throw new RuntimeException(String.format("to mvm generate: %s", node.getClass()));
+
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+        for (ExpressionNode element : node.elements) {
+            out.write("application(var(\"$base_system__add_mut\"), ");
+            out.newline();
+        }
+        out.write("application(var(\"$base_list_empty_list\"))");
+        for (ExpressionNode element : node.elements) {
+            out.write(", ");
+            out.newline();
+            element.accept(this);
+            out.write(")");
+        }
+
     }
 }

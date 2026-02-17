@@ -1,3 +1,23 @@
+// Copyright 2026 Paul Griffioen
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and//or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+ 
 package pacioli.parser;
 
 // java -jar jflex-full-1.8.2.jar lexer.flex
@@ -61,7 +81,7 @@ import pacioli.compiler.PacioliException;
 
 Identifier = [a-zA-Z$_] [a-zA-Z0-9$_]*
 Natural = [0-9]+
-Decimal = [0-9]+\.[0-9]+
+Decimal = [0-9]*"."[0-9]+([eE][-+]?[0-9]+)?
 Boolean = true | false
 Newline = \r|\n|\r\n;
 Whitespace = {Newline} | [ \t\f]
@@ -90,6 +110,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "begin"           { return symbol("begin",BEGIN); }
   "end"             { return symbol("end",END); }
   "while"           { return symbol("while",WHILE); }
+  "for"             { return symbol("for",FOR); }
   "do"              { return symbol("do",DO); }
   "let"             { return symbol("let",LET); }
   "in"              { return symbol("in",IN); }
@@ -99,6 +120,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "import"          { return symbol("import",IMPORT); }
   "define"          { return symbol("define",DEFINE); }
   "declare"         { return symbol("declare",DECLARE); }
+  "declare_primitive"        { return symbol("declare_primitive",DECLARE_PRIMITIVE); }
   "defindex"        { return symbol("defindex",DEFINDEX); }
   "deftype"         { return symbol("deftype",DEFTYPE); }
   "defunit"         { return symbol("defunit",DEFUNIT); }
@@ -107,6 +129,8 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defconv"         { return symbol("defconv",DEFCONV); }
   "defclass"        { return symbol("defclass",DEFCLASS); }
   "definstance"     { return symbol("definstance",DEFINSTANCE); }
+  "defdata"         { return symbol("defdata",DEFDATA); }
+  "defrecord"       { return symbol("defrecord",DEFRECORD); }
   "doc"             { return symbol("doc",DOC); }
   "public"          { return symbol("public", PUBLIC); }
   "export"          { return symbol("export", EXPORT); }
@@ -114,7 +138,11 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "for_index"       { return symbol("for_index",FORINDEX); }
   "for_unit"        { return symbol("for_unit",FORUNIT); }
   "for_op"          { return symbol("for_op",FOROP); }
+  "select"          { return symbol("select",SELECT); }
+  "from"            { return symbol("from",QFROM); }
   "where"           { return symbol("where",WHERE); }
+  "as"              { return symbol("as",AS); }
+  "_lambda"         { return symbol("lambda", LAMBDA); }
 
   /* literals */
   {Natural}         { return symbol("Natural", NATURAL, yytext()); }
@@ -143,11 +171,13 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "^R"              { return symbol("reci", RECI); }
 
   "="               { return symbol("eql", EQL, EQL); }
+  "~="              { return symbol("appr_eql", APPR_EQL, APPR_EQL); }
   "!"               { return symbol("excl", EXCL); }
   "^"               { return symbol("hat", HAT, HAT); }
   "-"               { return symbol("neg", NEG, NEG); }
   "->"              { return symbol("to", TO, TO); }
 
+  "++"              { return symbol("append", APPEND); }
   "+"               { return symbol("plus", PLUS); }
   "*"               { return symbol("mult", MULT); }
   "'*'"             { return symbol("mmult", MMULT); }

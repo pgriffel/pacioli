@@ -1,29 +1,39 @@
-Pacioli
-=======
+# Pacioli
 
 A Java implementation of the Pacioli programming language.
 
---------------------------------------------------------------------------------
+## Introduction
 
-
-Introduction
-------------
-
-The matrix language Pacioli adds type safety and dimensional anaylysis
+The matrix language Pacioli adds type safety and dimensional analysis
 to mathematical software. Its parametric type system infers vector and
 matrix types based on dimensioned vector spaces.
 
-This implementation is a command line application that compiles and
-runs Pacioli programs. It can also generate code for MATLAB/GNU Octave,
-NumPy, or JavaScript. The compiler itself is completely written in Java 
-and compiled to a single jar file.
+Pacioli is available as a Visual Studio Code extension. In other environments
+the command line can be used after a manual installation.
 
 The Pacioli language is described in the [documentation][doc] pages.
 
 [doc]: http://pgriffel.github.io/pacioli/
 
-Running the compiler
---------------------
+## Visual Studio Code
+
+Pacioli is available as a Visual Studio extension.Download the [vsix][vsix] file and run the 'Extensions: Install from VSIX...' command in the command palette.
+
+After the extension is installed VS Code will recognize .pacioli files. No other installation is required. See the extension readme and the Pacioli documentation for further information.
+
+The repository contains a 'launch.json' file for running from source.
+
+[vsix]: https://pgriffel.github.io/pacioli/pacioli-0.5.0.vsix
+
+## Command line
+
+The compiler is a Java application that compiles and runs Pacioli programs.
+See also the [installation][install] and [building from source][build] pages.
+
+[install]: install
+[build]: build
+
+### Running the compiler
 
 Assuming Pacioli is installed and available as command `pacioli` you
 can run a file like:
@@ -44,9 +54,17 @@ To get help type:
 
 This displays all compiler command and options.
 
+### Running the jar file without installation
 
-Download
---------
+To run Pacioli directly without installation you need the
+`pacioli.jar` file and the `lib` directory. Use the -lib option to
+tell the jar file the location of the libraries.
+
+    java -jar pacioli.jar -lib lib ...
+
+Replace the dots with your compiler command.
+
+## Download
 
 Binaries are included in zip file `pacioli.zip` for the current
 release. Extract the zip file to get a directory `pacioli` containing
@@ -60,127 +78,32 @@ To get the latest sources:
 Or download a zip file from the [GitHub repository][gh].
 
 Runtime support for deployment via the web requires
-[pacioli-0.5.0.js][pacioli_js]. An [uglified][uglify] version is available as
-[pacioli-0.5.0.min.js][pacioli_min_js].
-
-Finally you might want to download the [Pacioli style sheet][pacioli_css].
+[pacioli-0.5.1.bundle.js][pacioli_js].
 
 [gh]: https://github.com/pgriffel/pacioli
-[pacioli_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.5.0.js
-[pacioli_min_js]: http://pgriffel.github.io/pacioli/javascripts/pacioli-0.5.0.min.js
-[pacioli_css]: http://pgriffel.github.io/pacioli/stylesheets/pacioli.css
-[uglify]: https://github.com/mishoo/UglifyJS
+[pacioli_js]: http://pgriffel.github.io/pacioli/js/pacioli-0.5.1.bundle.js
 
-Running the jar file
----------------------
-
-To run Pacioli directly without installation you need the
-`pacioli.jar` file and the `lib` directory. Use the -lib option to
-tell the jar file the location of the libraries.
-
-    java -jar pacioli.jar -lib lib ...
-
-Replace the dots with your compiler command.
-
-
-Installation
-------------
-
-Some suggestions to create a `pacioli` command are given. No build on
-install scripts or detailed procedures are available. Some manual work
-and knowledge of the Java environment is required.
-
-It is assumed that the `pacioli.jar` file and the `lib` directory are
-in some directory `pacioli`.
-
-### Windows
-
-1. Place the `pacioli` directory in `program files`
-
-2. Add this directory to the PATH variable
-
-3. Create a file `pacioli.bat` in this directory with the following content:
-  
-    <code>
-    @ECHO OFF  
-    java -jar "%~dp0\pacioli.jar" -lib "%~dp0\lib" %*
-    </code>
-
-The command `pacioli` should now be available in a command
-prompt. Adjust the bat file to add extra library directories or
-override default compiler settings.
-
-### Linux alias
-
-To create a `pacioli` command locally you can add a shell alias like:
-
-    alias pacioli='java -jar ~/pacioli/pacioli.jar -lib ~/pacioli/lib'
-
-Adjust the paths to your own situation.
-
-### Linux /usr/local
-
-1. Copy the `pacioli` directory to /usr/local/lib/
-
-2. Create file pacioli in /usr/local/bin with content
-
-    <code>
-    \#!/bin/sh  
-    exec java -jar /usr/local/lib/pacioli/pacioli.jar -lib /usr/local/lib/pacioli/lib "$@"
-    </code>
-
-To add extra library paths or override default compiler settings per
-user you can create an alias like:
-
-    alias pacioli='pacioli -lib my_pacioli_lib -warnings'
-
-
-Building from source
---------------------
-
-The Java sources are compiled into a single jar file. 
-
-The software consists of three packages:
-
-* pacioli - the Pacioli compiler
-* mvm - the Matrix Virtual Machine runtime.
-* uom - general unit of measurement library
-
-It uses three external libraries:
-
-* commons-math3-3.1.1.jar from [Commons Math][cm]
-* jgrapht-core-1.4.0.jar from [JGraph][jgraph]
-* java-cup-11b-runtime.jar from [CUP][cup]
-
-To build in an IDE like Eclipse or NetBeans do the following:
-
-1. Import the sources into a new Pacioli project
-
-2. Include the jars of the three libraries
-
-3. Build the file `pacioli.jar` from the project
-
-Adjust this setup according to your own environment.
-
-[cm]: http://commons.apache.org/proper/commons-math/
-[jgraph]: https://jgrapht.org/
-[cup]: http://www2.cs.tum.edu/projects/cup/
-
-
-License
--------
+## License
 
 Pacioli is released under an MIT license. See the file LICENSE in the
 root directory of the sources.
 
+## Status
 
-Status
-------
+Pacioli is still an experimental language. The current version focuses on the core concepts of matrix programming and is pretty bare bones.
+It does however have some nice features
 
-This Pacioli implementation is reasonably complete. However, it
-doesn't support many features for input and output yet.
+- It runs in the browser
+- It provides web components for easy publishing
+- It supports the Language Server Protocol (LSP) and provides a VS Code extension with autocomplete, syntax highlighting, error diagnostics, etc.
+- It has some basic 3D programming features via three.js
 
---------------------------------------------------------------------------------
+Notable missing features that are on the roadmap
 
-2013-2020 Paul Griffioen (pgriffel@gmail)
+- Multilinear algebra and data-frames
+- Ad-hoc polymorphism (typeclasses/traits/implicits)
+- Some data abstraction mechanism
+- Error handling
+- Better support for writing libraries and integration with other environments
 
+2013-2025 Paul Griffioen (pgriffel@gmail)

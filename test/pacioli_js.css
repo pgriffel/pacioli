@@ -1,0 +1,67 @@
+body {
+    --element-bg-color: #888888;
+    --bg-color: white;
+    --fg-color: white;
+    --border: 1pt solid #BBBBBB;
+}
+
+.example {
+    display: grid;
+    grid-template-columns: min-content min-content;
+    grid-template-rows: min-content 1fr;
+    grid-template-areas: 
+      "scene config"
+      "scene animation";
+    NOalign-content: start;
+    NOdisplay: flex;
+    NOflex-direction: row;
+}
+
+.example pacioli-scene {
+    grid-area: scene;
+}
+
+.example pacioli-histogram {
+    grid-area: scene;
+}
+
+.example pacioli-inputs {
+    grid-area: config;
+}
+
+.example pacioli-controls {
+    grid-area: animation;
+}
+
+pacioli-controls {
+    width: 80pt;
+}
+
+
+.pacioli.histogram.options {
+    margin-left: 10pt;
+    margin-bottom: 10pt;
+    padding: 10pt;
+    border: var(--border);
+    NObackground: var(--bg-color);
+    NOcolor: var(--fg-color)
+}
+
+.pacioli.histogram.options button {
+    width: 80pt;
+    margin: 10pt;
+    padding: 3pt;
+    NObackground: var(--element-bg-color);
+    NOcolor: var(--fg-color);
+    NOborder: var(--border);
+}
+
+.pacioli.histogram.options .buttons {
+    display: flex;
+    flex-direction: row;
+}
+
+.pacioli.histogram.options .inputs {
+    display: flex;
+    flex-direction: row;
+}

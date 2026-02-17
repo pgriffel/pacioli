@@ -1,0 +1,230 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+import geometry;
+import metrics;
+import testing;
+import testdata;
+import random;
+
+declare metric_suites :: List(TestSuite);
+
+define metric_suites = [
+    bilinear_form_suite,
+    metric_norm_suite,
+    scalar_gsvd_suite, 
+    matrix_gsvd_suite
+];
+
+run_test_suites(metric_suites);
+
+# ------------------------------------------------------------------------------
+# Function bilinear_form
+#
+# Let I be an identity matrix, then
+#
+#     inner = bilinear_form(I)
+# ------------------------------------------------------------------------------
+
+define bilinear_form_suite = test_suite("Function bilinear_form", 
+    let 
+        vecs2d = [vector2d(0,0), vector2d(1,1), vector2d(2,-3)],
+        vecs3d = [vector3d(0,0,0), vector3d(-1,2,-3)],
+        vecs3d_dim = [|centi:metre| '.*' v | v <- vecs3d]
+    in [
+        test("standard inner equals bilinear_form with identity matrix metric 2d", () ->
+            all[inner(v, w) = bilinear_form(left_identity(v))(v, w) | v <- vecs2d, w <- vecs2d]
+        ),
+
+        test("standard inner equals bilinear_form with identity matrix metric 3d", () ->
+            all[inner(v, w) = bilinear_form(left_identity(v))(v, w) | v <- vecs3d, w <- vecs3d]
+        )
+    ]
+    end);
+
+# ------------------------------------------------------------------------------
+# Function metric_norm
+#
+# Let I be an identity matrix, then
+#
+#     norm = metric_norm(I)
+# ------------------------------------------------------------------------------
+
+define metric_norm_suite = test_suite("Function metric_norm", 
+    let 
+        vecs2d = [vector2d(0,0), vector2d(1,1), vector2d(2,-3)],
+        vecs3d = [vector3d(0,0,0), vector3d(-1,2,-3)],
+        vecs3d_dim = [|centi:metre| '.*' v | v <- vecs3d]
+    in [
+        test("standard norm equals norm with identity matrix metric 2d", () ->
+            all[norm(v) = metric_norm(left_identity(v))(v) | v <- vecs2d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 3d", () ->
+            all[norm(v) = metric_norm(left_identity(v))(v) | v <- vecs3d]
+        ),
+
+        test("standard norm equals norm with identity matrix metric 3d", () ->
+            all[norm(v) = metric_norm(left_identity(v))(v) | v <- vecs3d_dim]
+        )
+    ]
+    end);
+
+# ------------------------------------------------------------------------------
+# Function metric_svd
+# ------------------------------------------------------------------------------
+
+define scalar_gsvd_suite =
+    gsvd_suite(
+        "Function gsvd for dimensionless scalars",
+        () -> random_nat(5) + 1,
+        () -> random_nat(5) + 1,
+        random_1_by_1_matrix,
+        10*|decimals|);
+
+define matrix_gsvd_suite =
+    gsvd_suite(
+        "Function gsvd for dimensioned matrices",
+        () -> random_4_by_4_metric() * |second^2/Four!unit per Four!unit|,
+        () -> random_3_by_3_metric() * |metre^4/Three!unit per Three!unit|,
+        () -> random_4_by_3_matrix() * |metre*Four!unit per Three!unit|,
+        13*|decimals|);
+
+# -----------------------------------------------------------------------------
+
+define gsvd_suite(
+        description,
+        left_metric_generator,
+        right_metric_generator,
+        matrix_generator,
+        precision) =
+    test_suite(
+        description, 
+        let 
+            # Do these two once per test run because they are slow
+            left_metric = left_metric_generator(),
+            right_metric = right_metric_generator(),
+
+            # The svd function for the given metrics
+            svd = gsvd(left_metric, right_metric),
+
+            # Orthogonality test functions for the given metrics
+            are_orthogonal_left = pairwise_orthogonal(left_metric),
+            are_orthogonal_right = pairwise_orthogonal(right_metric'^'-1)
+        in [
+            random_test("should be a proper factorization the matrix", () ->
+                let A = matrix_generator() in
+                    just(approximates(A, sum[a '.*' v '*' w^T | (a, v, w) <- svd(A)], precision))
+                end),
+
+            random_test("should give non-negative singular values", () ->
+                just(all[magnitude(s) >= 0 | (s, _, _) <- svd(matrix_generator())])),
+
+            random_test("should give an orthogonal set for the row dimension", () ->
+                just(are_orthogonal_left([v | (_, v, _) <- svd(matrix_generator())], precision))),
+                        
+            random_test("should give an orthogonal set for the column dimension", () ->
+                just(are_orthogonal_right([w | (_, _, w) <- svd(matrix_generator())], precision)))
+            ]
+        end);
+
+# ------------------------------------------------------------------------------
+
+doc pairwise_orthogonal
+    "Are the vectors from a list pairwise orthogonal with respect to a given
+     metric?";
+
+declare pairwise_orthogonal ::
+    for_index P: for_unit a, P!u:
+        (a^2/P!u per P!u) -> (List(P!u/a), decimals) -> Boole;
+
+define pairwise_orthogonal(metric) =
+    let bf = bilinear_form(metric) in
+        (vectors, precision) ->
+            let indexed = zip(naturals(list_size(vectors)), vectors) in
+                all[approximates(bf(v, w), if i = j then 1 else 0 end, precision) |
+                    (i, v) <- indexed,
+                    (j, w) <- indexed]
+            end
+    end;
+
+# ------------------------------------------------------------------------------
+# Matrix generators
+# ------------------------------------------------------------------------------
+
+declare random_3_by_3_matrix :: () -> Three! per Three!;
+
+define random_3_by_3_matrix() =
+    sum[random_three_vector() '*' random_three_vector()^T |
+            _ <- naturals(random_nat(5) + 1)];
+
+# ------------------------------------------------------------------------------
+
+doc is_positive_definite
+    "Tests if a metric matrix is positive definite by attempting to compute its
+    Cholesky decomposition.";
+
+define is_positive_definite(A) =
+    not(is_error(catch(() -> cholesky_decomposition(A))));
+
+# ------------------------------------------------------------------------------
+
+doc generate_positive_definite
+    "Generates matrices with a metric matrix generator until a positive definite
+    one has been created. Might not terminate (quickly) depending on the
+    generator.";
+
+define generate_positive_definite(generator) =
+    begin
+        A := generator();
+        i := 10000;
+        while not(is_positive_definite(A)) do
+            A := generator();
+            i := i - 1;
+            if i = 0 then
+                error("Could not generate a positive definite matrix.");
+            end
+        end 
+        return A;
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare symmetric_matrix_generator :: for_index I: for_unit a, I!u:
+    (() -> a/I!u per I!u) -> () -> a/I!u per I!u;
+
+doc symmetric_matrix_generator
+    "Turns a function that generates matrices into a function that generates
+    symmetric matrices.";
+
+define symmetric_matrix_generator(matrix_generator) =
+    () ->
+        let r = matrix_generator() in
+            r^T + r 
+        end;
+
+# ------------------------------------------------------------------------------
+
+define random_3_by_3_metric() = 
+    generate_positive_definite(symmetric_matrix_generator(random_3_by_3_matrix));
+
+define random_4_by_4_metric() = 
+    generate_positive_definite(symmetric_matrix_generator(random_4_by_4_matrix));

@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.transpilers;
 
 import java.util.ArrayList;
@@ -11,7 +33,6 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ClassInfo;
@@ -39,7 +60,9 @@ public class MATLABTranspiler implements SymbolTableVisitor {
         // Infos without definition are filtered by the caller
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling value %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling value %s", info.globalName());
+        }
 
         ValueDefinition definition = info.definition().get();
         ExpressionNode transformed = definition.body;
@@ -61,7 +84,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
             }
             if (code.expression instanceof StatementNode) {
                 out.newline();
-                out.format("function result = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
+                out.format("function result = %s (%s)", info.globalName().toLowerCase(), String.join(",", args));
                 out.newlineUp();
 
                 for (String gl : usedGlobals) {
@@ -75,7 +98,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
                 out.newline();
             } else {
                 out.newline();
-                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), Utils.intercalate(",", args));
+                out.format("function retval = %s (%s)", info.globalName().toLowerCase(), String.join(",", args));
                 out.newlineUp();
 
                 for (String gl : usedGlobals) {
@@ -538,7 +561,7 @@ public class MATLABTranspiler implements SymbolTableVisitor {
             "end\n" +
             "\n" +
             "\n" +
-            "function num = glbl_base_unit_factor(x)\n" +
+            "function num = glbl_base_scalar_unit(x)\n" +
             "  num = 1;\n" +
             "endfunction\n" +
             "\n" +

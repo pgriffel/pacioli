@@ -1,28 +1,56 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
-import { Context, Context as UOMContext, siDef, SIUnit, DimNum } from "uom-ts";
-import { IndexSet } from "./values/index-set";
+import type { SIUnit, DimNum, Definition } from "uom-ts";
+import { Context, Context as UOMContext, siDef } from "uom-ts";
+import type { IndexSet } from "./values/index-set";
 import { UnitVector } from "./values/unit-vector";
+
+export const emptyDef: Definition = {
+  prefixes: [
+    { name: "yocto", power: -24, symbol: "y" },
+    { name: "zepto", power: -21, symbol: "z" },
+    { name: "atto", power: -18, symbol: "a" },
+    { name: "femto", power: -15, symbol: "f" },
+    { name: "pico", power: -12, symbol: "p" },
+    { name: "nano", power: -9, symbol: "n" },
+    { name: "micro", power: -6, symbol: "µ" },
+    { name: "milli", power: -3, symbol: "m" },
+    { name: "centi", power: -2, symbol: "c" },
+    { name: "deci", power: -1, symbol: "d" },
+    { name: "kilo", power: 3, symbol: "k" },
+    { name: "mega", power: 6, symbol: "M" },
+    { name: "giga", power: 9, symbol: "G" },
+    { name: "tera", power: 12, symbol: "T" },
+    { name: "peta", power: 15, symbol: "P" },
+    { name: "exa", power: 18, symbol: "E" },
+    { name: "zetta", power: 21, symbol: "Z" },
+    { name: "yotta", power: 24, symbol: "Y" },
+  ],
+
+  bases: [],
+
+  equations: [],
+};
 
 /**
  * Static information for the matrix shape.
@@ -36,7 +64,11 @@ export class PacioliContext {
   }
 
   public static empty() {
-    return new PacioliContext(UOMContext.empty(), new Map(), new Map());
+    return new PacioliContext(
+      UOMContext.fromDef(emptyDef),
+      new Map(),
+      new Map(),
+    );
   }
 
   public static fromUOMContext(context: UOMContext) {
@@ -46,18 +78,22 @@ export class PacioliContext {
   constructor(
     public unitContext: UOMContext,
     public unitVectors: Map<string, UnitVector> = new Map(),
-    public indexSets: Map<string, IndexSet> = new Map()
+    public indexSets: Map<string, IndexSet> = new Map(),
   ) {}
 
   public addBase(name: string, symbol: string, definition?: DimNum) {
     this.unitContext.addBase(name, symbol, definition);
   }
 
-  public getUnit(prefix: string, name: string): SIUnit | undefined {
+  public getUnit(prefix: string, name: string): SIUnit {
+    return this.unitContext.getScaledUnit(prefix, name);
+  }
+
+  public lookupUnit(prefix: string, name: string): SIUnit | undefined {
     return this.unitContext.lookupScaledUnit(prefix, name);
   }
 
-  public addIndexSet(indexSet: IndexSet): PacioliContext {
+  public addIndexSet(indexSet: IndexSet): this {
     this.indexSets.set(indexSet.id, indexSet);
     return this;
   }
@@ -67,32 +103,43 @@ export class PacioliContext {
   }
 
   public getIndexSets(): IndexSet[] {
-    return Array.from(this.indexSets.values());
+    return [...this.indexSets.values()];
   }
 
   public addUnitVectorFromJSON(
     name: string,
     index: string,
-    units: any[]
+    units: {
+      name: string;
+      unit: {
+        powers: {
+          base: {
+            prefix?: string;
+            name: string;
+          };
+          power?: number;
+        }[];
+      };
+    }[],
   ): UnitVector {
     const indexSet = this.findIndexSet(index);
     if (indexSet) {
       const unitMap = new Map<string, SIUnit>();
-      units.forEach((item) => {
+      for (const item of units) {
         unitMap.set(item.name, this.unitContext.parseSIUnit(item.unit));
-      });
+      }
       const vector = UnitVector.fromMap(name, indexSet, unitMap);
       this.addUnitVector(vector);
       return vector;
     } else {
       throw new Error(
-        "Index set " + index + " unknown when creating unit vector " + name
+        "Index set " + index + " unknown when creating unit vector " + name,
       );
     }
   }
 
-  public addUnitVector(vector: UnitVector): PacioliContext {
-    this.unitVectors.set(vector.name, vector);
+  public addUnitVector(vector: UnitVector): this {
+    this.unitVectors.set(vector.indexSet.name + "!" + vector.name, vector);
     return this;
   }
 

@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.symboltable.info;
 
 import java.util.ArrayList;
@@ -5,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 import pacioli.ast.definition.ClassDefinition;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.TypeAssertion;
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.ValueDefinition;
@@ -13,7 +36,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.SymbolTable;
@@ -97,10 +120,11 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
         // Create a type schema for the constructor
         builder.declaredType(
-                new SchemaNode(
-                        defLocation,
-                        this.definition.quantNodesWithoutConditions(),
-                        new FunctionTypeNode(defLocation, this.dictTypeRHS(), this.dictTypeLHS())));
+                new Declaration(defLocation, new IdentifierNode(this.constructorName(), defLocation),
+                        new SchemaNode(
+                                defLocation,
+                                this.definition.quantNodesWithoutConditions(),
+                                new FunctionTypeNode(defLocation, this.dictTypeRHS(), this.dictTypeLHS()))));
 
         return builder.build();
     }
@@ -135,7 +159,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
                         .isMonomorphic(false)
                         .location(this.definition.location())
                         .isPublic(true)
-                        .declaredType(this.memberType(member))
+                        .declaredType(new Declaration(this.definition.location(), member.id, this.memberType(member)))
                         .definition(new ValueDefinition(
                                 memberLocation,
                                 member.id,
@@ -249,11 +273,16 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
             memberDictAndArgNames.add(freshName);
         }
 
+        List<IdentifierNode> args = new ArrayList<>();
+        for (String name : argNames) {
+            args.add(new IdentifierNode(name, memberLocation));
+        }
+
         LambdaNode genFun = new LambdaNode(
                 memberDictAndArgNames,
                 new LetNode(
-                        List.of(new LetTupleBindingNode(memberLocation, argNames,
-                                new IdentifierNode(dictVar, memberLocation))),
+                        new LetTupleBindingNode(memberLocation, args,
+                                new IdentifierNode(dictVar, memberLocation)),
                         new ApplicationNode(
                                 new IdentifierNode(argNames.get(argIndex), memberLocation),
                                 memberArgNames,

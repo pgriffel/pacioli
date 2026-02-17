@@ -1,0 +1,81 @@
+﻿/**
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+import "jasmine";
+import { PacioliMatrix } from "../src/values/matrix.js";
+import { MatrixShape, SIVector } from "../src/values/matrix-shape.js";
+import { testContext } from "./test-context.js";
+import type { IndexSet } from "../src/values/index-set.js";
+import { MatrixDimension } from "../src/values/matrix-dimension.js";
+import { SIUnit } from "uom-ts";
+import { initialNumbers } from "../src/cache.js";
+
+/**
+ * A fast check Arbitrary for the {@link Shape} class.
+ *
+ * @returns an arbitray Shape instance
+ */
+// export function arbitraryShape(): fc.Arbitrary<Shape> {
+//   return arbitraryUOM().map((unit) => new Shape(unit));
+// }
+
+describe("DOM", () => {
+  describe("Table", () => {
+    it("should give correct clipboard text", () => {
+      const personSet = testContext.findIndexSet("Person") as IndexSet;
+
+      const shape = new MatrixShape(
+        SIUnit.ONE,
+        new MatrixDimension([personSet]),
+        SIVector.ONE,
+        new MatrixDimension([]),
+        SIVector.ONE,
+      );
+      const numbers = initialNumbers(personSet.size(), 1, [
+        [0, 0, 1],
+        [1, 0, 1.234567890123456789],
+        [2, 0, 1234567890.123456789],
+      ]);
+
+      const matrix = new PacioliMatrix(shape, numbers);
+
+      const tableBuilder = matrix.tableBuilder("Value", { decimals: 2 });
+
+      // const stringified = tableData.stringify("0", [2], false);
+
+      expect(tableBuilder.clipboardText()).toEqual(`Person\tValue
+Jack\t1
+Jill\t1.2345678901234567
+Jane\t1234567890.1234567
+John\t0
+Jennifer\t0`);
+
+      expect(tableBuilder.ascii()).toEqual(`Person           Value 
+Jack              1.00 
+Jill              1.23 
+Jane     1234567890.12 
+John              0.00 
+Jennifer          0.00 
+`);
+    });
+  });
+});

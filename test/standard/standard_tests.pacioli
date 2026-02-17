@@ -1,4 +1,25 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import testing;
+import random;
 import si;
 
 declare standard_suites :: List(TestSuite);
@@ -9,7 +30,12 @@ define standard_suites = [
    zip_with_suite,
    flatten_suite,
    is_zero_suite,
-   sort_index_suite
+   sort_index_suite,
+   flat_map_suite,
+   join_strings_suite,
+   rounding_scalars_suite,
+   modulus_scalars_suite,
+   div_rem_scalars_suite
 ];
 
 run_test_suites(standard_suites); 
@@ -122,5 +148,189 @@ define sort_index_suite = test_suite("sort_list", [
 
     test("should sort indices descending", () ->
         sort_list(row_domain(foo), (x, y) -> -1 * compare_index(x, y)) = [Foo@baz, Foo@bar, Foo@foo]
+    )
+]);
+
+
+define flat_map_suite = test_suite("flat_map", [
+
+    test("should sort indices descending", () ->
+        flat_map(naturals, []) = []
+    ),
+ 
+    test("should flatten naturals", () ->
+        flat_map(naturals, [1, 2, 3]) = [0, 0, 1, 0, 1, 2]
+    ),
+
+    test("should flatten only one level", () ->
+        flat_map((x) -> [naturals(x)], [1, 2, 3]) = [[0], [0, 1], [0, 1, 2]]
+    )
+]);
+
+
+define join_strings_suite = test_suite("join_strings", [
+
+    test("should join three strings correctly", () ->
+        join_strings(["a", "bb", "ccc"], "++") = "a++bb++ccc"
+    ),
+ 
+    test("should join one string correctly", () ->
+        join_strings(["foo"], "++") = "foo"
+    ),
+
+    test("should give the empty string for an empty list", () ->
+        join_strings([], "++") = ""
+    ),
+
+    test("should work with an empty separator", () ->
+        join_strings(["a", "bb", "ccc"], "") = "abbccc"
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Rounding
+# ------------------------------------------------------------------------------
+
+define rounding_test_numbers =
+    [-2.00, -1.75, -1.50, -1.25, -1.00, -0.75, -0.50, -0.25, 0.00, 0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.00];
+
+define rounding_scalars_suite = test_suite("rounding for scalars", [
+
+    test("should work for function floor", () ->
+        [floor(i) | i <- rounding_test_numbers] =
+            [-2, -2, -2, -2, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, 1, 1, 2]
+    ),
+
+    test("should work for function ceiling", () ->
+        [ceiling(i) | i <- rounding_test_numbers] =
+            [-2, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2]
+    ),
+
+    test("should work for function round", () ->
+        [round(i) | i <- rounding_test_numbers] =
+            [-2, -2, -1, -1, -1, -1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2]
+    ),
+
+    test("should work for function truncate", () ->
+        [truncate(i) | i <- rounding_test_numbers] =
+            [-2, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2]
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Modulus
+#
+# TODO: negative divisors!!!
+# ------------------------------------------------------------------------------
+
+define modulus_test_numbers =
+    [-11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+
+define modulus_scalars_suite = test_suite("modulus for scalars", [
+
+    test("should work for function div", () ->
+        [div(i, 5) | i <- modulus_test_numbers] =
+            [-2, -2, -1, -1, -1, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2]
+    ),
+
+    test("should work for function mod", () ->
+        [mod(i, 5) | i <- modulus_test_numbers] =
+            [4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
+    ),
+
+    test("should work for function rem", () ->
+        [rem(i, 5) | i <- modulus_test_numbers] =
+            [-1, 0, -4, -3, -2, -1, 0, -4, -3, -2, -1, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
+    ),
+
+     test("should work for function abs_min", () ->
+        [abs_min(i, 5) | i <- modulus_test_numbers] =
+            [-1, -0, 1, 2, -2, -1, -0, 1, 2, -2, -1, 0, 1, 2, -2, -1, 0, 1, 2, -2, -1, 0, 1]
+    ),
+    
+    test("should work with negative divisor for function div", () ->
+        [div(i, -5) | i <- modulus_test_numbers] =
+            [2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -2, -2]
+    ),
+
+    test("should work with negative divisor for function mod", () ->
+        [mod(i, -5) | i <- modulus_test_numbers] =
+            [4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
+    ),
+
+    test("should work with negative divisor for function rem", () ->
+        [rem(i, -5) | i <- modulus_test_numbers] =
+            [-1, 0, -4, -3, -2, -1, 0, -4, -3, -2, -1, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 0, 1]
+    ),
+
+    test("should work with negative divisor for function abs_min", () ->
+        [abs_min(i, -5) | i <- modulus_test_numbers] =
+            [-1, -0, 1, 2, -2, -1, -0, 1, 2, -2, -1, 0, 1, 2, -2, -1, 0, 1, 2, -2, -1, 0, 1]
+    )
+]);
+
+
+define div_rem_scalars_suite = test_suite("div rem for scalars", [
+
+    test("m = n*div(m,n) + rem(m,n)", () ->
+        let 
+            nums = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        in
+            all[cond |
+                     _ <- naturals(100),
+                    m := pick(nums),
+                    n := pick(nums),
+                    d := div(m, n),
+                    r := rem(m, n),
+                    cond :=
+                        if n = 0 then
+                            d = 0 and r = m
+                        else    
+                            m = n * d + r and abs(r) < abs(n)
+                        end]
+        end
+    ),
+
+    test("m = n*signum(n)*floor(m/abs(n)) + mod(m,n)", () ->
+        let 
+            nums = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        in
+            all[cond |
+                     _ <- naturals(100),
+                    m := pick(nums),
+                    n := pick(nums),
+                    d := signum(n)*floor(m/abs(n)),
+                    r := mod(m, n),
+                    cond :=
+                        if n = 0 then
+                            d = 0 and r = m
+                        else    
+                            m = n * d + r and r >= 0 and r < abs(n)
+                        end]
+        end
+    ),
+
+    test("mod", () ->
+        let 
+            nums = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        in
+            all[mod(a, b) = a - abs(b)*floor(a/abs(b))| _ <- naturals(100), a := pick(nums), b := pick(nums)]
+        end
+    ),
+
+     test("rem", () ->
+        let 
+            nums = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        in
+            all[rem(a, b) = a - b*truncate(a/b) | _ <- naturals(100), a := pick(nums), b := pick(nums)]
+        end
+    ),
+
+     test("abs_min", () ->
+        let 
+            nums = [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5]
+        in
+            all[abs_min(a, b) = a - b*round(a/b) | _ <- naturals(100), a := pick(nums), b := pick(nums)]
+        end
     )
 ]);

@@ -1,23 +1,25 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
+
 package pacioli;
 
 import java.io.BufferedWriter;
@@ -28,6 +30,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
@@ -36,19 +40,29 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.apache.commons.io.FilenameUtils;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
+import org.eclipse.lsp4j.services.LanguageClient;
+
+import pacioli.mcp.MPCContainer;
+import pacioli.mcp.PacioliMCPServer;
 
 import mvm.MVMException;
 import mvm.Machine;
-import pacioli.compiler.Bundle;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
-import pacioli.compiler.PrimitivesDocumentation;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.PrimitivesDocumentation;
+import pacioli.lsp.PacioliLanguageServer;
+import pacioli.lsp.PacioliTextDocumentService;
+import pacioli.lsp.PacioliWorkspaceService;
 
 /**
  * The main entry point of the compiler.
@@ -59,18 +73,20 @@ public class Pacioli {
 
     // Constants
     private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.5.0-SNAPSHOT";
+    private static String VERSION = "v0.5.0";
+
+    // Make command line parameter?
+    public static Charset CHARSET = StandardCharsets.UTF_8;
 
     // Internal settings for log messages. Actual values depend on values in the
     // options file.
     public static class Options {
         public static boolean trace = false;
         public static boolean showFileLoads = false;
-        public static boolean showSymbolTableAdditions = false;
+        public static List<String> showSymbolTableAdditions = List.of();
         public static boolean showResolvingDetails = false;
         public static boolean showIncludeSearches = false;
         public static boolean showTypeInference = false;
-        public static boolean showTypeInferenceDetails = false;
         public static boolean showTypeReductions = false;
         public static boolean showClassRewriting = false;
         public static boolean dumpOnMVMError = true;
@@ -80,6 +96,7 @@ public class Pacioli {
         public static boolean wrapTypes = false;
         public static boolean rewriteTypes = false;
         public static boolean includePrivate = true;
+        public static List<String> traceTypeInference = List.of();
     }
 
     // Remember if user output is at the beginning of a line. Used when printing
@@ -129,6 +146,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
+            String target = "";
 
             // Load options first
             loadOptionsFile();
@@ -145,19 +163,7 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-target")) {
                     if (i < args.length) {
-                        String target = args[i++];
-                        if (target.equals("javascript")) {
-                            settings.setTarget(Target.JS);
-                        } else if (target.equals("matlab")) {
-                            settings.setTarget(Target.MATLAB);
-                        } else if (target.equals("mvm")) {
-                            settings.setTarget(Target.MVM);
-                        } else if (target.equals("python")) {
-                            settings.setTarget(Target.PYTHON);
-                        } else {
-                            throw new RuntimeException(
-                                    "Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
-                        }
+                        target = args[i++];
                     } else {
                         displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
                     }
@@ -182,6 +188,18 @@ public class Pacioli {
                     command = arg;
                 } else {
                     files.add(arg);
+                }
+            }
+
+            if (command.equals("run") || command.equals("interpret") || command.equals("compile")) {
+                if (target.equals("javascript")) {
+                    settings.setTarget(Target.JS);
+                } else if (target.equals("matlab")) {
+                    settings.setTarget(Target.MATLAB);
+                } else if (target.equals("mvm")) {
+                    settings.setTarget(Target.MVM);
+                } else if (target.equals("python")) {
+                    settings.setTarget(Target.PYTHON);
                 }
             }
 
@@ -247,21 +265,34 @@ public class Pacioli {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    apiCommand(file, libs);
+                    apiCommand(file, libs, target);
+                }
+            } else if (command.equals("man")) {
+                if (files.isEmpty()) {
+                    displayError("No files to read.");
+                }
+                for (String file : files) {
+                    manCommand(file, libs, target);
                 }
             } else if (command.equals("baseapi")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    baseApiCommand(file, libs);
+                    baseApiCommand(file, libs, target);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
             } else if (command.equals("help")) {
                 helpCommand();
+            } else if (command.equals("version")) {
+                versionCommand(libs);
             } else if (command.equals("info")) {
                 infoCommand(libs);
+            } else if (command.equals("lsp")) {
+                lspCommand(libs);
+            } else if (command.equals("mcp")) {
+                mcpCommand(libs);
             } else {
                 displayError(String.format("Command '%s' unknown", command));
             }
@@ -283,11 +314,9 @@ public class Pacioli {
                 } else if (key.equals("showFileLoads")) {
                     Options.showFileLoads = Boolean.parseBoolean(value);
                 } else if (key.equals("showSymbolTableAdditions")) {
-                    Options.showSymbolTableAdditions = Boolean.parseBoolean(value);
+                    Options.showSymbolTableAdditions = value.isEmpty() ? List.of() : List.of(value.split(","));
                 } else if (key.equals("showResolvingDetails")) {
                     Options.showResolvingDetails = Boolean.parseBoolean(value);
-                } else if (key.equals("showTypeInferenceDetails")) {
-                    Options.showTypeInferenceDetails = Boolean.parseBoolean(value);
                 } else if (key.equals("showIncludeSearches")) {
                     Options.showIncludeSearches = Boolean.parseBoolean(value);
                 } else if (key.equals("showModifiedFiles")) {
@@ -308,6 +337,8 @@ public class Pacioli {
                     Options.showClassRewriting = Boolean.parseBoolean(value);
                 } else if (key.equals("rewriteTypes")) {
                     Options.rewriteTypes = Boolean.parseBoolean(value);
+                } else if (key.equals("traceTypeInference")) {
+                    Options.traceTypeInference = value.isEmpty() ? List.of() : List.of(value.split(","));
                 } else {
                     println("Skipping unknown option '%s'", key);
                 }
@@ -358,7 +389,7 @@ public class Pacioli {
 
     private static void typesCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate)
             throws Exception {
-
+        logOptions(false);
         Integer version = 0; // todo
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
 
@@ -372,7 +403,7 @@ public class Pacioli {
 
         PacioliFile file = optionalFile.get();
 
-        log("Displaying types for file '%s'\n", file.fsFile());
+        log("Displaying types for file '%s'", file.fsFile());
 
         try {
             Project.load(file, libs).loadBundle().printTypes(rewriteTypes, includePrivate, false);
@@ -383,7 +414,42 @@ public class Pacioli {
 
     }
 
-    private static void apiCommand(String fileName, List<File> libs)
+    private static void apiCommand(String fileName, List<File> libs, String target)
+            throws Exception {
+
+        log("Generating documentation for %s\n", fileName);
+
+        Integer version = 0; // TODO, see below
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+
+        if (!optionalFile.isPresent()) {
+            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+
+        if (!optionalFile.isPresent()) {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        }
+
+        try {
+            PacioliFile file = optionalFile.get();
+            Project project = Project.load(file, libs);
+            List<File> includes = new ArrayList<>();
+            project.includeTree(file).forEach(x -> {
+                includes.add(x.fsFile());
+            });
+
+            project.loadBundle().genAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
+                                                                                       // above
+
+            Pacioli.log("\nDocumentation ready");
+
+        } catch (IOException e) {
+            println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
+        }
+
+    }
+
+    private static void manCommand(String fileName, List<File> libs, String target)
             throws Exception {
 
         Integer version = 0; // TODO, see below
@@ -397,27 +463,26 @@ public class Pacioli {
             throw new PacioliException("Error: file '%s' does not exist.", fileName);
         }
 
-        PacioliFile file = optionalFile.get();
-
         try {
+            PacioliFile file = optionalFile.get();
             Project project = Project.load(file, libs);
             List<File> includes = new ArrayList<>();
             project.includeTree(file).forEach(x -> {
                 includes.add(x.fsFile());
             });
-            File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
-            log("Generating documentation %s", out.getAbsolutePath());
-            project.loadBundle().printAPI(out, includes, "dev", project.findDocFile()); // TODO: version, see above
+
+            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
+                                                                                         // above
 
         } catch (IOException e) {
-            println("\nError: cannot generate api for file '%s':\n\n%s", fileName, e);
+            println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
         }
 
     }
 
-    private static void baseApiCommand(String dirName, List<File> libs)
+    private static void baseApiCommand(String dirName, List<File> libs, String target)
             throws Exception {
-        new PrimitivesDocumentation(dirName, libs).generate();
+        new PrimitivesDocumentation(dirName, libs, target).generate(VERSION);
     }
 
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)
@@ -427,7 +492,7 @@ public class Pacioli {
 
     private static void compileCommand(String fileName, List<File> libs, CompilationSettings settings)
             throws Exception {
-
+        logOptions(false);
         Integer version = 0;
         Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
         String kind = settings.kind();
@@ -435,6 +500,7 @@ public class Pacioli {
         if (!optionalFile.isPresent()) {
             throw new PacioliException("Cannot compile: file '%s' does not exist.", fileName);
         } else {
+
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
                 log("Creating bundle for file '%s'", file);
@@ -465,7 +531,7 @@ public class Pacioli {
     }
 
     private static void runCommand(String fileName, List<File> libs, CompilationSettings settings) throws Exception {
-
+        logOptions(false);
         log("Running file '%s'", fileName);
 
         // Locate the file
@@ -479,18 +545,26 @@ public class Pacioli {
 
         // If so, compile and run it
         try {
+
             Project project = Project.load(file.get(), libs);
 
             List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.target());
+
             if (modifiedFiles.size() > 0) {
-                Pacioli.logIf(Pacioli.Options.showModifiedFiles, "Found modified files");
-                for (PacioliFile modified : modifiedFiles) {
-                    Pacioli.logIf(Pacioli.Options.showModifiedFiles, "    %s", modified.fsFile());
+
+                if (Pacioli.Options.showModifiedFiles) {
+                    Pacioli.log("Found modified files");
+                    for (PacioliFile modified : modifiedFiles) {
+                        Pacioli.log("    %s", modified.fsFile());
+                    }
                 }
+
                 log("Compiling file '%s'", file.get().fsFile());
                 bundle(project, settings);
             }
+
             Path mvmFile = project.bundlePath(Target.MVM);
+
             log("Running mvm file '%s'\n", mvmFile);
             interpretMVMText(mvmFile.toFile(), libs);
 
@@ -500,7 +574,7 @@ public class Pacioli {
     }
 
     private static void debugCommand(String command, List<String> fileNames, List<File> libs) throws Exception {
-
+        logOptions(false);
         for (String fileName : fileNames) {
 
             Integer version = 0; // todo
@@ -530,6 +604,10 @@ public class Pacioli {
 
     }
 
+    private static void versionCommand(List<File> libs) {
+        System.out.print(VERSION);
+    }
+
     private static void infoCommand(List<File> libs) {
 
         println("Pacioli %s", VERSION);
@@ -549,24 +627,38 @@ public class Pacioli {
                 OPTIONS_FILE,
                 Paths.get("").toAbsolutePath().toString());
 
-        println("trace=%s", Options.trace);
-        println("showFileLoads=%s", Options.showFileLoads);
-        println("showSymbolTableAdditions=%s", Options.showSymbolTableAdditions);
-        println("showResolvingDetails=%s", Options.showResolvingDetails);
-        println("showIncludeSearches=%s", Options.showIncludeSearches);
-        println("showTypeInference=%s", Options.showTypeInference);
-        println("showTypeInferenceDetails=%s", Options.showTypeInferenceDetails);
-        println("showTypeReductions=%s", Options.showTypeReductions);
-        println("showClassRewriting=%s", Options.showClassRewriting);
-        println("dumpOnMVMError=%s", Options.dumpOnMVMError);
-        println("showGeneratingCode=%s", Options.showGeneratingCode);
-        println("showModifiedFiles=%s", Options.showModifiedFiles);
-        println("showModifiedFiles=%s", Options.showModifiedFiles);
-        println("printTypesAsString=%s", Options.printTypesAsString);
-        println("rewriteTypes=%s", Options.rewriteTypes);
-        println("includePrivate=%s", Options.includePrivate);
+        logOptions(true);
+    }
 
-        println("\nPaul Griffioen 2013 - 2023");
+    private static void lspCommand(List<File> libs) {
+
+        try {
+
+            // Socket clientSocket = new Socket("127.0.0.1", 9925);
+
+            var textDocumentService = new PacioliTextDocumentService();
+            var workspaceService = new PacioliWorkspaceService();
+
+            PacioliLanguageServer server = new PacioliLanguageServer(textDocumentService, workspaceService, libs);
+
+            Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
+                    System.in, System.out
+            // clientSocket.getInputStream(), clientSocket.getOutputStream()
+            );
+
+            LanguageClient client = launcher.getRemoteProxy();
+
+            server.connect(client);
+
+            Future<Void> future = launcher.startListening();
+
+            // Pacioli.logToFile("pacioli_lsp_error.log", "listening");
+            future.get();
+        } catch (InterruptedException e) {
+            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
+        } catch (ExecutionException e) {
+            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
+        }
     }
 
     private static void helpCommand() {
@@ -579,6 +671,7 @@ public class Pacioli {
         println("   parse         prints the code as it is parsed");
         println("   desugar       prints the code as it is parsed and desugared");
         println("   api           generates documentation");
+        println("   version       displays the compiler version");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
         println("\n");
@@ -590,9 +683,37 @@ public class Pacioli {
         println("   -traceall     toggles tracing of all functions on or off");
     }
 
+    private static void mcpCommand(List<File> libs) {
+        try {
+            PacioliMCPServer server = MPCContainer.fromSystemIO(libs).server;
+            server.start();
+        } catch (Exception e) {
+            Pacioli.logToFile("D:\\pacioli_mcp_error.log", e.getMessage());
+        }
+    }
+
     /*
      * Helpers
      */
+
+    private static void logOptions(boolean all) {
+        logIf(all || Options.trace, "trace=%s", Options.trace);
+        logIf(all || Options.showFileLoads, "showFileLoads=%s", Options.showFileLoads);
+        logIf(all || !Options.showSymbolTableAdditions.isEmpty(), "showSymbolTableAdditions=%s",
+                Options.showSymbolTableAdditions.size());
+        logIf(all || Options.showResolvingDetails, "showResolvingDetails=%s", Options.showResolvingDetails);
+        logIf(all || Options.showIncludeSearches, "showIncludeSearches=%s", Options.showIncludeSearches);
+        logIf(all || Options.showTypeInference, "showTypeInference=%s", Options.showTypeInference);
+        logIf(all || Options.showTypeReductions, "showTypeReductions=%s", Options.showTypeReductions);
+        logIf(all || Options.showClassRewriting, "showClassRewriting=%s", Options.showClassRewriting);
+        logIf(all || !Options.dumpOnMVMError, "dumpOnMVMError=%s", Options.dumpOnMVMError);
+        logIf(all || Options.showGeneratingCode, "showGeneratingCode=%s", Options.showGeneratingCode);
+        logIf(all || Options.showModifiedFiles, "showModifiedFiles=%s", Options.showModifiedFiles);
+        logIf(all || Options.printTypesAsString, "printTypesAsString=%s", Options.printTypesAsString);
+        logIf(all || Options.rewriteTypes, "rewriteTypes=%s", Options.rewriteTypes);
+        logIf(all || !Options.includePrivate, "includePrivate=%s", Options.includePrivate);
+        logIf(all || !(Options.traceTypeInference.isEmpty()), "traceTypeInference=%s", Options.traceTypeInference);
+    }
 
     /**
      * Create a bundle from the project files.
@@ -606,12 +727,8 @@ public class Pacioli {
 
         Path dstPath = project.bundlePath(settings.target());
 
-        Bundle bundle = project.loadBundle();
-
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile())))) {
-
-            bundle.generateCode(writer, settings);
-
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile(), CHARSET)))) {
+            project.generateCode(writer, settings);
         }
 
         return dstPath;
@@ -640,12 +757,15 @@ public class Pacioli {
 
         Machine vm = new Machine();
         try {
+            Machine.CHARSET = CHARSET;
             vm.init();
             vm.run(file, System.out, libs);
         } catch (Exception ex) {
             if (Options.dumpOnMVMError) {
-                println("\nState when error occured:");
+                println("%nRuntime error: %s", ex.getMessage());
+                println("%nState when error occured:");
                 vm.dumpTypes();
+                println("");
                 vm.dumpState();
             }
             throw ex;
@@ -759,6 +879,17 @@ public class Pacioli {
         }
     }
 
+    public static void logToFile(String fileName, String string, Object... args) {
+        try (FileWriter fwriter = new FileWriter(fileName, CHARSET, true);
+                BufferedWriter writer = new BufferedWriter(fwriter)) {
+            writer.newLine();
+            writer.write(String.format(string, args));
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Logs a line if the trace option is on. Show detailed compiler actions for
      * debugging purposes. Does not display the message if verbosity is zero.
@@ -769,12 +900,13 @@ public class Pacioli {
      *               Format arguments
      */
     public static void trace(String string, Object... args) {
-        logIf(Options.trace,
-                "[TRACE "
-                        + new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime())
-                        + "] "
-                        + string,
-                args);
+        if (Options.trace) {
+            log("[TRACE "
+                    + new SimpleDateFormat("HH:mm:ss.SSS").format(Calendar.getInstance().getTime())
+                    + "] "
+                    + string,
+                    args);
+        }
     }
 
     /**

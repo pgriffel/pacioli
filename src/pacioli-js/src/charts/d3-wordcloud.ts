@@ -1,141 +1,168 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import * as d3 from "d3";
-import { DefaultChartOptions, displayChartError } from "./chart-utils";
+import type { DefaultChartOptions } from "./chart-utils";
+import { combineMargins, parseMargin } from "./chart-utils";
 import cloud from "d3-cloud";
 
 export interface WordCloudOptions extends DefaultChartOptions {
-  onclick?: (data: any) => void;
+  onclick?: (data: {
+    value: string;
+    size: number;
+    options: WordCloudOptions;
+  }) => void;
 }
+
+const DEFAULT_CHART_MARGIN = { left: 40, top: 20, right: 20, bottom: 50 };
 
 export class WordCloud {
   options: {
     width: number;
     height: number;
-    margin: { left: number; top: number; right: number; bottom: number };
-    onclick: (data: any) => void;
+    margin?: string;
+    onclick?: (data: {
+      value: string;
+      size: number;
+      options: WordCloudOptions;
+    }) => void;
   };
 
   readonly defaultOptions = {
     width: 640,
     height: 360,
-    margin: { left: 40, top: 20, right: 20, bottom: 50 },
-    onclick: (data: any) => {
-      alert("Todo: word cloud click " + data);
-    },
   };
 
-  constructor(public data: [string, number][], options: WordCloudOptions) {
+  constructor(
+    public data: [string, number][],
+    options: Partial<WordCloudOptions>,
+  ) {
     this.options = { ...this.defaultOptions, ...options };
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
-      }
+    const options = this.options;
 
-      var words = this.data.map(function (d: any) {
-        return {
-          text: d[0],
-          size: d[1],
-        };
-      });
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.firstChild.remove();
+    }
 
-      // Determine the drawing dimensions
-      var margin = this.options.margin;
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+    const words = this.data.map(function (d: [string, number]) {
+      return {
+        text: d[0],
+        size: d[1],
+      };
+    });
 
-      var w = width + margin.left + margin.right;
-      var h = height + margin.top + margin.bottom;
+    // Determine the drawing dimensions
+    const margin = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin),
+    );
 
-      // Create an svg element under the parent
-      var svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", w)
-        .attr("height", h)
-        .attr("class", "pacioli-ts-chart pacioli-ts-wordcloud")
+    const width = this.options.width - margin.left - margin.right;
+    const height = this.options.height - margin.top - margin.bottom;
+
+    const w = width + margin.left + margin.right;
+    const h = height + margin.top + margin.bottom;
+
+    // Create an svg element under the parent
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h)
+      .attr("class", "pacioli wordcloud")
+      .append("g")
+      .attr(
+        "transform",
+        `translate(${margin.left.toString()},${margin.top.toString()})`,
+      );
+
+    const layout = cloud<{ text: string; size: number }>()
+      .size([w, h])
+      .words(words)
+      .padding(5)
+      .rotate(function () {
+        return Math.trunc(Math.random() * 2) * 90;
+      })
+      .font("Impact")
+      .fontSize(function (d) {
+        return d.size;
+      })
+      .on("end", draw);
+
+    layout.start();
+
+    function draw(
+      // Can this type be imported?
+      words: {
+        size: number;
+        text: string;
+        x: number;
+        y: number;
+        rotate: number;
+      }[],
+    ) {
+      //          d3.select("body").append("svg")
+      //              .attr("width", layout.size()[0])
+      //              .attr("height", layout.size()[1])
+
+      svg
         .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-      var layout = cloud<{ text: string; size: number }>()
-        .size([w, h])
-        .words(
-          /*[
-            "Hello", "world", "normally", "you", "want", "more", "words",
-            "than", "this"].map(function(d) {
-            return {text: d, size: 10 + Math.random() * 90, test: "haha"};
-          })*/
-          words
+        .attr(
+          "transform",
+          `translate(${(layout.size()[0] / 2).toString()},${(
+            layout.size()[1] / 2
+          ).toString()})`,
         )
-        .padding(5)
-        .rotate(function () {
-          return ~~(Math.random() * 2) * 90;
+        .selectAll("text")
+        .data(words)
+        .enter()
+        .append("text")
+        .style("font-size", function (d) {
+          return d.size.toString() + "px";
         })
-        .font("Impact")
-        .fontSize(function (d) {
-          return d.size;
+        .style("font-family", "Impact")
+        .attr("text-anchor", "middle")
+        .attr("transform", function (d) {
+          return `translate(${d.x.toString()},${d.y.toString()})rotate(${d.rotate.toString()})`;
         })
-        .on("end", draw);
-
-      layout.start();
-
-      function draw(words: any[]) {
-        //          d3.select("body").append("svg")
-        //              .attr("width", layout.size()[0])
-        //              .attr("height", layout.size()[1])
-
-        svg
-          .append("g")
-          .attr(
-            "transform",
-            "translate(" +
-              layout.size()[0] / 2 +
-              "," +
-              layout.size()[1] / 2 +
-              ")"
-          )
-          .selectAll("text")
-          .data(words)
-          .enter()
-          .append("text")
-          .style("font-size", function (d) {
-            return d.size + "px";
-          })
-          .style("font-family", "Impact")
-          .attr("text-anchor", "middle")
-          .attr("transform", function (d) {
-            return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-          })
-          .text(function (d) {
-            return d.text;
-          });
-      }
-    } catch (err) {
-      displayChartError(parent, "While drawing word cloud:", err);
+        .text(function (d) {
+          return d.text;
+        })
+        .on("click", (_, d) => {
+          const handler = options.onclick;
+          if (handler) {
+            setTimeout(() => {
+              handler({
+                value: d.text,
+                size: d.size,
+                options: options,
+              });
+            }, 0);
+          }
+        });
     }
   }
 }

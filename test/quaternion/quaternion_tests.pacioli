@@ -1,0 +1,273 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# Tests for the quaternion library
+# ------------------------------------------------------------------------------
+
+import quaternion;
+import testing;
+import geometry;
+
+# ------------------------------------------------------------------------------
+# The test runner
+# ------------------------------------------------------------------------------
+
+declare quaternion_suites :: List(TestSuite);
+
+define quaternion_suites = [
+   quaternion_scalar_suite,
+   quaternion_vector_suite,
+   unit_quaternion_suite,
+   quaternion_norm_suite,
+   quaternion_conjugate_suite,
+   scale_quaternion_suite,
+   quaternion_sum_suite,
+   quaternion_product_suite,
+   quaternion_inverse_suite,
+   quaternion2string_suite
+];
+
+run_test_suites(quaternion_suites); 
+
+# ------------------------------------------------------------------------------
+# Function quaternion_scalar
+# ------------------------------------------------------------------------------
+
+define quaternion_scalar_suite = test_suite("Function quaternion_scalar", [
+
+    test("should return the scalar passed in to make_quaternion", () ->
+        quaternion_scalar(make_quaternion(1,2,3,4)) = 1
+    ),
+         
+    test("should return the scalar passed in to make_quaternion2", () ->
+        quaternion_scalar(make_quaternion2(1, vector3d(2,3,4))) = 1
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Function quaternion_vector
+# ------------------------------------------------------------------------------
+
+define quaternion_vector_suite = test_suite("Function quaternion_vector", [
+
+    test("should return the vector created from the parameters passed to make_quaternion", () ->
+        quaternion_vector(make_quaternion(1,2,3,4)) = vector3d(2,3,4)
+    ),
+         
+    test("should return the vector passed in to make_quaternion2", () ->
+        quaternion_vector(make_quaternion2(1, vector3d(2,3,4))) = vector3d(2,3,4)
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Function unit_quaternion
+# ------------------------------------------------------------------------------
+
+define unit_quaternion_suite = test_suite("Function unit_quaternion", [
+
+    test("should correctly normalize 1 + i + j + k", () ->
+        unit_quaternion(make_quaternion(1,1,1,1)) = make_quaternion(1/2,1/2,1/2,1/2)
+    ),
+
+    test("should correctly normalize 1 - i + j - k", () ->
+        unit_quaternion(make_quaternion(1,-1,1,-1)) = make_quaternion(1/2,-1/2,1/2,-1/2)
+    ),
+
+    test("should  correctly normalize 4i + 3k", () ->
+        unit_quaternion(make_quaternion(0, 4, 0, 3)) = make_quaternion(0,4/5,0,3/5)
+    ),
+
+    test("should correctly normalize and drop the unit of measurement", () ->
+        unit_quaternion(make_quaternion(|metre|,|metre|,|metre|,|metre|)) = make_quaternion(1/2,1/2,1/2,1/2)
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Function quaternion_norm
+# ------------------------------------------------------------------------------
+
+define quaternion_norm_suite = test_suite("Function quaternion_norm", [
+
+    test("should correctly compute the norm of a dimensionless quaterion", () ->
+        quaternion_norm(make_quaternion(1,2,3,4)) = sqrt(30)
+    ),
+
+    test("should correctly compute the norm of a dimensioned quaterion", () ->
+        quaternion_norm(make_quaternion(1*|metre|,2*|metre|,3*|metre|,4*|metre|)) = sqrt(30) * |metre|
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Function quaternion_conjugate
+# ------------------------------------------------------------------------------
+
+define quaternion_conjugate_suite = test_suite("Function quaternion_conjugate", [
+
+    test("should correctly compute the conjugate of a quaterion", () ->
+        quaternion_conjugate(make_quaternion(1,2,3,4)) = make_quaternion(1,-2,-3,-4)
+    ),
+
+    test("should correctly compute the dimensioned quaterion of (1,0,0,0) metre", () ->
+        quaternion_conjugate(make_quaternion(1*|metre|,0*|metre|,0*|metre|,0*|metre|)) = 
+            make_quaternion(1*|metre|,0*|metre|,0*|metre|,0*|metre|)
+    )
+]);
+
+
+# ------------------------------------------------------------------------------
+# Function scale_quaternion
+# ------------------------------------------------------------------------------
+
+define scale_quaternion_suite = test_suite("Function scale_quaternion", [
+
+    test("should sum two dimensionless quaternions", () ->
+        scale_quaternion(10, make_quaternion(1,2,3,4)) = make_quaternion(10,20,30,40)
+    ),
+
+    test("should sum two dimensioned quaternions", () ->
+        scale_quaternion(10*|metre|, make_quaternion(5*|metre|,6*|metre|,7*|metre|,8*|metre|)) =
+            make_quaternion(50*|metre^2|,60*|metre^2|,70*|metre^2|,80*|metre^2|)
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Function quaternion_sum
+# ------------------------------------------------------------------------------
+
+define quaternion_sum_suite = test_suite("Function quaternion_sum", [
+
+    test("should sum two dimensionless quaternions", () ->
+        quaternion_sum(make_quaternion(1,2,3,4), make_quaternion(5,6,7,8)) =
+            make_quaternion(6,8,10,12)
+    ),
+
+    test("should sum two dimensioned quaternions", () ->
+        quaternion_sum(
+                make_quaternion(1*|metre|,2*|metre|,3*|metre|,4*|metre|), 
+                make_quaternion(5*|metre|,6*|metre|,7*|metre|,8*|metre|)) =
+            make_quaternion(6*|metre|,8*|metre|,10*|metre|,12*|metre|)
+    )
+]);
+
+# ------------------------------------------------------------------------------
+# Function quaternion_product
+# ------------------------------------------------------------------------------
+
+define quaternion_product_suite = test_suite("Function quaternion_product", [
+
+    test("should multiply two dimensionless quaternions", () ->
+        quaternion_product(make_quaternion(1,2,3,4), make_quaternion(5,6,7,8)) =
+            make_quaternion(-60,12,30,24)
+    ),
+
+    test("should multiply two dimensioned quaternions", () ->
+        quaternion_product(
+                make_quaternion(1*|metre|,2*|metre|,3*|metre|,4*|metre|), 
+                make_quaternion(5*|metre|,6*|metre|,7*|metre|,8*|metre|)) =
+            make_quaternion(-60*|metre^2|,12*|metre^2|,30*|metre^2|,24*|metre^2|)
+    ),
+
+    test("should multiply two complex numbers", () ->
+        quaternion_product(
+                make_quaternion(1*|metre|,2*|metre|,0*|metre|,0*|metre|), 
+                make_quaternion(5*|metre|,6*|metre|,0*|metre|,0*|metre|)) =
+            make_quaternion(-7*|metre^2|,16*|metre^2|,0*|metre^2|,0*|metre^2|)
+    ),
+
+    test("should multiply i*j to k", () ->
+        quaternion_product(
+                make_quaternion(0*|metre|,2*|metre|,0*|metre|,0*|metre|), 
+                make_quaternion(0*|metre|,0*|metre|,6*|metre|,0*|metre|)) =
+            make_quaternion(0*|metre^2|,0*|metre^2|,0*|metre^2|,12*|metre^2|)
+    ),
+
+    test("should multiply j*i to -k", () ->
+        quaternion_product(
+                make_quaternion(0*|metre|,0*|metre|,6*|metre|,0*|metre|), 
+                make_quaternion(0*|metre|,2*|metre|,0*|metre|,0*|metre|)) =
+            make_quaternion(0*|metre^2|,0*|metre^2|,0*|metre^2|,-12*|metre^2|)
+    )    
+]);
+
+# ------------------------------------------------------------------------------
+# Function quaternion_product
+# ------------------------------------------------------------------------------
+
+define quaternion_inverse_suite = test_suite("Function quaternion_inverse", [
+
+    test("should in a product of q and itself be 1", () ->
+        let
+            q = make_quaternion(1,2,3,4),
+            unit = make_quaternion(1,0,0,0)
+        in
+            quaternion_product(q, quaternion_inverse(q)) = unit
+                and
+            quaternion_product(quaternion_inverse(q), q) = unit
+        end
+    ),
+
+    test("should invert dimension correctly", () ->
+        let
+            q = scale_quaternion(|metre|, make_quaternion(1,2,3,4)),
+            unit = make_quaternion(1,0,0,0) # dimensionless unit
+        in
+            quaternion_product(q, quaternion_inverse(q)) = unit
+                and
+            quaternion_product(quaternion_inverse(q), q) = unit
+        end
+    ),
+
+    test("should handle zero correctly", () ->
+        let
+            q = make_quaternion(0,0,0,0)
+        in
+            #
+            # Should ideally give an error value, this is current Pacioli behaviour 
+            #
+            quaternion_inverse(q) = q
+        end
+    )  
+]);
+
+
+
+# ------------------------------------------------------------------------------
+# Function quaternion2string
+# ------------------------------------------------------------------------------
+
+define quaternion2string_suite = test_suite("Function quaternion2string", [
+
+    test("should correctly print a dimensionless quaternion", () ->
+        quaternion2string(unit_quaternion(make_quaternion(0,3,3,0)), 0*|decimals|, |1|) = "0 + 1i + 1j + 0k"
+    ),
+
+    test("should correctly print a dimensioned quaternion without decimals", () ->
+        quaternion2string(make_quaternion(2*|metre|, 3*|metre|, 4*|metre|, 5*|metre|), 0*|decimals|, |metre|) =
+            "(2 + 3i + 4j + 5k)m"
+    ),
+     
+    test("should correctly print a dimensioned quaternion with 10 decimals", () ->
+        let q = quaternion2string(make_quaternion(2*|metre|, 3*|metre|, 4*|metre|, 5*|metre|), 10*|decimals|, |metre|) in
+            q = "(2.0000000000 + 3.0000000000i + 4.0000000000j + 5.0000000000k)m" or
+            q = "(2,0000000000 + 3,0000000000i + 4,0000000000j + 5,0000000000k)m"
+        end
+    )
+]);

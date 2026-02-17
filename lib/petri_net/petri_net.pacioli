@@ -1,151 +1,219 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import fourier_motzkin;
+import random;
 
 export
     PetriNet,
     make_petri_net,
-    marked_petri_net,
-    petri_pre,
-    petri_post,
-    petri_flow,
-    petri_marking,
-    petri_unit,
+    make_zero_net,
+    petri_net_pre,
+    petri_net_post,
+    petri_net_flow,
+    petri_net_marking,
+    petri_net_unit,
     place_unit,
     transition_unit,
+    petri_net_places,
+    petri_net_transitions,
     fire_petri_net,
     petri_net_enabled,
     petri_subnet,
     semi_flows;
 
 # ------------------------------------------------------------------------------
-# Signature
+# Petri net data structure
 # ------------------------------------------------------------------------------
 
 doc PetriNet
-    "A Petri net is a vector addition system.";
+    "A dimensioned Petri nets. In a dimensioned Petri net a unit of measurement 
+    is associated with the net's places.";
 
-deftype
-  for_index P,T:
-    for_unit P!u:
-      PetriNet(P!u, T!) = Tuple(P!u per T!, P!u per T!, P!u);
-
-declare make_petri_net ::
-  for_index P,T:
-    for_unit P!u:
-      (P!u per T!, P!u per T!) -> PetriNet(P!u, T!);
-
-declare marked_petri_net ::
-  for_index P,T:
-    for_unit P!u:
-      (P!u per T!, P!u per T!, P!u) -> PetriNet(P!u, T!);
-
-declare petri_pre, petri_post, petri_flow ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!)) -> P!u per T!;
-
-declare petri_marking ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!)) -> P!u;
-
-declare petri_unit ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!)) -> P!u per T!;
-
-declare place_unit ::
-  for_index P,T:
-    for_unit mon, P!u:
-      (PetriNet(P!u, T!)) -> P!u;
-
-declare transition_unit ::
-  for_index P,T:
-    for_unit mon, P!u:
-      (PetriNet(P!u, T!)) -> T!;
-
-declare fire_petri_net ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!), T!) -> PetriNet(P!u, T!);
-
-declare petri_net_enabled ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!), T!) -> Boole();
-
-declare petri_subnet ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!), T!) -> PetriNet(P!u, T!);
-
-declare semi_flows ::
-  for_index P,T:
-    for_unit P!u:
-      (PetriNet(P!u, T!)) -> List(T!);
+defrecord for_index P,T: for_unit a, P!u: PetriNet(a, P!u, T!) as petri_net where
+    pre: a*P!u per T!,
+    post: a*P!u per T!,
+    marking: a*P!u;
 
 # ------------------------------------------------------------------------------
-# Implementation
+
+doc make_zero_net
+    "Creates a Petri net from incidence matrices with a zero marking.";
+
+declare make_zero_net ::
+    for_index P, T: for_unit a, P!u: (a*P!u per T!, a*P!u per T!) -> PetriNet(a, P!u, T!);
+
+define make_zero_net(pre, post) =
+    make_petri_net(pre, post, 0 * scalar_unit(pre) '.*' row_unit(pre));
+
 # ------------------------------------------------------------------------------
 
-define marked_petri_net(pre, post, marking) =
-  tuple(pre, post, marking);
+doc petri_net_flow
+    "The Petri net's flow matrix. Defined as the difference between the 
+    net's post matrix and the net's pre matrix.";
 
-define make_petri_net(pre, post) =
-  marked_petri_net(pre, post, 0 '.*' row_unit(pre));
+declare petri_net_flow ::
+    for_index P,T:
+        for_unit a,P!u:
+            (PetriNet(a, P!u, T!)) -> a*P!u per T!;
 
-define petri_pre(net) =
-  let (f, _, _) = net in f end;
-
-define petri_post(net) =
-  let (_, b, _) = net in b end;
-
-define petri_marking(net) =
-  let (_, _, m) = net in m end;
-
-define petri_flow(net) =
-  petri_post(net) - petri_pre(net);
+define petri_net_flow(net) =
+    petri_net_post(net) - petri_net_pre(net);
 
 # ------------------------------------------------------------------------------
 # Units of Measurement
 # ------------------------------------------------------------------------------
 
-define petri_unit(net) =
-  unit(petri_pre(net));
+doc petri_net_unit
+    "The units of measurement of the Petri net's pre and post matrices.";
+
+declare petri_net_unit ::
+    for_index P,T:
+        for_unit a, P!u:
+            (PetriNet(a, P!u, T!)) -> a*P!u per T!;
+
+define petri_net_unit(net) =
+    unit(petri_net_pre(net));
+
+# ------------------------------------------------------------------------------
+
+doc place_unit
+    "Unit vector for the net's places.";
+
+declare place_unit ::
+    for_index P,T:
+        for_unit a, P!u:
+            (PetriNet(a, P!u, T!)) -> a*P!u;
 
 define place_unit(net) =
-  row_unit(petri_pre(net));
+    let pre = petri_net_pre(net) in
+        scalar_unit(pre) '.*' row_unit(pre)
+    end;
+
+# ------------------------------------------------------------------------------
+
+doc transition_unit
+    "Unit vector for the net's transitions.";
+
+declare transition_unit ::
+    for_index P,T:
+        for_unit a, mon, P!u:
+            (PetriNet(a, P!u, T!)) -> T!;
 
 define transition_unit(net) =
-  column_unit(petri_pre(net));
+    column_unit(petri_net_pre(net));
+
+# ------------------------------------------------------------------------------
+# Places and Transitions
+# ------------------------------------------------------------------------------
+
+doc petri_net_places
+    "The places in a petri net.
+    
+    Equals the row domain of the incidence matrices.";
+
+declare petri_net_places ::
+    for_index P,T: for_unit a, P!u:
+        (PetriNet(a, P!u, T!)) -> List(P);
+
+define petri_net_places(net) =
+    row_domain(petri_net_pre(net));
+
+# ------------------------------------------------------------------------------
+
+doc petri_net_transitions
+    "The transitions in a petri net.
+    
+    Equals the column domain of the incidence matrices.";
+
+declare petri_net_transitions ::
+    for_index P,T: for_unit a, P!u:
+        (PetriNet(a, P!u, T!)) -> List(T);
+
+define petri_net_transitions(net)=
+    column_domain(petri_net_pre(net));
 
 # ------------------------------------------------------------------------------
 # Behaviour
 # ------------------------------------------------------------------------------
 
-define petri_net_enabled(net, amount) =
-  petri_pre(net) '*' amount <= petri_marking(net);
+doc fire_petri_net
+    "Fires the Petri net. Results in a Petri net with the new marking.";
+
+declare fire_petri_net ::
+    for_index P,T:
+        for_unit a, P!u:
+            (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!);
 
 define fire_petri_net(net, amount) =
-  marked_petri_net(petri_pre(net),
-                   petri_post(net),
-                   petri_marking(net) + petri_flow(net) '*' amount);
+    make_petri_net(
+        petri_net_pre(net),
+        petri_net_post(net),
+            petri_net_marking(net) + petri_net_flow(net) '*' amount);
+
+# ------------------------------------------------------------------------------
+
+doc petri_net_enabled
+    "Is firing the Petri net enabled for the given transition count?";
+
+declare petri_net_enabled ::
+  for_index P,T:
+    for_unit a, P!u:
+      (PetriNet(a, P!u, T!), T!) -> Boole();
+
+define petri_net_enabled(net, amount) =
+  petri_net_pre(net) '*' amount <= petri_net_marking(net);
 
 # ------------------------------------------------------------------------------
 # Subnet
 # ------------------------------------------------------------------------------
 
+doc petri_subnet
+    "Filters the net's transitions.";
+
+declare petri_subnet ::
+  for_index P,T:
+    for_unit a, P!u:
+      (PetriNet(a, P!u, T!), T!) -> PetriNet(a, P!u, T!);
+
 define petri_subnet(net, transition_mask) =
   let
     matrix_mask = magnitude(place_unit(net)) per transition_mask
   in
-    marked_petri_net(matrix_mask * petri_pre(net),
-                     matrix_mask * petri_post(net),
-                     petri_marking(net))
+    make_petri_net(matrix_mask * petri_net_pre(net),
+                     matrix_mask * petri_net_post(net),
+                     petri_net_marking(net))
   end;
 
 # ------------------------------------------------------------------------------
 # Semi-flows
 # ------------------------------------------------------------------------------
 
+doc semi_flows
+    "All transition vector that leaves the net's marking unchanged when fired.";
+
+declare semi_flows ::
+  for_index P,T:
+    for_unit a, P!u:
+      (PetriNet(a, P!u, T!)) -> List(T!);
+
 define semi_flows(net) =
-  fourier_motzkin(petri_flow(net));
+  fourier_motzkin(petri_net_flow(net));
+  

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>BoM</title>
+
+    <script type="text/javascript" src="../../js/pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="../../js/viz-standalone.js"></script>
+    <script type="text/javascript" src="bom.js"></script>
+</head>
+
+<body onload="update()">
+    <h2>Bill of Material Matrix</h2>
+
+    <style>
+        .panel {
+            margin-left: 8pt;
+            margin-bottom: 16pt;
+
+            input {
+                margin-right: 16pt
+            }
+        }
+    </style>
+
+    <div class="panel">
+        <label for="exploded">Exploded</label>
+        <input id="exploded" type="checkbox" onchange="update()" />
+
+        <label for="raw">Raw</label>
+        <input id="raw" type="checkbox" onchange="update()" checked />
+
+        <label for="headers">Headers</label>
+        <input id="headers" type="checkbox" onchange="update()" checked />
+
+        <label for="units">Units</label>
+        <input id="units" type="checkbox" onchange="update()" checked />
+
+        <label for="headerunits">Header units</label>
+        <input id="headerunits" type="checkbox" onchange="update()" />
+
+        <label for="evenwidth">Even width</label>
+        <input id="evenwidth" type="checkbox" onchange="update()" />
+
+        <label for="ascii">Ascii</label>
+        <input id="ascii" type="checkbox" onchange="update()" />
+    </div>
+
+    <pacioli-matrix id="bom" definition="bom:BoM" zero="-" headers headerunits raw evenwidth width="1000">
+    </pacioli-matrix>
+
+
+    <h2>Bill of Material</h2>
+
+    <div id="bomsection"></div>
+
+
+    <h2>Exploded Bill of Material</h2>
+
+    <div id="explodedsection"></div>
+
+
+    <h2>Cost Breakdown</h2>
+
+    Cost breakdown for one peace of apple pie
+
+    <h3>In dollar</h3>
+
+    <pacioli-value definition="bom:cost_breakdown"></pacioli-value>
+
+    <h3>In percentages</h3>
+
+    <pacioli-value definition="bom:cost_breakdown_in_percentages"></pacioli-value>
+
+    <script>
+
+        function update() {
+            const bomComponent = document.getElementById('bom')
+
+            bomComponent.headers = document.getElementById('headers').checked
+            bomComponent.raw = document.getElementById('raw').checked
+            bomComponent.nounits = !document.getElementById('units').checked
+            bomComponent.headerunits = document.getElementById('headerunits').checked
+            bomComponent.ascii = document.getElementById('ascii').checked
+            bomComponent.evenwidth = document.getElementById('evenwidth').checked
+            bomComponent.definition = document.getElementById('exploded').checked ? "bom:BoM_closure" : "bom:BoM"
+        }
+
+        function valueString(dimNum) {
+            // Unit symbol string can contain " (e.g. inch)
+            return dimNum.toFixed(3).replace("\"", "\\\"");
+        }
+
+        function asDot(matrix) {
+
+            let out = "digraph{ nodesep=0.5; ranksep=1; rankdir=BT;"
+
+            for (const entry of matrix.keyValueList().values) {
+                if (entry.value.magnitude.gte(0.000001)) {
+                    out += `${entry.row} -> ${entry.column} [label="${valueString(entry.value)}"];`
+                }
+            }
+
+            out += "}"
+
+            return out
+        }
+
+        Viz.instance().then(function (viz) {
+
+            const bomElt = document.getElementById("bomsection");
+            const explodedElt = document.getElementById("explodedsection");
+
+            bomElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM"))));
+            explodedElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("bom", "BoM_closure"))));
+        });
+
+    </script>
+
+</body>
+
+
+</html>

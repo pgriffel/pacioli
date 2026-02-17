@@ -1,0 +1,220 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+include color;
+
+import geometry;
+
+export
+    Mesh,
+    Vertex,
+    Face,
+    make_mesh,
+    default_mesh,
+    named_mesh,
+    move_mesh,
+    rotate_mesh,
+    cube_mesh,
+    named_cube_mesh,
+    vertex,
+    face,
+    with_mesh_material,
+    with_mesh_wireframe,
+    with_mesh_name,
+    set_wireframe;
+
+# ------------------------------------------------------------------------------
+# Mesh
+# ------------------------------------------------------------------------------
+
+doc Mesh
+    "A 3D shape composed from faces and vertices. Is an element of a 
+    `Scene(a, Geom3!u)` scene.";
+
+defrecord for_unit a, Geom3!u: Mesh(a, Geom3!u) as mesh where
+    vertices: List(Vertex(a, Geom3!u)),
+    faces: List(Face),
+    position: Maybe(a*Geom3!u),
+    rotation: Tuple(radian, radian, radian),
+    name: String,
+    wireframe: Boole,
+    material: String;
+
+# ------------------------------------------------------------------------------
+
+doc Vertex
+    "A point in a `Mesh(a, Geom3!u)` mesh.";
+
+deftype for_unit a, Geom3!u:
+    Vertex(a, Geom3!u) = Tuple(a*Geom3!u, Color);
+
+# ------------------------------------------------------------------------------
+
+doc Face
+    "A suface between a mesh's vertices.";
+
+deftype 
+    Face() = Tuple(1, 1, 1);
+
+# ------------------------------------------------------------------------------
+
+doc vertex
+    "Creates a mesh vertex. Expects x, y and z coordinates and a color. Is an 
+    element of a `Scene(a, Geom3!u)` scene.";
+
+declare vertex ::
+    for_unit a, Geom3!u: (a * Geom3!u, Color) -> Vertex(a, Geom3!u);
+
+define vertex(vec, color) =
+    tuple(vec, color);
+
+# ------------------------------------------------------------------------------
+
+doc face
+    "Creates a mesh face. Each argument is the index of a vertex. The mesh must
+    contains sufficient vertices.";
+
+declare face ::
+    (1, 1, 1) -> Face;
+
+define face(i, j, k) =
+    tuple(i, j, k);
+
+# ------------------------------------------------------------------------------
+
+doc default_mesh
+    "Creates a mesh from vertices and faces";
+
+declare default_mesh ::
+    for_unit a, Geom3!u:
+        (List(Vertex(a, Geom3!u)), List(Face)) -> Mesh(a, Geom3!u);
+
+define default_mesh(vertices, faces) = 
+    tuple(vertices, faces, nothing(), tuple(0*|radian|, 0*|radian|, 0*|radian|), "", false, "none");
+
+# ------------------------------------------------------------------------------
+
+doc named_mesh
+    "The same as `make_mesh` except the mesh is also given a name. The name is used
+    during animation to locate it when updating the scene.";
+
+declare named_mesh ::
+    for_unit a, Geom3!u:
+        (List(Vertex(a, Geom3!u)), List(Face), String) -> Mesh(a, Geom3!u);
+
+define named_mesh(vertices, faces, name) = 
+    tuple(vertices, faces, nothing(), tuple(0*|radian|, 0*|radian|, 0*|radian|), name, false, "none");
+
+# ------------------------------------------------------------------------------
+
+doc move_mesh
+    "Moves a mesh by offset 'vec'.";
+
+declare move_mesh ::
+    for_unit a, Geom3!u: (Mesh(a, Geom3!u), a*Geom3!u) -> Mesh(a, Geom3!u);
+
+define move_mesh(mesh, vec) =
+    with_mesh_position(just(vec), mesh);
+
+# ------------------------------------------------------------------------------
+
+doc rotate_mesh
+    "Rotates a mesh by radians.";
+
+declare rotate_mesh ::
+    for_unit a, Geom3!u: (Mesh(a, Geom3!u), radian, radian, radian) -> Mesh(a, Geom3!u);
+
+define rotate_mesh(mesh, x_angle, y_angle, z_angle) =
+    with_mesh_rotation(tuple(x_angle, y_angle, z_angle), mesh);
+
+# ------------------------------------------------------------------------------
+
+doc set_wireframe
+    "Copy of the mesh, but with the wireframe property changed.
+    
+    Deprecated. Use `with_mesh_wireframe` instead";
+
+declare set_wireframe ::
+    for_unit a, Geom3!u: (Mesh(a, Geom3!u), Boole) -> Mesh(a, Geom3!u);
+
+define set_wireframe(mesh, status) = 
+    with_mesh_wireframe(status, mesh);
+
+# ------------------------------------------------------------------------------
+# Cube mesh
+# ------------------------------------------------------------------------------
+
+doc cube_mesh
+    "Creates a cube mesh, a mesh with lengths of 'size' positioned at the origin.";
+
+declare cube_mesh ::
+    for_unit a: (a, Color) -> Mesh(a, Geom3!);
+
+define cube_mesh(size, color) =
+    make_cube_mesh("", size, color);
+
+# ------------------------------------------------------------------------------
+
+doc named_cube_mesh
+    "The same as `make_cube_mesh` except the cube is also given a name. The name is used
+    during animation to locate it when updating the scene.";
+
+declare named_cube_mesh ::
+    for_unit a: (String, a, Color) -> Mesh(a, Geom3!);
+
+define named_cube_mesh(name, size, color) =
+    make_cube_mesh(name, size, color);
+
+# ------------------------------------------------------------------------------
+
+define make_cube_mesh(name, size, color) =
+    let
+        vertex_points = [
+            vector3d(0,0,0),
+            vector3d(1,0,0),
+            vector3d(1,0,1),
+            vector3d(0,0,1),
+            vector3d(0,1,0),
+            vector3d(1,1,0),
+            vector3d(1,1,1),
+            vector3d(0,1,1)
+        ],
+
+        faces = [
+            face(0,2,1),
+            face(0,3,2),                 
+            face(4,5,6),                                
+            face(4,6,7),                                                
+            face(0,5,4),                
+            face(0,1,5),                                                                
+            face(1,6,5),                
+            face(1,2,6),                
+            face(2,7,6),                
+            face(2,3,7),
+            face(3,4,7), 
+            face(3,0,4)
+        ]
+    in
+        named_mesh([vertex(size '.*' v, color) | v <- vertex_points], faces, name)
+    end;

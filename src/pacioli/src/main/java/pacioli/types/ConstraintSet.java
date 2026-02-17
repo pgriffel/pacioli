@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types;
@@ -31,15 +32,13 @@ import java.util.Set;
 import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.expression.ApplicationNode;
-import pacioli.compiler.AbstractPrintable;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.Utils;
+import pacioli.compiler.Printable;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
-import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
-import uom.Fraction;
 import uom.Unit;
 
 /**
@@ -49,7 +48,9 @@ import uom.Unit;
  * Bastiaan J. Heeren, Top Quality Type Error Messages, PhD Thesis,
  * Universiteit Utrecht, The Netherlands, 2005
  */
-public class ConstraintSet extends AbstractPrintable {
+public class ConstraintSet implements Printable {
+
+    public static int DEPTH = 0;
 
     private final List<EqualityConstraint> equalityConstaints = new ArrayList<EqualityConstraint>();
     private final List<InstanceConstraint> instanceConstaints = new ArrayList<InstanceConstraint>();
@@ -60,12 +61,14 @@ public class ConstraintSet extends AbstractPrintable {
 
         public final TypeObject lhs;
         public final TypeObject rhs;
-        public String reason;
+        public final String reason;
+        public final Location location;
 
-        public EqualityConstraint(TypeObject lhs, TypeObject rhs, String reason) {
+        public EqualityConstraint(TypeObject lhs, TypeObject rhs, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
+            this.location = location;
         }
     }
 
@@ -74,13 +77,15 @@ public class ConstraintSet extends AbstractPrintable {
         public final TypeObject lhs;
         public final TypeObject rhs;
         public String reason;
+        public Location location;
         public final Set<Var> freeVars;
 
-        public InstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason) {
+        public InstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
             this.freeVars = freeVars;
+            this.location = location;
         }
 
         // Note that typeVars() is not freeVars(). TODO: use freeVars here or create
@@ -104,7 +109,8 @@ public class ConstraintSet extends AbstractPrintable {
                     lhs.applySubstitution(subs),
                     rhs.applySubstitution(subs),
                     newFreeVars,
-                    reason);
+                    reason,
+                    location);
         }
     }
 
@@ -113,11 +119,13 @@ public class ConstraintSet extends AbstractPrintable {
         public final Unit<TypeBase> lhs;
         public final Unit<TypeBase> rhs;
         public String reason;
+        public Location location;
 
-        public UnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String reason) {
+        public UnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
+            this.location = location;
         }
     }
 
@@ -161,23 +169,32 @@ public class ConstraintSet extends AbstractPrintable {
     public ConstraintSet() {
     }
 
-    public void addConstraint(TypeObject lhs, TypeObject rhs, String text) {
+    public void addConstraint(TypeObject lhs, TypeObject rhs, String text, Location location) {
         boolean lhsVar = lhs instanceof Var;
         boolean rhsVar = rhs instanceof Var;
         if (lhsVar || rhsVar || lhs.getClass().equals(rhs.getClass())) {
-            this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text));
+            this.equalityConstaints.add(new EqualityConstraint(lhs, rhs, text, location));
         } else {
-            throw new PacioliException(
-                    String.format("Cannot unify class %s and class %s", lhs.getClass(), rhs.getClass()));
+            throw new PacioliException(location,
+                    String.format("Cannot unify %s and %s", lhs.description(), rhs.description()));
         }
     }
 
-    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason) {
-        this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason));
+    public void addConstraint(TypeObject lhs, TypeObject rhs, String text) {
+        this.addConstraint(lhs, rhs, text, null);
+    }
+
+    public void addInstanceConstraint(TypeObject lhs, TypeObject rhs, Set<Var> freeVars, String reason,
+            Location location) {
+        this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason, location));
+    }
+
+    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text, Location location) {
+        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, location));
     }
 
     public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
-        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text));
+        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, null));
     }
 
     public void addConstraints(ConstraintSet other) {
@@ -211,7 +228,7 @@ public class ConstraintSet extends AbstractPrintable {
         for (InstanceConstraint constraint : instanceConstaints) {
             out.format("  %s <: for %s: %s\n",
                     constraint.lhs.pretty(),
-                    Utils.intercalateText(", ", new ArrayList<Var>(constraint.freeVars)),
+                    joinTexts(", ", new ArrayList<Var>(constraint.freeVars)),
                     constraint.rhs.pretty());
         }
         for (UnitConstraint constraint : unitConstaints) {
@@ -228,7 +245,18 @@ public class ConstraintSet extends AbstractPrintable {
         }
     }
 
+    public static String joinTexts(String seperator, List<? extends Printable> printables) {
+        List<String> strings = new ArrayList<String>();
+        for (Printable printable : printables) {
+            strings.add(printable.pretty());
+        }
+        return String.join(seperator, strings);
+    }
+
     public Substitution solve(Boolean verbose) throws PacioliException {
+
+        DEPTH++;
+        int depth = DEPTH - 1;
 
         List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
         List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
@@ -248,16 +276,18 @@ public class ConstraintSet extends AbstractPrintable {
                 TypeObject right = mgu.apply(constraint.rhs);
                 try {
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying %s and %s\n%s",
-                                left.pretty(), right.pretty(), constraint.reason);
+                        Pacioli.log("\n%s%s> Unifying %s and %s\n%s",
+                                " ".repeat(depth), depth, left.pretty(), right.pretty(), constraint.reason);
                     }
-                    Substitution subs = left.unify(right);
+                    Substitution subs = left.unifyVerbose(right, verbose);
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.log("%s<%s Result=%s", " ".repeat(depth), depth, subs.pretty());
                     }
                 } catch (PacioliException ex) {
-                    throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason,
+                            left.unfresh().pretty(),
                             right.unfresh().pretty(), ex.getLocalizedMessage());
                 }
             }
@@ -272,13 +302,14 @@ public class ConstraintSet extends AbstractPrintable {
                     Unit<TypeBase> right = mgu.apply(constraint.rhs);
 
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying units %s and %s\n%s",
+                        Pacioli.log("\nUnifying units %s and %s\n%s",
                                 left.pretty(), right.pretty(), constraint.reason);
                     }
 
-                    mgu = unifyUnits(left, right).compose(mgu);
+                    mgu = UnitUnification.unifyUnits(left, right).compose(mgu);
                 } catch (PacioliException ex) {
-                    throw new PacioliException("\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
                 }
             }
 
@@ -294,7 +325,7 @@ public class ConstraintSet extends AbstractPrintable {
 
                 try {
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails,
+                        Pacioli.log(
                                 "\nUnifying %s and nmode(%s, %s, %s)\n%s",
                                 result.pretty(),
                                 tensor.pretty(),
@@ -347,19 +378,19 @@ public class ConstraintSet extends AbstractPrintable {
                     // node.sourceDescription());
 
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nUnifying %s and %s\n%s",
+                        Pacioli.log("\nUnifying %s and %s\n%s",
                                 result.pretty(),
                                 tensorType.nmode(n, matrixType).pretty(),
                                 constraint.reason);
                     }
 
                     // typing.addConstraint(tensorType.nmode(n, matrixType), resultType, message);
-                    Substitution subs = result.unify(tensorType.nmode(n, matrixType));
+                    Substitution subs = result.unifyVerbose(tensorType.nmode(n, matrixType), verbose);
                     // Substitution subs = result.unify(tensor);
 
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.log("Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
                     throw new PacioliException("\n%s:\n\n%s\n =\nnmode(%s, %s, %s) \n\n%s", constraint.reason,
@@ -439,7 +470,7 @@ public class ConstraintSet extends AbstractPrintable {
                 todoInsts.remove((int) chosenConstraint);
 
                 if (verbose) {
-                    Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "\nInstance unifying %s and %s\n%s",
+                    Pacioli.log("\nInstance unifying %s and %s\n%s",
                             constraint.lhs.pretty(), constraint.rhs.pretty(), constraint.reason);
                 }
 
@@ -452,93 +483,22 @@ public class ConstraintSet extends AbstractPrintable {
                 // }
 
                 try {
-                    Substitution subs = left.unify(right);
+                    Substitution subs = left.unifyVerbose(right, verbose);
                     mgu = subs.compose(mgu);
                     if (verbose) {
-                        Pacioli.logIf(Pacioli.Options.showTypeInferenceDetails, "Result=\n%s", subs.pretty());
+                        Pacioli.log("Result=\n%s", subs.pretty());
                     }
                 } catch (PacioliException ex) {
-                    throw new PacioliException("\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason, left.unfresh().pretty(),
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n%s:\n\n%s\n =\n%s \n\n%s", constraint.reason,
+                            left.unfresh().pretty(),
                             right.unfresh().pretty(), ex.getLocalizedMessage());
                 }
             }
         }
 
+        DEPTH--;
+
         return mgu;
-    }
-
-    private Substitution unifyUnits(Unit<TypeBase> x, Unit<TypeBase> y) throws PacioliException {
-        try {
-            if (x.equals(y)) {
-                return new Substitution();
-            } else {
-                // hier met de factor(s) multiplyen?
-                return unitUnify(x.multiply(y.reciprocal()));
-            }
-        } catch (PacioliException ex) {
-            throw new PacioliException("Cannot unify units %s and %s", x.pretty(), y.pretty());
-        }
-    }
-
-    private Substitution unitUnify(Unit<TypeBase> unit) throws PacioliException {
-
-        List<TypeBase> varBases = new ArrayList<TypeBase>();
-        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
-
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar) {
-                varBases.add(base);
-            } else {
-                fixedBases.add(base);
-            }
-
-        }
-
-        if (varBases.isEmpty()) {
-            if (fixedBases.isEmpty()) {
-                return new Substitution();
-            } else {
-                throw new PacioliException("Cannot unify unit 1 %s", unit.pretty());
-            }
-        }
-
-        if (varBases.size() == 1) {
-
-            UnitVar var = (UnitVar) varBases.get(0);
-            assert (unit.power(var).isInt());
-            int power = unit.power(var).intValue();
-            Unit<TypeBase> residu = TypeBase.ONE;
-
-            for (TypeBase fixed : fixedBases) {
-                assert (unit.power(fixed).isInt());
-                int fixedPower = unit.power(fixed).intValue();
-                if (fixedPower % power != 0) {
-                    throw new PacioliException("Cannot unify unit 2 %s", unit.pretty());
-                }
-                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
-            }
-
-            return new Substitution(var, residu);
-        }
-
-        UnitVar minVar = (UnitVar) varBases.get(0);
-        for (TypeBase var : varBases) {
-            if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (UnitVar) var;
-            }
-        }
-
-        assert (unit.power(minVar).isInt());
-        Fraction minPower = unit.power(minVar);
-        Unit<TypeBase> rest = TypeBase.ONE;
-        for (TypeBase var : unit.bases()) {
-            if (!var.equals(minVar)) {
-                assert (unit.power(var).isInt());
-                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
-            }
-        }
-
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
-        return unitUnify(tmp.apply(unit)).compose(tmp);
     }
 }

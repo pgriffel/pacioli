@@ -1,0 +1,235 @@
+<p>
+The Petri net library provides a matrix representation of dimensioned Petri nets. In a dimensioned
+Petri net a unit of measurement is associated with the net's places.
+
+<p>
+A Petri net is a tuple
+<math>
+  <ms>(</ms>
+  <mi>P</mi>
+  <mo>,</mo>
+  <mi>T</mi>
+  <mo>,</mo>
+  <msup>
+    <mi>F</mi>
+    <mi>&plus;</mi>
+  </msup>
+  <mo>,</mo>
+  <msup>
+    <mi>F</mi>
+    <mi>&minus;</mi>
+  </msup>
+  <ms>)</ms>
+</math>
+
+with 
+<ul>
+  <li>
+    <math>
+      <mi>P</mi>
+    </math>
+    a set of places,
+  </li>
+  <li>
+    <math>
+      <mi>T</mi>
+    </math>
+    a set of transitions,
+  </li>
+  <li>
+    <math>
+      <msup>
+        <mi>F</mi>
+        <mi>&plus;</mi>
+      </msup>
+    </math>
+    a matrix of the form
+    <math>
+      <mi>P</mi>
+      <mo>&times;</mo>
+      <mi>T</mi>
+      <mo>&rarr;</mo>
+      <mi>&Nopf;</mi>
+    </math>
+    called the post matrix, and
+  </li>
+  <li>
+    <math>
+      <msup>
+        <mi>F</mi>
+        <mi>&minus;</mi>
+      </msup>
+    </math>
+    a matrix of the form
+    <math>
+      <mi>P</mi>
+      <mo>&times;</mo>
+      <mi>T</mi>
+      <mo>&rarr;</mo>
+      <mi>&Nopf;</mi>
+    </math>
+    called the pre matrix.
+  </li>
+</ul>
+
+
+<p>
+A Petri net's state is defined by its marking. A marking
+<math>
+  <mi>m</mi>
+</math>
+is a vector
+<math>
+  <mi>P</mi>
+  <mo>&rarr;</mo>
+  <mi>&Nopf;</mi>
+</math>.
+
+For any place
+<math>
+  <mi>p</mi>
+  <mo>&isin;</mo>
+  <mi>P</mi>
+</math>
+value
+<math>
+  <msub>
+    <mi>m</mi>
+    <mi>p</mi>
+  </msub>
+</math>
+is the number of <it>tokens</it> in that place.
+
+<p>
+A Petri net changes state by firing transitions. 
+Given a marking
+<math>
+  <mi>m</mi>
+</math>,
+firing a transition
+<math>
+  <mi>t</mi>
+  <mo>&isin;</mo>
+  <mi>T</mi>
+</math>
+is enabled when 
+<math>
+   <msubsup>
+    <mi>F</mi>
+    <mrow>
+      <mi>p</mi>
+      <mi>t</mi>
+    </mrow>
+    <mi>&minus;</mi>
+  </msubsup>
+  <mo>&ge;</mo>
+  <msub>
+    <mi>m</mi>
+    <mi>p</mi>
+  </msub>
+</math>
+for each
+<math>
+  <mi>p</mi>
+  <mo>&isin;</mo>
+  <mi>P</mi>
+</math>.
+When the transition fires it consumes 
+<math>
+   <msubsup>
+    <mi>F</mi>
+    <mrow>
+      <mi>p</mi>
+      <mi>t</mi>
+    </mrow>
+    <mi>&minus;</mi>
+  </msubsup>
+</math>
+tokens from each place, and produces
+<math>
+   <msubsup>
+    <mi>F</mi>
+    <mrow>
+      <mi>p</mi>
+      <mi>t</mi>
+    </mrow>
+    <mi>&plus;</mi>
+  </msubsup>
+</math>
+tokens for each place.
+
+
+<p>
+In a matrix setting it is natural to define firing of transitions in parallel.
+Given a transition vector
+<math>
+  <mi>x</mi>
+</math>
+of type
+<math>
+  <mi>T</mi>
+  <mo>&rarr;</mo>
+  <mi>&Nopf;</mi>
+</math>
+where
+<math>
+  <msub>
+    <mi>x</mi>
+    <mi>t</mi>
+  </msub>
+</math>
+is number of times transition
+<math>
+  <mi>t</mi>
+  <mo>&isin;</mo>
+  <mi>T</mi>
+</math>
+fires, the new marking 
+<math>
+  <mi>m</mi>
+  <mi>'</mi>
+</math>
+is given by
+
+<blockquote>
+  <math>
+    <mi>m</mi>
+    <mi>'</mi>
+    <mo>=</mo>
+    <mi>m</mi>
+    <mo>+</mo>
+    <mi>F</mi>
+    <mi>x</mi>
+    <ms>
+  </math>
+  under the condition that
+  <math>
+    </ms>
+    <msup>
+      <mi>F</mi>
+      <mi>&minus;</mi>
+    </msup>
+    <mi>x</mi>
+    <mo>&ge;</mo>
+    <mn>m</mn>
+  </math>
+</blockquote>
+
+where flow matrix
+<math>
+  <mi>F</mi>
+</math>,
+is defined as
+<math>
+  <mi>F</mi>
+  <mo>=</mo>
+  <msup>
+    <mi>F</mi>
+    <mi>&plus;</mi>
+  </msup>
+  <mo>-</mo>
+  <msup>
+    <mi>F</mi>
+    <mi>&minus;</mi>
+  </msup>
+</math>

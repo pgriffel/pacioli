@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package uom;
@@ -38,9 +39,9 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
     public PowerProduct() {
         powers = new HashMap<B, Fraction>();
     }
-    
+
     public PowerProduct(Unit<B> x, Unit<B> y) {
-        //PowerProduct<B> powers = new HashMap<B, Fraction>();
+        // PowerProduct<B> powers = new HashMap<B, Fraction>();
 
         HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
         for (B base : x.bases()) {
@@ -50,9 +51,9 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
             hash.put(base, y.power(base).add(x.power(base)));
         }
         powers = hash;
-        //return new PowerProduct<B>(hash);
+        // return new PowerProduct<B>(hash);
     }
-    
+
     public PowerProduct(B base) {
         powers = new HashMap<B, Fraction>();
         powers.put(base, Fraction.ONE);
@@ -78,7 +79,7 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
         return (value == null ? Fraction.ZERO : value);
     }
 
-    //public static <B extends Base<B>> Unit<B> normal(Unit<B> unit) {
+    // public static <B extends Base<B>> Unit<B> normal(Unit<B> unit) {
     public static <B> Unit<B> normal(Unit<B> unit) {
         Set<B> bases = unit.bases();
         if (bases.size() == 1) {
@@ -149,19 +150,19 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
             }
         });
         /*
-        String output = "";
-        for (B base : bases()) {
-            output += String.format("*%s^%s", base, power(base));
-        }
-        return output;
-        */
+         * String output = "";
+         * for (B base : bases()) {
+         * output += String.format("*%s^%s", base, power(base));
+         * }
+         * return output;
+         */
     }
 
     @Override
     public DimensionedNumber<B> multiply(BigDecimal factor) {
         return new DimensionedNumber<B>(factor, this);
     }
-    
+
     @Override
     public Unit<B> raise(Fraction power) {
         HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
@@ -185,18 +186,19 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
         }
         return number;
     }
-/*
-    @Override
-    public <T> T fold(UnitFold<B, T> fold) {
-        //T newUnit = new PowerProduct();
-        T result = fold.one();
-        for (B base : bases()) {
-            T mapped = fold.expt(fold.map(base), power(base));
-            result = fold.mult(result, mapped);
-        }
-        return result;
-    }
-  */  
+
+    /*
+     * @Override
+     * public <T> T fold(UnitFold<B, T> fold) {
+     * //T newUnit = new PowerProduct();
+     * T result = fold.one();
+     * for (B base : bases()) {
+     * T mapped = fold.expt(fold.map(base), power(base));
+     * result = fold.mult(result, mapped);
+     * }
+     * return result;
+     * }
+     */
     @Override
     public Unit<B> map(UnitMap<B> map) {
         Unit<B> newUnit = new PowerProduct<B>();
@@ -219,20 +221,20 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
             Fraction power = power(base);
             if (0 < power.signum()) {
                 symbolic = symbolic.concat(sep);
-                // sep = "�";
+                // sep = "ï¿½";
                 sep = "*";
                 symbolic = symbolic.concat(((Unit<B>) base).pretty());
 
                 // if (power.compareTo(Fraction.MINTHREE) == 0) {
-                // symbolic = symbolic.concat("�");
+                // symbolic = symbolic.concat("ï¿½");
                 // } else if (power.compareTo(Fraction.MINTWO) == 0) {
-                // symbolic = symbolic.concat("�");
+                // symbolic = symbolic.concat("ï¿½");
                 // } else if (power.compareTo(Fraction.MINONE) == 0) {
-                // symbolic = symbolic.concat("�");
+                // symbolic = symbolic.concat("ï¿½");
                 // } else if (power.compareTo(Fraction.TWO) == 0) {
-                // symbolic = symbolic.concat("�");
+                // symbolic = symbolic.concat("ï¿½");
                 // } else if (power.compareTo(Fraction.THREE) == 0) {
-                // symbolic = symbolic.concat("�");
+                // symbolic = symbolic.concat("ï¿½");
                 // } else if (power.compareTo(Fraction.ONE) != 0) {
                 // symbolic = symbolic.concat("^");
                 // symbolic = symbolic.concat(power.toString());
@@ -247,13 +249,13 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
             symbolic = "1";
         }
         sep = "/";
-        // sep = "�";
+        // sep = "ï¿½";
         for (B base : bases) {
             Fraction power = power(base);
             if (power.signum() < 0) {
                 // power = power.negate();
                 symbolic = symbolic.concat(sep);
-                // sep = "�";
+                // sep = "ï¿½";
                 sep = "/";
                 symbolic = symbolic.concat(((Unit<B>) base).pretty());
 

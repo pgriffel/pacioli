@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2015 - 2015 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package uom;
@@ -94,7 +95,9 @@ public class DimensionedNumber<B> {
     }
 
     public DimensionedNumber<B> divide(DimensionedNumber<B> other) {
-        return new DimensionedNumber<B>(factor.divide(other.factor), unit.multiply(other.unit.reciprocal()));
+        // TODO: what to do for scale. The current 25 is not based on anything
+        return new DimensionedNumber<B>(factor.divide(other.factor, 25, RoundingMode.HALF_UP),
+                unit.multiply(other.unit.reciprocal()));
     }
 
     public DimensionedNumber<B> raise(Fraction power) {
@@ -104,6 +107,7 @@ public class DimensionedNumber<B> {
             if (0 < pow) {
                 raisedFactor = factor.pow(pow, MathContext.DECIMAL128);
             } else {
+                // TODO: what to do for scale. The current 25 is not based on anything
                 raisedFactor = BigDecimal.ONE.divide(factor.pow(-pow, MathContext.DECIMAL128), 25,
                         RoundingMode.HALF_UP);
             }

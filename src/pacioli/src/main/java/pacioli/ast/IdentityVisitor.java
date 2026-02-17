@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.ast;
 
 import pacioli.ast.definition.AliasDefinition;
@@ -21,26 +43,34 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
-import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
@@ -106,20 +136,27 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(Declaration declaration) {
+    public void visit(Declaration node) {
         // Pacioli.log("Decl");
+        node.id.accept(this);
+        node.typeNode.accept(this);
     }
 
     @Override
     public void visit(IndexSetDefinition indexSetDefinition) {
+        indexSetDefinition.id.accept(this);
         if (indexSetDefinition.isDynamic()) {
             indexSetDefinition.body().accept(this);
         }
     }
 
     @Override
-    public void visit(MultiDeclaration multiDeclaration) {
+    public void visit(MultiDeclaration node) {
         // Pacioli.log("Multidc");
+        for (IdentifierNode id : node.ids) {
+            id.accept(this);
+        }
+        node.node.accept(this);
     }
 
     @Override
@@ -128,13 +165,17 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TypeDefinition typeDefinition) {
-        // Pacioli.log("TYpeD");
+    public void visit(TypeDefinition node) {
+        for (QuantNode id : node.quantNodes) {
+            id.accept(this);
+        }
+        node.lhs.accept(this);
+        node.rhs.accept(this);
     }
 
     @Override
     public void visit(UnitDefinition node) {
-        // Pacioli.log("Unitdef");
+        node.id.accept(this);
         if (node.body.isPresent()) {
             node.body.get().accept(this);
         }
@@ -218,7 +259,10 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(KeyNode keyNode) {
+    public void visit(KeyNode node) {
+        for (TypeIdentifierNode id : node.indexSets) {
+            id.accept(this);
+        }
     }
 
     @Override
@@ -227,8 +271,9 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(MatrixLiteralNode matrixLiteralNode) {
+    public void visit(MatrixLiteralNode node) {
         // Pacioli.log("matrix");
+        node.typeNode.accept(this);
     }
 
     @Override
@@ -248,6 +293,10 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
+    public void visit(ReturnVoidNode node) {
+    }
+
+    @Override
     public void visit(SequenceNode node) {
         for (ExpressionNode argument : node.items) {
             argument.accept(this);
@@ -264,13 +313,27 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(TupleAssignmentNode tupleAssignmentNode) {
+    public void visit(TupleAssignmentNode node) {
         // Pacioli.log("tup");
+        node.tuple.accept(this);
     }
 
     @Override
     public void visit(WhileNode node) {
         node.test.accept(this);
+        node.body.accept(this);
+    }
+
+    @Override
+    public void visit(ForNode node) {
+        node.items.accept(this);
+        node.body.accept(this);
+        node.lambdaBody.accept(this);
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+        node.items.accept(this);
         node.body.accept(this);
     }
 
@@ -293,8 +356,11 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(SchemaNode schemaNode) {
-        // Pacioli.log("sschema");
+    public void visit(SchemaNode node) {
+        for (QuantNode arg : node.quantNodes) {
+            arg.accept(this);
+        }
+        node.type.accept(this);
     }
 
     @Override
@@ -350,7 +416,8 @@ public class IdentityVisitor implements Visitor {
     }
 
     @Override
-    public void visit(UnitIdentifierNode unitIdentifierNode) {
+    public void visit(UnitIdentifierNode node) {
+        node.name.accept(this);
     }
 
     @Override
@@ -366,9 +433,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(LetNode node) {
-        for (BindingNode binding : node.binding) {
-            binding.accept(this);
-        }
+        node.binding.accept(this);
         node.body.accept(this);
     }
 
@@ -396,6 +461,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(Documentation node) {
+        // node.id.accept(this);
         node.body.accept(this);
     }
 
@@ -431,4 +497,72 @@ public class IdentityVisitor implements Visitor {
             arg.accept(this);
         }
     }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+    }
+
+    @Override
+    public void visit(ExponentNode node) {
+        node.base.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        node.expression.accept(this);
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            clause.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(ComprehensionNode.GeneratorClause clause) {
+        clause.id.accept(this);
+        clause.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.FilterClause clause) {
+        clause.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleGeneratorClause clause) {
+        for (IdentifierNode id : clause.ids) {
+            id.accept(this);
+        }
+        clause.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.AssignmentClause clause) {
+        clause.id.accept(this);
+        clause.value.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleAssignmentClause clause) {
+        for (IdentifierNode id : clause.ids) {
+            id.accept(this);
+        }
+        clause.value.accept(this);
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+        for (ExpressionNode element : node.elements) {
+            element.accept(this);
+        }
+    }
+
 }

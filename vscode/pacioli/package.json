@@ -1,0 +1,173 @@
+{
+  "name": "pacioli",
+  "displayName": "Pacioli",
+  "description": "The Pacioli language",
+  "version": "0.5.0",
+  "publisher": "PRG",
+  "repository": "https://github.com/pgriffel/pacioli",
+  "icon": "icon.png",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "pacioli",
+        "aliases": [
+          "pacioli",
+          "pacioli"
+        ],
+        "extensions": [
+          "pacioli"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "pacioli",
+        "scopeName": "pacioli",
+        "path": "./syntaxes/pacioli.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Pacioli",
+      "properties": {
+        "pacioli.libdir": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "The directory containing the Pacioli libraries."
+        }
+      }
+    },
+    "taskDefinitions": [
+      {
+        "type": "pacioli",
+        "required": [
+          "command"
+        ],
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "The pacioli compiler command to execute. Valid Pacioli compiler commands are 'run', 'compile', 'types', 'symbols', 'api', and 'baseapi'."
+          },
+          "target": {
+            "type": "string",
+            "description": "The target for the compile command. One of 'mvm', 'javascript', 'matlab', or 'python'"
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "pacioli.run",
+        "title": "Pacioli run"
+      },
+      {
+        "command": "pacioli.types",
+        "title": "Pacioli types"
+      },
+      {
+        "command": "pacioli.compilejs",
+        "title": "Pacioli compile to js"
+      },
+      {
+        "command": "pacioli.compilemvm",
+        "title": "Pacioli compile to mvm"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "when": "resourceLangId == pacioli",
+          "submenu": "pacioli.compile",
+          "group": "z_commands"
+        },
+        {
+          "when": "resourceLangId == pacioli",
+          "command": "pacioli.types",
+          "group": "z_commands"
+        },
+        {
+          "when": "resourceLangId == pacioli",
+          "command": "pacioli.run",
+          "group": "z_commands"
+        }
+      ],
+      "pacioli.compile": [
+        {
+          "command": "pacioli.compilejs",
+          "group": "z_commands"
+        },
+        {
+          "command": "pacioli.compilemvm",
+          "group": "z_commands"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "pacioli.compile",
+        "label": "Pacioli compile"
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+f9",
+        "command": "pacioli.run"
+      },
+      {
+        "key": "ctrl+f10",
+        "command": "pacioli.types"
+      },
+      {
+        "key": "ctrl+f11",
+        "command": "pacioli.compilejs"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "pacioli",
+        "path": "./snippets.json"
+      }
+    ]
+  },
+  "scripts": {
+    "tsc:compile": "tsc -p ./",
+    "tsc:watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test",
+    "compile": "npm run check-types && node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "vscode:prepublish": "npm run check-types && node esbuild.js --production",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.96.0",
+    "@typescript-eslint/eslint-plugin": "^8.17.0",
+    "@typescript-eslint/parser": "^8.17.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "esbuild": "^0.27.2",
+    "eslint": "^9.16.0",
+    "typescript": "^5.7.2",
+    "vsce": "^2.15.0"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  }
+}

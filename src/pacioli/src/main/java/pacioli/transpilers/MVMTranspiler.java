@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.transpilers;
 
 import java.util.ArrayList;
@@ -11,7 +33,6 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
-import pacioli.compiler.Utils;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
@@ -41,7 +62,9 @@ public class MVMTranspiler implements SymbolTableVisitor {
         // Infos without definition are filtered by the caller
         assert (info.definition().isPresent());
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling value %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling value %s", info.globalName());
+        }
 
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
@@ -55,7 +78,9 @@ public class MVMTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(IndexSetInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling index set %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling index set %s", info.globalName());
+        }
 
         assert (info.definition().isPresent());
 
@@ -71,14 +96,16 @@ public class MVMTranspiler implements SymbolTableVisitor {
                 quotedItems.add(String.format("\"%s\"", item));
             }
             out.format("indexset \"%s\" \"%s\" list(%s);\n", info.globalName(), info.definition().get().name(),
-                    Utils.intercalate(",", quotedItems));
+                    String.join(",", quotedItems));
         }
 
     }
 
     @Override
     public void visit(ParametricInfo info) {
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling type %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling type %s", info.globalName());
+        }
     }
 
     @Override
@@ -86,16 +113,19 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
         Optional<UnitDefinition> definition = info.definition();
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling unit %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling unit %s", info.globalName());
+        }
 
         if (definition.isPresent()) {
 
             if (!definition.get().body.isPresent()) {
-                out.format("baseunit \"%s\" \"%s\";\n", info.name(), info.symbol());
+                out.format("baseunit \"%s\" \"%s\";\n", info.name(), MVMGenerator.escapeString(info.symbol()));
             } else {
                 DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
                 number = number.flat();
-                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), info.symbol(), number.factor(),
+                out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), MVMGenerator.escapeString(info.symbol()),
+                        number.factor(),
                         MVMGenerator.compileUnitToMVM(number.unit()));
             }
         } else {
@@ -106,7 +136,9 @@ public class MVMTranspiler implements SymbolTableVisitor {
     @Override
     public void visit(VectorBaseInfo info) {
 
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling vector unit %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling vector unit %s", info.globalName());
+        }
 
         assert (info.definition().isPresent());
 
@@ -120,7 +152,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         }
         String globalName = setInfo.globalName();
         String name = info.name();
-        String args = Utils.intercalate(", ", unitTexts);
+        String args = String.join(", ", unitTexts);
         out.print(String.format("unitvector \"%s\" \"%s\" list(%s);\n", globalName, name, args));
     }
 
@@ -131,7 +163,9 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
     @Override
     public void visit(TypeVarInfo info) {
-        Pacioli.logIf(Pacioli.Options.showGeneratingCode, "Compiling type %s", info.globalName());
+        if (Pacioli.Options.showGeneratingCode) {
+            Pacioli.log("Compiling type %s", info.globalName());
+        }
     }
 
     @Override

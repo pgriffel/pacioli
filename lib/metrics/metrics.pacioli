@@ -1,0 +1,164 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+export
+    bilinear_form,
+    metric_norm,
+    metric_distance,
+    identity_metric,
+    gsvd;
+
+# ------------------------------------------------------------------------------
+# Matrix representation of bilinear forms
+#
+# Let u,v,w be vectors and let a and b be constants. A bilinear form f satisfies
+#
+# (1) f(av+bw,u) = af(v,u) + bf(w,u)
+# (2) f(u,av+bw) = af(u,v) + bf(u,w)
+#
+# A bilinear form can be represented by a matrix, say M: 
+#     f(v,w) = v^T '*' M '*' w.
+#
+# The derived type of bilinear_form(M) below is:
+#
+# for_index E, F, H, K: for_unit a, b, K!j, E!c, F!d, i, H!g:
+#     (a*E!c per F!d) -> (b*1/E!c per H!g, i*F!d per K!j) -> a*b*i*1/H!g per K!j
+#
+# Substitute H!g = 1 and K!j = 1 since v and w are vectors
+#
+# for_index E, F, H, K: for_unit a, b, E!c, F!d, i:
+#     (a*E!c per F!d) -> (b*1/E!c, i*F!d) -> a*b*i
+#
+# Finally some renaming gives the type below.
+#
+# The uniform metric is a special case:
+#
+# for_index I: for_unit a, b, c, P!u, P!v:
+#     (a * I! per I!) -> (b*I!, c*I!) -> a*b*c;
+# ------------------------------------------------------------------------------
+
+doc bilinear_form
+    "Constructs a bilinear form from a metric matrix.
+
+    A bilinear form f satisfies
+
+    1. f(av+bw,u) = af(v,u) + bf(w,u)
+    2. f(u,av+bw) = af(u,v) + bf(u,w)
+    
+    
+    The bilinear form functions is defined as   
+    
+    `f(v,w) = v^T '*' M '*' w`
+    ";
+
+declare bilinear_form :: 
+    for_index P, Q: for_unit a, b, c, P!u, Q!v:
+        (a/P!u per Q!v) -> (b*P!u, c*Q!v) -> a*b*c;
+
+define bilinear_form(M) =
+    (v, w) -> v^T '*' M '*' w;
+
+# ------------------------------------------------------------------------------
+# Metric norm
+#
+# Given some bilinear form f, the norm of a vector v is sqrt(f(v,v))
+#
+# Special case for uniform vectors is:
+#   for_index P: for_unit a: (P! per P!, a*P!) -> a;
+# ------------------------------------------------------------------------------
+
+doc metric_norm
+    "Computes the norm of a vector with respect to a given metric.
+    
+    Given some bilinear form `f`, the norm of a vector `v` is `sqrt(f(v,v))`";
+
+declare metric_norm ::
+    for_index P: for_unit a, b, P!u:
+        (a^2/P!u per P!u) -> (b*P!u) -> a*b;
+
+define metric_norm(metric) =
+    (v) -> sqrt(bilinear_form(metric)(v, v));
+
+# ------------------------------------------------------------------------------
+# Distance
+#
+# Uniform case is:
+#   for_index I: for_unit a: (I! per I!, a*I!, a*I!) -> a;
+# ------------------------------------------------------------------------------
+
+doc metric_distance
+    "Computes the distance between two vectors with respect to a given metric.";
+
+declare metric_distance ::
+    for_index P: for_unit a, P!u, b:
+        (a^2/P!u per P!u) -> (b*P!u, b*P!u) -> a*b;
+
+define metric_distance(metric) =
+    (x, y) -> metric_norm(metric)(x - y);
+
+# ------------------------------------------------------------------------------
+# Function identity_metric
+# ------------------------------------------------------------------------------
+
+doc identity_metric
+    "A metric with ones on the diagonal and zeros everywhere else.";
+
+declare identity_metric ::
+    for_index P: for_unit a, P!u: (P!u/a) -> a^2/P!u per P!u;
+
+define identity_metric(unit) =
+    make_matrix([tuple(x, x, 1) | x <- row_domain(unit)]) * (unit^R per unit);
+
+# ------------------------------------------------------------------------------
+# Generalized Singular Value Decomposition
+# ------------------------------------------------------------------------------
+
+doc gsvd
+    "Generalized Singular Value Decomposition.
+    
+    Computes the generalized singular value decomposition of a matrix A with respect to
+    two positive definite metric matrices.
+    
+    The result is a list of tuples (s, u, v) where s are the generalized singular values,
+    u are the left singular vectors and v are the right singular vectors.
+    
+    The left singular vectors are orthogonal with respect to the first metric,
+    and the right singular vectors are orthogonal with respect to the second metric.
+
+    Satisfies:
+    
+        svd(A) = gsvd(identity_metric(row_unit(A)), identity_metric(column_unit(A)))(A)";
+
+declare gsvd :: for_index P, Q: for_unit r, c, a, P!u, Q!v:
+    (r^2/P!u per P!u, c^2/Q!v per Q!v) ->
+        (a*P!u per Q!v) -> List(Tuple(a*r/c, P!u/r, c/Q!v));
+
+define gsvd(row_metric, column_metric) =
+    let
+        # We need the dual of cholesky: R^T '*' R = row_metric and C^T '*' C = column_metric
+        R = cholesky_decomposition(row_metric^T)^T,
+        C_tr = cholesky_decomposition(column_metric^T),
+        C = C_tr^T,
+        R_inv = R'^'-1,
+        C_inv = C'^'-1
+    in
+        (A) -> [tuple(s, R_inv '*' v, C_tr '*' w) | (s, v, w) <- singular_value_list(R '*' A '*' C_inv)]
+    end;

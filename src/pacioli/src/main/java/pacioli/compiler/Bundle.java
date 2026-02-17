@@ -1,11 +1,33 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.compiler;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -18,6 +40,7 @@ import java.util.stream.Collectors;
 import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
@@ -25,7 +48,9 @@ import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.DocumentationGenerator;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -60,7 +85,9 @@ public class Bundle {
             "Identifier",
             "Maybe",
             "Array",
-            "File");
+            "Map",
+            "File",
+            "Data");
 
     private final PacioliFile file;
     private final List<File> libs;
@@ -84,21 +111,35 @@ public class Bundle {
     private SymbolTable<ValueInfo> visibleValueInfos(
             Collection<String> importedModules,
             Collection<String> includedModules) {
+
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>();
+
         environment.values().allInfos().forEach(info -> {
+
             if (info.isPublic() && importedModules.contains(info.generalInfo().module())) {
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Importing %s", info.name());
+                if (Pacioli.Options.showResolvingDetails) {
+                    Pacioli.log("Importing %s", info.name());
+                }
+
                 table.put(info.name(), info);
             }
+
             if (includedModules.contains(info.generalInfo().module())) {
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Including %s", info.name());
+                if (Pacioli.Options.showResolvingDetails) {
+                    Pacioli.log("Including %s", info.name());
+                }
+
                 table.put(info.name(), info);
             }
-            if (!(info.isPublic() && importedModules.contains(info.generalInfo().module())) &&
-                    !includedModules.contains(info.generalInfo().module())) {
-                Pacioli.logIf(Pacioli.Options.showResolvingDetails, "Skipping %s", info.name());
+
+            if (Pacioli.Options.showResolvingDetails) {
+                if (!(info.isPublic() && importedModules.contains(info.generalInfo().module())) &&
+                        !includedModules.contains(info.generalInfo().module())) {
+                    Pacioli.log("Skipping %s", info.name());
+                }
             }
         });
+
         return table;
     }
 
@@ -110,13 +151,17 @@ public class Bundle {
             String infoModule = info.generalInfo().module();
             if ((info.isPublic() || info instanceof UnitInfo) && importedModules.contains(infoModule)
                     || includedModules.contains(infoModule)) {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s", info.globalName(),
-                        info.name());
+
+                if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
+                    Pacioli.log("Adding type %s %s", info.globalName(), info.name());
+                }
+
                 table.put(info.name(), info);
+
             } else {
-                Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Skipping type %s %s (%s || %s fails %s)",
-                        info.globalName(), info.name(),
-                        importedModules.contains(infoModule), includedModules.contains(infoModule), infoModule);
+                if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
+                    Pacioli.log("Skipping type %s %s", info.globalName(), info.name());
+                }
             }
         });
         return table;
@@ -147,27 +192,36 @@ public class Bundle {
     void load(PacioliTable other, boolean includeToplevels) throws Exception {
         // See duplicate code in Progam
         other.values().localInfos().forEach(info -> {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding value %s",
-                    info.globalName());
+
+            if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
+                Pacioli.log("Adding value %s", info.globalName());
+            }
+
             if (environment.values().contains(info.globalName())) {
                 throw new PacioliException(info.location(), "Duplicate name: %s, %s %s",
                         info.globalName(),
                         environment.values().lookup(info.globalName()).location().equals(info.location()),
                         environment.values().lookup(info.globalName()).location().description());
             }
+
             environment.values().put(info.globalName(), info);
 
         });
+
         other.types().localInfos().forEach(info -> {
-            Pacioli.logIf(Pacioli.Options.showSymbolTableAdditions, "Adding type %s %s",
-                    info.globalName(), info.name());
+            if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
+                Pacioli.log("Adding type %s %s", info.globalName(), info.name());
+            }
+
             if (environment.types().contains(info.globalName())) {
                 throw new PacioliException(info.location(), "Duplicate name: %s %s", info.globalName(),
                         environment.types().lookup(info.globalName()).location().description());
             }
+
             environment.types().put(info.globalName(), info);
 
         });
+
         if (includeToplevels) {
             other.toplevels().forEach(topLevel -> {
                 environment.toplevels().add(topLevel);
@@ -175,18 +229,20 @@ public class Bundle {
         }
     }
 
-    public void generateCode(PrintWriter writer, CompilationSettings settings) {
+    public void generateCode(PrintWriter writer, CompilationSettings settings, List<String> includeTreeModules) {
 
         Pacioli.trace("Generating code for %s", this.file.module());
 
+        boolean indentCode = false; // feature flag
+
         // Declare a compiler (symbol table visitor) instance
-        Printer printer = new Printer(writer);
+        Printer printer = new Printer(writer, indentCode);
         SymbolTableVisitor compiler;
         CodeGenerator gen;
 
         switch (settings.target()) {
             case JS:
-                gen = new JSGenerator(new Printer(writer), settings, false);
+                gen = new JSGenerator(printer, settings);
                 compiler = new JSTranspiler(printer, settings);
                 break;
             case MATLAB:
@@ -232,13 +288,68 @@ public class Bundle {
             }
         }
 
-        // Collect all functions and values from the value table
-        for (ValueInfo info : environment.values().allInfos()) {
-            if (info.definition().isPresent()) {
-                if (info.definition().get().isFunction()) {
-                    functionsToCompile.add(info);
-                } else {
-                    infosToCompile.add(info);
+        // Collect all functions and values with a definition from the value table
+        var shakeCallTree = true; // feature flag
+        if (shakeCallTree) {
+
+            // Add the 'uses' closure of all value definitions from the file we are
+            // compiling
+            List<ValueInfo> valueInfos = usesValueClosure(
+                    environment.values()
+                            .allInfos(
+                                    info -> includeTreeModules.contains(info.generalInfo().module())
+                                            && info instanceof ValueInfo
+                                            && info.definition().isPresent()));
+            Set<ValueInfo> infoSet = new HashSet<>(valueInfos);
+
+            // Add the 'uses' closure of all type definitions from the file we are
+            // compiling. The dynamic index set definitions use value definitions.
+            List<TypeInfo> typeInfos = environment.types()
+                    .allInfos(info -> includeTreeModules.contains(info.generalInfo().module())
+                            && info.definition().isPresent());
+            for (TypeInfo info : typeInfos) {
+                for (Info x : info.definition().map(def -> def.uses()).orElse(Set.of())) {
+                    if (x instanceof ValueInfo v) {
+                        infoSet.add(v);
+                    }
+                }
+            }
+
+            // Add the 'uses' closure of all toplevels from the file we are compiling
+            for (Toplevel def : environment.toplevels()) {
+                List<Info> used = new ArrayList<>();
+                for (Info info : def.body.uses()) {
+                    if (info instanceof ValueInfo vi && vi.definition().isPresent()) {
+                        used.add(vi);
+                    }
+                }
+
+                for (Info info : usesValueClosure(used)) {
+                    if (info instanceof ValueInfo vi) {
+                        infoSet.add(vi);
+                    }
+                }
+            }
+
+            // Split all value infos into functions and non-functions
+            for (ValueInfo info : infoSet) {
+                if (info.definition().isPresent()) {
+                    if (info.definition().get().isFunction()) {
+                        functionsToCompile.add(info);
+                    } else {
+                        infosToCompile.add(info);
+                    }
+                }
+            }
+        } else {
+            // Split all value infos into functions and non-functions
+            for (ValueInfo info : environment.values().allInfos()) {
+                if (info.definition().isPresent()) {
+                    if (info.definition().get().isFunction()) {
+                        functionsToCompile.add(info);
+                    } else {
+                        infosToCompile.add(info);
+                    }
                 }
             }
         }
@@ -256,7 +367,8 @@ public class Bundle {
 
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels()) {
-            if (def.location().file().equals(file.fsFile())) {
+            assert (def.location().file().isPresent());
+            if (def.location().file().get().equals(file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
@@ -300,6 +412,8 @@ public class Bundle {
         List<String> names = environment.values().allNames();
         Collections.sort(names);
 
+        Pacioli.println("");
+
         for (String value : names) {
             ValueInfo info = environment.values().lookup(value);
             boolean fromProgram = info.generalInfo().module().equals(file.module());
@@ -316,11 +430,65 @@ public class Bundle {
             }
         }
 
-        Integer count = 1;
+        Integer count = 0;
         Pacioli.println("");
         for (Toplevel toplevel : environment.toplevels()) {
             TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
+        }
+    }
+
+    public void genAPI(
+            List<File> includes,
+            String version,
+            File docFile,
+            String target) throws PacioliException, IOException {
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, true);
+
+        String extension;
+
+        switch (target) {
+            case "markdown": {
+                extension = ".md";
+                break;
+            }
+            case "structure": {
+                extension = ".txt";
+                break;
+            }
+            case "", "html": {
+                extension = ".html";
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
+
+        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
+
+        Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
+
+        try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
+        }
+    }
+
+    public void printAPI(
+            List<File> includes,
+            String version,
+            File docFile,
+            String target) throws PacioliException, IOException {
+
+        // TODO: see if an earlier generated file exists and reuse that
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, false);
+
+        try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(System.out));
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
         }
     }
 
@@ -333,59 +501,93 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    public void printAPI(File output, List<File> includes, String version, File docFile)
-            throws PacioliException, IOException {
-        FileWriter out = new FileWriter(output, false);
-        PrintWriter writer = new PrintWriter(out);
-        DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
+    public DocumentationGenerator libraryDocumentationGenerator(
+            List<File> includes,
+            String version,
+            File docFile,
+            boolean verbose) throws PacioliException, IOException {
+
+        DocumentationGenerator generator = new DocumentationGenerator(file.moduleName(), version);
+
+        int nrValues = 0;
+        int nrFunctions = 0;
+        int nrTypes = 0;
+        int nrIndexSets = 0;
 
         if (docFile.exists()) {
-            List<String> read = Files.readAllLines(docFile.toPath());
-            String total = "";
-            for (String line : read) {
-                total += line + "\n";
-            }
-            generator.setIntro(total);
+            Pacioli.logIf(verbose, "Found doc file %s, including contents...", docFile.getAbsolutePath());
+            generator.setIntroFromDocFile(docFile);
+        } else {
+            Pacioli.logIf(verbose, "No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
         }
+
+        Pacioli.logIf(verbose, "Collecting exports...");
 
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
-                    && includes.contains(info.location().file())
+                    && info.location().file().isPresent()
+                    && includes.contains(info.location().file().get())
                     && info.definition().isPresent()
                     && info.isUserDefined()) {
                 ExpressionNode body = info.definition().get().body;
                 if (body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.publicType(),
-                            info.generalInfo().documentation().orElse(""));
+                    generator.addFunction(info.name(), lambda.arguments, info.publicType());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
+                        Pacioli.logIf(verbose, "  no documentation for function %s", info.name());
+                    }
+                    nrFunctions++;
                 } else {
-                    generator.addValue(info.name(), info.publicType(), info.generalInfo().documentation().orElse(""));
+                    generator.addValue(info.name(), info.publicType());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
+                        Pacioli.logIf(verbose, "  no documentation for value %s", info.name());
+                    }
+                    nrValues++;
                 }
             }
         }
 
         for (String name : environment.types().allNames()) {
             TypeInfo info = environment.types().lookup(name);
-            if (includes.contains(info.location().file())
+            if (info.location().file().isPresent() && includes.contains(info.location().file().get())
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),
                             def.definition().get().createContext().pretty(),
                             def.definition().get().lhs.pretty(),
-                            def.definition().get().rhs.pretty(),
-                            info.generalInfo().documentation().orElse("n/a"));
+                            def.definition().get().rhs.pretty());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addTypeDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
+                        Pacioli.logIf(verbose, "  no documentation for type %s", info.name());
+                    }
+                    nrTypes++;
                 }
                 if (info instanceof IndexSetInfo def) {
-                    generator.addIndexSet(info.name(), info.generalInfo().documentation().orElse("n/a"));
+                    generator.addIndexSet(info.name());
+                    if (info.generalInfo().documentation().isPresent()) {
+                        generator.addIndexSetDoc(info.name(), info.generalInfo().documentation().get());
+                    } else {
+                        Pacioli.logIf(verbose, "  no documentation for index set %s", info.name());
+                    }
+                    nrIndexSets++;
                 }
             }
         }
 
-        generator.generate();
-        out.close();
-        writer.close();
-        // System.out.print(out.toString());
+        // TODO: move to the caller!?
+        Pacioli.logIf(verbose, "Generating documentation entries...");
+        Pacioli.logIf(verbose, "  types:       %s", nrTypes);
+        Pacioli.logIf(verbose, "  index sets:  %s", nrIndexSets);
+        Pacioli.logIf(verbose, "  values:      %s", nrValues);
+        Pacioli.logIf(verbose, "  functions:   %s", nrFunctions);
+
+        return generator;
     }
 
     public void printSymbolTables() {
@@ -447,6 +649,67 @@ public class Bundle {
     }
 
     // -------------------------------------------------------------------------
+    // API for lsp
+    // -------------------------------------------------------------------------
+
+    public List<ValueInfo> allValueInfos() {
+        return environment.values().allInfos();
+    }
+
+    public List<IdentifierInfo> allIdentifiers() {
+        List<IdentifierInfo> all = new ArrayList<>();
+
+        var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
+        for (Info info : infos) {
+            if (info instanceof ValueInfo vd && vd.declaration().isPresent()) {
+                all.addAll(vd.declaration().get().allIdentifiers());
+            }
+            if (info.definition().isPresent()) {
+                var def = info.definition().get();
+                all.addAll(def.allIdentifiers());
+                if (def instanceof ValueDefinition d) {
+                    all.add(new IdentifierInfo(d.id));
+                }
+            }
+            if (info.generalInfo().documentation().isPresent()) {
+                all.addAll(info.generalInfo().documentation().get().allIdentifiers());
+            }
+        }
+
+        var typeInfos = environment.types().allInfos(info -> info.isFromFile(this.file));
+        for (Info info : typeInfos) {
+            // if (info instanceof ValueInfo vd && vd.declaredType().isPresent()) {
+            // all.addAll(vd.declaredType().get().allIdentifiers());
+            // }
+            if (info.definition().isPresent()) {
+                var def = info.definition().get();
+                all.addAll(def.allIdentifiers());
+                if (def instanceof ValueDefinition d) {
+                    all.add(new IdentifierInfo(d.id));
+                }
+            }
+        }
+
+        for (Toplevel toplevel : environment.toplevels()) {
+            all.addAll(toplevel.body.allIdentifiers());
+        }
+
+        return all;
+    }
+
+    public ValueInfo lookupValue(String name) {
+        for (Info info : environment.values().allInfos()) {
+            if (info instanceof ValueInfo vi && info.name().equals(name)) {
+                return vi;
+            }
+        }
+
+        // why does this not work? Does the name differ from info.name()?
+        ValueInfo info = environment.values().lookup(name);
+        return info;
+    }
+
+    // -------------------------------------------------------------------------
     // Topological Order of Definitions
     // -------------------------------------------------------------------------
 
@@ -478,7 +741,8 @@ public class Bundle {
             // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());
             for (Info other : def.uses()) {
 
-                if ((all.contains(other.globalName())) && other.definition().isPresent()) {
+                if ((all.contains(other.globalName())) && other.definition().isPresent()
+                        && other.definition().get() != def) {
                     insertInfo((T) other, definitions, discovered, finished, all);
                 }
             }
@@ -487,4 +751,43 @@ public class Bundle {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Closure of the 'uses' graph
+    // -------------------------------------------------------------------------
+
+    static <T extends Info> List<T> usesValueClosure(Collection<T> definitions) throws PacioliException {
+
+        Set<T> discovered = new HashSet<T>();
+        Set<T> finished = new HashSet<T>();
+
+        List<T> orderedDefinitions = new ArrayList<T>();
+        for (T definition : definitions) {
+            insertValueInfo(definition, orderedDefinitions, discovered, finished);
+        }
+        return orderedDefinitions;
+    }
+
+    static <T extends Info> void insertValueInfo(T info, List<T> definitions, Set<T> discovered, Set<T> finished)
+            throws PacioliException {
+
+        assert (info.definition().isPresent());
+        Definition def = info.definition().get();
+
+        if (!finished.contains(info)) {
+
+            if (!discovered.contains(info)) {
+
+                discovered.add(info);
+                // Pacioli.log("uses %s %s %s", info.globalName(), info.getClass(), def.uses());
+                for (Info other : def.uses()) {
+
+                    if (other instanceof ValueInfo && other.definition().isPresent()) {
+                        insertValueInfo((T) other, definitions, discovered, finished);
+                    }
+                }
+                definitions.add(info);
+                finished.add(info);
+            }
+        }
+    }
 }

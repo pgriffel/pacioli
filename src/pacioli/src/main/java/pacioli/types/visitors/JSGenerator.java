@@ -1,5 +1,28 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.types.visitors;
 
+import pacioli.compiler.Bundle;
 import pacioli.compiler.Printer;
 import pacioli.types.TypeVisitor;
 import pacioli.types.matrix.IndexList;
@@ -68,27 +91,34 @@ public class JSGenerator implements TypeVisitor {
     public void visit(MatrixType type) {
 
         out.write("Pacioli.createMatrixType(");
-        out.write(TypeBase.compileUnitToJS(type.factor()));
+
+        // Scalar factor
+        out.write(TypeBase.compileUnitToJSType(type.factor()));
         out.write(", ");
-        // out.write(type.rowDimension.compileToJS());
+
+        // Row dimension
         type.rowDimension().accept(this);
-        // if (!type.rowDimension.isVar()) out.write(".param");
         out.write(", ");
+
+        // Row unit
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJS(type.rowUnit()));
+            out.write(TypeBase.compileUnitToJSType(type.rowUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
         out.write(", ");
-        // out.write(type.columnDimension.compileToJS());
+
+        // Column dimension
         type.columnDimension().accept(this);
-        // if (!type.columnDimension.isVar()) out.write(".param");
         out.write(", ");
+
+        // Column unit
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJS(type.columnUnit()));
+            out.write(TypeBase.compileUnitToJSType(type.columnUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
+
         out.write(")");
     }
 
@@ -100,70 +130,12 @@ public class JSGenerator implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         String name = type.name();
-        if (name.equals("Boole")) {
-            out.write("new Pacioli.GenericType('Boole', [])");
-        } else if (name.equals("String")) {
-            out.write("new Pacioli.GenericType('String', [])");
-        } else if (name.equals("File")) {
-            out.write("new Pacioli.GenericType('File', [])");
-        } else if (name.equals("Report")) {
-            out.write("new Pacioli.Type('report')");
-        } else if (name.equals("Void")) {
-            out.write("new Pacioli.GenericType('Void', [])");
-        } else if (name.equals("Index")) {
-            // out.write("new Pacioli.Type('coordinate', ");
-            out.write("new Pacioli.GenericType('Coordinates', [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("List")) {
-
+        if (Bundle.PRIMITIVE_TYPES.contains(name)) {
             out.write("new Pacioli.GenericType(");
-            out.write("'List', [");
+            out.write("\"" + name + "\", [");
             String sep = "";
             for (TypeObject arg : type.args()) {
                 out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("Array")) {
-
-            out.write("new Pacioli.GenericType(");
-            out.write("'Array', [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write("])");
-        } else if (name.equals("Ref")) {
-
-            out.write("new Pacioli.Type(");
-            out.write("\"reference\", ");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
-                arg.accept(this);
-                sep = ", ";
-            }
-            out.write(")");
-        } else if (name.equals("Tuple")) {
-            out.write("new Pacioli.GenericType(");
-            out.write("\"Tuple\", [");
-            String sep = "";
-            for (TypeObject arg : type.args()) {
-                out.write(sep);
-                // out.write(arg.compileToJS());
                 arg.accept(this);
                 sep = ", ";
             }
@@ -175,7 +147,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(ScalarUnitVar type) {
-        out.write(type.asJS());
+        out.write(type.asJS(true));
     }
 
     @Override
@@ -186,7 +158,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(VectorUnitVar type) {
-        out.write(type.asJS());
+        out.write(type.asJS(true));
     }
 
     @Override

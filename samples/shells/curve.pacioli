@@ -1,0 +1,221 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# ----------------------------------------------------------------------------
+# Shell Model
+#
+# Paul Griffioen 2012-2025
+# ----------------------------------------------------------------------------
+
+import geometry;
+import graphics;
+
+define SEGMENT_VERTEX_COLOR = 
+    make_color("steelblue");
+
+# ----------------------------------------------------------------------------
+# Type Curve
+# ----------------------------------------------------------------------------
+
+deftype for_unit a: Curve(a) = 
+    List(a*Geom3!);
+
+# ----------------------------------------------------------------------------
+# Curves
+# ----------------------------------------------------------------------------
+
+declare make_curve ::
+    for_unit a: (List(a*Geom3!)) -> Curve(a);
+
+define make_curve(vs) =
+    append(vs, [head(vs)]);
+
+# ----------------------------------------------------------------------------
+
+declare as_curve ::
+    for_unit a: (List(a*Geom3!)) -> Curve(a);
+
+define as_curve(vs) =
+    vs;
+
+# ----------------------------------------------------------------------------
+
+declare curve_nth ::
+    for_unit a: (1, Curve(a)) -> a*Geom3!;
+
+define curve_nth(i, curve) = nth(i, curve);
+
+# ----------------------------------------------------------------------------
+
+declare curve_reverse ::
+    for_unit a: (Curve(a)) -> Curve(a);
+
+define curve_reverse(curve) = reverse(curve);
+
+# ----------------------------------------------------------------------------
+
+declare translate_curve ::
+    for_unit a: (Curve(a), a*Geom3!) -> Curve(a);
+
+define translate_curve(curve, offset) =
+  [ x + offset | x <- curve];
+
+# ----------------------------------------------------------------------------
+
+declare transform_curve ::
+    for_unit a,b: (Curve(a), b*Geom3! per Geom3!) -> Curve(a*b);
+
+define transform_curve(curve, matrix) =
+  [ matrix '*' x | x <- curve];
+
+# ----------------------------------------------------------------------------
+
+declare sum_curves ::
+    for_unit a: (Curve(a), Curve(a)) -> Curve(a);
+
+define sum_curves(x, y) =
+  [ a+b | (a,b) <- zip(x,y)];
+
+# ----------------------------------------------------------------------------
+
+declare scale_curve ::
+    for_unit a,b: (Curve(a), b) -> Curve(a*b);
+
+define scale_curve(curve, factor) =
+  [ factor '.*' x | x <- curve];
+
+# ----------------------------------------------------------------------------
+
+declare curve_surface ::
+    for_unit a: (Curve(a)) -> List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!));
+
+define curve_surface(curve) =
+  let n = list_size(curve) - 1 in
+      if n < 3 then [] else
+	  let first = nth(0, curve) in
+	      [ tuple(first, nth(i + 1, curve), nth(i + 2, curve)) | i <- naturals(n - 2)]
+	  end
+      end
+  end;
+
+# ----------------------------------------------------------------------------
+
+declare segment_surface ::
+    for_unit a: (Curve(a), Curve(a)) -> List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!));
+
+define segment_surface(curve, next) =
+  let n = list_size(curve) in
+      if n < 2 then [] else
+          append([ tuple(nth(i, curve), nth(i, next), nth(i+1, curve)) | i <- naturals(n - 1)],
+		 [ tuple(nth(i, next), nth(i+1, next), nth(i+1, curve)) | i <- naturals(n - 1)])
+      end
+  end;
+
+# ----------------------------------------------------------------------------
+
+declare segment_closed_surface ::
+    for_unit a: (Curve(a), Curve(a)) -> List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!));
+
+define segment_closed_surface(curve, next) =
+  append(segment_surface(curve, next),
+	 append(curve_surface(curve), curve_surface(reverse(next))));
+
+# ----------------------------------------------------------------------------
+
+declare segment_area ::
+    for_unit a: (Curve(a), Curve(a)) -> a^2;
+
+define segment_area(curve, next) =
+  surface_area(segment_surface(curve, next));
+
+# ----------------------------------------------------------------------------
+
+declare segment_volume ::
+    for_unit a: (Curve(a), Curve(a)) -> a^3;
+
+define segment_volume(curve, next) =
+  surface_volume(segment_closed_surface(curve, next));
+
+# ----------------------------------------------------------------------------
+
+declare compute_rotation ::
+    for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!, a*Geom3!) -> Geom3! per Geom3!;
+
+define compute_rotation(left, top, right, bottom) =
+    let
+        (ex, ey, ez) = basis3d,
+
+        width = right - left,
+        height = top - bottom
+    in
+        magnitude(
+            normalized(width) '*' ex^T +
+            normalized(cross_sqrt(width, height)) '*' ey^T +
+            normalized(height) '*' ez^T )
+    end;
+
+# ----------------------------------------------------------------------------
+
+declare curve_rotation ::
+    for_unit a: (Curve(a), List(1)) -> Geom3! per Geom3!;
+
+define curve_rotation(curve, landmarks) =
+  compute_rotation(nth(nth(0, landmarks), curve),
+		   nth(nth(1, landmarks), curve),
+		   nth(nth(2, landmarks), curve),
+		   nth(nth(3, landmarks), curve));
+
+# ----------------------------------------------------------------------------
+
+declare segment_mesh ::
+    for_unit a: (Curve(a), Curve(a)) -> Mesh(a, Geom3!); 
+
+define segment_mesh(curvea, curveb) =
+    let 
+        n = list_size(curvea)
+    in
+        with_mesh_material("Normal",
+            default_mesh(
+                [vertex(v, SEGMENT_VERTEX_COLOR) | v <- append(curvea, curveb)],
+                [ f | 
+                    i <- naturals(n),
+                    a := i,
+                    b := mod(i+1, n),
+                    c := n + mod(i+1, n),
+                    d := n + mod(i, n),
+                    f <- [ face(a, b, c) , face(a, c, d)]]))
+  end;
+
+# ----------------------------------------------------------------------------
+
+declare curve_path ::
+    for_unit a: (Curve(a)) -> Path(a, Geom3!);
+
+define curve_path(curve) =
+    default_path(curve);
+
+# ----------------------------------------------------------------------------
+
+declare curves_equal ::
+    for_unit a: (Curve(a), Curve(a), decimals) -> Boole;
+
+define curves_equal(x, y, decimals) = 
+    list_size(x) = list_size(y) and
+    all[approximates(a, b, decimals) | (a, b) <- zip(x, y)];

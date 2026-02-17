@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package mvm;
@@ -24,6 +25,8 @@ package mvm;
 import java.io.File;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -52,6 +55,8 @@ public class Machine {
     private static boolean atLineStart = false;
     private final List<File> loadedFiles;
 
+    public static Charset CHARSET = StandardCharsets.UTF_8;
+
     public Machine() {
         store = new Environment(this);
         unitSystem = makeSI();
@@ -66,6 +71,16 @@ public class Machine {
 
     public static void popFrame() {
         debugStack.pop();
+    }
+
+    public int debugStackSize() {
+        return debugStack.size();
+    }
+
+    public void unwindStackTo(int targetSize) {
+        while (debugStack.size() > targetSize) {
+            debugStack.pop();
+        }
     }
 
     public void storeCode(String name, Expression code) {
@@ -145,6 +160,11 @@ public class Machine {
 
     static public UnitSystem<MatrixBase> makeSI() {
         UnitSystem<MatrixBase> si = new UnitSystem<MatrixBase>();
+        si.addPrefix("yotta", new Prefix("Y", new BigDecimal("1").movePointRight(24)));
+        si.addPrefix("zetta", new Prefix("Z", new BigDecimal("1").movePointRight(21)));
+        si.addPrefix("exa", new Prefix("E", new BigDecimal("1").movePointRight(18)));
+        si.addPrefix("peta", new Prefix("P", new BigDecimal("1").movePointRight(15)));
+        si.addPrefix("tera", new Prefix("T", new BigDecimal("1").movePointRight(12)));
         si.addPrefix("giga", new Prefix("G", new BigDecimal("1000000000")));
         si.addPrefix("mega", new Prefix("M", new BigDecimal("1000000")));
         si.addPrefix("kilo", new Prefix("k", new BigDecimal("1000")));
@@ -153,8 +173,13 @@ public class Machine {
         si.addPrefix("deci", new Prefix("d", new BigDecimal("0.1")));
         si.addPrefix("centi", new Prefix("c", new BigDecimal("0.01")));
         si.addPrefix("milli", new Prefix("m", new BigDecimal("0.001")));
-        si.addPrefix("micro", new Prefix("μ", new BigDecimal("0.000001")));
-        si.addPrefix("nano", new Prefix("n", new BigDecimal("0.000000001")));
+        si.addPrefix("micro", new Prefix("µ", new BigDecimal("0.000001")));
+        si.addPrefix("nano", new Prefix("n", new BigDecimal("1").movePointLeft(9)));
+        si.addPrefix("pico", new Prefix("p", new BigDecimal("1").movePointLeft(12)));
+        si.addPrefix("femto", new Prefix("f", new BigDecimal("1").movePointLeft(15)));
+        si.addPrefix("atto", new Prefix("a", new BigDecimal("1").movePointLeft(18)));
+        si.addPrefix("zepto", new Prefix("z", new BigDecimal("1").movePointLeft(21)));
+        si.addPrefix("yocto", new Prefix("y", new BigDecimal("1").movePointLeft(24)));
         return si;
     }
 
@@ -163,10 +188,10 @@ public class Machine {
         /// runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()),
         //// out, libs);
         //// }
-        runRec(file, out, libs);
+        runRec(file, out, libs, CHARSET);
     }
 
-    public void runRec(File file, PrintStream out, List<File> libs) throws Exception {
+    public void runRec(File file, PrintStream out, List<File> libs, Charset charset) throws Exception {
 
         // Check if the file was already loaded
         if (!loadedFiles.contains(file)) {
@@ -175,7 +200,7 @@ public class Machine {
             loadedFiles.add(file);
 
             // Load the file
-            mvm.ast.Program code = mvm.parser.Parser.parseFile(file);
+            mvm.ast.Program code = mvm.parser.Parser.parseFile(file, charset);
 
             // Run the requires
             // for (String require : code.requires) {

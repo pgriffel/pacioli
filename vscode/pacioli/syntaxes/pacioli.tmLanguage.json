@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "pacioli",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#comments"
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.pacioli",
+          "match": "\\b(define|declare|declare_primitive|defindex|defmatrix|defunit|deftype|defalias|defconv|defrecord|defdata|doc|end|else|import|export|include|for_index|for_unit|for_type|if|then|while|for|do|begin|return|let|in|and|or|where|select|from|as|per|_lambda)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.pacioli",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.pacioli",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign",
+          "begin": "(#)",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.definition.comment.pacioli"
+            }
+          },
+          "end": "(?:\\n|$)"
+        }
+      ]
+    }
+  },
+  "scopeName": "pacioli"
+}

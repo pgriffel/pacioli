@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.ast;
@@ -24,8 +25,11 @@ package pacioli.ast;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
+import pacioli.ast.visitors.AllIdentifiersVisitor;
+import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.ast.visitors.CountNodes;
 import pacioli.ast.visitors.DesugarVisitor;
 import pacioli.ast.visitors.JSGenerator;
@@ -100,6 +104,10 @@ public interface Node extends Printable {
         return new UsesVisitor().idsAccept(this);
     }
 
+    default public List<IdentifierInfo> allIdentifiers() {
+        return new AllIdentifiersVisitor().idsAccept(this);
+    }
+
     default public Node liftStatements(PacioliFile file, PacioliTable prog, PacioliTable env) {
         return new LiftStatements(file, prog, env).nodeAccept(this);
     }
@@ -115,14 +123,8 @@ public interface Node extends Printable {
         return outputStream.toString();
     }
 
-    default public String compileToJS(CompilationSettings settings, boolean boxed) {
-        StringWriter outputStream = new StringWriter();
-        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream)), settings, boxed));
-        return outputStream.toString();
-    }
-
-    default public void compileToJS(Printer writer, CompilationSettings settings, boolean boxed) {
-        this.accept(new JSGenerator(writer, settings, boxed));
+    default public void compileToJS(Printer writer, CompilationSettings settings) {
+        this.accept(new JSGenerator(writer, settings));
     }
 
     default public String compileToMATLAB(CompilationSettings settings) {

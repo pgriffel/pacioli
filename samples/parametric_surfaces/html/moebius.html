@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Möbius</title>
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
+    <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Möbius</h1>
+
+    The Möbius strip.
+
+    <p>
+        $f(u, v) = (x, y, z)^T$ with
+    <ul>
+        <li>$x = a \cos(u) (c + v \cos(\frac{u}{2}))$</li>
+        <li>$y = a \sin(u) (c + v \cos(\frac{u}{2}))$</li>
+        <li>$z = a v\sin(\frac{u}{2})$</li>
+    </ul>
+    where $a$, and $c$ are scaling factors, $-\pi \le u \le \pi$, and $-0.5 \le v \le 0.5$.
+
+    <p>
+        The surface is non-orientable. A consequence is that no smooth varying normals exist. In the image a
+        discontinuity can be seen where the normals 'jump' to the other side.
+
+    <p>
+        The blue and purple paths are in a diagonal direction, yet they terminate at the starting point.
+
+
+    <p>
+        The orange line along the surface also terminates a its starting point, showing there is just
+        one edge. The orange edge path has double length, therefore it has normals on both sides.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="moebius_scene" definition="surfaces:moebius_scene" kind="scene"
+            perspective>
+            <parameter label="a" unit="1">10</parameter>
+            <parameter label="c" unit="metre">1</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">2</parameter>
+            <parameter label="grid" type="boole">false</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="moebius_scene"></pacioli-inputs>
+        <pacioli-controls for="moebius_scene"></pacioli-controls>
+
+    </div>
+
+
+
+</body>
+
+
+</html>

@@ -1,0 +1,66 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+import random;
+
+run_test_suites(random_sampling_suites);
+
+define random_sampling_suites = [
+    shuffle_suite
+];
+
+define shuffle_suite = test_suite("Function shuffle", [
+    test("should give the emtpy array for n = 0", () -> 
+        shuffle([]) = []),
+
+    test("should give a singleton array for n = 1", () -> 
+        shuffle(["foo"]) = ["foo"]),
+
+    test("should give only valid numbers when shuffling naturals", () -> 
+        let n = 5, nats = naturals(n), shuffled = shuffle(nats) in
+            all[contains(nats, i) | i <- shuffled]
+        end),
+
+    test("should give all valid numbers when shuffling naturals", () -> 
+        let n = 5, nats = naturals(n), shuffled = shuffle(nats) in
+            all[contains(shuffled, i) | i <- nats]
+        end),
+
+    test("should be uniformly distributed", () -> 
+        begin
+            n := 5;
+            k := 10000;
+            treshold := 0.05;
+
+            expected := (n-1)/2;
+            shuffled := shuffle(naturals(n));
+            total := shuffled;
+            i := 1;
+            while i < k do
+                shuffled := shuffle(shuffled);
+                total := zip_with(sum, total, shuffled);
+                i := i + 1;
+            end
+            return all[err < treshold | val <- total,
+                                        avg := val / k,
+                                        err := abs(avg - expected)];
+        end)
+]);

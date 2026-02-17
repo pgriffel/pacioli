@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Cone</title>
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
+    <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Cone</h1>
+    <p>
+        Parametrization of a cone surface.
+
+    <p>
+        $f(u, v) = (x, y, z)^T$ with
+    <ul>
+        <li>$x = \frac{h-u}{h}r\cos v$</li>
+        <li>$y = \frac{h-u}{h}r\sin v$</li>
+        <li>$z = u-h$</li>
+    </ul>
+    where $h$ is the height, $r$ is the radius, $0 \le u \le 2h$, and $0 \le v \le 2\pi$.
+
+    <p>
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="cone_scene" definition="surfaces:cone_scene" kind="scene"
+            perspective grid axis background="#222222" labelcolor="#eeeeee">
+            <parameter label="h" unit="metre">5</parameter>
+            <parameter label="r" unit="metre">5</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="cone_scene"></pacioli-inputs>
+        <pacioli-controls for="cone_scene"></pacioli-controls>
+
+    </div>
+
+
+</body>
+
+
+</html>

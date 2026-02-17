@@ -1,0 +1,101 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+# ------------------------------------------------------------------------------
+# 3D graphics
+# ------------------------------------------------------------------------------
+
+include color;
+
+import geometry;
+
+export
+    Arrow,
+    make_arrow,
+    default_arrow,
+    origin_arrow,
+    move_arrow,
+    arrow_name,
+    arrow_label,
+    arrow_color,
+    with_arrow_name,
+    with_arrow_label,
+    with_arrow_color;
+
+# ------------------------------------------------------------------------------
+# Arrow
+# ------------------------------------------------------------------------------
+
+doc Arrow
+    "An arrow is a colored line segment from from one position to another,
+    with an arrowhead at the end.
+    
+    Is an element of a scene.";
+
+defrecord for_unit a, Geom3!u: Arrow(a, Geom3!u) as arrow where
+    src: a*Geom3!u,
+    dst: a*Geom3!u,
+    name: String,
+    label: String,
+    color: Color;
+
+# ------------------------------------------------------------------------------
+
+declare default_arrow_color :: Color; 
+
+define default_arrow_color =
+    make_color("blue");
+
+# ------------------------------------------------------------------------------
+
+doc default_arrow
+    "Creates an arrow between two points.";
+
+declare default_arrow ::
+    for_unit a, Geom3!u: (a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u);
+
+define default_arrow(src, dst) =
+    tuple(src, dst, "", "", default_arrow_color);
+
+# ------------------------------------------------------------------------------
+
+doc origin_arrow
+    "Creates an arrow from the origin to some point.";
+
+declare origin_arrow ::
+    for_unit a, Geom3!u: (a*Geom3!u) -> Arrow(a, Geom3!u);
+
+define origin_arrow(vector) =
+    default_arrow(0 '.*' vector, vector);
+
+# ------------------------------------------------------------------------------
+
+doc move_arrow
+    "Updates the start and end position of the arrow";
+
+declare move_arrow ::
+    for_unit a, Geom3!u:
+        (Arrow(a, Geom3!u), a*Geom3!u, a*Geom3!u) -> Arrow(a, Geom3!u);
+
+define move_arrow(arrow, src, dst) =
+    let (_, _, name, label, color) = arrow in
+        tuple(src, dst, name, label, color)
+    end;

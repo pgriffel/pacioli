@@ -1,21 +1,22 @@
-# Copyright (c) 2018 Paul Griffioen
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of
-# this software and associated documentation files (the "Software"), to deal in
-# the Software without restriction, including without limitation the rights to
-# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-# the Software, and to permit persons to whom the Software is furnished to do so,
-# subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-# 
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 export
     make_array,
@@ -30,7 +31,8 @@ export
 doc make_array
     "Constructs an array of the asked size.";
 
-declare make_array :: for_type t: (1) -> Array(t);
+declare_primitive make_array(size) ::
+    for_type t: (1) -> Array(t);
 
 # ----------------------------------------------------------------------------
 
@@ -40,18 +42,21 @@ doc array_get
     It is an error if the index is out of bounds or no item was stored
     previously.";
 
-declare array_get :: for_type t: (Array(t), 1) -> t;
+declare_primitive array_get(array, index) ::
+    for_type t: (Array(t), 1) -> t;
 
 # ----------------------------------------------------------------------------
 
 doc array_put
     "Stores an item in the array at the asked position.";
 
-declare array_put :: for_type t: (Array(t), 1, t) -> Void;
+declare_primitive array_put(array, index, element) ::
+    for_type t: (Array(t), 1, t) -> Void;
 
 # ----------------------------------------------------------------------------
 
 doc array_size
     "The size of the array that was given at construction.";
 
-declare array_size :: for_type t: (Array(t)) -> 1;
+declare_primitive array_size(array) ::
+    for_type t: (Array(t)) -> 1;

@@ -1,0 +1,428 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# Parametric Plots
+# ------------------------------------------------------------------------------
+
+import geometry;
+import graphics;
+
+export 
+    plot_parametric_path,
+    plot_parametric_surface,
+    plot_parametric_surface_deltas,
+    plot_parametric_surface_grid,
+
+    ParametricPlotOptions,
+    default_parametric_plot_options,
+    make_parametric_plot_options,
+    parametric_plot_options_color,
+    parametric_plot_options_delta_color,
+    parametric_plot_options_m,
+    parametric_plot_options_n,
+    parametric_plot_options_normal_color,
+    parametric_plot_options_scale_factor,
+    parametric_plot_options_show_normals,
+    parametric_plot_options_show_parts,
+    parametric_plot_options_show_total,
+    parametric_plot_options_wireframe,
+    with_parametric_plot_options_color,
+    with_parametric_plot_options_delta_color,
+    with_parametric_plot_options_m,
+    with_parametric_plot_options_n,
+    with_parametric_plot_options_normal_color,
+    with_parametric_plot_options_scale_factor,
+    with_parametric_plot_options_show_normals,
+    with_parametric_plot_options_show_parts,
+    with_parametric_plot_options_show_total,
+    with_parametric_plot_options_wireframe,
+
+    Interval,
+    interval_length,
+    interval_lower,
+    interval_upper,
+    make_interval,
+    scale_interval,
+    with_interval_lower,
+    with_interval_upper,
+
+    Range2D,
+    make_range,
+    make_range2d,
+    range2d_u,
+    range2d_v,
+    range_height,
+    range_ustart,
+    range_vstart,
+    range_width,
+    scale_range,
+    with_range2d_u,
+    with_range2d_v;
+
+
+define normal_color = make_color("green");
+define delta_color = make_color("red");
+define line_color = make_color("steelblue");
+
+# ------------------------------------------------------------------------------
+# ParametricPlotOptions
+# ------------------------------------------------------------------------------
+
+doc ParametricPlotOptions
+    "Options for plotting parametric surfaces, grids and deltas.";
+
+defrecord ParametricPlotOptions() as parametric_plot_options where
+    n: 1,
+    m: 1,
+    delta: 1,
+    scale_factor: 1,
+    show_parts: Boole,
+    show_total: Boole,
+    show_normals: Boole,
+    wireframe: Boole,
+    material: String,
+    color: Color,
+    delta_color: Color,
+    normal_color: Color;
+
+declare default_parametric_plot_options :: ParametricPlotOptions;
+
+doc default_parametric_plot_options
+    "Default values for the options for parametric plots.";
+
+define default_parametric_plot_options = 
+    make_parametric_plot_options(
+        25, 1, 0.01, 1,
+        false, false, false, false, "Normal",
+        line_color, delta_color, normal_color);
+
+# ------------------------------------------------------------------------------
+# Plotting the surface and the grid
+# ------------------------------------------------------------------------------
+
+doc plot_parametric_surface
+    "Plots a parametric surface in a 3D space.
+
+    The function parameter is a function from the given range to `Geom3`
+    vectors. The function is sampled for the given range to give the surface points.
+    
+    The number of samples, and other parameters like color, can be set in the options.
+
+    For example
+
+    
+        let
+            u_interval = make_interval(-5*|metre|, 5*|metre|),  
+            v_interval = make_interval(-5*|metre|, 5*|metre|)
+        in  
+            plot_parametric_surface(
+                (u, v) -> vector3d(u, v, 3*|metre| - 0.5*u - 0.2*v),
+                make_range2d(u_interval, v_interval),
+                default_parametric_plot_options,
+                scene)
+        end  
+
+    plots a part of a plane, using default options. It yields a scene of
+    type `Scene(metre, Geom3!)`";
+
+
+doc plot_parametric_surface_grid
+    "Plots a parametric grid in a 3D space.
+
+    The function parameter is a function from the given range to `Geom3`
+    vectors. The function is sampled for the given range to give the grid points.
+    
+    The number of samples, and other parameters like color, can be set in the options.
+
+    It is similar to plotting a surface using `plot_parametric_surface` with
+    the option wireframe, but it displays rectangles instead of triangles.";
+
+declare plot_parametric_surface, plot_parametric_surface_grid ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
+            -> Scene(c, Geom3!u);
+
+define plot_parametric_surface(fun, range, options, scene) =
+    begin
+        mesh := compute_surface_mesh(fun, range, options);
+        mesh := set_wireframe(mesh, parametric_plot_options_wireframe(options));
+        mesh := with_mesh_material(parametric_plot_options_material(options), mesh);
+        return add_meshes([mesh], scene);
+    end;
+
+define compute_surface_mesh(fun, range, options) =
+    let 
+        n = parametric_plot_options_n(options),
+        color = parametric_plot_options_color(options),
+
+        u0 = range_ustart(range),
+        v0 = range_vstart(range),
+        du = range_width(range) / n,
+        dv = range_height(range) / n,
+
+        indices = naturals(n+1),
+      
+        vertices = [vertex(fun(u, v), color) | i <- indices, j <- indices, u := u0 + i * du, v := v0 + j * dv],
+        faces = [f | i <- naturals(n), j <- naturals(n), k := j * (n+1), f <- [face(k+i, k+i+1, k+n+1+i), face(k+i+1, k+n+1+i, k+n+2+i)]]
+    in
+        default_mesh(vertices, faces)
+    end;
+
+define plot_parametric_surface_grid(fun, range, options, scene) =
+    add_paths(compute_surface_lines(fun, range, options), scene);
+
+define compute_surface_lines(fun, range, options) =
+    let 
+        n = parametric_plot_options_n(options),
+        color = parametric_plot_options_color(options)
+    in
+        [ make_path(lines, color) | lines <- surface_lines(fun, range, n)]
+    end;
+
+define surface_lines(fun, range, n) =
+    let
+        u = range_ustart(range),
+        v  = range_vstart(range),
+        du = range_width(range) / n,
+        dv = range_height(range) / n,
+        indices = naturals(n + 1)
+    in
+        append(
+            [path(fun, uu, v, 0 * du, dv, n) |
+                i <- indices,
+                uu := u + du * i],
+            [path(fun, u, vv, du, 0 * dv, n) |
+                i <- indices,
+                vv := v + dv * i])
+    end;
+
+define path(fun, u0, v0, du, dv, n) =
+    [fun(u, v) |
+        i <- naturals(n + 1),
+        u := u0 + du * i,
+        v := v0 + dv * i];
+
+# ------------------------------------------------------------------------------
+# Plotting the surface deltas
+# ------------------------------------------------------------------------------
+
+declare plot_parametric_surface_deltas ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
+            -> Scene(c, Geom3!u);
+
+define plot_parametric_surface_deltas(fun, range, options, scene) =
+    let
+        n = parametric_plot_options_n(options),
+        m = parametric_plot_options_m(options),
+        d = parametric_plot_options_scale_factor(options),
+        delta = parametric_plot_options_delta(options),
+        deltas = compute_deltas(fun, range, n, m, delta)
+    in
+        begin
+            new_scene := scene;
+            new_scene := plot_delta_arrows(deltas, options, new_scene);
+            return new_scene;
+        end
+    end;
+
+define compute_deltas(fun, range, n, m, delta) =
+    let
+        u_start = range_ustart(range),
+        v_start = range_vstart(range),
+        u_step = range_width(range) / n,
+        v_step = range_height(range) / n
+    in
+        [tuple(pos, vu, vv) | 
+            indices := naturals(n+1),
+            i <- indices,
+            j <- indices,
+            mod(i, m) = 0 and mod(j, m) = 0,
+            u := u_start + u_step * i,
+            v := v_start + v_step * j,
+            pos := fun(u, v),
+            vu := fun(u + delta * unit(u), v) - pos,
+            vv := fun(u, v + delta * unit(v)) - pos]
+    end;
+
+# ------------------------------------------------------------------------------
+# Plotting paths, including deltas
+# ------------------------------------------------------------------------------
+
+declare plot_parametric_path ::
+    for_unit a, b, c, Geom3!u:
+        ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u);
+
+define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
+    let
+        n = parametric_plot_options_n(options),
+        m = parametric_plot_options_m(options),
+        delta = parametric_plot_options_delta(options),
+        color = parametric_plot_options_color(options),
+
+        deltas = path_deltas(fun, u0, v0, du, dv, n, 1, delta)
+    in
+        begin
+            new_scene := add_arrows(path_arrows([pos | (pos, _, _) <- deltas], color), scene);
+            new_scene := 
+                let
+                    deltas2 =
+                        if m = 1 then
+                            deltas
+                        else
+                            path_deltas(fun, u0, v0, du, dv, n, m, delta) 
+                        end
+                in
+                    plot_delta_arrows(deltas2, options, new_scene)
+                end;
+            return new_scene;
+        end
+    end;
+
+define path_arrows(positions, color) =
+    [ with_arrow_color(color, default_arrow(pos, du - pos)) | (pos, du) <- zip(positions, tail(positions))];
+
+define path_deltas(fun, u0, v0, du, dv, n, m, d) =
+    [tuple(pos, vv, vu) |
+        i <- naturals(n + 1),
+        mod(i, m) = 0,
+        u := u0 + du * i,
+        v := v0 + dv * i,
+        pos := fun(u, v),
+        vv := fun(u + d*unit(u), v) - pos,
+        vu := fun(u, v + d*unit(v)) - pos];
+
+# ------------------------------------------------------------------------------
+# Plotting deltas for surfaces or paths
+# ------------------------------------------------------------------------------
+
+define plot_delta_arrows(deltas, options, scene) =
+    let 
+        d = parametric_plot_options_scale_factor(options)
+    in
+    begin
+        new_scene := scene;
+
+        if parametric_plot_options_show_normals(options) then
+            new_scene := add_arrows(normal_arrows(deltas, parametric_plot_options_normal_color(options), d), new_scene);
+        end
+
+        if parametric_plot_options_show_parts(options) then
+            new_scene := add_arrows(partial_arrows(deltas, parametric_plot_options_delta_color(options), d), new_scene);
+        end
+
+        if parametric_plot_options_show_total(options) then
+            new_scene := add_arrows(total_arrows(deltas, parametric_plot_options_delta_color(options), d), new_scene);
+        end
+
+        return new_scene;
+    end
+    end;
+    
+define total_arrows(deltas, color, d) =
+    [ with_arrow_color(color, arrow) |
+        (pos, du, dv) <- deltas,
+        arrow := default_arrow(pos, d '.*' (du + dv))];
+
+define partial_arrows(deltas, color, d) =
+    [ with_arrow_color(color, arrow) |
+        (pos, du, dv) <- deltas,
+        arrow <- [default_arrow(pos, d '.*' du), default_arrow(pos, d '.*' dv)]];
+
+define normal_arrows(deltas, color, d) =
+    [ with_arrow_color(color, arrow) |
+        (pos, du, dv) <- deltas,
+        arrow := default_arrow(pos, d '.*' cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
+
+# ------------------------------------------------------------------------------
+# Ranges
+# ------------------------------------------------------------------------------
+
+defrecord for_unit a, b: Range2D(a, b) as range2d where
+    u: Interval(a),
+    v: Interval(b);
+
+# ------------------------------------------------------------------------------
+
+declare range_width, range_ustart ::
+    for_unit a, b: (Range2D(a, b)) -> a;
+
+define range_ustart(range) = 
+    interval_lower(range2d_u(range));
+
+define range_width(range) = 
+    interval_length(range2d_u(range));
+
+# ------------------------------------------------------------------------------
+
+declare range_height, range_vstart ::
+    for_unit a, b: (Range2D(a, b)) -> b;
+
+define range_height(range) = 
+    interval_length(range2d_v(range));
+
+define range_vstart(range) = 
+    interval_lower(range2d_v(range));
+
+# ------------------------------------------------------------------------------
+
+declare scale_range ::
+    for_unit a, b, c, d:
+        (a, b, Range2D(c, d)) -> Range2D(a*c, b*d);
+
+define scale_range(left_factor, right_factor, range) =
+    make_range2d(
+        scale_interval(left_factor, range2d_u(range)),
+        scale_interval(right_factor, range2d_v(range)));
+
+# ------------------------------------------------------------------------------
+
+declare make_range ::
+    for_unit a, b: (a, a, b, b) -> Range2D(a, b);
+
+define make_range(a, b, c, d) =
+    make_range2d(make_interval(a, b), make_interval(c, d));
+
+# ------------------------------------------------------------------------------
+# Intervals
+# ------------------------------------------------------------------------------
+
+defrecord for_unit a: Interval(a) as interval where
+    lower: a,
+    upper: a;
+
+# ------------------------------------------------------------------------------
+ 
+declare interval_length ::
+    for_unit a: (Interval(a)) -> a;
+
+define interval_length(interval) =
+    interval_upper(interval) - interval_lower(interval);
+
+# ------------------------------------------------------------------------------
+
+declare scale_interval ::
+    for_unit a, b: (a, Interval(b)) -> Interval(a*b);
+
+define scale_interval(factor, interval) =
+    make_interval(
+        factor * interval_lower(interval),
+        factor * interval_upper(interval));

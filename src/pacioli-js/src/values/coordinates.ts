@@ -1,73 +1,77 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
-import { VectorBase } from "./vector-base";
-import { UOM } from "uom-ts";
-import { IndexSet } from "./index-set";
+import type { VectorBase } from "./vector-base";
+import { SIUnit } from "uom-ts";
+import type { IndexSet } from "./index-set";
 import { MatrixDimension } from "./matrix-dimension";
-import { MatrixShape, SIVector } from "./matrix-shape";
+import { SIVector } from "./matrix-shape";
+import { MatrixShape } from "./matrix-shape";
 
-export class Coordinates {
+export class PacioliCoordinates {
   readonly kind = "coordinates";
 
   public static fromIndex(indexSets: IndexSet[], n: number) {
-    let names: string[] = [];
-    var pos = n;
-    for (var i = indexSets.length - 1; 0 <= i; i--) {
-      var l = indexSets[i].items.length;
+    const names: string[] = [];
+    let pos = n;
+    for (let i = indexSets.length - 1; 0 <= i; i--) {
+      const l = indexSets[i].items.length;
       names[i] = indexSets[i].items[pos % l];
       pos = Math.floor(pos / l);
     }
-    return new Coordinates(names, indexSets);
+    return new PacioliCoordinates(names, indexSets);
   }
 
-  constructor(public names: string[], public indexSets: IndexSet[]) {}
+  constructor(
+    public names: string[],
+    public indexSets: IndexSet[],
+  ) {}
 
   public position() {
-    var position = 0;
-    for (var i = 0; i < this.order(); i++) {
-      var set = this.indexSets[i];
+    let position = 0;
+    for (let i = 0; i < this.order(); i++) {
+      const set = this.indexSets[i];
       position = position * set.items.length + set.position(this.names[i]);
     }
     return position;
   }
 
-  public project(cols: number[]): Coordinates {
-    var names = [];
-    var indexSets = [];
-    for (var i = 0; i < cols.length; i++) {
-      names.push(this.names[cols[i]]);
-      indexSets.push(this.indexSets[cols[i]]);
+  public project(cols: number[]): PacioliCoordinates {
+    const names = [];
+    const indexSets = [];
+    for (const col of cols) {
+      names.push(this.names[col]);
+      indexSets.push(this.indexSets[col]);
     }
-    return new Coordinates(names, indexSets);
+    return new PacioliCoordinates(names, indexSets);
   }
 
   public toText(): string {
-    var n = this.order();
+    const n = this.order();
     if (n === 0) {
       return "_";
     } else {
-      var names = new Array(n);
-      for (var i = 0; i < n; i++) {
+      const names = Array.from<string>({ length: n });
+      for (let i = 0; i < n; i++) {
         names[i] = this.indexSets[i].name + "@" + this.names[i];
       }
       return names.reduce(function (x, y) {
@@ -77,7 +81,7 @@ export class Coordinates {
   }
 
   public shortText(): string {
-    var n = this.order();
+    const n = this.order();
     if (n === 0) {
       return "_";
     } else {
@@ -91,12 +95,12 @@ export class Coordinates {
     return this.indexSets.length;
   }
 
-  public equals(other: Coordinates): boolean {
+  public equals(other: PacioliCoordinates): boolean {
     const n = this.order();
     if (other.order() !== n) {
       return false;
     }
-    for (var i = 0; i < n; i++) {
+    for (let i = 0; i < n; i++) {
       if (this.indexSets[i] !== other.indexSets[i]) {
         return false;
       }
@@ -108,50 +112,59 @@ export class Coordinates {
   }
 
   public size() {
-    var size = 1;
-    for (var i = 0; i < this.order(); i++) {
-      var set = this.indexSets[i];
+    let size = 1;
+    for (let i = 0; i < this.order(); i++) {
+      const set = this.indexSets[i];
       size = size * set.items.length;
     }
     return size;
   }
 
   public shape() {
-    // const multiplier = UOM.ONE;
-    // const rowSets = this.indexSets;
-    // const columnSets = [];
-    // const rowUnit = UOM.ONE
-    // const columnUnit = UOM.ONE
     return new MatrixShape(
-      UOM.ONE,
+      SIUnit.ONE,
       new MatrixDimension(this.indexSets),
-      UOM.ONE,
+      SIVector.ONE,
       MatrixDimension.empty(),
-      UOM.ONE
+      SIVector.ONE,
     );
   }
 
-  public findIndividualUnit(unit: SIVector) {
-    var names = this.names;
+  public findIndividualUnit(unit: SIVector): SIUnit {
+    const names = this.names;
 
     const vecBaseItem = (base: VectorBase, order: number) => {
-      if (base.position == order) {
-        var vec = base.vector;
-        var pos = names[order];
+      if (base.position === order) {
+        const vec = base.vector;
+        const pos = names[order];
         return vec.get(base.vector.indexSet.position(pos));
       } else {
-        return UOM.ONE;
+        return SIUnit.ONE;
       }
     };
 
-    var newUnit = UOM.ONE;
-    for (var i = 0; i < this.order(); i++) {
+    let newUnit = SIUnit.ONE;
+    for (let i = 0; i < this.order(); i++) {
       newUnit = newUnit.mult(
-        unit.map(function (base) {
+        unit.map((base) => {
           return vecBaseItem(base, i);
-        })
+        }),
       );
     }
     return newUnit;
+  }
+
+  public join(other: PacioliCoordinates): PacioliCoordinates {
+    return new PacioliCoordinates(
+      [...this.names, ...other.names],
+      [...this.indexSets, ...other.indexSets],
+    );
+  }
+
+  public slice(start?: number, end?: number): PacioliCoordinates {
+    return new PacioliCoordinates(
+      this.names.slice(start, end),
+      this.indexSets.slice(start, end),
+    );
   }
 }

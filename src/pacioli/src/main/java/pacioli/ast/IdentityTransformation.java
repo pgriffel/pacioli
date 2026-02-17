@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.ast;
 
 import java.util.ArrayList;
@@ -24,21 +46,31 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.LetNode.BindingNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -162,7 +194,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(IndexSetDefinition node) {
-        returnNode(node);
+        if (node.isDynamic()) {
+            returnNode(new IndexSetDefinition(node.location(), node.id, expAccept(node.body())));
+        } else {
+            returnNode(new IndexSetDefinition(node.location(), node.id, node.items()));
+        }
     }
 
     @Override
@@ -179,11 +215,26 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(TypeDefinition node) {
-        returnNode(node);
+        List<QuantNode> quantNodes = new ArrayList<>();
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNodes.add((QuantNode) nodeAccept(quantNode));
+        }
+
+        returnNode(new TypeDefinition(node.location(), quantNodes, typeAccept(node.lhs), typeAccept(node.rhs)));
     }
 
     @Override
     public void visit(UnitDefinition node) {
+        if (nodeAccept(node.id) instanceof TypeIdentifierNode id) {
+            if (node.body.isPresent()) {
+                returnNode(new UnitDefinition(node.location(), id, node.symbol,
+                        (UnitNode) nodeAccept(node.body.get())));
+            } else {
+                returnNode(new UnitDefinition(node.location(), id, node.symbol));
+            }
+        } else {
+            throw new RuntimeException("Expected an IdentifierNode");
+        }
         returnNode(node);
     }
 
@@ -271,8 +322,15 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(KeyNode node) {
-        // returnValue(new KeyNode(node));
-        returnNode(node);
+
+        List<TypeIdentifierNode> transformedIndexSets = new ArrayList<>();
+        for (TypeIdentifierNode id : node.indexSets) {
+            Node accepted = nodeAccept(id);
+            assert (accepted instanceof TypeIdentifierNode);
+            transformedIndexSets.add((TypeIdentifierNode) accepted);
+        }
+
+        returnNode(new KeyNode(node.location(), transformedIndexSets, node.keys));
     }
 
     @Override
@@ -308,7 +366,14 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(ReturnNode node) {
-        returnNode(node.transform(expAccept(node.value)));
+        ReturnNode transformed = (ReturnNode) node.transform(expAccept(node.value));
+        transformed.resultInfo = node.resultInfo;
+        returnNode(transformed);
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        returnNode(node);
     }
 
     @Override
@@ -322,8 +387,12 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(StatementNode node) {
-        returnNode(node);
-        // throw new RuntimeException("todo");
+        StatementNode statement = new StatementNode(node.location(), (SequenceNode) expAccept(node.body));
+        statement.table = node.table;
+        statement.resultInfo = node.resultInfo;
+        statement.shadowed = node.shadowed;
+        statement.isVoid = node.isVoid;
+        returnNode(statement);
     }
 
     @Override
@@ -342,6 +411,22 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(WhileNode node) {
         returnNode(node.transform(expAccept(node.test), expAccept(node.body)));
+    }
+
+    @Override
+    public void visit(ForNode node) {
+        ForNode forNode = node.transform(node.var, expAccept(node.items), expAccept(node.body));
+        forNode.table = node.table;
+        forNode.lambdaBody = expAccept(node.lambdaBody);
+        returnNode(forNode);
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+        ForTupleNode forNode = node.transform(node.vars, expAccept(node.items), expAccept(node.body));
+        forNode.table = node.table;
+        forNode.lambdaBody = expAccept(node.lambdaBody);
+        returnNode(forNode);
     }
 
     @Override
@@ -416,7 +501,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(UnitIdentifierNode node) {
-        returnNode(node);
+        if (nodeAccept(node.name) instanceof TypeIdentifierNode id) {
+            returnNode(new UnitIdentifierNode(node.location(), node.prefix, id));
+        } else {
+            throw new RuntimeException("expected a TypeIdentifierNode");
+        }
     }
 
     @Override
@@ -431,13 +520,9 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(LetNode node) {
-        List<BindingNode> newBindings = new ArrayList<BindingNode>();
-        for (BindingNode binding : node.binding) {
-            Node accepted = nodeAccept(binding);
-            assert (accepted instanceof BindingNode);
-            newBindings.add((BindingNode) accepted);
-        }
-        returnNode(node.transform(newBindings, expAccept(node.body)));
+        Node accepted = nodeAccept(node.binding);
+        assert (accepted instanceof BindingNode);
+        returnNode(node.transform((BindingNode) accepted, expAccept(node.body)));
     }
 
     @Override
@@ -519,6 +604,104 @@ public class IdentityTransformation implements Visitor {
             args.add(typeAccept(arg));
         }
         returnNode(new TypePredicateNode(node.location(), node.id, args));
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        returnNode(node);
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        returnNode(node);
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+        returnNode(node);
+    }
+
+    @Override
+    public void visit(ExponentNode node) {
+        returnNode(node.transform(expAccept(node.base)));
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+
+        ExpressionNode expr = expAccept(node.expression);
+
+        List<ComprehensionNode.Clause> transformed = new ArrayList<>();
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            Node cl = nodeAccept(clause);
+            assert (cl instanceof ComprehensionNode.Clause);
+            transformed.add((ComprehensionNode.Clause) cl);
+        }
+
+        returnNode(new ComprehensionNode(expr, transformed, node.location()));
+    }
+
+    @Override
+    public void visit(GeneratorClause clause) {
+        Node id = nodeAccept(clause.id);
+        ExpressionNode cl = expAccept(clause.list);
+        assert (id instanceof IdentifierNode);
+        returnNode(new ComprehensionNode.GeneratorClause((IdentifierNode) id, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.FilterClause clause) {
+        ExpressionNode cl = expAccept(clause.list);
+        returnNode(new ComprehensionNode.FilterClause(cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleGeneratorClause clause) {
+
+        List<IdentifierNode> transformed = new ArrayList<>();
+        for (IdentifierNode id : clause.ids) {
+            Node tr = nodeAccept(id);
+            assert (tr instanceof IdentifierNode);
+            transformed.add((IdentifierNode) tr);
+        }
+        ExpressionNode cl = expAccept(clause.list);
+
+        returnNode(new ComprehensionNode.TupleGeneratorClause(transformed, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.AssignmentClause clause) {
+        Node id = nodeAccept(clause.id);
+        ExpressionNode cl = expAccept(clause.value);
+        assert (id instanceof IdentifierNode);
+        returnNode(new ComprehensionNode.AssignmentClause((IdentifierNode) id, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleAssignmentClause clause) {
+
+        List<IdentifierNode> transformed = new ArrayList<>();
+        for (IdentifierNode id : clause.ids) {
+            Node tr = nodeAccept(id);
+            assert (tr instanceof IdentifierNode);
+            transformed.add((IdentifierNode) tr);
+        }
+        ExpressionNode cl = expAccept(clause.value);
+
+        returnNode(new ComprehensionNode.TupleAssignmentClause(transformed, cl, clause.location()));
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+
+        List<ExpressionNode> transformed = new ArrayList<>();
+        for (ExpressionNode element : node.elements) {
+            Node tr = nodeAccept(element);
+            assert (tr instanceof ExpressionNode);
+            transformed.add((ExpressionNode) tr);
+        }
+
+        returnNode(new ListLiteralNode(node.location(), transformed));
     }
 
 }

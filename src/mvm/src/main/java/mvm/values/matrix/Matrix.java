@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package mvm.values.matrix;
@@ -31,28 +32,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import mvm.MVMException;
-import mvm.values.AbstractPacioliValue;
 import mvm.values.PacioliList;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
 
 import org.apache.commons.math3.linear.Array2DRowRealMatrix;
+import org.apache.commons.math3.linear.CholeskyDecomposition;
 import org.apache.commons.math3.linear.LUDecomposition;
+import org.apache.commons.math3.linear.NonPositiveDefiniteMatrixException;
+import org.apache.commons.math3.linear.NonSymmetricMatrixException;
 import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
+import org.apache.commons.math3.linear.EigenDecomposition;
 
 // import pacioli.Pacioli;
 import uom.DimensionedNumber;
+import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
 
-public class Matrix extends AbstractPacioliValue {
+public class Matrix implements PacioliValue {
 
     public final MatrixShape shape;
     private RealMatrix numbers;
 
     static public int nrDecimals = 2;
+
+    static public int precision = 14;
+
+    static public boolean showZeros = true;
 
     ////////////////////////////////////////////////////////////////////////////
     // Constructors
@@ -84,90 +93,101 @@ public class Matrix extends AbstractPacioliValue {
     @Override
     public void printText(PrintWriter out) {
 
+        // Params
+        String valueLabel = "Value";
+
+        // The treshold below which numbers are not shown
+        double treshold = Math.pow(10, -Matrix.precision);
+
         DecimalFormat format = new DecimalFormat();
         format.setMinimumIntegerDigits(1);
         format.setMaximumFractionDigits(nrDecimals);
         format.setMinimumFractionDigits(nrDecimals);
         format.setGroupingUsed(false);
 
+        // If its a scalar just print the number and not a table
         if (rowDimension().width() == 0 && columnDimension().width() == 0) {
             String decString = format.format(numbers.getEntry(0, 0));
+
             if (unitAt(0, 0).equals(MatrixBase.ONE)) {
                 out.format("%s", decString);
-                return;
             } else {
-                out.format("%s%s", decString, unitAt(0, 0).pretty());
-                return;
+                out.format("%s %s", decString, unitAt(0, 0).pretty());
             }
+
+            return;
         }
 
+        out.println();
+
+        // The header text for the index column
         String sep = rowDimension().width() == 0 || columnDimension().width() == 0 ? "" : ", ";
         String indexText = rowDimension().indexText() + sep + columnDimension().indexText();
-        int len = indexText.length();
 
+        // The strings per row
         List<String> idxList = new ArrayList<String>();
         List<String> numList = new ArrayList<String>();
         List<String> unitList = new ArrayList<String>();
 
-        int idxWidth = len + 2;
-        int numWidth = len + 2;
-        int unitWidth = 0;
+        // The maximum string lengths over the rows. Start with the header widths
+        // to make sure the header texts fit.
+        int maxIdxWidth = indexText.length();
+        int maxNumWidth = valueLabel.length();
+        int maxUnitWidth = 0;
 
         for (int i = 0; i < rowDimension().size(); i++) {
             for (int j = 0; j < columnDimension().size(); j++) {
+
                 double num = numbers.getEntry(i, j);
-                if (num < -0.0000000001 || 0.0000000001 < num) {
-                    // if (num != 0) {
 
-                    String numString = format.format(num);
-                    numList.add(numString);
-                    numWidth = Math.max(numWidth, numString.length());
+                if (showZeros || Math.abs(num) >= treshold) {
 
-                    String idxString = "";
-                    String seper = "";
-                    for (String idx : rowDimension().ElementAt(i)) {
-                        idxString += seper + idx;
-                        seper = ", ";
-                    }
-                    for (String idx : columnDimension().ElementAt(j)) {
-                        idxString += seper + idx;
-                        seper = ", ";
-                    }
-                    idxWidth = Math.max(idxWidth, idxString.length());
-                    idxList.add(idxString);
+                    // The index string
+                    List<String> items = new ArrayList<>();
+                    items.addAll(rowDimension().ElementAt(i));
+                    items.addAll(columnDimension().ElementAt(j));
+                    String idxString = String.join(", ", items);
 
+                    // The number string
+                    String numString = num == 0 ? "-" : format.format(num);
+
+                    // The unit string
                     Unit<MatrixBase> unit = unitAt(i, j);
                     String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.pretty();
+
+                    // Add the string to the lists we are building
+                    idxList.add(idxString);
+                    numList.add(numString);
                     unitList.add(unitString);
-                    unitWidth = Math.max(unitWidth, unitString.length());
+
+                    // Update the maximum widths
+                    maxNumWidth = Math.max(maxNumWidth, numString.length());
+                    maxIdxWidth = Math.max(maxIdxWidth, idxString.length());
+                    maxUnitWidth = Math.max(maxUnitWidth, unitString.length());
                 }
             }
         }
 
-        out.print("\n");
-        out.print(indexText);
-        for (int i = 0; i < idxWidth - len + 1; i++) {
-            out.print(" ");
-        }
-        out.print(" ");
-        for (int i = 0; i < numWidth + unitWidth - 3; i++) {
-            out.print(" ");
-        }
-        out.print("Value");
-        out.print("\n");
-        for (int i = 0; i < idxWidth + 1; i++) {
-            out.print("-");
-        }
-        out.print("-");
-        for (int i = 0; i < numWidth + unitWidth + 1; i++) {
-            out.print("-");
-        }
-        if (unitWidth != 0) {
-            out.print("-");
-        }
+        // Formatter with five entries properly aligned
+        // 1. Index (left aligned, is the - in the format string)
+        // 2. Separator
+        // 3. Number (right aligned)
+        // 4. Seprator
+        // 5. Unit
+        String formatter = "%-" + maxIdxWidth + "s%s%" + maxNumWidth + "s%s%s";
+
+        // The header row
+        out.format(formatter, indexText, " | ", valueLabel, "", "");
+
+        out.println();
+
+        // The separator row
+        out.format(formatter, "-".repeat(maxIdxWidth), "-+-", "-".repeat(maxNumWidth), "-", "-".repeat(maxUnitWidth));
+
+        // The table body rows
         for (int i = 0; i < idxList.size(); i++) {
-            String formatter = "\n%-" + idxWidth + "s   %" + numWidth + "s %s";
-            out.format(formatter, idxList.get(i), numList.get(i), unitList.get(i));
+            out.println();
+            out.format(formatter, idxList.get(i), " | ", numList.get(i), " ", unitList.get(i));
         }
     }
 
@@ -208,7 +228,7 @@ public class Matrix extends AbstractPacioliValue {
         return keys;
     }
 
-    private Unit<MatrixBase> unitAt(int i, int j) {
+    public Unit<MatrixBase> unitAt(int i, int j) {
         return shape.factor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
@@ -799,6 +819,24 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
+    public PacioliValue cbrt() throws MVMException {
+        Matrix matrix = new Matrix(shape.sqrt());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                double num2 = numbers.getEntry(i, j);
+                if (num2 < 0) {
+                    throw new MVMException("Cannot take cube root of negative number %s", num2);
+                }
+                if (Double.isNaN(num2)) {
+                    throw new MVMException("Cannot take cube root of number %s", num2);
+                }
+                double num3 = Math.cbrt(num2);
+                matrix.numbers.setEntry(i, j, num3);
+            }
+        }
+        return matrix;
+    }
+
     public PacioliValue expt(Matrix y) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
@@ -908,11 +946,87 @@ public class Matrix extends AbstractPacioliValue {
         return matrix;
     }
 
+    public Matrix rem(Matrix other) {
+        Matrix matrix = new Matrix(shape);
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                var div = other.numbers.getEntry(i, j);
+                var val = numbers.getEntry(i, j);
+                matrix.numbers.setEntry(i, j, div == 0 ? val : val % div);
+            }
+        }
+        return matrix;
+    }
+
     public Matrix mod(Matrix other) {
         Matrix matrix = new Matrix(shape);
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
-                matrix.numbers.setEntry(i, j, numbers.getEntry(i, j) % other.numbers.getEntry(i, j));
+                var div = other.numbers.getEntry(i, j);
+                var val = numbers.getEntry(i, j);
+                if (div == 0) {
+                    matrix.numbers.setEntry(i, j, val);
+                } else {
+                    var rem = val % div;
+                    matrix.numbers.setEntry(i, j, rem < 0 ? rem + Math.abs(div) : rem);
+                }
+            }
+        }
+        return matrix;
+    }
+
+    public Matrix absMin(Matrix other) {
+        Matrix matrix = new Matrix(shape);
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                var div = other.numbers.getEntry(i, j);
+                var val = numbers.getEntry(i, j);
+                if (div == 0) {
+                    matrix.numbers.setEntry(i, j, val);
+                } else {
+                    matrix.numbers.setEntry(i, j, val - div * Math.round(val / div));
+                }
+            }
+        }
+        return matrix;
+    }
+
+    public PacioliValue floor() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                matrix.numbers.setEntry(i, j, Math.floor(numbers.getEntry(i, j)));
+            }
+        }
+        return matrix;
+    }
+
+    public PacioliValue ceiling() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                matrix.numbers.setEntry(i, j, Math.ceil(numbers.getEntry(i, j)));
+            }
+        }
+        return matrix;
+    }
+
+    public PacioliValue truncate() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                double val = numbers.getEntry(i, j);
+                matrix.numbers.setEntry(i, j, val > 0 ? Math.floor(val) : Math.ceil(val));
+            }
+        }
+        return matrix;
+    }
+
+    public PacioliValue round() {
+        Matrix matrix = new Matrix(shape.dimensionless());
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                matrix.numbers.setEntry(i, j, Math.round(numbers.getEntry(i, j)));
             }
         }
         return matrix;
@@ -1057,7 +1171,7 @@ public class Matrix extends AbstractPacioliValue {
 
             Matrix matrixS = new Matrix(shape.factor());
             Matrix matrixU = new Matrix(shape.rowUnits());
-            Matrix matrixV = new Matrix(shape.columnUnits());
+            Matrix matrixV = new Matrix(shape.columnUnits().reciprocal());
 
             matrixS.numbers.setEntry(0, 0, numbersS.getEntry(i, i));
             for (int j = 0; j < m; j++) {
@@ -1099,6 +1213,61 @@ public class Matrix extends AbstractPacioliValue {
         items.add(matrixU);
 
         return new PacioliTuple(items);
+    }
+
+    public PacioliTuple eigenvalueDecomposition() throws MVMException {
+
+        Matrix matrixD = new Matrix(shape);
+        Matrix matrixV = new Matrix(shape);
+
+        EigenDecomposition decomposition = new EigenDecomposition(numbers);
+
+        matrixD.numbers = decomposition.getD();
+        matrixV.numbers = decomposition.getV();
+
+        List<PacioliValue> items = new ArrayList<PacioliValue>();
+        items.add(matrixD);
+        items.add(matrixV);
+
+        return new PacioliTuple(items);
+    }
+
+    public PacioliList eigenvalueList() throws MVMException {
+
+        int m = shape.rowDimension().size();
+        int n = shape.columnDimension().size();
+
+        // m should equal n
+
+        EigenDecomposition decomposition = new EigenDecomposition(numbers);
+
+        RealMatrix matrixV = decomposition.getV();
+
+        List<PacioliValue> svs = new ArrayList<PacioliValue>();
+        for (int i = 0; i < n; i++) {
+
+            List<PacioliValue> items = new ArrayList<PacioliValue>();
+
+            Matrix readlEv = new Matrix(shape.factor());
+            Matrix imgEv = new Matrix(shape.factor());
+            Matrix vec = new Matrix(shape.rowUnits());
+
+            // ev.numbers.setEntry(0, 0, matrixD.getEntry(i, i));
+            readlEv.numbers.setEntry(0, 0, decomposition.getRealEigenvalue(i));
+            imgEv.numbers.setEntry(0, 0, decomposition.getImagEigenvalue(i));
+
+            for (int j = 0; j < n; j++) {
+                vec.numbers.setEntry(j, 0, matrixV.getEntry(j, i));
+            }
+
+            items.add(readlEv);
+            items.add(imgEv);
+            items.add(vec);
+
+            svs.add(new PacioliTuple(items));
+        }
+
+        return new PacioliList(svs);
     }
 
     public PacioliTuple qrZeroSub() throws MVMException {
@@ -1151,6 +1320,31 @@ public class Matrix extends AbstractPacioliValue {
         items.add(matrixR);
 
         return new PacioliTuple(items);
+    }
+
+    public Matrix cholesky() throws MVMException {
+
+        Fraction half = new Fraction(1, 2);
+        MatrixShape resultShape = new MatrixShape(shape.factor().raise(half),
+                rowDimension(),
+                shape.rowUnit,
+                columnDimension(),
+                MatrixBase.ONE);
+        Matrix matrix = new Matrix(resultShape);
+
+        try {
+            CholeskyDecomposition decomposition = new CholeskyDecomposition(numbers);
+
+            matrix.numbers = decomposition.getL();
+
+            return matrix;
+
+        } catch (NonPositiveDefiniteMatrixException ex) {
+            throw new MVMException("matrix not positive definite in Cholesky decomposition");
+        } catch (NonSymmetricMatrixException ex) {
+            throw new MVMException("matrix not symmetric in Cholesky decomposition");
+        }
+
     }
 
     public void set(Integer i, Integer j, Double value) {

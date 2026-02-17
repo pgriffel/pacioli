@@ -1,28 +1,32 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.compiler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Comparator;
+import java.util.Optional;
 
 /**
  * A location is a range in a file. A position is a location with an equal range
@@ -33,12 +37,12 @@ public class Location {
 
     private final File file;
 
-    private final Integer fromLine;
-    private final Integer fromColumn;
-    private final Integer fromOffset;
+    public final Integer fromLine;
+    public final Integer fromColumn;
+    public final Integer fromOffset;
 
-    private final Integer toLine;
-    private final Integer toColumn;
+    public final Integer toLine;
+    public final Integer toColumn;
     private final Integer toOffset;
 
     /**
@@ -143,6 +147,10 @@ public class Location {
         this.toColumn = toColumn;
     }
 
+    public Location collapse() {
+        return new Location(this.file, this.fromLine, this.fromColumn, this.fromOffset);
+    }
+
     /**
      * The 'union' of two locations.
      * 
@@ -167,13 +175,13 @@ public class Location {
         }
     }
 
-    public File file() {
-        return file;
+    public Optional<File> file() {
+        return Optional.ofNullable(file);
     }
 
     public String fragment() {
         try {
-            return Utils.readFile(file).substring(fromOffset, toOffset);
+            return Files.readString(file.toPath()).substring(fromOffset, toOffset);
         } catch (IOException e) {
             return "No source for file" + file + ": " + e.getMessage();
         }
@@ -187,7 +195,7 @@ public class Location {
 
         String source;
         try {
-            source = Utils.readFile(file);
+            source = Files.readString(file.toPath());
         } catch (IOException e) {
             return "No source for file" + file + ": " + e.getMessage();
         }
@@ -236,6 +244,18 @@ public class Location {
             }
 
             return String.format("file %s at line %s\n\n%s\n", file, fromLine + 1, sub);
+        }
+    }
+
+    public static class LocationComparator implements Comparator<Location> {
+
+        @Override
+        public int compare(Location o1, Location o2) {
+            int compareLines = o1.fromLine.compareTo(o2.fromLine);
+            if (compareLines == 0) {
+                return o1.fromColumn.compareTo(o2.fromColumn);
+            }
+            return compareLines;
         }
     }
 }

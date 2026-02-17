@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.ast.visitors;
 
 import java.util.ArrayDeque;
@@ -9,6 +31,7 @@ import java.util.Stack;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.MatrixDimension;
 import pacioli.ast.IdentityVisitor;
+import pacioli.ast.Node;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
@@ -23,18 +46,22 @@ import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetNode.BindingNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -90,16 +117,19 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(AliasDefinition node) {
+        node.id.accept(this);
         node.unit.accept(this);
     }
 
     @Override
     public void visit(Declaration node) {
+        node.id.accept(this);
         node.typeNode.accept(this);
     }
 
     @Override
     public void visit(IndexSetDefinition node) {
+        node.id.accept(this);
         if (node.isDynamic()) {
             node.body().accept(this);
         }
@@ -113,6 +143,9 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeDefinition node) {
         pushTypeContext(node.createContext(), node.location());
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
+        }
         node.lhs.accept(this);
         node.rhs.accept(this);
         typeTables.pop();
@@ -120,6 +153,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(UnitDefinition node) {
+        node.id.accept(this);
         if (node.body.isPresent()) {
             node.body.get().accept(this);
         }
@@ -135,6 +169,7 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(ValueDefinition node) {
+        node.id.accept(this);
         node.body.accept(this);
     }
 
@@ -180,6 +215,61 @@ public class ResolveVisitor extends IdentityVisitor {
         valueTables.pop();
     }
 
+    public void visit(ForTupleNode node) {
+
+        node.items.accept(this);
+        node.lambdaBody.accept(this);
+
+        // Create the node's symbol table
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        // Create a symbol info record for each lambda parameter and store it in the
+        // table
+        for (IdentifierNode arg : node.vars) {
+            // TODO: check that definition is left empty is okay
+            Builder builder = ValueInfo.builder()
+                    .name(arg.name())
+                    .file(file)
+                    .isGlobal(false)
+                    .isMonomorphic(true)
+                    .location(node.location())
+                    .isPublic(false);
+            node.table.put(arg.name(), builder.build());
+        }
+
+        // Push the symboltable on the stack and resolve the body
+        valueTables.push(node.table);
+        node.body.accept(this);
+        valueTables.pop();
+    }
+
+    public void visit(ForNode node) {
+
+        node.items.accept(this);
+        node.lambdaBody.accept(this);
+
+        // Create the node's symbol table
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        // Create a symbol info record for each lambda parameter and store it in the
+        // table
+        String arg = node.var.name();
+        // TODO: check that definition is left empty is okay
+        Builder builder = ValueInfo.builder()
+                .name(arg)
+                .file(file)
+                .isGlobal(false)
+                .isMonomorphic(true)
+                .location(node.location())
+                .isPublic(false);
+        node.table.put(arg, builder.build());
+
+        // Push the symboltable on the stack and resolve the body
+        valueTables.push(node.table);
+        node.body.accept(this);
+        valueTables.pop();
+    }
+
     @Override
     public void visit(IdentifierNode node) {
 
@@ -208,7 +298,7 @@ public class ResolveVisitor extends IdentityVisitor {
                 ValueDefinition def = (ValueDefinition) id.info().definition().get();
                 if (def.body instanceof LambdaNode) {
                     LambdaNode lambda = (LambdaNode) def.body;
-                    if (lambda.arguments.size() != node.arguments.size()) {
+                    if (lambda.arguments.size() != node.arguments.size() && !lambda.varArgs) {
                         throw new RuntimeException("Cannot resolve",
                                 new PacioliException(node.location(),
                                         "Number of arguments %s do not match required %s",
@@ -238,19 +328,15 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(KeyNode node) {
+        for (TypeIdentifierNode name : node.indexSets) {
+            TypeInfo symbolInfo = typeTables.peek().lookup(name.name());
 
-        List<IndexSetInfo> infoList = new ArrayList<IndexSetInfo>();
-        for (String name : node.indexSets) {
-            TypeInfo symbolInfo = typeTables.peek().lookup(name);
-            if (symbolInfo instanceof IndexSetInfo) {
-                IndexSetInfo info = (IndexSetInfo) symbolInfo;
-                infoList.add(info);
+            if (symbolInfo instanceof IndexSetInfo indexSetInfo) {
+                name.info = indexSetInfo;
             } else {
-                throw new RuntimeException(String.format("%s", name));
+                throw new PacioliException(node.location(), String.format("Index set '%s' unknown", name));
             }
         }
-
-        node.setInfos(infoList);
     }
 
     public MatrixDimension compileTimeMatrixDimension(IndexType dimType) {
@@ -356,30 +442,74 @@ public class ResolveVisitor extends IdentityVisitor {
         if (statementResult.isEmpty()) {
             throw new RuntimeException("No result place for return");
         } else {
-
+            // Pick up the name for the result place that was set by the StatementNode
+            // visit.
             String resultName = statementResult.peek();
             assert (resultName != null);
 
+            // Find the info for the result place
             SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
             ValueInfo info = table.lookup(resultName);
             assert (info != null);
+
+            // Store the info for later use.
             node.resultInfo = info;
-            // IdentifierNode result = IdentifierNode.newLocalMutableVar(resultName,
-            // node.getLocation());
-            // returnNode(node.resolve(expAccept(node.value), result));
+
+            // Recur
             node.value.accept(this);
+        }
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        if (statementResult.isEmpty()) {
+            throw new RuntimeException("No result place for return");
+        } else {
+
+            // Pick up the name for the result place that was set by the StatementNode
+            // visit.
+            String resultName = statementResult.peek();
+            assert (resultName != null);
+
+            // Find the info for the result place
+            SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+            ValueInfo info = table.lookup(resultName);
+            assert (info != null);
+
+            // Store the info for later use.
+            node.resultInfo = info;
         }
     }
 
     @Override
     public void visit(StatementNode node) {
 
+        ReturnNode returnsValueWitness = null;
+        ReturnVoidNode returnsVoiditness = null;
+
+        // TODO: locallyAssignedVariables can be solved with this loop.
+        for (Node nd : node.body.mutatingStatements()) {
+            if (nd instanceof AssignmentNode as) {
+            } else if (nd instanceof ReturnNode as) {
+                returnsValueWitness = as;
+            } else if (nd instanceof ReturnVoidNode as) {
+                returnsVoiditness = as;
+            } else if (nd instanceof TupleAssignmentNode as) {
+            } else {
+            }
+        }
+
+        if (returnsValueWitness != null && returnsVoiditness != null) {
+            throw new PacioliException(returnsValueWitness.location(),
+                    "Cannot return a value while there is an empty return in %s",
+                    returnsVoiditness.location().description());
+        }
+
+        node.isVoid = returnsValueWitness == null;
+
         // Create a symbol table for all assigned variables in scope and the result
-        // place
+        // place, and a table for the shadowed variables
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
-
-        String resultName = node.table.freshSymbolName();
-
         node.shadowed = new SymbolTable<ValueInfo>();
 
         // Find all assigned variables
@@ -388,7 +518,7 @@ public class ResolveVisitor extends IdentityVisitor {
             ValueInfo info = node.table.lookupLocally(id.name());
 
             // Create a value info record for the mutable (IsRef == true) variable
-            if (info == null) {
+            if (info == null) { // Equality in the set is not on names. The set does not make sense.
                 info = ValueInfo.builder()
                         .name(id.name())
                         .file(file)
@@ -402,20 +532,21 @@ public class ResolveVisitor extends IdentityVisitor {
                 // If it shadows another value then remember that for initialization in
                 // generated code
                 ValueInfo shadowedInfo = valueTables.peek().lookup(id.name());
-                // TODO: fix shadowing. The test !shadowedInfo.isGlobal() below prevents a
-                // shadowing issue with names
-                // like rows and pi in fourier_motzkin. Turn off uncertainQuickSolution and run
-                // fourier_motzkin_tests.pacioli
-                // to reproduce the error.
-                boolean uncertainQuickSolution = true;
-                if (shadowedInfo != null && (uncertainQuickSolution && !shadowedInfo.isGlobal())) {
-                    node.shadowed.put(id.name(), shadowedInfo);
+                if (shadowedInfo != null) {
+
+                    if (!shadowedInfo.isGlobal()) {
+                        node.shadowed.put(id.name(), shadowedInfo);
+                    }
+
                 }
 
                 // Put the info in the symbol table
                 node.table.put(id.name(), info);
             }
         }
+
+        // Create a place for the statement result
+        String resultName = node.table.freshSymbolName();
 
         // Create an info record for the result and put it in the symbol table
         ValueInfo info = ValueInfo.builder()
@@ -428,11 +559,6 @@ public class ResolveVisitor extends IdentityVisitor {
                 .build();
         node.table.put(resultName, info);
         node.resultInfo = info;
-
-        // Create a place for the statement result and attach the info record
-        // info.resultPlace = IdentifierNode.newLocalMutableVar("result",
-        // node.getLocation());
-        // info.resultPlace.setInfo(info);
 
         // Resolve the body
         statementResult.push(resultName);
@@ -605,26 +731,24 @@ public class ResolveVisitor extends IdentityVisitor {
 
         // Create a symbol info record for each lambda parameter and store it in the
         // table
-        for (BindingNode binding : node.binding) {
-            binding.accept(this);
-            assert (binding instanceof LetBindingNode);
-            LetBindingNode functionBinding = (LetBindingNode) binding;
-            String arg = functionBinding.var;
+        node.binding.accept(this);
+        assert (node.binding instanceof LetBindingNode);
+        LetBindingNode functionBinding = (LetBindingNode) node.binding;
+        String arg = functionBinding.var;
 
-            ValueInfo info = ValueInfo.builder()
-                    .name(arg)
-                    .file(file)
-                    .isGlobal(false)
-                    .isMonomorphic(false)
-                    .location(node.location())
-                    .isPublic(false)
-                    .build();
+        ValueInfo info = ValueInfo.builder()
+                .name(arg)
+                .file(file)
+                .isGlobal(false)
+                .isMonomorphic(false)
+                .location(node.location())
+                .isPublic(false)
+                .build();
 
-            // todo: set the definition!!!!!!!
-            // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
+        // todo: set the definition!!!!!!!
+        // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
 
-            node.table.put(arg, info);
-        }
+        node.table.put(arg, info);
 
         // Push the symboltable on the stack and resolve the body
         valueTables.push(node.table);
@@ -645,6 +769,23 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(LetFunctionBindingNode node) {
-        throw new RuntimeException("obsolete");
+        throw new PacioliException(node.location(), "obsolete");
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        node.declaredType.accept(this);
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        node.source.accept(this);
+        // for (ExpressionNode expr : node.contraDims) {
+        // expr.accept(this);
+        // }
+        // for (ExpressionNode expr : node.coDims) {
+        // expr.accept(this);
+        // }
+        // node.condition.accept(this);
     }
 }

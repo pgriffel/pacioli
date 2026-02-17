@@ -1,3 +1,23 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 # ------------------------------------------------------------------------------
 # Test utilities
 # ------------------------------------------------------------------------------
@@ -6,7 +26,9 @@ export
     Test,
     TestSuite,
     test,
+    random_test,
     test_focus,
+    random_test_focus,
     test_description,
     is_test_focused,
     run_test,
@@ -18,13 +40,11 @@ export
     run_test_suites;
 
 declare test, test_focus :: (String, () -> Boole) -> Test;
-declare test_description :: (Test) -> String;
+declare random_test, random_test_focus :: (String, () -> Maybe(Boole)) -> Test;
 declare is_test_focused :: (Test) -> Boole;
 declare run_test :: (Test) -> Boole;
 
 declare test_suite, test_suite_focus :: (String, List(Test)) -> TestSuite;
-declare suite_description :: (TestSuite) -> String;
-declare suite_tests :: (TestSuite) -> List(Test);
 declare is_suite_focused :: (TestSuite) -> Boole;
 declare run_test_suites :: (List(TestSuite)) -> Void;
 
@@ -33,13 +53,16 @@ declare run_test_suites :: (List(TestSuite)) -> Void;
 # ------------------------------------------------------------------------------
 
 doc Test
-    "A test is a tuple <code>(description, check, focused)</code>. 
+    "A test is a tuple `(description, check, focused)`. 
     
     The desciption explains the test in one line. The check is the actual
     test. The focused flag indicates whether this test is marked as 
     'focused'.";
 
-deftype Test() = Tuple(String, () -> Boole, Boole);
+defrecord Test() as test where
+    description: String,
+    body: () -> Boole,
+    focused: Boole;
 
 # ------------------------------------------------------------------------------
 
@@ -50,26 +73,48 @@ doc test
     a condition that that test must satisfy.";
 
 define test(description, body) =
-  tuple(description , body, false);
+    make_test(description , body, false);
 
 # ------------------------------------------------------------------------------
 
 doc test_focus
-    "Creates a test, just like function <code>test</code>, but marks it as 'focused'.
+    "Creates a test, just like function `test`, but marks it as 'focused'.
     
-    When at least one test is marked as 'focused' then function <code>run_test_suites</code>
+    When at least one test is marked as 'focused' then function `run_test_suites`
     will only run the marked tests and skip all others.";
 
 define test_focus(description, body) =
-  tuple(description , body, true);
+    make_test(description , body, true);
 
 # ------------------------------------------------------------------------------
 
-doc test_description
-    "A test's description";
+doc random_test
+    "Creates a random test. 
+    
+    The first argument is a description of the test case. The second argument is
+    a Maybe with a condition that that test must satisfy.
+    
+    The test evaluates the condition repeatedly until hunderd successes have
+    been achieved, or until a faillure occurs. The test also fails after thousand
+    attempts.
+    
+    When the condition is the nothing Maybe then it doesn't count as test. This can
+    be used as a pre-condition for the test.";
 
-define test_description(test) = 
-  let (description, _, _) = test in description end;
+define random_test(description, body) =
+    make_test(description , () -> run_random_test_body(description, body), false);
+
+# ------------------------------------------------------------------------------
+
+doc random_test_focus
+    "Creates a random test, just like function `random_test`, but marks
+    it as 'focused'.
+    
+    When at least one test is marked as 'focused' then function `run_test_suites`
+    will only run the marked tests and skip all others.";
+
+define random_test_focus(description, body) =
+    make_test(description , () -> run_random_test_body(description, body), true);
 
 # ------------------------------------------------------------------------------
 
@@ -77,57 +122,62 @@ doc is_test_focused
     "Is the test marked as 'focused'.";
 
 define is_test_focused(test) = 
-  let (_, _, is_focused) = test in is_focused end;
+    test_focused(test);
 
 # ------------------------------------------------------------------------------
 
 doc run_test
     "Executes the test.";
 
-define run_test(test) = 
-  let (_, body, _) = test in body() end;
+define run_test(test) =
+    test_body(test)();
 
 # ------------------------------------------------------------------------------
 # Tests suite
 # ------------------------------------------------------------------------------
 
 doc TestSuite
-    "A test suite is a collection of tests.";
+    "A test suite is a collection of tests. Use function `test_suite` 
+    to create a test suite.";
 
-deftype TestSuite() = Tuple(String, List(Test), Boole);
+defrecord TestSuite() as suite where
+    description: String,
+    tests: List(Test),
+    focused: Boole;
 
 # ------------------------------------------------------------------------------
 
 doc test_suite
-    "Creates a test suite.";
+    "Creates a test suite.
+
+    The first argument is a description of the test suite. The second argument is
+    a list of tests to include in the suite.
+    
+    Example of a test suite for function `naturals`:
+    
+        define naturals_suite =
+            test_suite(\"Function 'naturals'\", [
+
+                test(\"should produce the empty list for 0\", () ->
+                    naturals(0) = []
+                ),
+
+                test(\"should produce the first 5 naturals\", () ->
+                    naturals(5) = [0, 1, 2, 3, 4]
+                )
+            ]);";
 
 define test_suite(description, tests) = 
-    tuple(description, tests, false);
+    make_suite(description, tests, false);
 
 # ------------------------------------------------------------------------------
 
 doc test_suite_focus
-    "Creates a test suite, just like function <code>test_suite</code>, but
+    "Creates a test suite, just like function `test_suite`, but
     marks it as 'focused'";
 
 define test_suite_focus(description, tests) = 
-    tuple(description, tests, true);
-
-# ------------------------------------------------------------------------------
-
-doc suite_description
-    "A test suite's description.";
-
-define suite_description(suite) = 
-  let (description, _, _) = suite in description end;
-
-# ------------------------------------------------------------------------------
-
-doc suite_tests
-    "All tests in a test suite.";
-
-define suite_tests(suite) = 
-  let (_, tests, _) = suite in tests end;
+    make_suite(description, tests, true);
 
 # ------------------------------------------------------------------------------
 
@@ -135,7 +185,7 @@ doc is_suite_focused
     "Is the test suite marked as 'focused'";
 
 define is_suite_focused(suite) = 
-  let (_, _, is_focused) = suite in is_focused end;
+    suite_focused(suite);
 
 # ------------------------------------------------------------------------------
 
@@ -146,58 +196,74 @@ doc run_test_suites
     When at least one of the tests is marked as 'focused' then it will only run the
     marked tests and skip all others.";
 
+define counter = make_array(2);
+
 define run_test_suites(suites) =
-  begin
-    print("\nRuning test suites\n");
+    begin
+        print("\nRuning test suites\n");
 
-    # Determine which suites to run
-    suites_with_focus := [s | s <- suites, is_suite_focused(s)];
-    to_test := if suites_with_focus = [] then suites else suites_with_focus end;
-    nr_skipped_suites := list_size(suites) - list_size(to_test);
+        start := now();
+        array_put(counter, 0, 0);
+        array_put(counter, 1, 0);
 
-    # Run the tests. Collect the results as a list of (description, result) pairs
-    results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
+        # Determine which suites to run
+        to_test :=
+            let
+                suites_with_focus = [s | s <- suites, is_suite_focused(s)]
+            in
+                if suites_with_focus = [] then
+                    suites
+                else
+                    suites_with_focus
+                end
+            end;
 
-    # Print a status message
-    print(format("\nTests finished, %s suites tested%s\n",
-      int2str(list_size(to_test), |1|),
-      skipped_message(nr_skipped_suites)));
+        nr_skipped_suites := list_size(suites) - list_size(to_test);
 
-    # Print a summary of the results per suite. Also calculate totals.
-    toprint := results;
-    total_nr_tests := 0;
-    total_nr_successes := 0;
-    while toprint != [] do
+        # Run the tests. Collect the results as a list of (description, result) pairs
+        results := [tuple(suite_description(s), run_test_suite(s)) | s <- to_test];
 
-      # Get the result for this suite
-      (description, result) := head(toprint);
-      (nr_tests, nr_errors, nr_skipped) := result;
-      nr_successes := nr_tests - nr_errors;
+        # Print a status message
+        printf("\nTests finished, %d suites tested%s\n",
+            list_size(to_test),
+            skipped_message(nr_skipped_suites));
 
-      # Print the result
-      print(format(" %s%s -> %s/%s success%s", 
-        if nr_successes = nr_tests then " " else "*" end,
-        description,
-        int2str(nr_successes, |1|),
-        int2str(nr_tests, |1|),
-        skipped_message(nr_skipped)));
+        # Print a summary of the results per suite. Also calculate totals.
+        total_nr_tests := 0;
+        total_nr_successes := 0;
 
-      # Update the totals
-      total_nr_tests := total_nr_tests + nr_tests;
-      total_nr_successes := total_nr_successes + nr_successes;
+        for (description, result) <- results do
 
-      toprint := tail(toprint);
-    end
+            # Get the result for this suite
+            # (description, result) := head(toprint);
+            (nr_tests, nr_errors, nr_skipped) := result;
+            nr_successes := nr_tests - nr_errors;
 
-    # Determine total number of skipped
-    total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
+            # Print the result
+            printf(" %s%s -> %d/%d success%s", 
+                if nr_successes = nr_tests then " " else "*" end,
+                description,
+                nr_successes,
+                nr_tests,
+                skipped_message(nr_skipped));
 
-    # Print the totals
-    print(format("\nTotal tests -> %s/%s success%s",
-      int2str(total_nr_successes, |1|),
-      int2str(total_nr_tests, |1|),
-      skipped_message(total_nr_skipped)));
-  end;
+            # Update the totals
+            total_nr_tests := total_nr_tests + nr_tests;
+            total_nr_successes := total_nr_successes + nr_successes;
+        end
+
+        # Determine total number of skipped
+        total_nr_skipped := count[ true | s <- suites, t <- suite_tests(s)] - total_nr_tests;
+
+        # Print the totals
+        printf("\nTotal tests -> %d/%d success%s attempts=%s count=%s (%s ms)",
+            total_nr_successes,
+            total_nr_tests,
+            skipped_message(total_nr_skipped),
+            array_get(counter, 0),
+            array_get(counter, 1),
+            now() - start);
+    end;
 
 # ------------------------------------------------------------------------------
 # Helpers
@@ -214,46 +280,118 @@ doc run_test_suite
     the marked tests and skip all others.";
 
 define run_test_suite(suite) =
-  let
-    (description, all_tests, _) = suite,
-    nr_focuss = count[is_test_focused(t) | t <- all_tests],
-    tests_with_focus = [t | t <- all_tests, is_test_focused(t)],
-    tests = if tests_with_focus = [] then all_tests else tests_with_focus end,
-    results = [ tuple(test_description(test), run_test(test)) | test <- tests ],
-    nr_tests = list_size(tests),
-    nr_failures = count[ not(okay) | (_, okay) <- results ],
-    nr_skipped = list_size(all_tests) - nr_tests,
-    messages = [ message | (description, okay) <- results,
-                            result := if okay then "ok" else "FAIL!" end,
-                            message := format("  %s -> %s", description, result)],
-    summary = if nr_failures = 0 then
-                format("All %s tests succeeded", int2str(nr_tests, |1|))
-              else
-                format("\nTEST FAILURES!!!!!\n\n  %s of %s tests failed",
-                  int2str(nr_failures, |1|), 
-                  int2str(nr_tests, |1|))
-              end
-                      
-  in
-    begin
-      print(description);
-      todo := messages;
-      while todo != [] do
-        frst := head(todo);
-        todo := tail(todo);
-        print(frst);
-      end
-      print(format("%s%s\n", summary, skipped_message(nr_skipped)));
-      return tuple(nr_tests, nr_failures, nr_skipped);
-    end
-  end;
+    let
+        all_tests = suite_tests(suite),
 
+        tests =
+            let
+                tests_with_focus = [t | t <- all_tests, is_test_focused(t)]
+            in
+                if tests_with_focus = [] then
+                    all_tests
+                else
+                    tests_with_focus
+                end
+            end,
+        
+        nr_tests = list_size(tests),
+        nr_skipped = list_size(all_tests) - nr_tests
+                        
+    in
+        begin
+            print(suite_description(suite));
+
+            nr_failures := 0;
+
+            for test <- tests do
+                result := catch(() -> run_test(test));
+                array_put(counter, 0, array_get(counter, 0) + 1);
+                array_put(counter, 1, array_get(counter, 1) + 1);
+
+                if is_error(result) then
+                    printf("  %s -> An error occurred: %s", test_description(test), result_error(result));
+                else
+                    okay := result_value(result);
+
+                    if not(okay) then
+                        nr_failures := nr_failures + 1;
+                    end
+
+                    printf("  %s -> %s", 
+                        test_description(test),
+                        if okay then "ok" else "FAIL!" end);
+                end
+
+            end
+
+            if nr_failures = 0 then
+                printf("All %d tests succeeded%s\n", nr_tests, skipped_message(nr_skipped));
+            else
+                printf("\nTEST FAILURES!!!!!\n\n  %d of %d tests failed%s\n",
+                    nr_failures, 
+                    nr_tests,
+                    skipped_message(nr_skipped));
+            end
+
+            return tuple(nr_tests, nr_failures, nr_skipped);
+        end
+    end;
+
+# Helper for random tests
+
+define run_random_test_body(description, body) =
+    begin
+        i := 0;
+        successes := 0;
+        target := 100;
+        limit := 1000;
+        okay := true;
+
+        while okay and successes != target and i < limit do
+            test_result := catch(body);
+            array_put(counter, 0, array_get(counter, 0) + 1);
+
+            if is_error(test_result) then
+                printf("  error: '%s'", result_error(test_result));
+                okay := false;
+            else
+                result := result_value(test_result);
+
+                if or_else(false, result) then
+                    successes := successes + 1;
+                    array_put(counter, 1, array_get(counter, 1) + 1);
+                end
+
+                okay := or_else(true, result);
+                
+            end
+
+            i := i + 1;
+        end
+
+        if okay and not(successes = target) then
+            printf("  ...random test '%s' reached limit %d with only %d successes of target %d",
+                description, limit, successes, target);
+        end
+
+        if okay and successes = target and i != successes then
+            printf("  ...random test '%s' reached target %d in %d steps. Limit is %d.",
+                description, target, i, limit);
+        end
+
+        if not(okay) then
+            printf("  ...random test '%s' failed on step %d after %d successes of target %d. Limit is %d.",
+                description, i, successes, target, limit);
+        end
+
+        return okay and successes = target;
+    end;
 
 # Helper to print the number of skipped tests or suites.
 
 define skipped_message(nr_skipped) =
-  if nr_skipped = 0 then
-    ""
-  else
-    format(", %s skipped", int2str(nr_skipped, |1|))
-  end;
+    if nr_skipped = 0 then
+        ""
+    else
+        format(", %d skipped", nr_skipped)
+    end;

@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.compiler;
@@ -37,7 +38,7 @@ import pacioli.compiler.CompilationSettings.Target;
  * A wrapper around a file path that stores extra information about the file's
  * role in a program or project.
  */
-public class PacioliFile extends AbstractPrintable {
+public class PacioliFile implements Printable {
 
     private final File fsFile;
     private final String modulePath;
@@ -78,7 +79,7 @@ public class PacioliFile extends AbstractPrintable {
      */
     public static Optional<PacioliFile> get(File file, Integer version) {
         if (file.exists()) {
-            return Optional.of(new PacioliFile(file.getAbsoluteFile(), "usr", FilenameUtils.getBaseName(file.getName()),
+            return Optional.of(new PacioliFile(file.getAbsoluteFile(), "", FilenameUtils.getBaseName(file.getName()),
                     version, false, false));
         } else {
             return Optional.empty();
@@ -104,6 +105,10 @@ public class PacioliFile extends AbstractPrintable {
 
     public String module() {
         return modulePath.isEmpty() ? moduleName : modulePath + "_" + moduleName;
+    }
+
+    public String modulePath() {
+        return modulePath;
     }
 
     public Integer version() {
@@ -140,7 +145,7 @@ public class PacioliFile extends AbstractPrintable {
     public static final List<String> defaultIncludes = new ArrayList<String>(
             Arrays.asList("base", "standard"));
 
-    public File findDocFile() {
+    public File docFile() {
         return new File(fsFile.getParentFile(), this.moduleName + ".doc");
     }
 
@@ -192,23 +197,31 @@ public class PacioliFile extends AbstractPrintable {
         // See if a candidate exists
         for (File candidate : candidates) {
             if (candidate.exists()) {
-                Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Library '%s' found in file '%s'", name, candidate);
+
+                if (Pacioli.Options.showIncludeSearches) {
+                    Pacioli.log("Library '%s' found in file '%s'", name, candidate);
+                }
+
                 if (theFile == null) {
                     theFile = candidate;
                 } else {
-                    Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Shadowed '%s' library '%s' is ignored", name,
-                            candidate);
+
+                    if (Pacioli.Options.showIncludeSearches) {
+                        Pacioli.log("Shadowed '%s' library '%s' is ignored", name,
+                                candidate);
+                    }
                 }
-            } else {
-                Pacioli.logIf(Pacioli.Options.showIncludeSearches, "Library candidate '%s' does not exist", candidate);
+            } else if (Pacioli.Options.showIncludeSearches) {
+                Pacioli.log("Library candidate '%s' does not exist", candidate);
             }
+
         }
 
         if (theFile == null) {
             return Optional.empty();
         } else {
             return Optional.of(
-                    new PacioliFile(theFile, "lib_" + name.replace("/", "_"), name.replace("/", "_"), 0, false, true));
+                    new PacioliFile(theFile, "$" + name.replace("/", "_"), name.replace("/", "_"), 0, false, true));
         }
     }
 

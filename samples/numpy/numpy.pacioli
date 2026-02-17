@@ -1,0 +1,192 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# ------------------------------------------------------------------------------
+# Numpy/Tensorflow examples
+#
+# Experiment with different representations of samples
+# ------------------------------------------------------------------------------
+
+import si;
+import numpy/iris;
+
+# ------------------------------------------------------------------------------
+# Nearest neigbor
+# ------------------------------------------------------------------------------
+
+deftype SampleRecord() = Tuple(Feature!unit, Target);
+deftype NNClassifier() = Tuple(List(Feature!unit), List(Target));
+
+declare nearest_neighbor :: (List(Feature!unit), Feature!unit) -> 1;
+declare nn_fit :: (List(SampleRecord)) -> NNClassifier;
+declare nn_predict :: (NNClassifier, Feature!unit) -> Target;
+
+define nearest_neighbor(data_list, x) =
+    begin
+        best := 0;
+        best_dist := distance(x, nth(0, data_list));
+        n := list_size(data_list);
+        i := 1;
+        while i != n do
+            dist := distance(x, nth(i, data_list));
+            if dist < best_dist then
+                best_dist := dist;
+                best := i;
+            end
+            i := i + 1;
+        end
+        return best;
+    end;
+
+define nn_fit(samples) =
+    tuple(
+        [data | (data, target) <- samples], 
+        [target | (data, target) <- samples]);
+
+define nn_predict(classifier, case) =
+    let (data, target) = classifier in
+        nth(nearest_neighbor(data, case), target)
+    end;
+
+# ------------------------------------------------------------------------------
+# Split train/test
+# ------------------------------------------------------------------------------
+
+declare split_train_test ::
+    for_type t: (List(t), 1) -> Tuple(List(t), List(t));
+
+define split_train_test(data, prob) =
+    begin
+        train := [];
+        test := [];
+        n := list_size(data);
+        i := 0;
+        while i != n do
+            elt := nth(i, data);
+            if random() < prob then
+                test := cons(elt, test);
+            else
+                train := cons(elt, train);
+            end
+            i := i + 1;
+        end
+        return tuple(train, test);
+    end;
+
+# ------------------------------------------------------------------------------
+# Feature weights
+# ------------------------------------------------------------------------------
+
+defunit point "pt";
+
+defmatrix weight :: point / Feature!unit = {
+    "Sepal length" -> 1,
+    "Sepal width" -> 1,
+    "Petal length" -> 1,
+    "Petal width" -> 1
+};
+
+# ------------------------------------------------------------------------------
+# Test input
+# ------------------------------------------------------------------------------
+
+declare my_test :: Feature!unit;
+
+defmatrix my_test :: Feature!unit = {
+    "Sepal length" -> 5.1,
+    "Sepal width" -> 3.5,
+    "Petal length" -> 1.4,
+    "Petal width" -> 0.2
+};
+
+# ------------------------------------------------------------------------------
+# Tests on numpy data (works only for target numpy)
+# ------------------------------------------------------------------------------
+
+# define numpy_classifier =
+#     apply(knn_fit, numpy_iris_array);
+
+# knn_predict(numpy_classifier, my_test);
+
+# ------------------------------------------------------------------------------
+# Tests on hardcode copy of numpy data (works for any target)
+# ------------------------------------------------------------------------------
+
+repeat_experiment(10);
+
+nn_predict(list_classifier, my_test);
+
+run_experiment(iris_list, true);
+
+declare list_classifier :: NNClassifier;
+
+define list_classifier =
+    nn_fit(iris_list);
+
+declare run_experiment ::
+    (List(SampleRecord), Boole) -> Tuple(1, 1);
+
+define run_experiment(samples, verbose) =
+    let prob = 10/100,
+        (train, test) = split_train_test(samples, prob),
+        classifier = nn_fit(train),
+        predictions = [ pred | (features, target) <- test,
+                              predicted := nn_predict(classifier, features),
+                              pred := tuple(predicted, target)],
+        nr_trials = list_size(predictions),
+        nr_correct = sum[1 | (x, y) <- predictions, x = y]
+    in
+        begin
+            if verbose then
+                printf("\n\nExperiment (test/train probability=%.2f)", to_percentage(prob));
+            
+                printf("trials %d", nr_trials);
+                    print(format("correct %d", nr_correct));
+                    print(format("accuracy %.2f", to_percentage(nr_correct/nr_trials)));
+
+                i := 0;
+                n := list_size(predictions);
+                printf("\nPredicted, Actual");
+                while i != n do
+                    (predicted, actual) := nth(i, predictions);
+                    printf("%s, %s", predicted, actual);
+                    i := i + 1;
+                end
+            end
+            return tuple(nr_correct, nr_trials);
+        end
+    end;
+
+define repeat_experiment(n) =
+    begin
+        total_correct := 0;
+        total_trials := 0;
+        i := 0;
+        while i != n do
+            (nr_correct, nr_trials) := run_experiment(iris_list, false);
+            total_correct := total_correct + nr_correct;
+            total_trials := total_trials + nr_trials;
+            i := i + 1;
+            end
+        printf("\nAsymptotic accuracy: %.2f", to_percentage(total_correct/total_trials));
+    end;
+
+define distance(x, y) =
+    norm((x-y) * weight);

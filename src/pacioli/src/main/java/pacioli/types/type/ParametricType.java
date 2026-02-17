@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types.type;
@@ -30,7 +31,7 @@ import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
 
-public class ParametricType extends AbstractType {
+public class ParametricType implements TypeObject {
 
     private final Operator op;
     private final List<TypeObject> args;
@@ -60,6 +61,9 @@ public class ParametricType extends AbstractType {
         return args;
     }
 
+    // Is this used? Since it exists it is used in the exception below, but that
+    // might not be necessary. The issue is whether it is necessary for the
+    // constraint.
     public Location location() {
         return location;
     }
@@ -91,14 +95,15 @@ public class ParametricType extends AbstractType {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         ParametricType otherType = (ParametricType) other;
         if (args.size() != otherType.args.size()) {
-            throw new PacioliException("Number of arguments for '%s and '%s' differ", this.pretty(),
+            throw new PacioliException(location(),
+                    "Number of arguments for '%s and '%s' differ", this.pretty(),
                     otherType.pretty());
         }
         ConstraintSet constraints = new ConstraintSet();
-        constraints.addConstraint(op, otherType.op, String.format("Type operator must match"));
+        constraints.addConstraint(op, otherType.op, String.format("Type operator must match"), this.location());
         for (int i = 0; i < args.size(); i++) {
             constraints.addConstraint(args.get(i), otherType.args.get(i),
-                    String.format("%s arugment %s must match", name(), i + 1));
+                    String.format("%s arugment %s must match", name(), i + 1), this.location());
         }
         return constraints;
     }

@@ -1,0 +1,124 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+import si;
+
+# ------------------------------------------------------------------------------
+# Comprehension test suites
+# ------------------------------------------------------------------------------
+
+declare comprehension_suites :: List(TestSuite);
+
+define comprehension_suites = [
+   comprehension_suite,
+   all_comprehension_suite,
+   some_comprehension_suite,
+   max_comprehension_suite
+];
+
+run_test_suites(comprehension_suites); 
+
+# ------------------------------------------------------------------------------
+# Test data
+# ------------------------------------------------------------------------------
+
+defindex TestRows = {a, b, c};
+
+defindex TestColumns = {k, l};
+
+define test_matrix(a, b, c, d, e, f) = 
+    make_matrix([
+        tuple(TestRows@a, TestColumns@k, a),
+        tuple(TestRows@b, TestColumns@k, b),
+        tuple(TestRows@c, TestColumns@k, c),
+        tuple(TestRows@a, TestColumns@l, d),
+        tuple(TestRows@b, TestColumns@l, e),
+        tuple(TestRows@c, TestColumns@l, f)
+    ]);
+  
+# ------------------------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------------------------
+
+define comprehension_suite = test_suite("Comprehension", [
+
+    test("should handle empty list correctly", () ->
+        [x | x <- []] = []
+    )
+]);
+
+
+define all_comprehension_suite = test_suite("All comprehension", [
+
+    test("should handle empty list correctly", () ->
+        all[x | x <- []] = true
+    ),
+
+    test("should handle empty list correctly", () ->
+        all[x | x <- [true, true]] = true
+    ),
+
+    test("should handle empty list correctly", () ->
+        all[x | x <- [true, true, false]] = false
+    )
+]);
+
+
+define some_comprehension_suite = test_suite("Some comprehension", [
+
+    test("should handle empty list correctly", () ->
+        some[x | x <- []] = false
+    ),
+
+    test("should handle empty list correctly", () ->
+        some[x | x <- [false, false]] = false
+    ),
+
+    test("should handle empty list correctly", () ->
+        some[x | x <- [true, true, false]] = true
+    )
+]);
+
+
+
+define max_comprehension_suite = test_suite("Max Comprehension", [
+       
+    test("should give max of three numbers", () ->
+        max[x | x <- [1, 2, 3, 5]] = 5
+    ),
+
+    test("should fail for empty list", () ->
+        let result = catch(() -> max[x | x <- []]) in
+            is_error(result) and result_error(result) = "Cannot fold an empty list"
+        end
+    ),
+
+    test("should do element-wise max for three matrices", () ->
+        let 
+            m1 = test_matrix(1,2,3,4,5,6),
+            m2 = test_matrix(6,5,4,3,2,1),
+            m3 = test_matrix(0,0,0,10,0,0),
+            mmax = test_matrix(6,5,4,10,5,6)
+        in
+            max[x | x <- [m1, m2, m3]] = mmax
+        end
+    )
+]);

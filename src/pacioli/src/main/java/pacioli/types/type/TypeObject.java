@@ -1,29 +1,29 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types.type;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,16 +37,17 @@ import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
+import pacioli.types.UnitUnification;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.MVMGenerator;
+import pacioli.types.visitors.MatrixNormalizeVisitor;
 import pacioli.types.visitors.PrettyPrinter;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
 import pacioli.types.visitors.UsesVars;
-import uom.Fraction;
 import uom.Unit;
 
 /**
@@ -77,15 +78,34 @@ public interface TypeObject extends Printable {
         return new SubstituteVisitor(subs).typeNodeAccept(this);
     };
 
+    public default TypeObject normalizeMatrixTypes() {
+        return new MatrixNormalizeVisitor().typeNodeAccept(this);
+    };
+
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException;
 
     public default Substitution unify(TypeObject other) throws PacioliException {
-        return unify(this, other);
+        return unify(this, other, false);
     };
 
-    public static Substitution unify(TypeObject x, TypeObject y) throws PacioliException {
+    public default Substitution unifyVerbose(TypeObject other, boolean verbose) throws PacioliException {
+        return unify(this, other, verbose);
+    };
+
+    public static Substitution unify(TypeObject x, TypeObject y, boolean verbose) throws PacioliException {
         if (x.equals(y)) {
             return new Substitution();
+        }
+
+        // Do the TypeVars first. A TypeVar could for example refer to an index set. In
+        // that case the more specific IndexSetVar is prefered. Always substituting
+        // typevars first is an attempt to force this. Is this sufficient?
+        if (x instanceof TypeVar) {
+            return new Substitution((Var) x, y);
+        }
+
+        if (y instanceof TypeVar) {
+            return new Substitution((Var) y, x);
         }
 
         if (x instanceof Var) {
@@ -97,7 +117,7 @@ public interface TypeObject extends Printable {
         }
 
         if (x.getClass().equals(y.getClass())) {
-            return x.unificationConstraints(y).solve(false);
+            return x.unificationConstraints(y).solve(verbose);
         } else {
             throw new PacioliException("Cannot unify a %s and a %s", x.description(), y.description());
         }
@@ -133,7 +153,7 @@ public interface TypeObject extends Printable {
         Set<UnitVar> ignore = new HashSet<>();
         for (int i = 0; i < parts.size(); i++) {
             Unit<TypeBase> part = mgu.apply(parts.get(i));
-            Substitution simplified = unitSimplify(part, ignore);
+            Substitution simplified = UnitUnification.unitSimplify(part, ignore);
             for (TypeBase base : simplified.apply(part).bases()) {
                 if (base instanceof Var) {
                     ignore.add((UnitVar) base);
@@ -156,7 +176,6 @@ public interface TypeObject extends Printable {
             TypeObject unified = unified(sub, sup);
             return alphaEqual(sub, unified);
         } catch (PacioliException ex) {
-            System.out.println(ex);
             return false;
         }
     }
@@ -189,10 +208,15 @@ public interface TypeObject extends Printable {
             // TypeVar var = (TypeVar) gvar; //fixme
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
-                // Results in weird types like b!b. Is that okay?
+                // Results in weird types like b!b. Is that okay? Yes: output in quantifiers etc
+                // is fixed by MatrixNormalizeVisitor
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
+            } else if (var instanceof IndexSetVar) {
+                map = map.compose(
+                        new Substitution(var, var.rename(String.format("%s", (char) character++).toUpperCase())));
             } else {
-                map = map.compose(new Substitution(var, var.rename(String.format("%s", (char) character++))));
+                map = map.compose(
+                        new Substitution(var, var.rename(String.format("%s", (char) character++))));
             }
         }
         TypeObject unfreshType = applySubstitution(map);
@@ -205,7 +229,7 @@ public interface TypeObject extends Printable {
             String[] parts = name.split("!");
             assert (parts.length == 2);
             if (parts.length == 2) {
-                Var var1 = new VectorUnitVar(parts[1] + "!" + parts[1]);
+                Var var1 = new VectorUnitVar(parts[0] + "!" + parts[1]);
                 Var var2 = new VectorUnitVar(name);
                 map = map.compose(new Substitution(var1, var2));
             }
@@ -234,67 +258,5 @@ public interface TypeObject extends Printable {
     // Hack to print proper compound unit vector in schema's
     default public Set<String> unitVecVarCompoundNames() {
         return new VectorVarNames().acceptTypeObject(this);
-    };
-
-    // UNITTODO
-    public static Substitution unitSimplify(Unit<TypeBase> unit, Set<UnitVar> ignore) {
-
-        List<TypeBase> varBases = new ArrayList<TypeBase>();
-        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
-
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar && !ignore.contains((Var) base)) {
-                varBases.add(base);
-            } else {
-                fixedBases.add(base);
-            }
-
-        }
-
-        if (varBases.isEmpty()) {
-            return new Substitution();
-        }
-
-        UnitVar minVar = (UnitVar) varBases.get(0);
-        for (TypeBase var : varBases) {
-            if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (UnitVar) var;
-            }
-        }
-        assert (unit.power(minVar).isInt());
-        Fraction minPower = unit.power(minVar);
-
-        if (minPower.signum() < 0) {
-            Substitution tmp = new Substitution(minVar, minVar.reciprocal());
-            return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
-        }
-
-        if (varBases.size() == 1) {
-
-            UnitVar var = (UnitVar) varBases.get(0);
-            assert (unit.power(var).isInt());
-            int power = unit.power(var).intValue();
-            // Unit residu = Unit.ONE.multiply(unit.factor());
-            Unit<TypeBase> residu = TypeBase.ONE;
-
-            for (TypeBase fixed : fixedBases) {
-                assert (unit.power(fixed).isInt());
-                int fixedPower = unit.power(fixed).intValue();
-                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
-            }
-
-            return new Substitution(var, var.multiply(residu));
-        }
-
-        Unit<TypeBase> rest = (Unit<TypeBase>) TypeBase.ONE;
-        for (TypeBase var : unit.bases()) {
-            if (!var.equals(minVar)) {
-                assert (unit.power(var).isInt());
-                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
-            }
-        }
-
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
-        return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
 }

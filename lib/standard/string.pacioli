@@ -1,53 +1,181 @@
-# Copyright (c) 2013 Paul Griffioen
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of
-# this software and associated documentation files (the "Software"), to deal in
-# the Software without restriction, including without limitation the rights to
-# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-# the Software, and to permit persons to whom the Software is furnished to do so,
-# subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-# 
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-# FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-# COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-# IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-# CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
 export
-    intercalate,
-    int2str;
+    join_strings,
+    int2str,
+    pad_left,
+    pad_right,
+    num2string,
+    num2str,
+    substring,
+    string_starts_with,
+    string_ends_with;
 
 # ----------------------------------------------------------------------------
 # String
 # ----------------------------------------------------------------------------
 
-doc intercalate
+doc join_strings
     "Contatenates all strings with the seperator between them all.
     
-    For example <code>intercalate([\"a\", \"bb\", \"ccc\"], \"++\")</code> is
-    <code>\"a++bb++ccc\"</code>";
+    For example `join_strings([\"a\", \"bb\", \"ccc\"], \"++\")` is
+    `\"a++bb++ccc\"`";
 
-declare intercalate :: (List(String), String) -> String;
+declare join_strings :: (List(String), String) -> String;
 
-define intercalate(items, seperator) =
+define join_strings(items, seperator) =
   if items = [] then "" else
     fold_list((x, y) -> concatenate(x, concatenate(seperator, y)), items)
   end;
-
 
 # ------------------------------------------------------------------------------
 # String formatting
 # ------------------------------------------------------------------------------
 
+doc num2string
+    "Convert a matrix to a string.
+    
+    The last argument must be a literal unit. It is converted to text at 
+    compile time.
+    
+    The second argument is the number of decimals.
+
+    For example `num2string(1/3*|metre|, 5, |metre|)` `\"0,33333m\"`";
+
+declare num2string :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, decimals, a*I!u per J!v) -> String;
+
+define num2string(A, decimals, U) =
+    _num2string(A, magnitude(decimals), U);
+
+# ----------------------------------------------------------------------------
+
+doc num2str
+    "Convert a matrix to a string using the current number of decimals.
+    
+    Shorthand for `num2string(x, nr_decimals(), y)`.";
+
+declare num2str :: for_index I, J: for_unit a, I!u, J!v:
+    (a*I!u per J!v, a*I!u per J!v) -> String;
+
+define num2str(A, U) =
+    _num2string(A, _nr_decimals(), U);
+
+# ----------------------------------------------------------------------------
+
 doc int2str
-    "Shorthand for <code>num2string(x, 0, unit)</code>";
+    "Shorthand for `num2string(x, 0, unit)`";
 
 declare int2str :: for_index D, E: for_unit a, D!b, E!c:
     (a*D!b per E!c, a*D!b per E!c) -> String;
 
 define int2str(x, unit) =
-    num2string(x, 0, unit);
+    _num2string(x, 0, unit);
+
+# ------------------------------------------------------------------------------
+# Padding
+# ------------------------------------------------------------------------------
+
+doc pad_left
+    "Adds characters to the left of a string to make it at least  as long
+    as the requested size.
+    
+    For example `pad_left(\"foo\", 8, \"abc\")` is
+    `\"abcabfoo\"`
+    
+    Returns the string unchanged if it is not smaller than the requested
+    size";
+
+declare pad_left ::
+    (String, 1, String) -> String;
+
+define pad_left(string, size, padding) =
+    pad("", string, size, padding);
+
+# ------------------------------------------------------------------------------
+
+doc pad_right
+    "Adds characters to the right of a string to make it at least  as long
+    as the requested size.
+    
+    For example `pad_right(\"foo\", 8, \"abc\")` is
+    `\"fooabcab\"`
+    
+    Returns the string unchanged if it is not smaller than the requested
+    size";
+
+declare pad_right ::
+    (String, 1, String) -> String;
+
+define pad_right(string, size, padding) =
+    pad(string, "", size, padding);
+
+# ------------------------------------------------------------------------------
+
+doc string_starts_with
+    "Does the given string start with the given prefix?";
+
+declare string_starts_with :: (String, String) -> Boole;
+
+define string_starts_with(str, prefix) =
+    substring(str, 0, string_length(prefix)) = prefix;
+
+# ------------------------------------------------------------------------------
+
+doc string_ends_with
+    "Does the given string end with the given suffix?";
+
+declare string_ends_with :: (String, String) -> Boole;
+
+define string_ends_with(str, suffix) =
+    let n = string_length(str) in
+        substring(str, n - string_length(suffix), n) = suffix
+    end;
+
+# ------------------------------------------------------------------------------
+  
+doc substring
+    "A substring of the given string from start (inclusive) to end (exclusive).
+    
+    Returns a string of length end - start. The chartacter at the i-th position
+    is the character at position (start + i) mod n of the original string,
+    where n is the length of the original string.
+    
+    Returns the empty string if the original string is empty.";
+
+declare substring ::
+    (String, 1, 1) -> String;
+  
+define substring(str, startPos, endPos) =
+    if str = "" then
+        ""
+    else
+        let
+            n = string_length(str),
+            xs = [char_at(str, mod(startPos + i, n)) | i <- naturals(max(0, endPos - startPos))]
+        in
+            if xs = [] then
+                "" 
+            else
+                fold_list(concatenate, xs) 
+            end
+        end
+    end;

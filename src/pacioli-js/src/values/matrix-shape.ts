@@ -1,31 +1,33 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 import { SIUnit, UOM } from "uom-ts";
-import { Coordinates } from "./coordinates";
+import { PacioliCoordinates } from "./coordinates";
 import { MatrixDimension } from "./matrix-dimension";
-import { VectorBase } from "./vector-base";
+import type { VectorBase } from "./vector-base";
 
-export type SIVector = UOM<VectorBase>;
+export class SIVector extends UOM<VectorBase> {
+  public static readonly ONE: UOM<VectorBase> = new UOM(new Map());
+}
 
 export class MatrixShape {
   readonly kind = "matrixshape";
@@ -33,9 +35,9 @@ export class MatrixShape {
     return new MatrixShape(
       unit,
       MatrixDimension.empty(),
-      UOM.ONE,
+      SIVector.ONE,
       MatrixDimension.empty(),
-      UOM.ONE
+      SIVector.ONE,
     );
   }
 
@@ -44,14 +46,14 @@ export class MatrixShape {
     public rowDimension: MatrixDimension,
     public rowUnit: SIVector,
     public columnDimension: MatrixDimension,
-    public columnUnit: SIVector
+    public columnUnit: SIVector,
   ) {}
 
   public toText() {
-    var text = "(" + this.multiplier.toText() + "|";
-    text += this.rowDimension + "|";
-    text += this.columnDimension + "|";
+    let text = "(" + this.multiplier.toText() + "|";
+    text += this.rowDimension.toText() + "|";
     text += this.rowUnit.toText() + "|";
+    text += this.columnDimension.toText() + "|";
     text += this.columnUnit.toText() + "|";
     text += ")";
     return text;
@@ -76,7 +78,9 @@ export class MatrixShape {
   }
 
   public isScalar() {
-    return this.rowDimension.order() == 0 && this.columnDimension.order() == 0;
+    return (
+      this.rowDimension.order() === 0 && this.columnDimension.order() === 0
+    );
   }
 
   public mult(other: MatrixShape) {
@@ -93,7 +97,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit.mult(other.rowUnit),
       this.columnDimension,
-      this.columnUnit.mult(other.columnUnit)
+      this.columnUnit.mult(other.columnUnit),
     );
   }
 
@@ -102,11 +106,11 @@ export class MatrixShape {
       !this.columnDimension.equals(other.rowDimension) &&
       this.columnUnit.equals(other.rowUnit)
     ) {
-      throw (
+      throw new Error(
         "Shape " +
-        this.toText() +
-        " is not compatible for dot product with shape " +
-        other.toText()
+          this.toText() +
+          " is not compatible for dot product with shape " +
+          other.toText(),
       );
     }
     return new MatrixShape(
@@ -114,7 +118,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit,
       other.columnDimension,
-      other.columnUnit
+      other.columnUnit,
     );
   }
 
@@ -124,7 +128,7 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit,
       this.columnDimension,
-      this.columnUnit
+      this.columnUnit,
     );
   }
 
@@ -142,7 +146,7 @@ export class MatrixShape {
       this.columnDimension,
       this.columnUnit.reciprocal(),
       this.rowDimension,
-      this.rowUnit.reciprocal()
+      this.rowUnit.reciprocal(),
     );
   }
 
@@ -152,22 +156,24 @@ export class MatrixShape {
       this.rowDimension,
       this.rowUnit.reciprocal(),
       this.columnDimension,
-      this.columnUnit.reciprocal()
+      this.columnUnit.reciprocal(),
     );
   }
 
   public kron(other: MatrixShape) {
-    const mapper = function (order: number) {
-      return function (base: VectorBase) {
-        return UOM.fromBase(base.shift(order));
-      };
-    };
+    const rowOrder = this.rowOrder();
+    const columnOrder = this.columnOrder();
+
     return new MatrixShape(
       this.multiplier.mult(other.multiplier),
       this.rowDimension.kronecker(other.rowDimension),
-      this.rowUnit.mult(other.rowUnit.map(mapper(this.rowOrder()))),
+      this.rowUnit.mult(
+        other.rowUnit.map((base) => UOM.fromBase(base.shift(rowOrder))),
+      ),
       this.columnDimension.kronecker(other.columnDimension),
-      this.columnUnit.mult(other.columnUnit.map(mapper(this.columnOrder())))
+      this.columnUnit.mult(
+        other.columnUnit.map((base) => UOM.fromBase(base.shift(columnOrder))),
+      ),
     );
   }
 
@@ -233,11 +239,11 @@ export class MatrixShape {
 
   public dimensionless() {
     return new MatrixShape(
-      UOM.ONE,
+      SIUnit.ONE,
       this.rowDimension,
-      UOM.ONE,
+      SIVector.ONE,
       this.columnDimension,
-      UOM.ONE
+      SIVector.ONE,
     );
   }
 
@@ -262,68 +268,151 @@ export class MatrixShape {
   //   }
 
   public nrRows() {
-    var count = 1;
-    for (var i = 0; i < this.rowOrder(); i++) {
+    let count = 1;
+    for (let i = 0; i < this.rowOrder(); i++) {
       count *= this.rowDimension.indexSets[i].items.length;
     }
     return count;
   }
 
   public nrColumns() {
-    var count = 1;
-    for (var i = 0; i < this.columnOrder(); i++) {
+    let count = 1;
+    for (let i = 0; i < this.columnOrder(); i++) {
       count *= this.columnDimension.indexSets[i].items.length;
     }
     return count;
   }
 
   public rowCoordinates(position: number) {
-    return Coordinates.fromIndex(this.rowDimension.indexSets, position);
+    return PacioliCoordinates.fromIndex(this.rowDimension.indexSets, position);
   }
 
   public columnCoordinates(position: number) {
-    return Coordinates.fromIndex(this.columnDimension.indexSets, position);
+    return PacioliCoordinates.fromIndex(
+      this.columnDimension.indexSets,
+      position,
+    );
+  }
+
+  public rowIndices(): { names: string[]; unit: SIUnit }[] {
+    const names: { names: string[]; unit: SIUnit }[] = [];
+
+    for (let i = 0; i < this.nrRows(); i++) {
+      names.push({
+        names: this.rowCoordinates(i).names,
+        unit: this.findRowUnit(i),
+      });
+    }
+
+    return names;
+  }
+
+  public columnIndices(): { names: string[]; unit: SIUnit }[] {
+    const names: { names: string[]; unit: SIUnit }[] = [];
+
+    for (let i = 0; i < this.nrColumns(); i++) {
+      names.push({
+        names: this.columnCoordinates(i).names,
+        unit: this.findColumnUnit(i),
+      });
+    }
+
+    return names;
   }
 
   public rowNames(): string[] {
+    return this.rowIndices().map(
+      (index) => index.names.join(",") + ` (${index.unit.toText()})`,
+    );
+  }
+
+  public columnNames(): string[] {
+    return this.columnIndices().map(
+      (index) => index.names.join(",") + ` (${index.unit.toText()})`,
+    );
+  }
+
+  public rowHeaders(): string[] {
     return this.rowDimension.indexSets.map(function (x) {
       return x.name;
     });
   }
 
-  public rowName(): string {
-    return this.rowNames().reduce(function (x, y) {
+  public rowHeader(): string {
+    return this.rowHeaders().reduce(function (x, y) {
       return x + "%" + y;
-    });
+    }, "");
   }
 
-  public columnNames(): string[] {
+  public columnHeaders(): string[] {
     return this.columnDimension.indexSets.map(function (x) {
       return x.name;
     });
   }
 
-  public columnName(): string {
-    return this.columnNames().reduce(function (x, y) {
+  public columnHeader(): string {
+    return this.columnHeaders().reduce(function (x, y) {
       return x + "%" + y;
-    });
+    }, "");
   }
 
-  // Pacioli.Shape.prototype.columnCoordinates = function (position) {
-  //     return new Pacioli.Coordinates(position, this.columnSets);
-  //   }
-
-  public findRowUnit(row: number) {
+  public findRowUnit(row: number): SIUnit {
     return this.rowCoordinates(row).findIndividualUnit(this.rowUnit);
   }
 
-  public findColumnUnit(column: number) {
+  public findColumnUnit(column: number): SIUnit {
     return this.columnCoordinates(column).findIndividualUnit(this.columnUnit);
   }
 
-  public unitAt(row: number, column: number) {
+  public unitAt(row: number, column: number): SIUnit {
     return this.multiplier
       .mult(this.findRowUnit(row))
       .div(this.findColumnUnit(column));
+  }
+
+  public reorder(rowOrder: number, columnOrder: number): MatrixShape {
+    const oldRowOrder = this.rowOrder();
+    const oldColumnOrder = this.columnOrder();
+
+    if (rowOrder === oldRowOrder && columnOrder === oldColumnOrder) {
+      return this;
+    }
+
+    if (rowOrder + columnOrder !== oldRowOrder + oldColumnOrder) {
+      throw new Error(
+        `Cannot reorder matrix from (${oldRowOrder.toString()},${oldColumnOrder.toString()}) to (${rowOrder.toString()},${columnOrder.toString()}). The total order must be equal.`,
+      );
+    }
+
+    const totaldimension = this.rowDimension.kronecker(this.columnDimension);
+
+    const rowDimension = totaldimension.slice(0, rowOrder);
+
+    const columnDimension = totaldimension.slice(rowOrder);
+
+    const totalUnit = this.rowUnit.mult(
+      this.columnUnit
+        .reciprocal()
+        .map((base) => UOM.fromBase(base.shift(oldRowOrder))),
+    );
+
+    const rowUnit = totalUnit.map((base) =>
+      base.position >= rowOrder ? SIVector.ONE : UOM.fromBase(base),
+    );
+
+    const columnUnit = totalUnit
+      .map((base) =>
+        base.position < rowOrder ? SIVector.ONE : UOM.fromBase(base),
+      )
+      .map((base) => UOM.fromBase(base.shift(-rowOrder)))
+      .reciprocal();
+
+    return new MatrixShape(
+      this.multiplier,
+      rowDimension,
+      rowUnit,
+      columnDimension,
+      columnUnit,
+    );
   }
 }

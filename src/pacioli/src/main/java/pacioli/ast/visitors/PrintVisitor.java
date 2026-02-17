@@ -1,5 +1,28 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.ast.visitors;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,27 +53,40 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetTupleBindingNode;
+import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.FilterClause;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
+import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
-import pacioli.ast.expression.LetNode.BindingNode;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
@@ -77,9 +113,8 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
-    public PrintVisitor(Printer printWriter) {
-        // out = new Printer(printWriter);
-        out = printWriter;
+    public PrintVisitor(Printer printer) {
+        out = printer;
     }
 
     public void write(String text) {
@@ -111,10 +146,14 @@ public class PrintVisitor implements Visitor {
     }
 
     protected void writeCommaSeparated(List<? extends Node> nodes) {
+        writeSeparated(nodes, ", ");
+    }
+
+    protected void writeSeparated(List<? extends Node> nodes, String delimiter) {
         Boolean sep = false;
         for (Node node : nodes) {
             if (sep) {
-                write(", ");
+                write(delimiter);
             } else {
                 sep = true;
             }
@@ -261,7 +300,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(ValueDefinition node) {
-        if (node.body instanceof MatrixLiteralNode lit) {
+        if (node.body instanceof MatrixLiteralNode) {
             mark();
             write("defmatrix");
             node.body.accept(this);
@@ -375,7 +414,7 @@ public class PrintVisitor implements Visitor {
 
     @Override
     public void visit(KeyNode node) {
-        int size = node.indexSets.size();
+        int size = node.width();
         if (size == 0) {
             write("_");
         } else {
@@ -383,13 +422,20 @@ public class PrintVisitor implements Visitor {
                 if (0 < i) {
                     write("%");
                 }
-                format("%s@%s", node.indexSets.get(i), node.keys.get(i));
+                format("%s@%s", node.indexSets.get(i).name(), node.keys.get(i).name());
             }
         }
     }
 
     @Override
     public void visit(LambdaNode node) {
+        if (node.varArgs) {
+            out.format("_lambda %s ", node.arguments.get(0));
+            node.expression.accept(this);
+            out.format(" end");
+            return;
+        }
+
         boolean wrap = node.countNodes() > 10;
         mark();
         write("(");
@@ -484,6 +530,11 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
+    public void visit(ReturnVoidNode returnVoidNode) {
+        write("return;");
+    }
+
+    @Override
     public void visit(SequenceNode node) {
         mark();
         Boolean first = true;
@@ -534,6 +585,38 @@ public class PrintVisitor implements Visitor {
         newlineUp();
         node.body.accept(this);
         newlineDown();
+    }
+
+    @Override
+    public void visit(ForNode node) {
+        write("for ");
+        node.var.accept(this);
+        write(" <- ");
+        node.items.accept(this);
+        write(" do");
+        newlineUp();
+        node.body.accept(this);
+        newlineDown();
+        write("end");
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        List<String> argNames = new ArrayList<>();
+        for (IdentifierNode arg : node.vars) {
+            argNames.add(arg.name());
+        }
+
+        write("for (");
+        write(String.join(", ", argNames));
+        write(") <- ");
+        node.items.accept(this);
+        write(" do");
+        newlineUp();
+        node.body.accept(this);
+        newlineDown();
+        write("end");
     }
 
     @Override
@@ -665,19 +748,9 @@ public class PrintVisitor implements Visitor {
         write("let ");
 
         newlineUp();
-
-        boolean first = true;
-        for (BindingNode binding : node.binding) {
-            if (!first) {
-                write(",");
-                newline();
-            } else {
-                first = false;
-            }
-            binding.accept(this);
-        }
-
+        node.binding.accept(this);
         newlineDown();
+
         write("in");
         newlineUp();
 
@@ -699,11 +772,11 @@ public class PrintVisitor implements Visitor {
     public void visit(LetTupleBindingNode node) {
         write("(");
         Boolean first = true;
-        for (String var : node.vars) {
+        for (IdentifierNode var : node.vars) {
             if (!first)
                 write(",");
             first = false;
-            out.write(var);
+            out.write(var.name());
         }
         write(") = ");
         node.value.accept(this);
@@ -713,17 +786,17 @@ public class PrintVisitor implements Visitor {
     public void visit(LetFunctionBindingNode node) {
 
         // Write the function name
-        out.write(node.name);
+        out.write(node.name.name());
 
         write("(");
 
         // Write the function parameters
         Boolean first = true;
-        for (String arg : node.args) {
+        for (IdentifierNode arg : node.args) {
             if (!first)
                 write(",");
             first = false;
-            out.write(arg);
+            out.write(arg.name());
         }
 
         write(") = ");
@@ -739,9 +812,14 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(Documentation docu) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'visit'");
+    public void visit(Documentation node) {
+        out.print("doc ");
+        node.id.accept(this);
+
+        out.newlineUp();
+        node.body.accept(this);
+        write(";");
+        out.newlineDown();
     }
 
     @Override
@@ -853,4 +931,65 @@ public class PrintVisitor implements Visitor {
         writeCommaSeparated(node.args);
         write(")");
     }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        mark();
+        write("defdata ");
+        write(" TODO ");
+        unmark();
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        write("TODO: DataQueryNode");
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+        write("TODO: DataQueryNode");
+    }
+
+    @Override
+    public void visit(ExponentNode exponentNode) {
+        write("TODO: ExponentNode");
+    }
+
+    @Override
+    public void visit(ComprehensionNode comprehensionNode) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(GeneratorClause generatorClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(FilterClause filterClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(TupleGeneratorClause tupleGeneratorClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(AssignmentClause assignmentClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(TupleAssignmentClause tupleAssignmentClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+        write("[");
+        writeCommaSeparated(node.elements);
+        write("]");
+    }
+
 }

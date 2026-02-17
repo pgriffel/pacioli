@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Paraboloid</title>
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
+    <script type="text/javascript" src="../../../js/pacioli-0.5.1.bundle.js"></script>
+    <link rel="stylesheet" href="../scene.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="../surfaces.js"></script>
+
+</head>
+
+<body>
+    <div id="console"></div>
+
+    <h1>Paraboloid</h1>
+    <p>
+        Plot of a paraboloid surface by revolutions.
+
+    <p>
+        $f(u, v) = (x, y, z)^T$ with
+    <ul>
+        <li>$x = u \cos v$</li>
+        <li>$y = u \sin v$</li>
+        <li>$z = a u^2$</li>
+    </ul>
+    where $a$ is a scaling factor, $0 \le u \le 5$, and $0 \le v \le 2\pi$.
+
+    <p>
+        The square $u^2$ for $z$ results in the unit 1/metre for $a$.
+
+    <p>
+
+
+    <div class="example">
+        <pacioli-scene width="900" height="600" id="paraboloid_scene" definition="surfaces:paraboloid_scene"
+            kind="scene" perspective grid axis>
+            <parameter label="a" unit="1/metre">0.3</parameter>
+            <parameter label="n" unit="1">30</parameter>
+            <parameter label="m" unit="1">1</parameter>
+            <parameter label="d" unit="1">10</parameter>
+            <parameter label="grid" type="boole">true</parameter>
+            <parameter label="surface" type="boole">true</parameter>
+            <parameter label="wireframe" type="boole">false</parameter>
+            <parameter label="partial vectors" type="boole">false</parameter>
+            <parameter label="sum vector" type="boole">false</parameter>
+            <parameter label="normals" type="boole">false</parameter>
+        </pacioli-scene>
+        <pacioli-inputs for="paraboloid_scene"></pacioli-inputs>
+        <pacioli-controls for="paraboloid_scene"></pacioli-controls>
+
+    </div>
+
+
+
+</body>
+
+
+</html>

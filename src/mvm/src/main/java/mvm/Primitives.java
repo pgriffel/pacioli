@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2023 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package mvm;
@@ -26,29 +27,39 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import mvm.values.Boole;
 import mvm.values.Callable;
 import mvm.values.FileHandle;
+import mvm.values.Maybe;
 import mvm.values.PacioliArray;
 import mvm.values.PacioliList;
+import mvm.values.PacioliMap;
 import mvm.values.PacioliString;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
 import mvm.values.Primitive;
 import mvm.values.Reference;
+import mvm.values.TheVoid;
 import mvm.values.matrix.Key;
 import mvm.values.matrix.Matrix;
 import mvm.values.matrix.MatrixShape;
 
 public class Primitives {
 
-    static private String prefix = "lib_base_";
+    static private String prefix = "$base_";
+
+    static Maybe NOTHING = new Maybe();
+    static TheVoid VOID = new TheVoid();
 
     static void load(Environment store) {
 
         // //////////////////////////////////////////////////////////////////////////////
         // System Functions (not in the lib_base_base_ namespace)
+
+        store.put("$base_system__runtime_environment", new PacioliString("mvm"));
 
         store.put("conversion",
                 new Primitive("conversion") {
@@ -73,13 +84,43 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("base_nmode") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                checkNrArgs(params, 3);
+                checkMatrixArg(params, 0);
+                checkMatrixArg(params, 1);
+                checkMatrixArg(params, 2);
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                Matrix z = (Matrix) params.get(2);
+                Matrix matrix = new Matrix(x.shape);
+                return matrix;
+            }
+        });
+
         // //////////////////
 
         storeBaseValue(store, "true", new Boole(true));
 
         storeBaseValue(store, "false", new Boole(false));
 
-        storeBaseValue(store, "nothing", null);
+        storePrimitive(store, new Primitive("base_nothing") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return NOTHING;
+            }
+        });
+
+        storePrimitive(store, new Primitive("base_just") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Maybe(params.get(0));
+            }
+        });
+
+        storePrimitive(store, new Primitive("base_from_just") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return ((Maybe) params.get(0)).value;
+            }
+        });
 
         storePrimitive(store, new Primitive("base_tuple") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
@@ -117,27 +158,29 @@ public class Primitives {
         storePrimitive(store, new Primitive("io_print") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
-                if (value != null) { // void value of statements
-                    Machine.log("%s\n", value.toText());
+                if (value == null) { // void value of statements
+                    throw new RuntimeException("Some statement still returning null?");
                 }
-                return null;
+                Machine.log("%s\n", value.toText());
+                return VOID;
             }
         });
 
         storePrimitive(store, new Primitive("io__write") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
-                if (value != null) { // void value of statements
-                    Machine.log("%s", value.toText());
+                if (value == null) { // void value of statements
+                    throw new RuntimeException("Some statement still returning null?");
                 }
-                return null;
+                Machine.log("%s", value.toText());
+                return VOID;
             }
         });
 
         storePrimitive(store, new Primitive("system__skip") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // return null;
-                return new Matrix(-1);
+                return VOID; // new Matrix(-1);
             }
         });
 
@@ -175,9 +218,19 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("base__assign") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Reference ref = (Reference) params.get(0);
+                PacioliValue value = params.get(1);
+                ref.setValue(value);
+                return VOID;
+            }
+        });
+
         storePrimitive(store, new Primitive("base__seq") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                return params.get(1);
+                // return params.get(1);
+                return VOID;
             }
         });
 
@@ -185,13 +238,29 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable first = (Callable) params.get(0);
                 Callable second = (Callable) params.get(1);
-                Boole test = (Boole) first.apply(new ArrayList<PacioliValue>());
-                PacioliValue result = null;
+
+                List<PacioliValue> empty = new ArrayList<>();
+
+                Boole test = (Boole) first.apply(empty);
                 while (test.positive()) {
-                    result = second.apply(new ArrayList<PacioliValue>());
-                    test = (Boole) first.apply(new ArrayList<PacioliValue>());
+                    second.apply(empty);
+                    test = (Boole) first.apply(empty);
                 }
-                return result;
+
+                return VOID;
+            }
+        });
+
+        storePrimitive(store, new Primitive("base__for") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliList first = (PacioliList) params.get(0);
+                Callable second = (Callable) params.get(1);
+
+                for (PacioliValue value : first.items()) {
+                    second.apply(List.of(value));
+                }
+
+                return VOID;
             }
         });
 
@@ -207,18 +276,70 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Callable body = (Callable) params.get(0);
                 Reference place = (Reference) params.get(1);
+                var oldStackSize = store.machine().debugStackSize();
                 try {
                     body.apply(new ArrayList<PacioliValue>());
-                    return null;
+                    throw new MVMException("Statement ends without returning a value");
                 } catch (ControlTransfer ex) {
+                    store.machine().unwindStackTo(oldStackSize);
                     return place.value();
                 }
             }
         });
+
+        storePrimitive(store, new Primitive("base__throw_void") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Reference first = (Reference) params.get(0);
+                first.setValue(params.get(1));
+                throw new ControlTransfer();
+            }
+        });
+
+        storePrimitive(store, new Primitive("base__catch_void") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Callable body = (Callable) params.get(0);
+                Reference place = (Reference) params.get(1);
+                var oldStackSize = store.machine().debugStackSize();
+                try {
+                    body.apply(new ArrayList<PacioliValue>());
+                    return VOID;
+                } catch (ControlTransfer ex) {
+                    store.machine().unwindStackTo(oldStackSize);
+                    return place.value();
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("base_try_catch") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Callable body = (Callable) params.get(0);
+                var oldStackSize = store.machine().debugStackSize();
+                try {
+                    return body.apply(new ArrayList<PacioliValue>());
+                } catch (MVMException ex) {
+                    store.machine().unwindStackTo(oldStackSize);
+
+                    Callable handler = (Callable) params.get(1);
+                    return handler.apply(List.of(new PacioliString(ex.getMessage())));
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("base_is_nothing") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Maybe maybe = (Maybe) params.get(0);
+                return new Boole(maybe.value == null);
+            }
+        });
+
+        storePrimitive(store, new Primitive("_void") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return VOID;
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // Matrix
-
-        storeBaseValue(store, "matrix__", new Key());
 
         storePrimitive(store, new Primitive("matrix_solve") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
@@ -228,28 +349,51 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_plu") {
+        storePrimitive(store, new Primitive("matrix_plu_decomposition") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 return x.plu();
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_svd") {
+        storePrimitive(store, new Primitive("matrix_eigenvalue_decomposition") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.svdNonZero();
+                return x.eigenvalueDecomposition();
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_qr") {
+        storePrimitive(store, new Primitive("matrix_eigenvalue_list") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
-                return x.qrZeroSub();
+                return x.eigenvalueList();
             }
         });
 
-        storePrimitive(store, new Primitive("matrix_unit_factor") {
+        storePrimitive(store, new Primitive("matrix_singular_value_list") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.svd();
+                // return x.svdNonZero();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_qr_decomposition") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                // return x.qrZeroSub();
+                return x.qr();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_cholesky_decomposition") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.cholesky();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_scalar_unit") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix matrix = (Matrix) params.get(0);
                 return new Matrix(matrix.shape.factor());
@@ -356,6 +500,13 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_cbrt") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.cbrt();
+            }
+        });
+
         storePrimitive(store, new Primitive("matrix_sum") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
@@ -403,11 +554,27 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_rem") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.rem(y);
+            }
+        });
+
         storePrimitive(store, new Primitive("matrix_mod") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);
                 Matrix y = (Matrix) params.get(1);
                 return x.mod(y);
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_abs_min") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                Matrix y = (Matrix) params.get(1);
+                return x.absMin(y);
             }
         });
 
@@ -813,6 +980,48 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("matrix_floor") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.floor();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_ceiling") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.ceiling();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_truncate") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.truncate();
+            }
+        });
+
+        storePrimitive(store, new Primitive("matrix_round") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix x = (Matrix) params.get(0);
+                return x.round();
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Matrix(Matrix.precision);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__set_precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix n = (Matrix) params.get(0);
+                Matrix.precision = (int) n.SingletonNumber();
+                return VOID;
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // List
 
@@ -899,17 +1108,6 @@ public class Primitives {
                 Matrix n = (Matrix) params.get(0);
                 PacioliList list = (PacioliList) params.get(1);
                 return list.nth((int) n.SingletonNumber());
-                // int n = (int) ((Matrix) params.get(0)).SingletonNumber();
-                // List<PacioliValue> list = ((PacioliList)
-                // params.get(1)).items();
-                // //return list.get((int) n.SingletonNumber());
-                // if (n < list.size()) {
-                // return list.get(n);
-                // } else {
-                // throw new
-                // MVMException("Index %s for function 'nth' out of bounds. List size is %s",
-                // n, list.size());
-                // }
             }
         });
 
@@ -922,7 +1120,6 @@ public class Primitives {
         storePrimitive(store, new Primitive("list_naturals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix n = (Matrix) params.get(0);
-                // ArrayList<PacioliValue> list = new ArrayList<PacioliValue>();
                 PacioliList list = new PacioliList();
                 for (int i = 0; i < n.SingletonNumber(); i++) {
                     list.addMut(new Matrix(i));
@@ -1015,7 +1212,7 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_string_compare") {
+        storePrimitive(store, new Primitive("string_compare_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string1 = (PacioliString) params.get(0);
                 PacioliString string2 = (PacioliString) params.get(1);
@@ -1023,14 +1220,37 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("string_char_at") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString stringParam = (PacioliString) params.get(0);
+                Matrix posParam = (Matrix) params.get(1);
+
+                String string = stringParam.toText();
+                int n = string.length();
+
+                if (n == 0) {
+                    throw new MVMException("char_at called on empty string");
+                }
+
+                int pos = (int) posParam.SingletonNumber();
+
+                int s = pos % n;
+
+                return new PacioliString(Character.toString(string.charAt(s < 0 ? s + n : s)));
+            }
+        });
+
+        storePrimitive(store, new Primitive("string_string_length") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString string = (PacioliString) params.get(0);
+                return new Matrix(string.toText().length());
+            }
+        });
+
         storePrimitive(store, new Primitive("string_text") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliValue value = params.get(0);
-                if (value == null) {
-                    return new PacioliString("VOID!");
-                } else {
-                    return new PacioliString(value.toText());
-                }
+                return new PacioliString(value.toText());
             }
         });
 
@@ -1051,50 +1271,33 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_pad_left") {
+        storePrimitive(store, new Primitive("string_pad") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliString string = (PacioliString) params.get(0);
-                Matrix n = (Matrix) params.get(1);
-                PacioliString sub = (PacioliString) params.get(2);
+                PacioliString left = (PacioliString) params.get(0);
+                PacioliString right = (PacioliString) params.get(1);
+                Matrix n = (Matrix) params.get(2);
+                PacioliString sub = (PacioliString) params.get(3);
 
-                double size = n.SingletonNumber();
-                String str = string.toText();
+                int size = (int) n.SingletonNumber();
+                String str = left.toText();
+                String rightStr = right.toText();
                 String subs = sub.toText();
-                int mod = subs.length();
-                double missing = size - str.length();
 
-                StringBuilder padded = new StringBuilder();
-                int i = 0;
-                while (i < missing) {
-                    padded.append(subs.charAt(i++ % mod));
-                }
-                padded.append(str);
-                return new PacioliString(padded.toString());
+                return new PacioliString(pad(str, rightStr, size, subs));
             }
         });
 
-        storePrimitive(store, new Primitive("string_pad_right") {
+        storePrimitive(store, new Primitive("string_unit2string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliString string = (PacioliString) params.get(0);
-                Matrix n = (Matrix) params.get(1);
-                PacioliString sub = (PacioliString) params.get(2);
-
-                double size = n.SingletonNumber();
-                String str = string.toText();
-                String subs = sub.toText();
-                int mod = subs.length();
-                double missing = size - str.length();
-
-                StringBuilder padded = new StringBuilder(str);
-                int i = 0;
-                while (i < missing) {
-                    padded.append(subs.charAt(i++ % mod));
-                }
-                return new PacioliString(padded.toString());
+                // Just ignore the unit in the third parameter. The MVM is already typed.
+                // The unit is for targets that compute with numbers only.
+                Matrix num = (Matrix) params.get(0);
+                PacioliString string = new PacioliString(num.unitAt(0, 0).pretty());
+                return string;
             }
         });
 
-        storePrimitive(store, new Primitive("string_num2string") {
+        storePrimitive(store, new Primitive("system__num2string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 // Just ignore the unit in the third parameter. The MVM is already typed.
                 // The unit is for targets that compute with numbers only.
@@ -1108,26 +1311,31 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("string_num2str") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                // Just ignore the unit in the second parameter. The MVM is already typed.
-                // The unit is for targets that compute with numbers only.
-                Matrix num = (Matrix) params.get(0);
-                return new PacioliString(num.toText());
-            }
-        });
-
-        storePrimitive(store, new Primitive("io_nr_decimals") {
+        storePrimitive(store, new Primitive("system__nr_decimals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new Matrix(Matrix.nrDecimals);
             }
         });
 
-        storePrimitive(store, new Primitive("io_set_nr_decimals") {
+        storePrimitive(store, new Primitive("system__set_nr_decimals") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix n = (Matrix) params.get(0);
                 Matrix.nrDecimals = (int) n.SingletonNumber();
-                return null;
+                return VOID;
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__show_zeros") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Boole(Matrix.showZeros);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__set_show_zeros") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Boole show = (Boole) params.get(0);
+                Matrix.showZeros = show.positive();
+                return VOID;
             }
         });
 
@@ -1160,33 +1368,163 @@ public class Primitives {
         });
 
         storePrimitive(store, new Primitive("string_format") {
+
+            Pattern DECIMAL_PATTERN = Pattern.compile("^%([0-9]*)d");
+            Pattern FLOAT_PATTERN = Pattern.compile("^%([0-9]*)([.]?)([0-9]*)f");
+
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 if (params.isEmpty()) {
-                    return new PacioliString("No format string found. The first argument to format must be a string.");
-                } else {
-                    checkStringArg(params, 0);
-                    PacioliString formatString = (PacioliString) params.get(0);
-                    // List<String> paramStrings = new ArrayList<String>();
-                    Object[] paramStrings = new String[params.size() - 1];
-                    for (int i = 0; i < params.size() - 1; i++) {
-                        // paramStrings.add(value.toText());
-                        paramStrings[i] = params.get(i + 1).toText();
+                    throw new MVMException(
+                            "No format string found. The format function cannot be called without arguments.");
+
+                } else if (params.get(0) instanceof PacioliString str) {
+
+                    String formatString = str.toText();
+                    int nrCharacters = formatString.length();
+
+                    try {
+
+                        var builder = new StringBuilder();
+
+                        int position = 0;
+                        int argumentIndex = 1;
+
+                        while (position < nrCharacters) {
+
+                            char firstChar = formatString.charAt(position);
+
+                            if (firstChar == '%') {
+
+                                if (position + 1 == nrCharacters) {
+                                    throw new MVMException("unfinished format directive at end of format string %s",
+                                            formatString);
+                                }
+
+                                char secondChar = formatString.charAt(position + 1);
+
+                                if (secondChar == '%') {
+
+                                    builder.append("%");
+                                    position += 2;
+
+                                } else if (secondChar == 's') {
+
+                                    // Very permissive
+                                    builder.append(params.get(argumentIndex++).toText());
+                                    position += 2;
+
+                                } else if (secondChar == 'n') {
+
+                                    builder.append(System.lineSeparator());
+                                    position += 2;
+
+                                } else {
+
+                                    Matcher matcher = DECIMAL_PATTERN.matcher(formatString);
+
+                                    if (matcher.region(position, nrCharacters).find()) {
+
+                                        var value = params.get(argumentIndex++);
+
+                                        if (value instanceof Matrix mat) {
+
+                                            Integer size;
+                                            try {
+                                                size = Integer.parseInt(matcher.group(1));
+                                            } catch (Exception e) {
+                                                size = null;
+                                            }
+
+                                            String val = mat.toText(0);
+                                            var pd = size == null ? val : pad("", val, size, " ");
+
+                                            builder.append(pd);
+                                            position += matcher.end() - matcher.start();
+
+                                        } else {
+                                            throw new MVMException(
+                                                    "argument %s to decimal directive at position %s is not a number",
+                                                    value.toText(),
+                                                    position);
+                                        }
+
+                                    } else {
+                                        Matcher floatMatcher = FLOAT_PATTERN.matcher(formatString);
+
+                                        if (floatMatcher.region(position, nrCharacters).find()) {
+
+                                            var value = params.get(argumentIndex++);
+
+                                            if (value instanceof Matrix mat) {
+
+                                                Integer size;
+                                                Integer nrDecimals;
+
+                                                try {
+                                                    size = Integer.parseInt(floatMatcher.group(1));
+                                                } catch (Exception e) {
+                                                    size = null;
+                                                }
+
+                                                try {
+                                                    nrDecimals = Integer.parseInt(floatMatcher.group(3));
+                                                } catch (Exception e) {
+                                                    nrDecimals = null;
+                                                }
+
+                                                String val = nrDecimals == null ? mat.toText() : mat.toText(nrDecimals);
+
+                                                builder.append(size == null ? val : pad("", val, size, " "));
+                                                position += floatMatcher.end() - floatMatcher.start();
+
+                                            } else {
+                                                throw new MVMException(
+                                                        "argument %s to float directive at position %s is not a number",
+                                                        value.toText(),
+                                                        position);
+                                            }
+
+                                        } else {
+                                            throw new RuntimeException(
+                                                    String.format(
+                                                            "invalid format directive at position %s: %s",
+                                                            position, formatString.substring(position)));
+                                        }
+                                    }
+
+                                }
+
+                            } else {
+                                builder.append(firstChar);
+                                position++;
+                            }
+
+                        }
+
+                        return new PacioliString(builder.toString());
+
+                    } catch (Exception ex) {
+                        throw new MVMException(
+                                String.format("Unexpected error while formatting string \"%s\": %s",
+                                        str.toText(),
+                                        ex.getMessage()));
                     }
-                    String text = String.format(formatString.toText(), paramStrings);
-                    // String text = String.format("yo %s", "delo");
-                    return new PacioliString(text);
+                } else {
+                    throw new MVMException(
+                            "Illegal format string. The first argument to format must be a string. Found: \n\n%s",
+                            params.get(0).toText());
                 }
             }
         });
 
-        storePrimitive(store, new Primitive("error") {
+        storePrimitive(store, new Primitive("base_error") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString string = (PacioliString) params.get(0);
                 throw new MVMException(string.toText());
             }
         });
 
-        storePrimitive(store, new Primitive("_three_question_marks") {
+        storePrimitive(store, new Primitive("system__three_question_marks") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 throw new MVMException("Not yet implemented");
             }
@@ -1224,6 +1562,54 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("map_empty_map") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new PacioliMap();
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_store") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(2) instanceof PacioliMap map) {
+                    map.put(params.get(0), params.get(1));
+                    return VOID;
+                } else {
+                    throw new MVMException("Function store expects a map");
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_lookup") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(1) instanceof PacioliMap map) {
+                    return map.get(params.get(0)).map(x -> new Maybe(x)).orElse(NOTHING);
+                } else {
+                    throw new MVMException("Function lookup expects a map");
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_keys") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(0) instanceof PacioliMap map) {
+                    return new PacioliList(new ArrayList<>(map.keys()));
+                } else {
+                    throw new MVMException("Function keys expects a map");
+                }
+            }
+        });
+
+        storePrimitive(store, new Primitive("map_map_size") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                if (params.get(0) instanceof PacioliMap map) {
+                    return new Matrix(map.size());
+                } else {
+                    throw new MVMException("Function map_size expects a map");
+                }
+
+            }
+        });
+
         storePrimitive(store, new Primitive("system__system_time") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 return new Matrix(System.nanoTime() / 1000000.0);
@@ -1234,22 +1620,22 @@ public class Primitives {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliString path = (PacioliString) params.get(0);
                 Callable fun = (Callable) params.get(1);
-                try (FileHandle handle = new FileHandle(path.toText())) {
+                try (FileHandle handle = new FileHandle(path.toText(), Machine.CHARSET)) {
                     fun.apply(List.of(handle));
                 } catch (IOException exception) {
                     throw new MVMException(exception.getLocalizedMessage());
                 }
-                return null;
+                return VOID;
 
             }
         });
 
-        storePrimitive(store, new Primitive("io_file_write") {
+        storePrimitive(store, new Primitive("io_write_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 FileHandle handle = (FileHandle) params.get(0);
                 PacioliString text = (PacioliString) params.get(1);
                 handle.write(text);
-                return null;
+                return VOID;
             }
         });
     }
@@ -1260,5 +1646,41 @@ public class Primitives {
 
     private static void storePrimitive(Environment store, Primitive primitive) {
         storeBaseValue(store, primitive.name(), primitive);
+    }
+
+    /**
+     * Concatenates the left and right string, padding it in the middle to make the
+     * result
+     * at least the asked size.
+     * 
+     * pad("foo", "12.34", 15, ".") yields
+     * 
+     * "foo.......12.34"
+     * 
+     * pad("", "12.34", 10, "_") yields
+     * 
+     * "_____12.34"
+     * 
+     * @param left
+     * @param right
+     * @param size
+     * @param subs
+     * @return
+     */
+    static String pad(String left, String right, int size, String subs) {
+
+        int mod = subs.length();
+        double missing = size - left.length() - right.length();
+
+        StringBuilder padded = new StringBuilder(left);
+
+        int i = 0;
+        while (i < missing) {
+            padded.append(subs.charAt(i++ % mod));
+        }
+
+        padded.append(right);
+
+        return padded.toString();
     }
 }

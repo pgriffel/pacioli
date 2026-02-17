@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types.matrix;
@@ -28,15 +29,15 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import pacioli.types.type.AbstractType;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitMap;
 
-public class MatrixType extends AbstractType {
+public class MatrixType implements TypeObject {
 
     private final Unit<TypeBase> factor;
     private final IndexType rowDimension;
@@ -75,6 +76,48 @@ public class MatrixType extends AbstractType {
         this.rowUnit = rowUnit;
         this.columnDimension = new IndexType();
         this.columnUnit = TypeBase.ONE;
+    }
+
+    public MatrixType properIndexSets() {
+        Unit<TypeBase> rowUnit = this.rowUnit;
+        Unit<TypeBase> columnUnit = this.columnUnit;
+
+        if (this.rowDimension.isVar() || this.rowDimension.width() > 0) {
+
+            // If a unit var exists, then there is at most one dimension.
+            String idx = this.rowDimension.isVar() ? this.rowDimension.varName()
+                    : this.rowDimension.nthIndexSet(0).name();
+
+            rowUnit = this.rowUnit.map(new UnitMap<TypeBase>() {
+                public Unit<TypeBase> map(TypeBase base) {
+                    if (base instanceof VectorUnitVar b) {
+                        return b.withIndexSetName(idx);
+                    } else {
+                        return base;
+                    }
+                }
+            });
+
+        }
+
+        if (this.columnDimension.isVar() || this.columnDimension.width() > 0) {
+
+            // If a unit var exists, then there is at most one dimension.
+            String idx = this.columnDimension.isVar() ? this.columnDimension.varName()
+                    : this.columnDimension.nthIndexSet(0).name();
+
+            columnUnit = this.columnUnit.map(new UnitMap<TypeBase>() {
+                public Unit<TypeBase> map(TypeBase base) {
+                    if (base instanceof VectorUnitVar b) {
+                        return b.withIndexSetName(idx);
+                    } else {
+                        return base;
+                    }
+                }
+            });
+
+        }
+        return new MatrixType(this.factor, this.rowDimension, rowUnit, this.columnDimension, columnUnit);
     }
 
     @Override
@@ -315,17 +358,16 @@ public class MatrixType extends AbstractType {
             final IndexType dimType = (IndexType) dimension;
             String node = "";
             for (int i = 0; i < dimType.width(); i++) {
-                // IndexType ty = dimType.project(Arrays.asList(i));
-                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+
                 Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
 
                 String idx = dimType.nthIndexSet(i).name();
-                String devaluated = filtered.pretty();
-                devaluated = devaluated.equals("1") ? idx + "!" : devaluated;
+                String pretty = filtered.pretty();
+                pretty = pretty.equals("1") ? idx + "!" : pretty;
                 if (i == 0) {
-                    node = devaluated;
+                    node = pretty;
                 } else {
-                    node = node + " % " + devaluated;
+                    node = node + " % " + pretty;
                 }
             }
             return node;

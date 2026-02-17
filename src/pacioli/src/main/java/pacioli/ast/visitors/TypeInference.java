@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.ast.visitors;
 
 import java.util.ArrayList;
@@ -14,22 +36,27 @@ import pacioli.ast.expression.AssignmentNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.DataDefinitionNode;
+import pacioli.ast.expression.DataQueryNode;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
-import pacioli.ast.expression.LetFunctionBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.LetNode.BindingNode;
+import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
-import pacioli.ast.expression.LetTupleBindingNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
+import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
@@ -86,6 +113,11 @@ public class TypeInference extends IdentityVisitor {
     private ParametricType newTupleType(List<TypeObject> args) {
         return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Tuple"), findInfo("Tuple")),
                 args);
+    }
+
+    private ParametricType newListType(TypeObject arg) {
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(arg));
     }
 
     public Typing typingAccept(Node node) {
@@ -233,7 +265,7 @@ public class TypeInference extends IdentityVisitor {
             // function type.
             String message = String.format("During inference %s\nthe inferred type must match known types",
                     node.sourceDescription());
-            typing.addConstraint(funType, funTyping.type(), message);
+            typing.addConstraint(funType, funTyping.type(), message, node.location());
 
         }
 
@@ -248,7 +280,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.var.info().localType(), valueTyping.type(),
-                "assigned variable must have proper type");
+                "assigned variable must have proper type", node.location());
         returnNode(typing);
     }
 
@@ -270,13 +302,15 @@ public class TypeInference extends IdentityVisitor {
 
         // Add the constraint that the test must be Boolean
         typing.addConstraint(testTyping.type(), newBooleType(), String
-                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
+                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()),
+                node.location());
 
         // Add the constraint that the positive and the negative branch must have the
         // same type
         typing.addConstraint(posTyping.type(), negTyping.type(),
                 String.format("While infering the type of\n%s\nthe branches of an if must have the same type",
-                        node.sourceDescription()));
+                        node.sourceDescription()),
+                node.location());
 
         returnNode(typing);
     }
@@ -338,13 +372,16 @@ public class TypeInference extends IdentityVisitor {
         TypeObject voidType = newVoidType();
 
         typing.addConstraint(testTyping.type(), newBooleType(), String
-                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()));
+                .format("While infering the type of\n%s\nthe test of an if must be Boolean", node.sourceDescription()),
+                node.location());
         typing.addConstraint(posTyping.type(), voidType,
                 String.format("While infering the type of\n%s\nthe then branche of an if must be a statement",
-                        node.sourceDescription()));
+                        node.sourceDescription()),
+                node.location());
         typing.addConstraint(negTyping.type(), voidType,
                 String.format("While infering the type of\n%s\nthe else branche of an if must be a statement",
-                        node.sourceDescription()));
+                        node.sourceDescription()),
+                node.location());
 
         returnNode(typing);
     }
@@ -355,14 +392,134 @@ public class TypeInference extends IdentityVisitor {
         // Create a list of type identifiers for all the key's dimensions
         List<TypeIdentifier> typeIds = new ArrayList<TypeIdentifier>();
         List<IndexSetInfo> typeInfos = new ArrayList<IndexSetInfo>();
-        for (int i = 0; i < node.indexSets.size(); i++) {
+        for (int i = 0; i < node.width(); i++) {
             IndexSetInfo info = node.getInfo(i);
-            typeIds.add(new TypeIdentifier(info.generalInfo().module(), node.indexSets.get(i)));
+            typeIds.add(new TypeIdentifier(info.generalInfo().module(), node.indexSets.get(i).name()));
             typeInfos.add(info);
         }
 
         // Create a typing with an index type from the type identifies.
         returnNode(new Typing(new IndexList(typeIds, typeInfos)));
+    }
+
+    @Override
+    public void visit(ForNode node) {
+
+        String argName = node.var.name();
+
+        // Create the type variable
+        String freshName = node.table.freshSymbolName();
+        TypeObject freshType = new TypeVar(freshName);
+        TypeObject argType = freshType;
+
+        // Also store the type in the for node's symbol table
+        ValueInfo argInfo = node.table.lookup(argName);
+
+        argInfo.setinferredType(freshType);
+
+        Typing itemsTyping = typingAccept(node.items);
+        Typing bodyTyping = typingAccept(node.body);
+
+        Typing typing = new Typing(newVoidType());
+
+        typing.addConstraintsAndAssumptions(itemsTyping);
+
+        var itemsType = new ParametricType(
+                null,
+                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(argType));
+        typing.addConstraint(itemsType, itemsTyping.type(),
+                "the variables in a for loop must match the list items", node.location());
+
+        typing.addConstraint(bodyTyping.type(), newVoidType(),
+                "the body of a for loop must be a statement", node.location());
+
+        typing.addConstraints(bodyTyping);
+
+        for (String name : bodyTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (argName.equals(name)) {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.localType(),
+                            String.format("During type inference in %s\nLambda var %s must have the proper type",
+                                    node.sourceDescription(),
+                                    name),
+                            node.location());
+                }
+            } else {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addAssumption(name, var);
+                }
+            }
+        }
+
+        returnNode(typing);
+
+    }
+
+    @Override
+    public void visit(ForTupleNode node) {
+
+        // A list for the argument types
+        List<TypeObject> argTypes = new ArrayList<TypeObject>();
+
+        List<String> argNames = new ArrayList<>();
+
+        for (IdentifierNode arg : node.vars) {
+            argNames.add(arg.name());
+        }
+
+        for (String arg : argNames) {
+
+            // Create the type variable and add it to the list
+            String freshName = node.table.freshSymbolName();
+            TypeObject freshType = new TypeVar(freshName);
+            argTypes.add(freshType);
+
+            // Also store the type in the for node's symbol table
+            ValueInfo info = node.table.lookup(arg);
+            info.setinferredType(freshType);
+
+        }
+
+        Typing itemsTyping = typingAccept(node.items);
+        Typing bodyTyping = typingAccept(node.body);
+
+        Typing typing = new Typing(newVoidType());
+
+        typing.addConstraintsAndAssumptions(itemsTyping);
+
+        var itemsType = new ParametricType(
+                null,
+                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(newTupleType(argTypes)));
+        typing.addConstraint(itemsType, itemsTyping.type(),
+                "the variables in a for loop must match the list items", node.location());
+
+        typing.addConstraint(bodyTyping.type(), newVoidType(),
+                "the body of a for loop must be a statement", node.location());
+
+        typing.addConstraints(bodyTyping);
+
+        for (String name : bodyTyping.assumedNames()) {
+            ValueInfo info = node.table.lookup(name);
+            if (argNames.contains(name)) {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addConstraint(var, info.localType(),
+                            String.format("During type inference in %s\nLambda var %s must have the proper type",
+                                    node.sourceDescription(),
+                                    name),
+                            node.location());
+                }
+            } else {
+                for (TypeVar var : bodyTyping.assumptions(name)) {
+                    typing.addAssumption(name, var);
+                }
+            }
+        }
+
+        returnNode(typing);
+
     }
 
     @Override
@@ -389,7 +546,9 @@ public class TypeInference extends IdentityVisitor {
 
         // Create a typing for the lambda and add the constraints from the body's
         // inference
-        Typing typing = new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.type()));
+        Typing typing = node.varArgs
+                ? new Typing(new FunctionType(argTypes.get(0), bodyTyping.type()))
+                : new Typing(new FunctionType(newTupleType(argTypes), bodyTyping.type()));
         typing.addConstraints(bodyTyping);
 
         for (String name : bodyTyping.assumedNames()) {
@@ -399,7 +558,8 @@ public class TypeInference extends IdentityVisitor {
                     typing.addConstraint(var, info.localType(),
                             String.format("During type inference in %s\nLambda var %s must have the proper type",
                                     node.sourceDescription(),
-                                    name));
+                                    name),
+                            node.location());
                 }
             } else {
                 for (TypeVar var : bodyTyping.assumptions(name)) {
@@ -432,15 +592,13 @@ public class TypeInference extends IdentityVisitor {
 
         // Fill the types in the symbol table before the body's type
         // is inferred to make the variable types available.
-        for (BindingNode binding : node.binding) {
-            assert (binding instanceof LetBindingNode);
-            LetBindingNode letBinding = (LetBindingNode) binding;
-            vars.add(letBinding.var);
-            Typing bindingTyping = typingAccept(letBinding);
-            tmpTyping.addConstraintsAndAssumptions(bindingTyping);
-            ValueInfo info = node.table.lookup(letBinding.var);
-            info.setinferredType(bindingTyping.type());
-        }
+        assert (node.binding instanceof LetBindingNode);
+        LetBindingNode letBinding = (LetBindingNode) node.binding;
+        vars.add(letBinding.var);
+        Typing bindingTyping = typingAccept(letBinding);
+        tmpTyping.addConstraintsAndAssumptions(bindingTyping);
+        ValueInfo binfo = node.table.lookup(letBinding.var);
+        binfo.setinferredType(bindingTyping.type());
 
         // Infer the body's typing
         Typing bodyTyping = typingAccept(node.body);
@@ -459,7 +617,8 @@ public class TypeInference extends IdentityVisitor {
                     resultTyping.addInstanceConstraint(var, info.localType(), freeVars,
                             String.format("During type inference in %s\nLet var %s must have the proper type",
                                     node.sourceDescription(),
-                                    name));
+                                    name),
+                            node.location());
                 }
             } else {
                 for (TypeVar var : bodyTyping.assumptions(name)) {
@@ -520,12 +679,25 @@ public class TypeInference extends IdentityVisitor {
 
     @Override
     public void visit(ReturnNode node) {
-        TypeObject voidType = newVoidType();
+
+        // Recur
         Typing valueTyping = typingAccept(node.value);
-        Typing typing = new Typing(voidType);
+
+        // The return itself is of type void. The result type of the entire statement
+        // is contrained to the type of the expression.
+        Typing typing = new Typing(newVoidType());
         typing.addConstraintsAndAssumptions(valueTyping);
         typing.addConstraint(node.resultInfo.localType(), valueTyping.type(),
-                "the types of returned values must agree");
+                "the types of returned values must agree", node.location());
+
+        returnNode(typing);
+    }
+
+    @Override
+    public void visit(ReturnVoidNode node) {
+        Typing typing = new Typing(newVoidType());
+        typing.addConstraint(node.resultInfo.localType(), typing.type(),
+                "a void statement, no value is returned", node.location());
         returnNode(typing);
     }
 
@@ -535,7 +707,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(voidType);
         for (ExpressionNode item : node.items) {
             Typing itemTyping = typingAccept(item);
-            typing.addConstraint(voidType, itemTyping.type(), "A statement must have type Void()");
+            typing.addConstraint(voidType, itemTyping.type(), "A statement must have type Void()", node.location());
             typing.addConstraintsAndAssumptions(itemTyping);
         }
         returnNode(typing);
@@ -544,27 +716,36 @@ public class TypeInference extends IdentityVisitor {
     @Override
     public void visit(StatementNode node) {
 
-        List<String> localNames = node.table.localNames();
-        for (String name : localNames) {
-            ValueInfo info = node.table.lookup(name);
-            info.setinferredType(new TypeVar());
-        }
-
         TypeObject resultType = new TypeVar();
 
-        // ValueInfo resultInfo = node.table.lookup("result");
         ValueInfo resultInfo = node.resultInfo;
         resultInfo.setinferredType(resultType);
 
         TypeObject voidType = newVoidType();
         Typing typing = new Typing(resultType);
 
+        Set<String> localNames = node.body.locallyAssignedNames();
+        for (String name : localNames) {
+            ValueInfo info = node.table.lookup(name);
+            var var = new TypeVar();
+            info.setinferredType(var);
+
+            var shadowed = node.shadowed.lookup(info.name());
+            if (shadowed != null) {
+                typing.addAssumption(info.name(), var);
+            }
+        }
+
         Typing itemTyping = typingAccept(node.body);
 
         String stMessage = String.format("During inference %s\na statement must have type Void()",
                 node.sourceDescription());
-        typing.addConstraint(voidType, itemTyping.type(), stMessage);
-        // typing.addConstraintsAndAssumptions(itemTyping);
+        typing.addConstraint(voidType, itemTyping.type(), stMessage, node.location());
+
+        if (node.isVoid) {
+            typing.addConstraint(voidType, resultType, stMessage, node.location());
+        }
+
         typing.addConstraints(itemTyping);
 
         for (String name : itemTyping.assumedNames()) {
@@ -574,7 +755,7 @@ public class TypeInference extends IdentityVisitor {
                     String message = String.format(
                             "During inference %s\nthe inferred parameter type must match the argument",
                             info.location().description());
-                    typing.addConstraint(var, info.localType(), message);
+                    typing.addConstraint(var, info.localType(), message, info.location());
                 }
             } else {
                 for (TypeVar var : itemTyping.assumptions(name)) {
@@ -607,7 +788,7 @@ public class TypeInference extends IdentityVisitor {
         Typing typing = new Typing(voidType);
         typing.addConstraintsAndAssumptions(tupleTyping);
         typing.addConstraint(tupleType, tupleTyping.type(),
-                "assigned variable must have proper type");
+                "assigned variable must have proper type", node.location());
         returnNode(typing);
     }
 
@@ -620,10 +801,55 @@ public class TypeInference extends IdentityVisitor {
         typing.addConstraintsAndAssumptions(testTyping);
         typing.addConstraintsAndAssumptions(bodyTyping);
         typing.addConstraint(testTyping.type(), newBooleType(),
-                "the test of a while must be boolean");
+                "the test of a while must be boolean", node.location());
         typing.addConstraint(bodyTyping.type(), newVoidType(),
-                "the body of a while must be a statement");
+                "the body of a while must be a statement", node.location());
         returnNode(typing);
 
+    }
+
+    @Override
+    public void visit(DataDefinitionNode node) {
+        // Should the true arg be based on the local property?. Remove the argument!!!!
+        // Is/should be solved during resolve.
+        returnNode(new Typing(
+                new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Data"), findInfo("Data")),
+                        List.of(node.declaredType.evalType()))));
+
+        // returnNode(new Typing(node.type().evalType()));
+    }
+
+    @Override
+    public void visit(DataQueryNode node) {
+        var body = node.source.info().definition();
+        if (body.isPresent()) {
+            if (body.get().body instanceof DataDefinitionNode b) {
+                // TODO: create proper type from this source type and the query
+                returnNode(new Typing(b.declaredType.evalType()));
+            } else {
+                throw new PacioliException(node.location(), "No data body in query");
+            }
+        } else {
+            throw new PacioliException(node.location(), "No body in query");
+        }
+    }
+
+    @Override
+    public void visit(ListLiteralNode node) {
+
+        TypeObject resultType = new TypeVar();
+
+        Typing typing = new Typing(newListType(resultType));
+
+        for (ExpressionNode element : node.elements) {
+            Typing elementTyping = typingAccept(element);
+            typing.addConstraint(
+                    resultType,
+                    elementTyping.type(), "All list elements must have the same type",
+                    node.location());
+            typing.addConstraintsAndAssumptions(elementTyping);
+        }
+
+        returnNode(typing);
     }
 }

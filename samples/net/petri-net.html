@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Petri Net</title>
+
+    <script type="text/javascript" src="../../js/pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="../../js/viz-standalone.js"></script>
+    <script type="text/javascript" src="net.js"></script>
+    <script type="text/javascript" src="subtraction_game.js"></script>
+</head>
+
+<body>
+    <h2>Simple Petri Net</h2>
+
+    <div id="simple"></div>
+
+    <h2>Subtraction Game</h2>
+
+    <div id="subtraction"></div>
+
+    <script>
+
+        function valueString(dimNum) {
+            // Unit symbol string can contain " (e.g. inch)
+            return dimNum.toFixed(0).replace("\"", "\\\"");
+        }
+
+        function asDot(net) {
+
+            const ZERO_MARKINGS = true;
+
+            const [pre, post, marking] = net;
+
+            const places = new Set()
+            const transitions = new Set()
+            const placeNumber = new Map()
+
+            // Store the marking per place
+            for (const entry of marking.keyValueList(ZERO_MARKINGS).values) {
+                places.add(entry.row.join(","))
+                placeNumber.set(entry.row.join(","), valueString(entry.value))
+            }
+
+            const preKVList = pre.keyValueList();
+            const pstKVList = post.keyValueList();
+
+            // Find all places and transitions
+            for (const entry of preKVList.values) {
+                places.add(entry.row.join(","))
+                transitions.add(entry.column.join(","))
+            }
+            for (const entry of pstKVList.values) {
+                places.add(entry.row.join(","))
+                transitions.add(entry.column.join(","))
+            }
+
+            out = "digraph{"
+
+            // Dot statements for the places
+            out += "node [shape=ellipse];"
+            for (const place of places.values()) {
+                const label = placeNumber.get(place) || "empty"
+                out += `\n"${place}" [label="${place} (${label})"];`
+            }
+
+            // Dot statements for the transitions
+            out += "node [shape=box];"
+            for (const transition of transitions.values()) {
+                out += `"${transition}";`
+            }
+
+            // Dot statements for the arrows
+            for (const entry of preKVList.values) {
+                out += `${entry.row.join(",")} -> ${entry.column.join(",")} [label="${valueString(entry.value)}"];`
+            }
+            for (const entry of pstKVList.values) {
+                out += `${entry.column.join(",")} -> ${entry.row.join(",")} [label="${valueString(entry.value)}"];`
+            }
+
+            out += "}"
+
+            return out
+        }
+
+
+        Viz.instance().then(function (viz) {
+
+            const simpleElt = document.getElementById("simple");
+            const subtractionElt = document.getElementById("subtraction");
+
+            simpleElt.appendChild(viz.renderSVGElement(asDot(Pacioli.value("net", "test_net"))));
+            subtractionElt.appendChild(viz.renderSVGElement(asDot(Pacioli.fun("subtraction_game", "subtraction_game").call(Pacioli.num(10)))));
+
+        });
+
+    </script>
+
+</body>
+
+
+</html>

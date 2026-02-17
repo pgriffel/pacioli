@@ -1,3 +1,25 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.types.visitors;
 
 import pacioli.compiler.Printer;
@@ -69,14 +91,18 @@ public class PrettyPrinter implements TypeVisitor {
         // This must be an parameric "Index" type, otherwise it would be handled
         // by the matrix type.
 
-        out.print("[");
+        // out.print("Index(");
+        if (type.indexSets().size() == 0) {
+            out.print("One");
+        }
+
         String sep = "";
         for (TypeIdentifier id : type.indexSets()) {
             out.print(sep);
             out.print(id.name());
-            sep = ", ";
+            sep = " % ";
         }
-        out.print("]");
+        // out.print(")");
     }
 
     @Override
@@ -85,29 +111,41 @@ public class PrettyPrinter implements TypeVisitor {
         // // This must be an parameric "Index" type, otherwise it would be handled
         // // by the matrix type.
 
-        out.print("Index(");
+        // Update. This seems to no longer be used outside a matrix type
+
+        // out.print("Index(");
         type.indexSet().accept(this);
-        out.print(")");
+        // out.print(")");
     }
 
     @Override
     public void visit(MatrixType type) {
 
+        MatrixType properType = type.properIndexSets();
+
         // Empty string or something
-        String left = type.prettyDimensionUnitPair(type.rowDimension(), type.rowUnit());
-        String right = type.prettyDimensionUnitPair(type.columnDimension(), type.columnUnit());
+        String left = properType.prettyDimensionUnitPair(properType.rowDimension(), properType.rowUnit());
+        String right = properType.prettyDimensionUnitPair(properType.columnDimension(), properType.columnUnit());
 
         // 1 or something
-        String factorString = type.factor().pretty();
+        String factorString = properType.factor().pretty();
 
         boolean hasFactor = !factorString.equals("1");
         boolean hasLeft = !left.isEmpty();
         boolean hasRight = !right.isEmpty();
 
         if (hasFactor && hasLeft && hasRight) {
-            out.format("%s*%s per %s", factorString, left, right);
+            if (left.startsWith("1/")) {
+                out.format("%s/%s per %s", factorString, left.substring(2), right);
+            } else {
+                out.format("%s*%s per %s", factorString, left, right);
+            }
         } else if (hasFactor && hasLeft) {
-            out.format("%s*%s", factorString, left);
+            if (left.startsWith("1/")) {
+                out.format("%s/%s", factorString, left.substring(2));
+            } else {
+                out.format("%s*%s", factorString, left);
+            }
         } else if (hasFactor && hasRight) {
             out.format("%s per %s", factorString, right);
         } else if (hasFactor) {
@@ -192,14 +230,14 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(TypePredicate type) {
         out.print(type.id());
-        out.print("[");
+        out.print("(");
         String sep = "";
         for (TypeObject id : type.arguments()) {
             out.print(sep);
             id.accept(this);
             sep = ", ";
         }
-        out.print("]");
+        out.print(")");
     }
 
     @Override

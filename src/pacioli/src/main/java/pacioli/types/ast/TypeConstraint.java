@@ -1,22 +1,23 @@
 /*
- * Copyright (c) 2013 - 2014 Paul Griffioen
+ * Copyright 2026 Paul Griffioen
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
 package pacioli.types.ast;
@@ -27,8 +28,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import pacioli.Pacioli;
-import pacioli.compiler.AbstractPrintable;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.Printable;
 import pacioli.types.Substitution;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
@@ -39,7 +40,7 @@ import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import pacioli.types.type.VectorUnitVar;
 
-public class TypeConstraint extends AbstractPrintable {
+public class TypeConstraint implements Printable {
 
     private final TypeApplicationNode lhs;
     private final TypeObject rhs;
@@ -50,8 +51,12 @@ public class TypeConstraint extends AbstractPrintable {
     }
 
     public TypeObject reduce(ParametricType type) throws PacioliException {
-        Pacioli.logIf(Pacioli.Options.showTypeReductions, "Reducing %s with %s and %s",
-                lhs.pretty(), rhs.pretty(), type.pretty());
+
+        if (Pacioli.Options.showTypeReductions) {
+            Pacioli.log("Reducing %s with %s and %s",
+                    lhs.pretty(), rhs.pretty(), type.pretty());
+        }
+
         if (lhs.arguments().size() != type.args().size()) {
             throw new PacioliException(type.location(), "Type function %s expects %s arguments but found %s",
                     type.name(),
@@ -106,10 +111,13 @@ public class TypeConstraint extends AbstractPrintable {
                         "Type definitions's parameter should be a variable or a unitvec %s");
             }
         }
-        for (Entry<Var, Object> entry : map.entrySet()) {
-            Pacioli.logIf(Pacioli.Options.showTypeReductions, "  reduce: %s -> %s",
-                    entry.getKey().pretty(), entry.getValue());
+
+        if (Pacioli.Options.showTypeReductions) {
+            for (Entry<Var, Object> entry : map.entrySet()) {
+                Pacioli.log("  reduce: %s -> %s", entry.getKey().pretty(), entry.getValue());
+            }
         }
+
         return rhs.applySubstitution(new Substitution(map));
     }
 

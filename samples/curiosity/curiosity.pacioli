@@ -1,0 +1,132 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+defunit sol "sol";
+defunit hour "hour" = 3600*second;
+defunit joule "J";
+defunit watt "W" = joule/second;
+defunit bit "b";
+defunit byte "B" = 8*bit;
+defunit workhour "workhour";
+defunit image "img";
+defunit sample "smpl";
+defunit shot "shot";
+
+defindex Action = {picture, sample, travel, laser};
+
+defindex Resource = {power, communication, time};
+
+defunit Action!unit = {
+    picture: image,
+    sample: sample,
+    travel: metre,
+    laser: shot
+};
+
+defunit Resource!plan_unit = {
+  power: watt*hour,
+  communication: mega:bit,
+  time: hour
+};
+
+defunit Resource!operating_unit = {
+  power: joule,
+  communication: byte,
+  time: second
+};
+
+defmatrix capacity :: Resource!plan_unit/sol = {
+  power -> 250,
+  communication -> 250,
+  time -> 6
+};
+
+defmatrix consumption :: Resource!operating_unit per Action!unit = {
+  power, sample -> 2700000,
+  power, laser -> 2520,
+  power, travel -> 5000,
+  communication, picture -> 150000,
+  communication, sample -> 30000000,
+  communication, laser -> 200000,
+  time, sample -> 64800,
+  time, laser -> 360,
+  time, travel -> 120
+};
+
+defmatrix plan :: Action!unit = {
+   picture -> 30,
+   travel -> 25,
+   laser -> 10
+};
+
+define usage = consumption '*' plan;
+
+defconv conv :: Resource!plan_unit per Resource!operating_unit;
+
+define conv_consumption = conv '*' consumption;
+
+define conv_usage = conv '*' usage;
+
+define remaining_capacity = capacity '*.' |sol| - conv_usage;
+
+defmatrix productivity :: Resource!operating_unit/workhour = {
+  power -> 10000,
+  communication -> 500000,
+  time -> 1000
+};
+
+define worktime = productivity^R;
+
+define conv_capacity = conv^D '*' capacity;
+
+printf("\ncapacity%.2f", capacity);
+
+printf("\nconsumption%.2f", consumption);
+
+printf("\nusage%.2f", usage);
+
+printf("\nconv '*' usage%.2f", conv '*' usage);
+
+printf("\nconv_consumption%.2f", conv_consumption);
+
+printf("\nremaining_capacity%.2f", remaining_capacity);
+
+printf("\nconv^D '*' capacity%.2f", conv^D '*' capacity);
+
+printf("\nworktime%.10f", worktime);
+
+printf("\nusage * worktime%.10f", usage * worktime);
+
+printf("\ninner(usage, worktime)%.10f", inner(usage, worktime));
+
+printf("\nworktime * conv_capacity%5.5f", worktime * conv_capacity);
+
+printf("\nconv^R '*' worktime%5.5f", conv^R '*' worktime);
+
+print("\ninner(worktime, conv_capacity)");
+
+inner(worktime, conv_capacity);
+worktime^T '*' conv_capacity;
+worktime^T '*' conv^D '*' capacity;
+(worktime^T '*' conv^D)^T^T '*' capacity;
+(conv^D^T '*' worktime^T^T)^T '*' capacity;
+(conv^R '*' worktime)^T '*' capacity;
+inner(conv^R '*' worktime, capacity);

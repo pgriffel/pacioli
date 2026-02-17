@@ -1,39 +1,50 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <meta charset='utf-8'>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <title>Test libs</title>
-    </head>
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Test libs</title>
+</head>
 
-    <body onload="onLoad();">
-        <!-- Printed lines are collected here. -->
-        <div id="console"></div>
-    </body>	
+<body onload="onLoad();">
+    <!-- Printed lines are collected here. -->
+    <div id="console"></div>
+</body>
 
-    <script>
+<div id="overlay">Running tests...</div>
+<style>
+    #overlay {
+        position: fixed;
+        background: yellow;
+    }
+</style>
 
-        // Add a [script, suites] entry for each test script to this list and include its 
-        // script further below. 
-        const script_suites = [
-            ["usr_test_libs", "all_suites"]
-        ]
+<script>
 
-        function onLoad() {
-            const console = document.getElementById('console')
-            for (const [script, suites] of script_suites) {
-                const header = document.createElement("h2")
-                header.innerText = script
-                console.appendChild(header)
-                Pacioli.fun('lib_testing_testing', 'run_test_suites').call(Pacioli.value(script, suites))
-            }
+    // Add a [script, suites] entry for each test script to this list and include its 
+    // script further below. 
+    const script_suites = [
+        ["test_libs", "all_suites"]
+    ]
+
+    function onLoad() {
+        const console = document.getElementById('console')
+        const overlay = document.getElementById('overlay')
+        overlay.style['display'] = 'block'
+        for (const [script, suites] of script_suites) {
+            const header = document.createElement("h2")
+            header.innerText = script
+            console.appendChild(header)
+            Pacioli.fun('$testing_testing', 'run_test_suites').call(Pacioli.value(script, suites))
         }
-    </script>
+        overlay.style['display'] = 'none'
+    }
+</script>
 
-    <script type="text/javascript" src="pacioli-0.5.0.bundle.js"></script>
+<script type="text/javascript" src="../js/pacioli-0.5.1.bundle.js"></script>
 
-    <!-- Include each compiled test script here and add the test suites to the list above -->
-    <script type="text/javascript" src="test_libs.js"></script>
+<!-- Include each compiled test script here and add the test suites to the list above -->
+<script type="text/javascript" src="test_libs.js"></script>
 
 </html>

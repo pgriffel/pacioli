@@ -1,6 +1,29 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.compiler;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -18,6 +41,7 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import pacioli.Pacioli;
+import pacioli.Pacioli.Options;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
@@ -43,8 +67,8 @@ public class Project {
         this.graph = graph;
     }
 
-    public File findDocFile() {
-        return this.file.findDocFile();
+    public File docFile() {
+        return this.file.docFile();
     }
 
     /**
@@ -216,6 +240,10 @@ public class Project {
 
         for (PacioliFile current : orderedFiles()) {
 
+            if (Options.showFileLoads) {
+                Pacioli.log("Loading %s", current.moduleName());
+            }
+
             // Parse the file
             Program program = Program.load(current).desugar();
 
@@ -232,14 +260,27 @@ public class Project {
         return bundle;
     }
 
+    public void generateCode(PrintWriter writer, CompilationSettings settings) throws Exception {
+        List<String> modules = new ArrayList<>();
+        for (PacioliFile file : includeTree(this.file)) {
+            modules.add(file.module());
+        }
+        Bundle bundle = this.loadBundle();
+        bundle.generateCode(writer, settings, modules);
+    }
+
     private List<String> importedModules(ProgramNode programNode) {
 
         List<String> modules = new ArrayList<String>();
 
+        // The base and standard libraries are always included
+        PacioliFile baseFile = PacioliFile.requireLibrary("base", libs);
+        PacioliFile standardFile = PacioliFile.requireLibrary("standard", libs);
+
         // Collect all libraries
         ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
-        allLibs.add(PacioliFile.requireLibrary("base", libs));
-        allLibs.add(PacioliFile.requireLibrary("standard", libs));
+        allLibs.add(baseFile);
+        allLibs.add(standardFile);
         for (PacioliFile pacioliFile : findImports(programNode, libs)) {
             allLibs.add(pacioliFile);
         }
@@ -250,6 +291,13 @@ public class Project {
             for (PacioliFile file : includeTree(lib)) {
                 modules.add(file.module());
             }
+        }
+
+        // For base libraries the modules will be empty. This would mean that the
+        // primitive types will not be available. Therefore we add the base module if
+        // no modules were found.
+        if (modules.isEmpty()) {
+            modules.add(baseFile.module());
         }
 
         return modules;
@@ -303,7 +351,7 @@ public class Project {
             if (!done.contains(current)) {
 
                 // Load the current file
-                ProgramNode programNode = Parser.parseFile(current.fsFile());
+                ProgramNode programNode = Parser.parseFile(current.fsFile(), Pacioli.CHARSET);
 
                 // Add the current file to the graph if not already found by some include
                 if (!graph.containsVertex(current)) {

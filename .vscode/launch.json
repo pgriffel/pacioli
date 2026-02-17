@@ -1,0 +1,97 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Run Pacioli File",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "run ${file} -debug -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Compile to js",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "compile -target javascript ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Symbols Pacioli File",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "symbols ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Type Pacioli File",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "types ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Parse",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "parse ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Desugar",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "desugar ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Info",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "info -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "LSP",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "lsp -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Generate documentation",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "api ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "name": "Version",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "version"
+        }
+    ]
+}

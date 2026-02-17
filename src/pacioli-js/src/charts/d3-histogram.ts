@@ -1,57 +1,89 @@
-/* Runtime Support for the Pacioli language
+﻿/**
+ * Copyright 2026 Paul Griffioen
  *
- * Copyright (c) 2023 Paul Griffioen
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of
- * this software and associated documentation files (the "Software"), to deal in
- * the Software without restriction, including without limitation the rights to
- * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
- * the Software, and to permit persons to whom the Software is furnished to do so,
- * subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
- * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
- * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
- * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
- * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  */
 
-import { DefaultChartOptions, ToolTip } from "./chart-utils";
-import { DimNum, SIUnit } from "uom-ts";
-import { PacioliValue } from "../value";
-import { PacioliContext } from "../context";
-import { dataUnit, displayChartError, transformData } from "./chart-utils";
-import { Matrix } from "../values/matrix";
+import type { DefaultChartOptions } from "./chart-utils";
+import {
+  appendChartCaption,
+  appendEmptyChartMessage,
+  combineMargins,
+  parseMargin,
+  ToolTip,
+} from "./chart-utils";
+import type { SIUnit } from "uom-ts";
+import { DimNum } from "uom-ts";
+import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliContext } from "../context";
+import type { BandChartData } from "./chart-data";
+import { bandChartData } from "./chart-data";
 import * as d3 from "d3";
+import { parseUnit } from "../api";
 
 export interface HistogramOptions extends DefaultChartOptions {
-  unit?: SIUnit;
-  convert?: boolean;
-  label?: string;
+  unit?: string;
+  convert: boolean;
+  xlabel?: string;
+  ylabel?: string;
   bins?: number;
   lower?: number;
   upper?: number;
-  zeros?: boolean;
+  ylower?: number;
+  yupper?: number;
+  xticks?: number;
+  yticks?: number;
+  zeros: boolean;
   decimals?: number;
-  gap?: number;
+  gap: number;
+  heuristic: string;
   onclick?: (
-    value: Matrix,
+    values: { keys: string[]; value: string }[],
     frequency: DimNum,
     lower: DimNum,
-    upper: DimNum
+    upper: DimNum,
+    options: HistogramOptions,
   ) => void;
   tooltip?: (
-    value: Matrix,
     frequency: DimNum,
     lower: DimNum,
-    upper: DimNum
+    upper: DimNum,
+    options: HistogramOptions,
   ) => string;
-  tooltipOffset?: { dx: number; dy: number };
+  tooltipOffset: { dx: number; dy: number };
 }
+
+const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
+
+const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
+  width: 640,
+  height: 360,
+  ylabel: "Frequency",
+  zeros: false,
+  convert: true,
+  decimals: 2,
+  gap: 1,
+  heuristic: "d3",
+  onclick: histogramClickHanler,
+  tooltip: histogramTooltip,
+  tooltipOffset: { dx: 16, dy: -64 },
+};
 
 /**
  * Histogram for Pacioli.
@@ -65,108 +97,69 @@ export interface HistogramOptions extends DefaultChartOptions {
  * Adds css class bar to the chart's bars.
  */
 export class Histogram {
-  options: {
-    width: number;
-    height: number;
-    margin: { left: number; top: number; right: number; bottom: number };
-    unit?: SIUnit;
-    convert: boolean;
-    label: string;
-    bins?: number;
-    lower?: number;
-    upper?: number;
-    zeros: boolean;
-    decimals: number;
-    gap: number;
-    onclick?: (
-      value: Matrix,
-      frequency: DimNum,
-      lower: DimNum,
-      upper: DimNum
-    ) => void;
-    tooltip?: (
-      value: Matrix,
-      frequency: DimNum,
-      lower: DimNum,
-      upper: DimNum
-    ) => string;
-    tooltipOffset: { dx: number; dy: number };
+  options: HistogramOptions;
+
+  params?: {
+    lower: number;
+    upper: number;
+    nrBins: number;
   };
-
-  readonly defaultOptions = {
-    width: 640,
-    height: 360,
-    margin: { left: 40, top: 20, right: 20, bottom: 50 },
-    label: "",
-    zeros: false,
-    convert: true,
-    decimals: 2,
-    gap: 1,
-    onclick: this.defaultClickHanler.bind(this),
-    tooltip: this.defaultTooltip.bind(this),
-    tooltipOffset: { dx: 0, dy: -50 },
-  };
-
-  defaultClickHanler(
-    value: Matrix,
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum
-  ) {
-    const text =
-      "There are " +
-      frequency.toFixed(0) +
-      " values in the range " +
-      lower.toFixed(this.options.decimals) +
-      " to " +
-      upper.toFixed(this.options.decimals);
-    const data = value.keyValueList();
-    const mat = data.values.map(
-      (value) =>
-        `\n${value.row.toString()}  ${value.column.toString()}  ${value.value.toFixed(
-          this.options.decimals
-        )} `
-    );
-    alert(text + mat);
-  }
-
-  defaultTooltip(
-    _: Matrix,
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum
-  ): string {
-    return `${lower.toFixed(this.options.decimals)}..${upper.toFixed(
-      this.options.decimals
-    )}: ${frequency.toFixed(0)}`;
-  }
 
   constructor(
-    private data: PacioliValue,
-    public context: PacioliContext,
-    options: HistogramOptions
+    private readonly data: PacioliValue,
+    public readonly context: PacioliContext,
+    options: Partial<HistogramOptions>,
   ) {
-    this.options = { ...this.defaultOptions, ...options };
+    this.options = { ...DEFAULT_HISTOGRAM_OPTIONS, ...options };
   }
 
   public draw(parent: HTMLElement) {
-    try {
-      // Transform the data to a usable format
-      const unit = this.options.unit || dataUnit(this.data);
-      const data = transformData(
-        this.context,
-        this.data,
-        unit,
-        this.options.zeros,
-        this.options.convert
-      );
+    // Get the data in the asked unit of measurement
+    const unit =
+      this.options.unit !== undefined && this.options.unit !== ""
+        ? parseUnit(this.options.unit)
+        : undefined;
 
-      // Determine the drawing dimensions
-      var margin = this.options.margin;
-      var width = this.options.width - margin.left - margin.right;
-      var height = this.options.height - margin.top - margin.bottom;
+    const data = bandChartData(
+      this.context,
+      this.data,
+      this.options.zeros,
+      unit,
+    );
 
-      // Check the existence of options for the bin calculation
+    // Determine the drawing dimensions
+    const margin = combineMargins(
+      DEFAULT_CHART_MARGIN,
+      parseMargin(this.options.margin),
+    );
+
+    const width = this.options.width - margin.left - margin.right;
+    const height = this.options.height - margin.top - margin.bottom;
+
+    // Make the parent node empty
+    while (parent.firstChild) {
+      parent.firstChild.remove();
+    }
+
+    // Create an svg element under the parent
+    const svg = d3
+      .select(parent)
+      .append("svg")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .attr("class", "pacioli chart histogram");
+
+    if (data === null) {
+      appendEmptyChartMessage(svg, "No data", this.options);
+    } else {
+      const group = svg
+        .append("g")
+        .attr(
+          "transform",
+          `translate(${margin.left.toString()},${margin.top.toString()})`,
+        );
+
+      // Check the existence of options for the bin calculation.
       const hasLower = typeof this.options.lower === "number";
       const hasUpper = typeof this.options.upper === "number";
       const hasBins = typeof this.options.bins === "number";
@@ -174,238 +167,331 @@ export class Histogram {
       // Determine the value bounds. The effective bounds are not necessarily
       // the data bounds. If no bounds are given then the data bounds are rounded
       // to give nicer bins.
-      const dataLower = hasLower ? (this.options.lower as number) : data.min;
-      const dataUpper = hasUpper ? (this.options.upper as number) : data.max;
-      const lower = hasLower ? dataLower : Math.floor(dataLower);
-      const upper = hasUpper ? dataUpper : Math.ceil(dataUpper);
+      const lower = hasLower
+        ? (this.options.lower as number)
+        : Math.floor(data.min);
+      const upper = hasUpper
+        ? (this.options.upper as number)
+        : Math.floor(data.max) + 1;
 
-      // Create an array with the bin tresholds. The d3 library does not create bins
-      // of uniform size. See
-      //   https://dev.to/kevinlien/d3-histograms-and-fixing-the-bin-problem-4ac5
-      // You can however pass a tresholds array instead of the number of bins to d3's
-      // bin() function. Therefore we calculate the bin tresholds ourselves. If no
-      // bins are given as option we use d3's bin() function to create bins and use
-      // that amount as the number of bins. The actual bin array is discarded.
       const nrBins = hasBins
         ? (this.options.bins as number)
-        : d3.bin().domain([lower, upper])(data.values).length;
-      const binWidth = (upper - lower) / nrBins;
-      const tresholds = [...Array(nrBins)].map((_, i) => i * binWidth + lower);
-      const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
-      const binArray = histogram(data.values);
+        : binSize(data.entries, lower, upper, this.options.heuristic);
 
-      const domain: d3.ScaleLinear<number, number, never> = d3
-        .scaleLinear()
-        .domain([lower, upper])
-        .range([0, width]);
-
-      // TODO: check empty array instead of cast
-      const maxFrequency = d3.max(binArray, function (d) {
-        return d.length;
-      }) as number;
-      var range = d3.scaleLinear().domain([0, maxFrequency]).range([height, 0]);
-
-      // Create the axes
-      // var xAxis = d3.axisBottom(domain);
-      // var yAxis = d3.axisLeft(range);
-
-      // Make the parent node empty
-      while (parent.firstChild) {
-        parent.removeChild(parent.firstChild);
+      if (nrBins <= 0) {
+        throw new Error(
+          `number of bins ${nrBins.toString()} must be a positive number`,
+        );
       }
 
-      // Create an svg element under the parent
-      const svg = d3
-        .select(parent)
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .attr("class", "pacioli-ts-chart pacioli-ts-histogram");
-
-      const group = svg
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-      // Add the x axis
-      const xAxisElt = group
-        .append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .attr("class", "x axis");
-
-      xAxisElt.append("g").call(d3.axisBottom(domain));
-
-      const label = this.options.label || data.label;
-      xAxisElt
-        .append("text")
-        .attr("x", width)
-        .attr("y", 26)
-        .attr("dy", ".71em")
-        .style("text-anchor", "end")
-        .text(label + " [" + unit.toText() + "]");
-
-      // var label = this.options.label || this.data.type.param.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
-      // svg.append("g")
-      //   .attr("class", "x axis")
-      //   .attr("transform", "translate(0," + height + ")")
-      //   .call(xAxis)
-      //   .append("text")
-      //   .attr("x", width)
-      //   .attr("y", 26)
-      //   .attr("dy", ".71em")
-      //   .style("text-anchor", "end")
-      //   .text(label + " [" + unit.symbolized().toText() + "]");
-
-      // Add the x axis
-      const yAxisElt = group
-        .append("g")
-        .attr("transform", "translate(0," + "0" + ")")
-        .attr("class", "y axis");
-
-      yAxisElt.append("g").call(d3.axisLeft(range));
-
-      yAxisElt
-        .append("text")
-        .attr("x", -25)
-        .attr("dy", "-.71em")
-        .style("text-anchor", "left")
-        .text("Frequency");
-
-      // Create a tooltip with a unique css class name for the histogram charts.
-      const tooltip = new ToolTip("pacioli-ts-histogram");
-
-      // Add the histogram bars
-      group
-        .selectAll(".bar")
-        .data(binArray)
-        .enter()
-        .append("g")
-        .attr("class", "bar")
-        .attr("transform", function (d) {
-          return (
-            "translate(" + domain(d.x0 as number) + "," + range(d.length) + ")"
-          );
-        })
-        .append("rect")
-        .attr("x", this.options.gap)
-        // .attr("width", binWidth)
-        .attr("width", (d) => {
-          return (
-            (d3.max([
-              0,
-              domain(d.x1 as number) - domain(d.x0 as number),
-            ]) as number) -
-            2 * this.options.gap +
-            1
-          );
-        })
-        .attr("height", function (d) {
-          return height - range(d.length);
-        })
-        .on("click", (_, d) => {
-          if (this.options.onclick) {
-            tooltip.hide();
-            const dat = this.binData(d.x0 || 0, d.x1 || 0, data.max, d.length);
-            // Without the timeout the tooltip.hide() does not have an effect
-            setTimeout(() => {
-              this.options.onclick!(
-                dat.value,
-                dat.frequency,
-                dat.lower,
-                dat.upper
-              );
-            }, 0);
-          }
-        })
-        .on("mouseover", (event, d) => {
-          if (this.options.tooltip) {
-            // Determine the data in the clicked bin
-            const dat = this.binData(
-              d.x0 as number,
-              d.x1 as number,
-              data.max,
-              d.length
-            );
-
-            // Call the tooltip callback to get the HTML to display, add it to the DOM and
-            // move it the proper position. Use the event's pageX and pageY properties to
-            // determine the mouse position on the screen
-            tooltip.show(
-              this.options.tooltip(
-                dat.value,
-                dat.frequency,
-                dat.lower,
-                dat.upper
-              ),
-              event.pageX + this.options.tooltipOffset.dx,
-              event.pageY + this.options.tooltipOffset.dy
-            );
-          }
-        })
-        .on("mouseout", () => tooltip.hide());
-    } catch (err) {
-      displayChartError(
-        parent,
-        "While drawing histogram '" + this.options.label + "':",
-        err
-      );
-    }
-
-    return this;
-  }
-
-  /**
-   * Helper for draw(). Besides the frequency, and the range of a bin it
-   * filters the input Pacioli vector to only the values in a bin.
-   */
-  private binData(
-    lower: number,
-    upper: number,
-    max: number,
-    frequency: number
-  ): {
-    value: Matrix;
-    frequency: DimNum;
-    lower: DimNum;
-    upper: DimNum;
-  } {
-    var result: Matrix;
-    const unit = this.options.unit || dataUnit(this.data);
-
-    if (this.data.kind === "matrix") {
-      result = this.data
-        .convertUnit(unit, this.context.unitContext)
-        .filter(
-          (num) =>
-            lower <= num && (num < upper || (num === max && upper === max))
+      if (upper < lower) {
+        throw new Error(
+          `upper limit ${upper.toString()} must at least as large as the lower limit ${upper.toString()}`,
         );
-    } else if (this.data.kind === "list") {
-      throw new Error("TODO: histogram for list");
+      }
 
-      // // Todo: convert to chart unit of measurement. See vector case above.
-      // var factor = this.data.type.param.param.multiplier.conversionFactor(unit)
-      // var filtered = []
-      // for (var i = 0; i < this.data.value.length; i++) {
-      //   var num = Pacioli.getNumber(this.data.value[i], 0, 0) * factor
-      //   if (lower <= num && (num < upper || (num === max && upper === max))) {
-      //     filtered.push(this.data.value[i])
-      //   }
-      // }
-      // filtered.kind = this.data.value.kind
-      // result = new Pacioli.Box(this.data.type, filtered)
-      // //console.log(this.data)
-      // //console.log(result)
-    } else {
-      throw new Error(
-        `Histrogram values must be a matrix or a list, not a ${this.data.kind}`
+      // Store the params for the methods below
+      this.params = {
+        lower,
+        upper,
+        nrBins,
+      };
+
+      appendHistogram(
+        group,
+        width,
+        height,
+        data,
+        lower,
+        upper,
+        nrBins,
+        data.unit,
+        this.options,
       );
     }
 
-    // Show the filtered vector in a popup window
-    return {
-      value: result,
-      frequency: DimNum.dimless(frequency),
-      lower: new DimNum(lower, unit),
-      upper: new DimNum(upper, unit),
-    };
+    // Add the caption above all other elements
+    appendChartCaption(svg, this.options);
   }
+
+  nrBins(): number | undefined {
+    return this.params?.nrBins;
+  }
+
+  lower(): number | undefined {
+    return this.params?.lower;
+  }
+
+  upper(): number | undefined {
+    return this.params?.upper;
+  }
+}
+
+function histogramClickHanler(
+  values: { keys: string[]; value: string }[],
+  frequency: DimNum,
+  lower: DimNum,
+  upper: DimNum,
+  options: HistogramOptions,
+) {
+  const text =
+    "There are " +
+    frequency.toFixed(0) +
+    " values in the range " +
+    lower.toFixed(options.decimals) +
+    " to " +
+    upper.toFixed(options.decimals);
+  const mat = values.map(
+    (value) => `\n${value.keys.toString()}  ${value.value} `,
+  );
+  alert(text + mat.join(","));
+}
+
+function histogramTooltip(
+  frequency: DimNum,
+  lower: DimNum,
+  upper: DimNum,
+  options: HistogramOptions,
+): string {
+  return `${lower.toFixed(options.decimals)}..${upper.toFixed(
+    options.decimals,
+  )}: ${frequency.toFixed(0)}`;
+}
+
+function appendHistogram(
+  group: d3.Selection<SVGGElement, unknown, null, undefined>,
+  width: number,
+  height: number,
+  data: BandChartData,
+  lower: number,
+  upper: number,
+  nrBins: number,
+  unit: SIUnit,
+  options: HistogramOptions,
+) {
+  const dataRange = upper - lower;
+
+  const binWidth = dataRange / nrBins;
+
+  const tresholds = Array.from({ length: nrBins }).map(
+    (_, i) => (i + 1) * binWidth + lower,
+  );
+  const histogram = d3.bin().domain([lower, upper]).thresholds(tresholds);
+  const binArray = histogram(data.entries.map((entry) => entry.value));
+
+  const domain: d3.ScaleLinear<number, number> = d3
+    .scaleLinear()
+    .domain([lower, upper])
+    .range([0, width]);
+
+  // TODO: check empty array instead of cast
+  const maxFrequency = d3.max(binArray, function (d) {
+    return d.length;
+  }) as number;
+
+  const yMin = options.ylower ?? 0;
+  const yMax = options.yupper ?? maxFrequency;
+
+  const range = d3.scaleLinear().domain([yMin, yMax]).range([height, 0]);
+
+  // Create the axes
+
+  // Add the x axis
+  const xAxisElt = group
+    .append("g")
+    .attr("transform", `translate(0,${height.toString()})`)
+    .attr("class", "x axis");
+
+  const xAxis = d3.axisBottom(domain);
+  if (options.xticks !== undefined) {
+    xAxis.ticks(options.xticks);
+  }
+  xAxisElt.append("g").call(xAxis);
+
+  const label = options.xlabel ?? data.label;
+  xAxisElt
+    .append("text")
+    .attr("x", width)
+    .attr("y", 32)
+    // .attr("dy", ".71em")
+    .style("text-anchor", "end")
+    .text(label + " [" + unit.toText() + "]");
+
+  // var label = options.label || data.type.param.rowName() //vector.shape.rowSets.map(function (x) {return x.name})
+  // svg.append("g")
+  //   .attr("class", "x axis")
+  //   .attr("transform", "translate(0," + height + ")")
+  //   .call(xAxis)
+  //   .append("text")
+  //   .attr("x", width)
+  //   .attr("y", 26)
+  //   .attr("dy", ".71em")
+  //   .style("text-anchor", "end")
+  //   .text(label + " [" + unit.symbolized().toText() + "]");
+
+  // Add the x axis
+  const yAxisElt = group
+    .append("g")
+    .attr("transform", "translate(0," + "0" + ")")
+    .attr("class", "y axis");
+
+  const yAxis = d3.axisLeft(range);
+  if (options.yticks !== undefined) {
+    yAxis.ticks(options.yticks);
+  }
+  yAxisElt.append("g").call(yAxis);
+
+  yAxisElt
+    .append("text")
+    .attr("x", -16)
+    .attr("y", -16)
+    // .attr("dy", "-.71em")
+    .style("text-anchor", "left")
+    .text(options.ylabel ?? "");
+
+  // Create a tooltip with a unique css class name for the histogram charts.
+  const tooltip = new ToolTip("pacioli tooltip histogram");
+
+  // Add the histogram bars
+  group
+    .selectAll(".bar")
+    .data(binArray)
+    .enter()
+    .append("g")
+    .attr("class", "bar")
+    .attr("transform", function (d) {
+      return `translate(${domain(
+        d.x0 as number,
+      ).toString()}, ${range(d.length).toString()})`;
+    })
+    .append("rect")
+    .attr("x", options.gap)
+    // .attr("width", binWidth)
+    .attr("width", (d) => {
+      return d3.max([
+        0,
+        domain(d.x1 as number) - domain(d.x0 as number) - 2 * options.gap + 1,
+      ]) as number;
+    })
+    .attr("height", function (d) {
+      return height - range(d.length);
+    })
+    .on("click", (_, d) => {
+      const handler = options.onclick;
+
+      if (handler) {
+        tooltip.hide();
+
+        const dat = binData(d, data, options.decimals ?? 2);
+
+        // Without the timeout the tooltip.hide() does not have an effect
+        setTimeout(() => {
+          handler(dat.value, dat.frequency, dat.lower, dat.upper, options);
+        }, 0);
+      }
+    })
+    .on("mouseover", (event: MouseEvent, d) => {
+      if (options.tooltip) {
+        // Determine the data in the clicked bin
+        const dat = binData(d, data, options.decimals ?? 2);
+
+        // Call the tooltip callback to get the HTML to display, add it to the DOM and
+        // move it the proper position. Use the event's pageX and pageY properties to
+        // determine the mouse position on the screen
+        tooltip.show(
+          options.tooltip(dat.frequency, dat.lower, dat.upper, options),
+          event.pageX + options.tooltipOffset.dx,
+          event.pageY + options.tooltipOffset.dy,
+        );
+      }
+    })
+    .on("mouseout", () => {
+      tooltip.hide();
+    });
+}
+
+function binSize(
+  entries: { label: string; value: number }[],
+  lower: number,
+  upper: number,
+  heuristic: string,
+): number {
+  const values = entries.map((entry) => entry.value);
+
+  switch (heuristic) {
+    case "d3": {
+      return d3.bin().domain([lower, upper])(values).length;
+    }
+    case "sturges": {
+      return sturges(values);
+    }
+    case "freedman-diaconis": {
+      return freedmanDiaconis(values, lower, upper);
+    }
+    case "seaborn": {
+      return Math.max(sturges(values), freedmanDiaconis(values, lower, upper));
+    }
+    default: {
+      throw new Error(
+        `bin size heuristic '${heuristic}' unknown. Expected one of 'd3', 'sturges', 'freedman-diaconis', or 'seaborn'`,
+      );
+    }
+  }
+}
+
+function sturges(values: number[]) {
+  return Math.ceil(Math.log2(values.length));
+}
+
+function freedmanDiaconis(
+  values: number[],
+  lower: number,
+  upper: number,
+): number {
+  const perc25 = d3.quantile(values, 0.25);
+  const perc75 = d3.quantile(values, 0.75);
+  if (perc25 !== undefined && perc75 !== undefined) {
+    const h = (2 * (perc75 - perc25)) / values.length ** (1 / 3);
+    return h === 0 ? 1 : Math.ceil((upper - lower) / h);
+  } else {
+    throw new Error("cannot compute Freedman-Diaconis. Is the data valid?");
+  }
+}
+
+/**
+ * Helper for draw(). Besides the frequency, and the range of a bin it
+ * filters the input Pacioli vector to only the values in a bin.
+ */
+function binData(
+  bin: d3.Bin<number, number>,
+  data: BandChartData,
+  decimals: number,
+): {
+  value: { keys: string[]; value: string }[];
+  frequency: DimNum;
+  lower: DimNum;
+  upper: DimNum;
+} {
+  const lower = bin.x0 ?? 0; // TODO: better undefined handling
+  const upper = bin.x1 ?? 0; // TODO: better undefined handling
+  const frequency = bin.length;
+
+  const result: { keys: string[]; value: string }[] = [];
+
+  for (const element of data.entries) {
+    const num = element.value;
+    if (lower <= num && num < upper) {
+      result.push({
+        keys: [element.label],
+        value: num.toFixed(decimals),
+      });
+    }
+  }
+
+  return {
+    value: result,
+    frequency: DimNum.fromNumber(frequency),
+    lower: DimNum.fromNumber(lower, data.unit),
+    upper: DimNum.fromNumber(upper, data.unit),
+  };
 }

@@ -1,0 +1,9 @@
+Pacioli's built-in matrix operations.
+
+Matrices in Pacioli are indexed by arbitrary sets. Given some index sets P and Q 
+a matrix is a map P × Q → ℝ .
+
+Further information can be found on the [github documentation pages](https://pgriffel.github.io/pacioli/):
+
+- The [matrix tutorial](http://pgriffel.github.io/pacioli/matrices.html) explains matrices and types
+- The [manual](https://pgriffel.github.io/pacioli/manual.html) has more information on matrices and types
