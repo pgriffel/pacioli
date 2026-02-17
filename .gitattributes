@@ -1,7 +1,5 @@
 # Enforce LF line endings for all text files  
 * text=auto eol=lf
-
-src/mvm/src/main/java/mvm/parser/Lexer.java text
  
 # Explicitly mark binary files (no line ending conversion)  
 *.png binary  
