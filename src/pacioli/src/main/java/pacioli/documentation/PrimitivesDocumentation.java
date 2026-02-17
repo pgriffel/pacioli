@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.compiler;
+package pacioli.documentation;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -32,6 +32,9 @@ import java.util.List;
 import pacioli.Pacioli;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
+import pacioli.compiler.Program;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.FunctionTypeNode;
@@ -40,6 +43,12 @@ import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 
+/**
+ * Create documentation for the base and standard libraries.
+ * 
+ * TODO: Compare with libraryDocumentationGenerator on Bundle and see if there
+ * is overlap.
+ */
 public class PrimitivesDocumentation {
 
     private final String dirName;

@@ -30,8 +30,8 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.expression.StringNode;
-import pacioli.compiler.DocBuilder;
 import pacioli.compiler.Location;
+import pacioli.documentation.DocBuilder;
 
 public class Documentation extends AbstractNode implements Definition {
 

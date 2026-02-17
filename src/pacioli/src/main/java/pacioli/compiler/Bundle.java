@@ -50,6 +50,7 @@ import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.DocumentationGenerator;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;

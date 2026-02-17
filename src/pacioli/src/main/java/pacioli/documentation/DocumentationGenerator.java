@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.compiler;
+package pacioli.documentation;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.ast.definition.Documentation;
+import pacioli.compiler.PacioliException;
 import pacioli.types.type.TypeObject;
 
 /**

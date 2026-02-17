@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.compiler;
+package pacioli.documentation;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -32,6 +32,8 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
 import org.commonmark.renderer.markdown.MarkdownRenderer;
+
+import pacioli.compiler.PacioliException;
 
 /**
  * A fluent api to create documentation.
