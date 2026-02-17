@@ -43,6 +43,9 @@ import {
  */
 const SCENE_ATTRIBUTES = {
   strings: [
+    "unitx",
+    "unity",
+    "unitz",
     "background",
     "axisColorsX",
     "axisColorsY",
@@ -55,7 +58,6 @@ const SCENE_ATTRIBUTES = {
   numbers: [
     "axisSize",
     "ambientIntensity",
-    "fps",
     "gridSize",
     "gridDivisions",
     "cameraNear",
