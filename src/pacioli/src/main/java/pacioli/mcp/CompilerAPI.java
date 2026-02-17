@@ -91,7 +91,7 @@ public class CompilerAPI {
     public static List<PacioliFile> scanLibDirectory(File path) throws IOException {
         var libraries = new ArrayList<PacioliFile>();
 
-        Files.walkFileTree(path.toPath(), new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(Path.of(path.getAbsolutePath()), new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                 PacioliFile
