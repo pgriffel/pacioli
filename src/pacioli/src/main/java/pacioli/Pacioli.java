@@ -200,9 +200,6 @@ public class Pacioli {
                     settings.setTarget(Target.MVM);
                 } else if (target.equals("python")) {
                     settings.setTarget(Target.PYTHON);
-                } else {
-                    throw new RuntimeException(
-                            "Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
                 }
             }
 
