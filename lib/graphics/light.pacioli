@@ -35,7 +35,7 @@ export
 # ------------------------------------------------------------------------------
 
 doc SpotLight
-    "A spotlight. Is an element of a <code>Scene(a, Geom3!u)</code> scene.";
+    "A spotlight. Is an element of a `Scene(a, Geom3!u)` scene.";
 
 defrecord for_unit a, Geom3!u: SpotLight(a, Geom3!u) as spotlight where
     position: a * Geom3!u,

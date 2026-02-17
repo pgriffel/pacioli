@@ -47,8 +47,8 @@ doc combis
     "A list of pairs containing all combinations of elements from the two given
     lists. 
 
-    For example <code>combis([1,2,3])</code> contains the elements
-    <code>(1,2)</code>, <code>(1,3)</code> and <code>(2,3)</code>.
+    For example `combis([1,2,3])` contains the elements `(1,2)`, `(1,3)` and
+    `(2,3)`.
 
     The order is undefined.";
     

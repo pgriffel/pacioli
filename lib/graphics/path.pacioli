@@ -40,7 +40,7 @@ export
 
 doc Path
     "A series of lines between succesive points. Is an element of a 
-    <code>Scene(a, Geom3!u)</code> scene.";
+    `Scene(a, Geom3!u)` scene.";
 
 defrecord for_unit a, Geom3!u: Path(a, Geom3!u) as path where
     points: List(a * Geom3!u),

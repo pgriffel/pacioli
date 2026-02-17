@@ -58,7 +58,7 @@ export
 
 doc Scene
     "A scene is a geometric space that can contain vectors, meshes and paths. It 
-    is a space with vectors of type <code>a*Geom3!u</code>.
+    is a space with vectors of type `a*Geom3!u`.
     
     Currently it can only be displayed in a browser.";
 

@@ -61,8 +61,8 @@ define rgb(r, g, b) =
 # ------------------------------------------------------------------------------
 
 doc make_color
-    "Create a color from a html color string. For example <code>make_color(\"#ffffff\")</code> 
-    and <code>make_color(\"white\")</code> both create the color white.";
+    "Create a color from a html color string. For example `make_color(\"#ffffff\")` 
+    and `make_color(\"white\")` both create the color white.";
 
 declare make_color ::
     (String) -> Color;

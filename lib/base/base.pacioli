@@ -102,7 +102,7 @@ declare_primitive equal(x, y) ::
 # ----------------------------------------------------------------------------
 
 doc not_equal
-    "Shorthand for <code>not(equal(x, y))</code>.";
+    "Shorthand for `not(equal(x, y))`.";
 
 declare_primitive not_equal(x, y) ::
     for_type t: (t, t) -> Boole;

@@ -1,0 +1,14 @@
+The geometry library has functions and types for 2-dimensional and 3-dimensional vector spaces.
+
+The `Geom2` and `Geom3` index sets define the space's coordinates.
+For the `Geom2` space vectors and matrices can be constructed with functions `vector2d`
+and `matrix2d`. 
+For the `Geom3` space vectors and matrices can be constructed with functions `vector3d`
+and `matrix3d`.
+
+Base vectors are also available. Values `basis2d` and `basis3d` are tuples containing the
+vectors. They can be used like
+
+    let (ex, ey) = basis2d in
+        ...
+    end

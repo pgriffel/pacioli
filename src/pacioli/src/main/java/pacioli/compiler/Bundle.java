@@ -22,9 +22,11 @@
 
 package pacioli.compiler;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +50,7 @@ import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.DocumentationGenerator;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -435,6 +438,60 @@ public class Bundle {
         }
     }
 
+    public void genAPI(
+            List<File> includes,
+            String version,
+            File docFile,
+            String target) throws PacioliException, IOException {
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, true);
+
+        String extension;
+
+        switch (target) {
+            case "markdown": {
+                extension = ".md";
+                break;
+            }
+            case "structure": {
+                extension = ".txt";
+                break;
+            }
+            case "", "html": {
+                extension = ".html";
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
+
+        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
+
+        Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
+
+        try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
+        }
+    }
+
+    public void printAPI(
+            List<File> includes,
+            String version,
+            File docFile,
+            String target) throws PacioliException, IOException {
+
+        // TODO: see if an earlier generated file exists and reuse that
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, false);
+
+        try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(System.out));
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
+        }
+    }
+
     /**
      * Generates a html page with documentation for the bundle's module.
      * 
@@ -444,15 +501,13 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    public void printAPI(
-            File output,
+    public DocumentationGenerator libraryDocumentationGenerator(
             List<File> includes,
             String version,
-            File docFile) throws PacioliException, IOException {
+            File docFile,
+            boolean verbose) throws PacioliException, IOException {
 
-        FileWriter out = new FileWriter(output, Pacioli.CHARSET, false);
-        PrintWriter writer = new PrintWriter(out);
-        DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
+        DocumentationGenerator generator = new DocumentationGenerator(file.moduleName(), version);
 
         int nrValues = 0;
         int nrFunctions = 0;
@@ -460,13 +515,13 @@ public class Bundle {
         int nrIndexSets = 0;
 
         if (docFile.exists()) {
-            Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
+            Pacioli.logIf(verbose, "Found doc file %s, including contents...", docFile.getAbsolutePath());
             generator.setIntroFromDocFile(docFile);
         } else {
-            Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
+            Pacioli.logIf(verbose, "No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
         }
 
-        Pacioli.log("Collecting exports...");
+        Pacioli.logIf(verbose, "Collecting exports...");
 
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
@@ -482,7 +537,7 @@ public class Bundle {
                     if (info.generalInfo().documentation().isPresent()) {
                         generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
                     } else {
-                        Pacioli.log("  no documentation for function %s", info.name());
+                        Pacioli.logIf(verbose, "  no documentation for function %s", info.name());
                     }
                     nrFunctions++;
                 } else {
@@ -490,7 +545,7 @@ public class Bundle {
                     if (info.generalInfo().documentation().isPresent()) {
                         generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
                     } else {
-                        Pacioli.log("  no documentation for value %s", info.name());
+                        Pacioli.logIf(verbose, "  no documentation for value %s", info.name());
                     }
                     nrValues++;
                 }
@@ -509,7 +564,7 @@ public class Bundle {
                     if (info.generalInfo().documentation().isPresent()) {
                         generator.addTypeDoc(info.name(), info.generalInfo().documentation().get());
                     } else {
-                        Pacioli.log("  no documentation for type %s", info.name());
+                        Pacioli.logIf(verbose, "  no documentation for type %s", info.name());
                     }
                     nrTypes++;
                 }
@@ -518,25 +573,21 @@ public class Bundle {
                     if (info.generalInfo().documentation().isPresent()) {
                         generator.addIndexSetDoc(info.name(), info.generalInfo().documentation().get());
                     } else {
-                        Pacioli.log("  no documentation for index set %s", info.name());
+                        Pacioli.logIf(verbose, "  no documentation for index set %s", info.name());
                     }
                     nrIndexSets++;
                 }
             }
         }
 
-        Pacioli.log("Generating documentation entries...");
-        Pacioli.log("  types:       %s", nrTypes);
-        Pacioli.log("  index sets:  %s", nrIndexSets);
-        Pacioli.log("  values:      %s", nrValues);
-        Pacioli.log("  functions:   %s", nrFunctions);
+        // TODO: move to the caller!?
+        Pacioli.logIf(verbose, "Generating documentation entries...");
+        Pacioli.logIf(verbose, "  types:       %s", nrTypes);
+        Pacioli.logIf(verbose, "  index sets:  %s", nrIndexSets);
+        Pacioli.logIf(verbose, "  values:      %s", nrValues);
+        Pacioli.logIf(verbose, "  functions:   %s", nrFunctions);
 
-        generator.generate();
-
-        Pacioli.log("Writing file %s...", output.getAbsolutePath());
-
-        out.close();
-        writer.close();
+        return generator;
     }
 
     public void printSymbolTables() {
