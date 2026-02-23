@@ -234,9 +234,11 @@ export function fetchUnitVector(
   indexSet: IndexSet,
   context: PacioliContext = defaultContext,
 ): UnitVector {
-  const vec = context.findUnitVector(id);
+  const fullId = indexSet.name + "!" + id;
+
+  const vec = context.findUnitVector(fullId);
+
   if (vec === undefined) {
-    const fullId = indexSet.name + "!" + id;
     const unitObject = findFunction<{ units: object }>(fullId)().units;
     const unitMap = new Map<string, SIUnit>();
     for (const [key, value] of Object.entries(unitObject)) {
