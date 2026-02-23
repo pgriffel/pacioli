@@ -49,6 +49,7 @@ export {
   oneNumbers,
   oneNumbersFromShape,
   fetchValue,
+  storeValue,
   createCoordinates,
 } from "./cache";
 
@@ -60,9 +61,28 @@ export { PacioliContext } from "./context";
 
 export { DOM, DOMTable } from "./dom/dom";
 
+export {
+  internUnit,
+  matrixShapeFromType,
+  PacioliValue,
+} from "./values/pacioli-value";
+
 export { IndexSet } from "./values/index-set";
 
+// TODO: remove rename. Is not necessary!
 export { PacioliMatrix as Matrix } from "./values/matrix";
+
+export { PacioliList } from "./values/list";
+
+export { PacioliTuple } from "./values/tuple";
+
+export { PacioliString } from "./values/string";
+
+export { PacioliBoole } from "./values/boole";
+
+export { PacioliCoordinates } from "./values/coordinates";
+
+export { RawValue } from "./raw-values/raw-value";
 
 export { MatrixShape as Shape } from "./values/matrix-shape";
 
@@ -89,8 +109,6 @@ export { ScatterPlot, ScatterPlotOptions } from "./charts/d3-scatter-plot";
 export { Histogram, HistogramOptions } from "./charts/d3-histogram";
 
 export { WordCloud, WordCloudOptions } from "./charts/d3-wordcloud";
-
-export { PacioliCoordinates } from "./values/coordinates";
 
 export { PacioliBase } from "./types/bases";
 
@@ -231,8 +249,6 @@ export {
   $base_map_store,
   ONE,
 } from "./primitives";
-
-export { internUnit, matrixShapeFromType } from "./values/pacioli-value";
 
 export { PacioliSceneComponent } from "./web-components/components/pacioli-scene";
 export { PacioliControlsComponent } from "./web-components/components/pacioli-controls";

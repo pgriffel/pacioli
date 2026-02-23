@@ -314,7 +314,7 @@ function matrixDimensionFromIndex(
 ): MatrixDimension {
   if (index.kind === "index") {
     return new MatrixDimension(
-      index.sets.map((name) => fetchIndex("index_" + name, context)),
+      index.sets.map((name) => fetchIndex(name, context)),
     );
   } else {
     throw new Error("index kind " + index.kind + " unexpected");

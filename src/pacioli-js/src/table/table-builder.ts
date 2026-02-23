@@ -83,8 +83,7 @@ export class TableBuilder {
    */
   isSingleScalar(): boolean {
     return (
-      this.columns.length === 0 ||
-      (this.columns[0].indexHeaders.length === 0 && this.columns.length <= 1)
+      this.columns.length === 1 && this.columns[0].indexHeaders.length === 0
     );
   }
 
