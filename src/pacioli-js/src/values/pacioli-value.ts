@@ -324,7 +324,7 @@ function matrixDimensionFromIndex(
 function matrixDimensionFromIndexInv(dimension: MatrixDimension): PacioliIndex {
   return new IndexType(
     dimension.indexSets.map((set) => {
-      return set.name;
+      return set.id;
     }),
   );
 }
@@ -392,6 +392,6 @@ function internUnitVector(
  */
 function internUnitVectorInv(unit: SIVector): PacioliVector {
   return unit.map((base) => {
-    return UOM.fromBase(new VectorBaseType(base.getName(), base.position));
+    return UOM.fromBase(new VectorBaseType(base.baseName, base.position));
   });
 }

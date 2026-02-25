@@ -183,12 +183,11 @@ export function string(value: string): PacioliString {
 
 const cache: Map<string, PacioliType | RawValue> = new Map();
 
-export function fetchValue(
-  home: string,
-  name: string,
-  context: PacioliContext = defaultContext,
-): RawValue {
-  return lookupItem<RawValue>(home + "_" + name, context);
+// const valueStore: Map<string, RawValue> = new Map();
+// const typeStore: Map<string, PacioliType> = new Map();
+
+export function fetchValue(home: string, name: string): RawValue {
+  return lookupValue(home + "_" + name);
 }
 
 export function fetchIndex(
@@ -234,12 +233,10 @@ export function fetchUnitVector(
   indexSet: IndexSet,
   context: PacioliContext = defaultContext,
 ): UnitVector {
-  const fullId = indexSet.name + "!" + id;
-
-  const vec = context.findUnitVector(fullId);
+  const vec = context.findUnitVector(id);
 
   if (vec === undefined) {
-    const unitObject = findFunction<{ units: object }>(fullId)().units;
+    const unitObject = findFunction<{ units: object }>(id)().units;
     const unitMap = new Map<string, SIUnit>();
     for (const [key, value] of Object.entries(unitObject)) {
       unitMap.set(key, internUnit(value as PacioliUnit, context));
@@ -290,6 +287,37 @@ export function lookupItem<T>(
   return cache.get(full) as T;
 }
 
+export function lookupValue(full: string): RawValue {
+  if (cache.get(full) === undefined) {
+    // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
+    const asValue = window["Pacioli"][full] as RawValue | undefined;
+
+    if (asValue === undefined) {
+      cache.set(full, findFunction<RawValue>(full)());
+    } else {
+      cache.set(full, asValue);
+    }
+  }
+
+  return cache.get(full) as RawValue;
+}
+
+export function lookupType(id: string): PacioliType {
+  const full = "u_" + id;
+  if (cache.get(full) === undefined) {
+    // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
+    const asValue = window["Pacioli"][full] as PacioliType | undefined;
+
+    if (asValue === undefined) {
+      cache.set(full, findFunction<PacioliType>(full)());
+    } else {
+      cache.set(full, asValue);
+    }
+  }
+
+  return cache.get(full) as PacioliType;
+}
+
 export function storeValue(module: string, name: string, value: PacioliValue) {
   cache.set(module + "_" + name, rawValueFromValue(value));
   cache.set("u_" + module + "_" + name, typeFromValue(value));
@@ -336,3 +364,29 @@ function findFunction<T>(name: string): () => T {
     );
   }
 }
+
+// function loadDefFromValueNameSpace<T>(name: string): () => T {
+//   const nameSpace = globalThis.Pacioli;
+
+//   // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
+//   const val = nameSpace["v_" + name] as (() => T) | undefined;
+
+//   if (val === undefined) {
+//     throw new Error(`No definition found for Pacioli value '${name}'`);
+//   }
+
+//   return val;
+// }
+
+// function loadDefFromTypeNameSpace<T>(name: string): () => T {
+//   const nameSpace = globalThis.Pacioli;
+
+//   // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
+//   const val = nameSpace["t_" + name] as (() => T) | undefined;
+
+//   if (val === undefined) {
+//     throw new Error(`No definition found for Pacioli type item '${name}'`);
+//   }
+
+//   return val;
+// }
