@@ -3,7 +3,7 @@ const esbuild = require("esbuild");
 esbuild
   .build({
     entryPoints: ["./src/index.ts"],
-    outfile: "dist/pacioli-0.5.1.bundle.js",
+    outfile: "dist/pacioli-0.6.0.bundle.js",
     bundle: true,
     minify: false,
     treeShaking: false,
