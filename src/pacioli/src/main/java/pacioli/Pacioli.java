@@ -73,7 +73,7 @@ public class Pacioli {
 
     // Constants
     private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.5.0";
+    private static String VERSION = "v0.6.0-SNAPSHOT";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
