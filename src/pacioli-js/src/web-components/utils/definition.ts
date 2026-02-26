@@ -161,7 +161,6 @@ export function addParametersObserver(
   element: PacioliWebComponent,
 ): MutationObserver {
   const observer = new MutationObserver(() => {
-    // element.parametersChanged();
     try {
       element.parametersChanged();
     } catch (err: unknown) {
@@ -169,7 +168,11 @@ export function addParametersObserver(
     }
   });
 
-  observer.observe(element, { childList: true, subtree: true });
+  observer.observe(element, {
+    attributes: false,
+    childList: true,
+    subtree: true,
+  });
 
   return observer;
 }

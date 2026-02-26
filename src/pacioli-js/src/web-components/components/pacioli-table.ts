@@ -208,7 +208,9 @@ export class PacioliTableComponent extends PacioliNumberComponent {
   override parametersChanged(): void {
     this.columns = this.collectColumns();
 
-    this.drawTable(this.columns);
+    if (this.columns !== undefined && this.columns.length > 0) {
+      this.drawTable(this.columns);
+    }
   }
 
   collectColumns(): ColumnData[] {
