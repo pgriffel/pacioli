@@ -64,6 +64,10 @@ export interface HistogramOptions extends DefaultChartOptions {
 }
 
 export type HistogramEvent = CustomEvent<{
+  values: {
+    keys: string[];
+    value: string;
+  }[];
   frequency: DimNum;
   lower: DimNum;
   upper: DimNum;
@@ -376,6 +380,7 @@ function appendHistogram(
         const dat = binData(d, data, options.decimals ?? 2);
         const evt: HistogramEvent = new CustomEvent("onclick", {
           detail: {
+            values: dat.value,
             frequency: dat.frequency,
             lower: dat.lower,
             upper: dat.upper,
@@ -395,6 +400,7 @@ function appendHistogram(
 
         const evt: HistogramEvent = new CustomEvent("tooltip", {
           detail: {
+            values: dat.value,
             frequency: dat.frequency,
             lower: dat.lower,
             upper: dat.upper,
