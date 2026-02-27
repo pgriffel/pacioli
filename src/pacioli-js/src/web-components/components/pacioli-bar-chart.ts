@@ -35,13 +35,14 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
+import type { ChartEvent } from "../utils/chart";
 
 /**
  * Attribues supported by the bar chart component
  */
 export const BAR_CHART_ATTRIBUTES = {
   strings: ["caption", "xlabel", "ylabel", "unit"],
-  booleans: [],
+  booleans: ["nopopup", "notooltip"],
   numbers: ["ylower", "yupper", "padding"],
 };
 
@@ -134,6 +135,28 @@ export class PacioliBarChartComponent extends PacioliNumberComponent {
   }
 
   /**
+   * ?
+   */
+  get nopopup(): boolean {
+    return this.getBooleAttribute("nopopup");
+  }
+
+  set nopopup(value: boolean) {
+    this.setBooleAttribute("nopopup", value);
+  }
+
+  /**
+   * ?
+   */
+  get notooltip(): boolean {
+    return this.getBooleAttribute("notooltip");
+  }
+
+  set notooltip(value: boolean) {
+    this.setBooleAttribute("notooltip", value);
+  }
+
+  /**
    * The bar chart
    */
   chart?: BarChart;
@@ -191,7 +214,27 @@ export class PacioliBarChartComponent extends PacioliNumberComponent {
       ...optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
     };
 
-    this.chart = new BarChart(data, PacioliContext.si(), options);
+    const chart = new BarChart(data, PacioliContext.si(), options);
+
+    // Intercept the click handler and dispatch the clicks as events.
+    // The default click handler can be turned of by the 'nopopup'
+    // attribute.
+    const defaultHandler = chart.clickHandler;
+
+    chart.clickHandler = (event: ChartEvent<BarChartOptions>) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    // Disable the tooltip if asked
+    if (this.notooltip) {
+      chart.tooltipText = undefined;
+    }
+
+    // Store the chart and draw it
+    this.chart = chart;
 
     this.chart.draw(this.contentParent());
   }
