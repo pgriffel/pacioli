@@ -31,6 +31,7 @@ import {
   mergeAttributeSpecs,
   collectAllAttributes,
   optionsFromAttributes,
+  optionsFromScript,
 } from "../utils/attributes";
 
 /**
@@ -38,7 +39,7 @@ import {
  */
 const WORDCLOUD_ATTRIBUTES = {
   strings: [],
-  booleans: [],
+  booleans: ["nopopup", "notooltip"],
   numbers: [],
 };
 
@@ -67,10 +68,28 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   static readonly observedAttributes =
     collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
+  get nopopup(): boolean {
+    return this.getBooleAttribute("nopopup");
+  }
+
+  set nopopup(value: boolean) {
+    this.setBooleAttribute("nopopup", value);
+  }
+
+  get notooltip(): boolean {
+    return this.getBooleAttribute("notooltip");
+  }
+
+  set notooltip(value: boolean) {
+    this.setBooleAttribute("notooltip", value);
+  }
+
   /**
    * The word cloud
    */
   chart?: WordCloud;
+
+  data: [string, number][] = [];
 
   constructor() {
     super();
@@ -86,14 +105,12 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
         // Reload the data if the definition changes. The initial load is done in
         // parametersChanged.
         if (name === "definition") {
-          const words = wordData(
+          this.data = wordData(
             this.evaluateDefinition() as unknown as WordCloudData,
           );
-
-          this.chart = new WordCloud(words, this.chartOptions());
         }
 
-        this.chart.draw(this.contentParent());
+        this.drawChart(this.data);
       }
     } catch (err: unknown) {
       this.displayError(err instanceof Error ? err.message : String(err));
@@ -104,24 +121,36 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
    * Pacioli web component life-cycle event.
    */
   override parametersChanged() {
-    // Compute the words.
-    const words = wordData(
-      this.evaluateDefinition() as unknown as WordCloudData,
-    );
+    this.data = wordData(this.evaluateDefinition() as unknown as WordCloudData);
 
-    // Add a new word cloud to the content parent
-    this.clearContent();
-    this.chart = new WordCloud(words, this.chartOptions());
-    this.chart.draw(this.contentParent());
+    this.drawChart(this.data);
   }
 
-  /**
-   * Creates an options for the chart from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
-   */
-  chartOptions(): Partial<WordCloudOptions> {
-    return optionsFromAttributes<WordCloudOptions>(this, SUPPORTED_ATTRIBUTES);
+  private drawChart(data: [string, number][]) {
+    this.clearContent();
+
+    const options = {
+      ...optionsFromScript<WordCloudOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<WordCloudOptions>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    const chart = new WordCloud(data, options);
+
+    const defaultHandler = chart.clickHandler;
+    chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      chart.tooltipText = undefined;
+    }
+
+    this.chart = chart;
+
+    this.chart.draw(this.contentParent());
   }
 }
 

@@ -464,6 +464,18 @@
         lineCharts[0].yupper = input.value
     }
 
+    // attach listeners to verify bubbling of onclick events for all chart types
+    window.addEventListener('load', () => {
+        ['pacioli-bar-chart', 'pacioli-line-chart', 'pacioli-pie-chart', 'pacioli-histogram', 'pacioli-scatter-plot', 'pacioli-wordcloud'].forEach(tag => {
+            document.querySelectorAll(tag).forEach((elt) => {
+                elt.addEventListener('onclick', (e) => {
+                    console.log(`clicked ${tag}`, e.detail);
+                    alert(`Clicked ${tag}: ${JSON.stringify(e.detail)}`);
+                });
+            });
+        });
+    });
+
     // TODO: test options attribute. The options attribute passes options from a Pacioli script to a chart!?
 </script>
 
