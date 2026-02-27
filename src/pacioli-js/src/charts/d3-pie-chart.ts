@@ -51,20 +51,15 @@ export interface PieChartOptions extends DefaultChartOptions {
    * part, label is the name of the index set element of the clicked part, and
    * fraction is the percentage of the value of the total value.
    */
-  onclick?: (
-    number: DimNum,
-    label: string,
-    fraction: number,
-    options: PieChartOptions,
-  ) => void;
-  tooltip?: (
-    number: DimNum,
-    label: string,
-    fraction: number,
-    options: PieChartOptions,
-  ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
+
+export type PieChartEvent = CustomEvent<{
+  number: DimNum;
+  label: string;
+  fraction: number;
+  options: PieChartOptions;
+}>;
 
 const DEFAULT_CHART_MARGIN = {
   left: 8,
@@ -82,17 +77,11 @@ const DEFAULT_PIE_CHART_OPTIONS = {
   decimals: 2,
   zeros: false,
   convert: true,
-  onclick: pieChartClickHandler,
-  tooltip: pieChartTooltip,
   tooltipOffset: { dx: 16, dy: -64 },
 };
 
-function pieChartClickHandler(
-  number: DimNum,
-  label: string,
-  fraction: number,
-  options: PieChartOptions,
-) {
+function pieChartClickHandler(event: PieChartEvent) {
+  const { number, label, options, fraction } = event.detail;
   const num = number.toFixed(options.decimals);
   const frac = (fraction * 100).toFixed(0);
 
@@ -104,12 +93,8 @@ function pieChartClickHandler(
   alert(`${prefix} for ${label} is ${num} (${frac}%)`);
 }
 
-function pieChartTooltip(
-  number: DimNum,
-  label: string,
-  fraction: number,
-  options: PieChartOptions,
-) {
+function pieChartTooltip(event: PieChartEvent) {
+  const { number, label, options, fraction } = event.detail;
   return `${label}: ${number.toFixed(options.decimals)} (${(
     fraction * 100
   ).toFixed(0)}%)`;
@@ -122,6 +107,9 @@ function pieChartTooltip(
  */
 export class PieChart {
   options: PieChartOptions;
+
+  clickHandler?: (event: PieChartEvent) => void = pieChartClickHandler;
+  tooltipText?: (event: PieChartEvent) => string = pieChartTooltip;
 
   constructor(
     public readonly data: PacioliValue,
@@ -174,7 +162,15 @@ export class PieChart {
           `translate(${margin.left.toString()},${margin.top.toString()})`,
         );
 
-      appendPieChart(group, input, width, height, this.options);
+      appendPieChart(
+        group,
+        input,
+        width,
+        height,
+        this.options,
+        this.clickHandler,
+        this.tooltipText,
+      );
     }
 
     // Add the caption above all other elements
@@ -188,6 +184,8 @@ function appendPieChart(
   width: number,
   height: number,
   options: PieChartOptions,
+  clickHandler?: (event: PieChartEvent) => void,
+  tooltipText?: (event: PieChartEvent) => string,
 ) {
   group.attr(
     "transform",
@@ -249,33 +247,34 @@ function appendPieChart(
     .attr("fill", (d) => color(d.data.name))
     .attr("d", arc)
     .on("click", (_, arcDatum) => {
-      const handler = options.onclick;
-
-      if (handler) {
+      if (clickHandler) {
         const clicked = arcDatum.data;
-
         tooltip.hide();
-
-        // Without the timeout the tooltip.hide() does not have an effect
         setTimeout(() => {
-          handler(
-            DimNum.fromNumber(clicked.value, data.unit),
-            clicked.name,
-            clicked.value / total,
-            options,
-          );
+          const evt: PieChartEvent = new CustomEvent("onclick", {
+            detail: {
+              number: DimNum.fromNumber(clicked.value, data.unit),
+              label: clicked.name,
+              fraction: clicked.value / total,
+              options,
+            },
+          });
+          clickHandler(evt);
         }, 0);
       }
     })
     .on("mouseover", (event: MouseEvent, d) => {
-      if (options.tooltip) {
-        tooltip.show(
-          options.tooltip(
-            DimNum.fromNumber(d.data.value, data.unit),
-            d.data.name,
-            d.data.value / total,
+      if (tooltipText) {
+        const evt: PieChartEvent = new CustomEvent("tooltip", {
+          detail: {
+            number: DimNum.fromNumber(d.data.value, data.unit),
+            label: d.data.name,
+            fraction: d.data.value / total,
             options,
-          ),
+          },
+        });
+        tooltip.show(
+          tooltipText(evt),
           event.pageX + options.tooltipOffset.dx,
           event.pageY + options.tooltipOffset.dy,
         );

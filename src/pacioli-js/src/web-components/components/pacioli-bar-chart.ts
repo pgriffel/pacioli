@@ -35,7 +35,6 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
-import type { ChartEvent } from "../utils/chart";
 
 /**
  * Attribues supported by the bar chart component
@@ -220,8 +219,7 @@ export class PacioliBarChartComponent extends PacioliNumberComponent {
     // The default click handler can be turned of by the 'nopopup'
     // attribute.
     const defaultHandler = chart.clickHandler;
-
-    chart.clickHandler = (event: ChartEvent<BarChartOptions>) => {
+    chart.clickHandler = (event) => {
       this.dispatchEvent(event);
       if (!this.nopopup && defaultHandler) {
         defaultHandler(event);

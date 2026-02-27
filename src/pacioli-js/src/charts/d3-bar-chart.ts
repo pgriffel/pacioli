@@ -35,7 +35,6 @@ import {
 import type { BandChartData, BandChartEntry } from "./chart-data";
 import { bandChartData } from "./chart-data";
 import { parseUnit } from "../api";
-import type { ChartEvent } from "../web-components/utils/chart";
 
 /**
  * Options for Pacioli's BarChart.
@@ -77,6 +76,12 @@ export interface BarChartOptions extends DefaultChartOptions {
   zeros: boolean;
 }
 
+export type BarChartEvent = CustomEvent<{
+  number: DimNum;
+  label: string;
+  options: BarChartOptions;
+}>;
+
 const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
 
 const DEFAULT_BAR_CHART_OPTIONS: BarChartOptions = {
@@ -94,12 +99,12 @@ const DEFAULT_BAR_CHART_OPTIONS: BarChartOptions = {
  *
  * @param event A custom barchart event
  */
-function barChartClickHandler(event: ChartEvent<BarChartOptions>) {
-  const header = event.detail.options.caption ?? "Bar chart";
-  const label = event.detail.label;
-  const num = event.detail.number.toText();
+function barChartClickHandler(event: BarChartEvent) {
+  const { number, label, options } = event.detail;
 
-  alert(`${header}\n\n Value for ${label} is ${num}`);
+  alert(
+    `${options.caption ?? "Bar chart"}\n\n Value for ${label} is ${number.toText()}`,
+  );
 }
 
 /**
@@ -107,11 +112,10 @@ function barChartClickHandler(event: ChartEvent<BarChartOptions>) {
  *
  * @param event A custom barchart event
  */
-function barChartTooltipText(event: ChartEvent<BarChartOptions>) {
-  const label = event.detail.label;
-  const num = event.detail.number.toFixed(event.detail.options.decimals);
+function barChartTooltipText(event: BarChartEvent) {
+  const { number, label, options } = event.detail;
 
-  return `${label}: ${num}`;
+  return `${label}: ${number.toFixed(options.decimals)}`;
 }
 
 /**
@@ -135,14 +139,7 @@ export class BarChart {
    * Callback for mouse clicks. Parameter number is the value of the clicked
    * bar and label is the name of the index set element of the clicked bar.
    */
-  // clickHandler?: (
-  //   number: DimNum,
-  //   label: string,
-  //   options: BarChartOptions,
-  // ) => void = barChartClickHandler;
-
-  clickHandler?: (event: ChartEvent<BarChartOptions>) => void =
-    barChartClickHandler;
+  clickHandler?: (event: BarChartEvent) => void = barChartClickHandler;
 
   /**
    * Callback for tooltips. Parameter number is the value of the clicked bar and
@@ -155,8 +152,7 @@ export class BarChart {
    *
    * Set the tooltip option to undefined to disable the default tooltip.
    */
-  tooltipText?: (event: ChartEvent<BarChartOptions>) => string =
-    barChartTooltipText;
+  tooltipText?: (event: BarChartEvent) => string = barChartTooltipText;
 
   constructor(
     public readonly data: PacioliValue,
@@ -248,8 +244,8 @@ function appendBarChart(
   data: BandChartData,
   margin: Margin,
   options: BarChartOptions,
-  clickHandler2?: (event: ChartEvent<BarChartOptions>) => void,
-  tooltipText?: (event: ChartEvent<BarChartOptions>) => string,
+  clickHandler2?: (event: BarChartEvent) => void,
+  tooltipText?: (event: BarChartEvent) => string,
 ): void {
   const width = options.width - margin.left - margin.right;
   const height = options.height - margin.top - margin.bottom;

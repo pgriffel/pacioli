@@ -41,7 +41,7 @@ import {
  */
 const LINE_CHART_ATTRIBUTES = {
   strings: ["caption", "label", "xlabel", "unit", "xunit", "yunit"],
-  booleans: ["smooth", "rotate"],
+  booleans: ["smooth", "rotate", "nopopup", "notooltip"],
   numbers: ["norm", "ylower", "yupper", "xticks", "yticks"],
 };
 
@@ -160,6 +160,28 @@ export class PacioliLineChartComponent extends PacioliNumberComponent {
   }
 
   /**
+   * Suppress the default popup alert on click
+   */
+  get nopopup(): boolean {
+    return this.getBooleAttribute("nopopup");
+  }
+
+  set nopopup(value: boolean) {
+    this.setBooleAttribute("nopopup", value);
+  }
+
+  /**
+   * Disable the tooltip entirely
+   */
+  get notooltip(): boolean {
+    return this.getBooleAttribute("notooltip");
+  }
+
+  set notooltip(value: boolean) {
+    this.setBooleAttribute("notooltip", value);
+  }
+
+  /**
    * The line chart
    */
   chart?: LineChart;
@@ -217,6 +239,19 @@ export class PacioliLineChartComponent extends PacioliNumberComponent {
     };
 
     this.chart = new LineChart(data, PacioliContext.si(), options);
+
+    // intercept click handler and dispatch as event
+    const defaultHandler = this.chart.clickHandler;
+    this.chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      this.chart.tooltipText = undefined;
+    }
 
     this.chart.draw(this.contentParent());
   }

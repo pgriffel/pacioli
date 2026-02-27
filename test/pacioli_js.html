@@ -432,6 +432,14 @@
 
         const newChart = document.createElement("pacioli-bar-chart")
 
+        // newChart.setAttribute("notooltip", "")
+
+        newChart.setAttribute("nopopup", "")
+
+        newChart.addEventListener('onclick', (e) => {
+            alert(`Custom text: ${e.detail.label} = ${e.detail.number.toFixed(3)}`);
+        })
+
         slot.appendChild(newChart)
 
         newChart.definition = "web_components:land_area"

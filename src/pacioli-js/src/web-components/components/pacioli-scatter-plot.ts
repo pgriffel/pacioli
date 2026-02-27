@@ -41,7 +41,7 @@ import {
  */
 const SCATTER_PLOT_ATTRIBUTES = {
   strings: ["label", "caption", "xunit", "yunit"],
-  booleans: ["trendline"],
+  booleans: ["trendline", "nopopup", "notooltip"],
   numbers: [
     "xlower",
     "xupper",
@@ -155,6 +155,28 @@ export class PacioliScatterPlotComponent extends PacioliNumberComponent {
   }
 
   /**
+   * Suppress the default popup alert on click
+   */
+  get nopopup(): boolean {
+    return this.getBooleAttribute("nopopup");
+  }
+
+  set nopopup(value: boolean) {
+    this.setBooleAttribute("nopopup", value);
+  }
+
+  /**
+   * Disable the tooltip entirely
+   */
+  get notooltip(): boolean {
+    return this.getBooleAttribute("notooltip");
+  }
+
+  set notooltip(value: boolean) {
+    this.setBooleAttribute("notooltip", value);
+  }
+
+  /**
    * The scatter plot
    */
   chart?: ScatterPlot;
@@ -213,6 +235,20 @@ export class PacioliScatterPlotComponent extends PacioliNumberComponent {
     };
 
     this.chart = new ScatterPlot(data, PacioliContext.si(), options);
+
+    // intercept click handler and dispatch as event
+    const defaultHandler = this.chart.clickHandler;
+    this.chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      this.chart.tooltipText = undefined;
+    }
+
     this.chart.draw(this.contentParent());
   }
 }

@@ -56,20 +56,15 @@ export interface ScatterPlotOptions extends DefaultChartOptions {
   radius: number;
   trendline: boolean;
   decimals: number;
-  onclick?: (data: {
-    x: DimNum;
-    y: DimNum;
-    options: ScatterPlotOptions;
-    element?: PacioliCoordinates;
-  }) => void;
-  tooltip?: (
-    valueX: DimNum,
-    valueY: DimNum,
-    options: ScatterPlotOptions,
-    element?: PacioliCoordinates,
-  ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
+
+export type ScatterPlotEvent = CustomEvent<{
+  x: DimNum;
+  y: DimNum;
+  element?: PacioliCoordinates;
+  options: ScatterPlotOptions;
+}>;
 
 const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 24, bottom: 48 };
 
@@ -85,8 +80,6 @@ const DEFAULT_SCATTER_PLOT_OPTIONS = {
   trendline: false,
   decimals: 2,
   convert: true,
-  onclick: scatterPlotClickHandler,
-  tooltip: scatterPlotTooltip,
   tooltipOffset: { dx: 16, dy: -64 },
 };
 
@@ -107,6 +100,11 @@ export class ScatterPlot {
    * the options provided in the constructor call.
    */
   public readonly options: ScatterPlotOptions;
+
+  public clickHandler?: (event: ScatterPlotEvent) => void =
+    scatterPlotClickHandler;
+
+  public tooltipText?: (event: ScatterPlotEvent) => string = scatterPlotTooltip;
 
   constructor(
     private readonly data: PacioliValue,
@@ -162,7 +160,15 @@ export class ScatterPlot {
           `translate(${margin.left.toString()},${margin.top.toString()})`,
         );
 
-      appendScatterPlot(group, data, width, height, this.options);
+      appendScatterPlot(
+        group,
+        data,
+        width,
+        height,
+        this.options,
+        this.clickHandler,
+        this.tooltipText,
+      );
     }
 
     // Add the caption above all other elements
@@ -170,40 +176,22 @@ export class ScatterPlot {
   }
 }
 
-function scatterPlotTooltip(
-  x: DimNum,
-  y: DimNum,
-  options: ScatterPlotOptions,
-  element?: PacioliCoordinates,
-): string {
-  // Numbers are displayed with fixed precision
+function scatterPlotTooltip(event: ScatterPlotEvent): string {
+  const { x, y, options, element } = event.detail;
   const xNum = x.toFixed(options.decimals);
   const yNum = y.toFixed(options.decimals);
-
-  // If the input came from a vector we display the clicked entry's coordinate
   const eltText = element ? `${element.names.join(",")}:<br>` : "";
-
   return `${eltText}${options.xlabel} = ${xNum}
-    <br>
-    ${options.ylabel} = ${yNum}`;
+      <br>
+      ${options.ylabel} = ${yNum}`;
 }
 
-function scatterPlotClickHandler(input: {
-  x: DimNum;
-  y: DimNum;
-  options: ScatterPlotOptions;
-  element?: PacioliCoordinates;
-}) {
-  // Numbers are displayed with full precision
-  const xNum = input.x.toText();
-  const yNum = input.y.toText();
-
-  // If the input came from a vector we display the clicked entry's coordinate
-  const eltText = input.element ? `${input.element.names.join(",")}\n` : "";
-
-  alert(
-    `${eltText}${input.options.xlabel} = ${xNum}\n${input.options.ylabel} = ${yNum}`,
-  );
+function scatterPlotClickHandler(event: ScatterPlotEvent) {
+  const { x, y, options, element } = event.detail;
+  const xNum = x.toText();
+  const yNum = y.toText();
+  const eltText = element ? `${element.names.join(",")}\n` : "";
+  alert(`${eltText}${options.xlabel} = ${xNum}\n${options.ylabel} = ${yNum}`);
 }
 
 /**
@@ -223,6 +211,8 @@ function appendScatterPlot(
   width: number,
   height: number,
   options: ScatterPlotOptions,
+  clickHandler?: (event: ScatterPlotEvent) => void,
+  tooltipText?: (event: ScatterPlotEvent) => string,
 ) {
   const unitX = data.xUnit;
   const unitY = data.yUnit;
@@ -297,26 +287,32 @@ function appendScatterPlot(
     })
     .on("click", (_, d) => {
       tooltip.hide();
-      const handler = options.onclick;
-      if (handler) {
+      if (clickHandler) {
         setTimeout(() => {
-          handler({
-            x: DimNum.fromNumber(d.x, unitX),
-            y: DimNum.fromNumber(d.y, unitY),
-            options: options,
-            element: d.coordinates,
+          const evt = new CustomEvent("onclick", {
+            detail: {
+              x: DimNum.fromNumber(d.x, unitX),
+              y: DimNum.fromNumber(d.y, unitY),
+              options: options,
+              element: d.coordinates,
+            },
           });
+          clickHandler(evt);
         }, 0);
       }
     })
     .on("mouseover", (event: MouseEvent, d) => {
-      if (options.tooltip) {
+      if (tooltipText) {
         tooltip.show(
-          options.tooltip(
-            DimNum.fromNumber(d.x, unitX),
-            DimNum.fromNumber(d.y, unitY),
-            options,
-            d.coordinates,
+          tooltipText(
+            new CustomEvent("tooltip", {
+              detail: {
+                x: DimNum.fromNumber(d.x, unitX),
+                y: DimNum.fromNumber(d.y, unitY),
+                options: options,
+                element: d.coordinates,
+              },
+            }),
           ),
           event.pageX + options.tooltipOffset.dx,
           event.pageY + options.tooltipOffset.dy,

@@ -41,7 +41,7 @@ import {
  */
 const PIE_CHART_ATTRIBUTES = {
   strings: ["unit", "caption", "label"],
-  booleans: [],
+  booleans: ["nopopup", "notooltip"],
   numbers: ["radius", "labelOffset"],
 };
 
@@ -94,6 +94,22 @@ export class PacioliPieChartComponent extends PacioliNumberComponent {
 
   set radius(value: number) {
     this.setNumberAttribute("radius", value);
+  }
+
+  get nopopup(): boolean {
+    return this.getBooleAttribute("nopopup");
+  }
+
+  set nopopup(value: boolean) {
+    this.setBooleAttribute("nopopup", value);
+  }
+
+  get notooltip(): boolean {
+    return this.getBooleAttribute("notooltip");
+  }
+
+  set notooltip(value: boolean) {
+    this.setBooleAttribute("notooltip", value);
   }
 
   /**
@@ -155,6 +171,21 @@ export class PacioliPieChartComponent extends PacioliNumberComponent {
     };
 
     this.chart = new PieChart(data, PacioliContext.si(), options);
+
+    // Intercept the click handler and dispatch the clicks as events.
+    // The default click handler can be turned of by the 'nopopup'
+    // attribute.
+    const defaultHandler = this.chart.clickHandler;
+    this.chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      this.chart.tooltipText = undefined;
+    }
 
     this.chart.draw(this.contentParent());
   }
