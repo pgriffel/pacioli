@@ -27,12 +27,17 @@ import { stringifyCell } from "./util";
 import type { PacioliMatrix } from "../values/matrix";
 import type { MatrixShape } from "../values/matrix-shape";
 import { getFullNumbers } from "../raw-values/numbers";
-import type { NumberOptions } from "../web-components/pacioli-number-component";
 
 /**
- * Options for MatrixBuilder
+ * Options for MatrixBuilder. Overlaps with NumberAttributes
  */
-export interface MatrixBuilderOptions extends NumberOptions {
+export interface MatrixBuilderOptions {
+  decimals: number;
+  zero?: string;
+  raw: boolean;
+  exponential: boolean;
+  ascii: boolean;
+  clipboard: boolean;
   headers: boolean;
   nounits: boolean;
   headerunits: boolean;

@@ -20,49 +20,46 @@
  * SOFTWARE.
  */
 
-import { WordCloud } from "../../charts/d3-wordcloud";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import type { CommonAttributes } from "../pacioli-web-component";
-import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import type { PacioliValue } from "../values/pacioli-value";
+import type {
+  NumberAttributes} from "./pacioli-number-component";
 import {
-  mergeAttributeSpecs,
-  collectAllAttributes,
-  optionsFromAttributes,
-  optionsFromScript,
-} from "../utils/attributes";
-import type { PacioliValue } from "../../values/pacioli-value";
+  PacioliNumberComponent,
+} from "./pacioli-number-component";
 
 /**
- * Attribues supported by the word cloud component
+ * Attributes shared by all Pacioli chart components.
  */
-const WORDCLOUD_ATTRIBUTES = {
-  strings: [],
+export const CHART_ATTRIBUTES = {
+  strings: ["margin"],
   booleans: ["nopopup", "notooltip"],
   numbers: [],
 };
 
 /**
- * Attribues for Pacioli's word cloud component.
+ * Types for the chart attributes
  */
-export interface WordCloudAttributes extends CommonAttributes {
-  nopopup: boolean;
-  notooltip: boolean;
+export interface ChartsAttributes extends NumberAttributes {
+  margin: string;
 }
 
-const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
-  COMMON_ATTRIBUTES,
-  WORDCLOUD_ATTRIBUTES,
-);
-
 /**
- * Style sheet for the word cloud component
+ * Abstract class for web components displaying a chart.
+ *
+ * Introduces the drawChart method.
  */
-const STYLES = ``;
+export abstract class PacioliChartComponent extends PacioliNumberComponent {
+  get margin(): string | undefined {
+    return this.getStringAttribute("margin");
+  }
 
-/**
- * Web component for a line chart. A wrapper around the WordCloud class.
- */
-export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
+  set margin(value: string | undefined) {
+    this.setStringAttribute("margin", value);
+  }
+
+  /**
+   * Suppress the default popup alert on click
+   */
   get nopopup(): boolean {
     return this.getBooleAttribute("nopopup");
   }
@@ -71,6 +68,9 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
     this.setBooleAttribute("nopopup", value);
   }
 
+  /**
+   * Disable the tooltip entirely
+   */
   get notooltip(): boolean {
     return this.getBooleAttribute("notooltip");
   }
@@ -80,22 +80,9 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Web component field.
+   * The Pacioli value displayed in the chart.
    */
-  static readonly observedAttributes =
-    collectAllAttributes(SUPPORTED_ATTRIBUTES);
-
-  /**
-   * The word cloud
-   */
-  chart?: WordCloud;
-
   data?: PacioliValue;
-
-  constructor() {
-    super();
-    this.adoptStyles(STYLES);
-  }
 
   /**
    * Web component life-cycle event.
@@ -119,38 +106,11 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   /**
    * Pacioli web component life-cycle event.
    */
-  override parametersChanged() {
+  override parametersChanged(): void {
     this.data = this.evaluateDefinition();
 
     this.drawChart(this.data);
   }
 
-  private drawChart(data: PacioliValue) {
-    this.clearContent();
-
-    const options = {
-      ...optionsFromScript<WordCloudAttributes>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<WordCloudAttributes>(this, SUPPORTED_ATTRIBUTES),
-    };
-
-    const chart = new WordCloud(data, options);
-
-    const defaultHandler = chart.clickHandler;
-    chart.clickHandler = (event) => {
-      this.dispatchEvent(event);
-      if (!this.nopopup && defaultHandler) {
-        defaultHandler(event);
-      }
-    };
-
-    if (this.notooltip) {
-      chart.tooltipText = undefined;
-    }
-
-    this.chart = chart;
-
-    this.chart.draw(this.contentParent());
-  }
+  protected abstract drawChart(data: PacioliValue): void;
 }
-
-customElements.define("pacioli-wordcloud", PacioliWordCloudComponent);

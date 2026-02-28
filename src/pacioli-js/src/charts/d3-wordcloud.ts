@@ -30,6 +30,9 @@ import {
   ToolTip,
 } from "./chart-utils";
 import cloud from "d3-cloud";
+import type { PacioliValue } from "../values/pacioli-value";
+import type { PacioliString } from "../values/string";
+import type { PacioliMatrix } from "../values/matrix";
 
 export interface WordCloudOptions extends DefaultChartOptions {
   angles: number;
@@ -84,7 +87,7 @@ export class WordCloud {
   tooltipText?: (event: WordCloudEvent) => string = wordCloudTooltip;
 
   constructor(
-    public data: [string, number][],
+    public readonly data: PacioliValue,
     options: Partial<WordCloudOptions>,
   ) {
     this.options = { ...DEFAULT_WORDCLOUD_OPTIONS, ...options };
@@ -98,7 +101,9 @@ export class WordCloud {
       parent.firstChild.remove();
     }
 
-    const words = this.data.map(function (d: [string, number]) {
+    const d = decodeWordCloudData(this.data);
+
+    const words = d.map(function (d: [string, number]) {
       return {
         text: d[0],
         size: d[1],
@@ -251,5 +256,29 @@ function appendWordcloud(
       .on("mouseout", () => {
         tooltip.hide();
       });
+  }
+}
+
+function decodeWordCloudData(record: PacioliValue): [string, number][] {
+  switch (record.kind) {
+    case "list": {
+      return record.map((record) => decodeWordCloudTuple(record));
+    }
+    default: {
+      throw new Error("data wordcloud data kind '" + record.kind + "' unknown");
+    }
+  }
+}
+
+function decodeWordCloudTuple(record: PacioliValue): [string, number] {
+  switch (record.kind) {
+    case "tuple": {
+      const word = record[0] as PacioliString; // TODO: add error handling instead of casting
+      const count = record[1] as PacioliMatrix;
+      return [word.value, count.getNum(0, 0)];
+    }
+    default: {
+      throw new Error("data wordcloud data kind '" + record.kind + "' unknown");
+    }
   }
 }

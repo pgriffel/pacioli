@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import type { NumberOptions } from "../pacioli-number-component";
+import type { NumberAttributes } from "../pacioli-number-component";
 import {
   NUMBER_ATTRIBUTES,
   PacioliNumberComponent,
@@ -43,6 +43,13 @@ const VALUE_ATTRIBUTES = {
   booleans: ["totals"],
   numbers: [],
 };
+
+/**
+ * Attribues for Pacioli's value component.
+ */
+export interface ValueAttributes extends NumberAttributes {
+  totals: boolean;
+}
 
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
@@ -152,8 +159,8 @@ export class PacioliValueComponent extends PacioliNumberComponent {
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<NumberOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<NumberOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<ValueAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<ValueAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.contentParent().appendChild(DOM(value, options));

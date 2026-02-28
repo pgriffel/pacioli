@@ -7,7 +7,7 @@
 - Some fixes for packaging (.tgz file)
 - Fixed incorrect ids in generated code
 - Fixed isSingleScalar in TableBuilder
-- Changed web-component initialization
+- Some fixes and improvements for web-components
 
 ## [0.5.1] 2025-07-26
 

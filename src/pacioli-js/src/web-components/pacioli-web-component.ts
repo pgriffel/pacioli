@@ -58,11 +58,24 @@ TEMPLATE.innerHTML = `
   </div>
 `;
 
+/**
+ * Attributes shared by all Pacioli web components.
+ */
 export const COMMON_ATTRIBUTES = {
-  strings: ["definition", "margin"],
+  strings: ["definition", "caption"],
   booleans: [],
   numbers: ["width", "height"],
 };
+
+/**
+ * Types for the common attributes
+ */
+export interface CommonAttributes {
+  definition: string;
+  caption: string;
+  width: number;
+  height: number;
+}
 
 /**
  * Abstract base class for Pacioli web components.
@@ -80,6 +93,14 @@ export abstract class PacioliWebComponent
     return this.getStringAttribute("definition");
   }
 
+  get caption(): string | undefined {
+    return this.getStringAttribute("caption");
+  }
+
+  set caption(value: string | undefined) {
+    this.setStringAttribute("caption", value);
+  }
+
   set width(value: number) {
     this.setNumberAttribute("width", value);
   }
@@ -94,14 +115,6 @@ export abstract class PacioliWebComponent
 
   get height(): number {
     return this.getNumberAttribute("height", 0);
-  }
-
-  get margin(): string | undefined {
-    return this.getStringAttribute("margin");
-  }
-
-  set margin(value: string | undefined) {
-    this.setStringAttribute("margin", value);
   }
 
   /**

@@ -23,10 +23,7 @@
 import type { PieChartOptions } from "../../charts/d3-pie-chart";
 import { PieChart } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
-import {
-  NUMBER_ATTRIBUTES,
-  PacioliNumberComponent,
-} from "../pacioli-number-component";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
 import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
 import {
@@ -35,19 +32,36 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the pie chart component
  */
 const PIE_CHART_ATTRIBUTES = {
-  strings: ["unit", "caption", "label"],
-  booleans: ["nopopup", "notooltip"],
+  strings: ["unit", "label"],
+  booleans: [],
   numbers: ["radius", "labelOffset"],
 };
+
+/**
+ * Types for the histogram attributes
+ */
+export interface PieChartAttributes extends ChartsAttributes {
+  unit: string;
+  label: string;
+  radius: number;
+  labelOffset: number;
+}
 
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
   NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
   PIE_CHART_ATTRIBUTES,
 );
 
@@ -61,7 +75,7 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the PieChart class.
  */
-export class PacioliPieChartComponent extends PacioliNumberComponent {
+export class PacioliPieChartComponent extends PacioliChartComponent {
   /**
    * Label
    */
@@ -96,31 +110,10 @@ export class PacioliPieChartComponent extends PacioliNumberComponent {
     this.setNumberAttribute("radius", value);
   }
 
-  get nopopup(): boolean {
-    return this.getBooleAttribute("nopopup");
-  }
-
-  set nopopup(value: boolean) {
-    this.setBooleAttribute("nopopup", value);
-  }
-
-  get notooltip(): boolean {
-    return this.getBooleAttribute("notooltip");
-  }
-
-  set notooltip(value: boolean) {
-    this.setBooleAttribute("notooltip", value);
-  }
-
   /**
    * The pie chart
    */
   chart?: PieChart;
-
-  /**
-   * The Pacioli value displayed in the chart.
-   */
-  data?: PacioliValue;
 
   /**
    * Web component field.
@@ -134,34 +127,9 @@ export class PacioliPieChartComponent extends PacioliNumberComponent {
   }
 
   /**
-   * Web component life-cycle event.
+   * ChartComponent method.
    */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.drawChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    this.data = this.evaluateDefinition();
-
-    this.drawChart(this.data);
-  }
-
-  drawChart(data: PacioliValue): void {
+  override drawChart(data: PacioliValue): void {
     this.clearContent();
     this.clearErrors();
 

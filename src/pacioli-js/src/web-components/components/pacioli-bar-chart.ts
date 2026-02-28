@@ -21,12 +21,8 @@
  */
 
 import { PacioliContext } from "../../context";
-import type { BarChartOptions } from "../../charts/d3-bar-chart";
 import { BarChart } from "../../charts/d3-bar-chart";
-import {
-  NUMBER_ATTRIBUTES,
-  PacioliNumberComponent,
-} from "../pacioli-number-component";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
 import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
 import {
@@ -35,19 +31,38 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the bar chart component
  */
 export const BAR_CHART_ATTRIBUTES = {
-  strings: ["caption", "xlabel", "ylabel", "unit"],
-  booleans: ["nopopup", "notooltip"],
+  strings: ["xlabel", "ylabel", "unit"],
+  booleans: [],
   numbers: ["ylower", "yupper", "padding"],
 };
+
+/**
+ * Types for the bar chart attributes
+ */
+export interface BarChartsAttributes extends ChartsAttributes {
+  xlabel: string;
+  ylabel: string;
+  unit: string;
+  ylower: number;
+  yupper: number;
+  padding: number;
+}
 
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
   NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
   BAR_CHART_ATTRIBUTES,
 );
 
@@ -65,7 +80,7 @@ const STYLES = `
 /**
  * Web component for a bar chart. A wrapper around the BarChart class.
  */
-export class PacioliBarChartComponent extends PacioliNumberComponent {
+export class PacioliBarChartComponent extends PacioliChartComponent {
   /**
    * Label of the x-axis
    */
@@ -134,36 +149,9 @@ export class PacioliBarChartComponent extends PacioliNumberComponent {
   }
 
   /**
-   * ?
-   */
-  get nopopup(): boolean {
-    return this.getBooleAttribute("nopopup");
-  }
-
-  set nopopup(value: boolean) {
-    this.setBooleAttribute("nopopup", value);
-  }
-
-  /**
-   * ?
-   */
-  get notooltip(): boolean {
-    return this.getBooleAttribute("notooltip");
-  }
-
-  set notooltip(value: boolean) {
-    this.setBooleAttribute("notooltip", value);
-  }
-
-  /**
    * The bar chart
    */
   chart?: BarChart;
-
-  /**
-   * The Pacioli value displayed in the chart.
-   */
-  data?: PacioliValue;
 
   /**
    * Web component field.
@@ -176,41 +164,13 @@ export class PacioliBarChartComponent extends PacioliNumberComponent {
     this.adoptStyles(STYLES);
   }
 
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.drawChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    this.data = this.evaluateDefinition();
-
-    this.drawChart(this.data);
-  }
-
-  private drawChart(data: PacioliValue) {
+  override drawChart(data: PacioliValue) {
     this.clearContent();
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<BarChartOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<BarChartsAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<BarChartsAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     const chart = new BarChart(data, PacioliContext.si(), options);

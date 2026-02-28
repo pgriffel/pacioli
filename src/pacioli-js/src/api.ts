@@ -195,6 +195,8 @@ export function tuple(array: PacioliValue[]): PacioliValue {
   return new PacioliTuple(...array);
 }
 
+let varCounter = 0;
+
 export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
@@ -202,6 +204,16 @@ export function list(array: PacioliValue[]): PacioliValue {
   const vList = array.map(function (elt) {
     return elt; //.value;
   });
+
+  // Does this work? Untested!
+  if (vList.length === 0) {
+    return new PacioliList(
+      new GenericType("List", [
+        typeFromVarName(`_xyzzy${(varCounter++).toString()}_`),
+      ]),
+    );
+  }
+
   return new PacioliList(
     new GenericType("List", [typeFromValue(array[0])]),
     ...vList,

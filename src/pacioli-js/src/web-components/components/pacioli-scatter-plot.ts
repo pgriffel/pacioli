@@ -21,13 +21,9 @@
  */
 
 import type { PacioliValue } from "../../values/pacioli-value";
-import type { ScatterPlotOptions } from "../../charts/d3-scatter-plot";
 import { ScatterPlot } from "../../charts/d3-scatter-plot";
 import { PacioliContext } from "../../context";
-import {
-  NUMBER_ATTRIBUTES,
-  PacioliNumberComponent,
-} from "../pacioli-number-component";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
 import {
   mergeAttributeSpecs,
@@ -35,13 +31,19 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the scatter plot component
  */
 const SCATTER_PLOT_ATTRIBUTES = {
-  strings: ["label", "caption", "xunit", "yunit"],
-  booleans: ["trendline", "nopopup", "notooltip"],
+  strings: ["label", "xunit", "yunit"],
+  booleans: ["trendline"],
   numbers: [
     "xlower",
     "xupper",
@@ -53,9 +55,27 @@ const SCATTER_PLOT_ATTRIBUTES = {
   ],
 };
 
+/**
+ * Types for the histogram attributes
+ */
+export interface ScatterPlotAttributes extends ChartsAttributes {
+  label: string;
+  xunit: string;
+  yunit: string;
+  trendline: boolean;
+  xlower: number;
+  xupper: number;
+  ylower: number;
+  yupper: number;
+  xticks: number;
+  yticks: number;
+  radius: number;
+}
+
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
   NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
   SCATTER_PLOT_ATTRIBUTES,
 );
 
@@ -87,7 +107,7 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the ScatterPlot class.
  */
-export class PacioliScatterPlotComponent extends PacioliNumberComponent {
+export class PacioliScatterPlotComponent extends PacioliChartComponent {
   /**
    * Unit of the domain values
    */
@@ -155,36 +175,9 @@ export class PacioliScatterPlotComponent extends PacioliNumberComponent {
   }
 
   /**
-   * Suppress the default popup alert on click
-   */
-  get nopopup(): boolean {
-    return this.getBooleAttribute("nopopup");
-  }
-
-  set nopopup(value: boolean) {
-    this.setBooleAttribute("nopopup", value);
-  }
-
-  /**
-   * Disable the tooltip entirely
-   */
-  get notooltip(): boolean {
-    return this.getBooleAttribute("notooltip");
-  }
-
-  set notooltip(value: boolean) {
-    this.setBooleAttribute("notooltip", value);
-  }
-
-  /**
    * The scatter plot
    */
   chart?: ScatterPlot;
-
-  /**
-   * The Pacioli value displayed in the chart.
-   */
-  data?: PacioliValue;
 
   /**
    * Web component field.
@@ -198,40 +191,18 @@ export class PacioliScatterPlotComponent extends PacioliNumberComponent {
   }
 
   /**
-   * Web component life-cycle event.
+   * ChartComponent method.
    */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.drawChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    this.data = this.evaluateDefinition();
-
-    this.drawChart(this.data);
-  }
-
-  drawChart(data: PacioliValue): void {
+  override drawChart(data: PacioliValue): void {
     this.clearContent();
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<ScatterPlotOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<ScatterPlotAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<ScatterPlotAttributes>(
+        this,
+        SUPPORTED_ATTRIBUTES,
+      ),
     };
 
     this.chart = new ScatterPlot(data, PacioliContext.si(), options);

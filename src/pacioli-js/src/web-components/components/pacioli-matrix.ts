@@ -23,7 +23,7 @@
 import type { PacioliMatrix } from "../../values/matrix";
 import { PacioliError } from "../../pacioli-error";
 import { MatrixBuilder } from "../../table/matrix-builder";
-import type { NumberOptions } from "../pacioli-number-component";
+import type { NumberAttributes } from "../pacioli-number-component";
 import {
   NUMBER_ATTRIBUTES,
   PacioliNumberComponent,
@@ -40,7 +40,7 @@ import { evaluateWebComponentDefinition } from "../utils/definition";
 /**
  * Options for Pacioli's matrix component.
  */
-export interface MatrixOptions extends NumberOptions {
+export interface MatrixAttributes extends NumberAttributes {
   headers: boolean;
   headerunits: boolean;
   nounits: boolean;
@@ -208,8 +208,8 @@ export class PacioliMatrixComponent extends PacioliNumberComponent {
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<MatrixOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<MatrixOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<MatrixAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<MatrixAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.contentParent().appendChild(createMatrixHTMLTable(matrix, options));
@@ -228,7 +228,7 @@ export class PacioliMatrixComponent extends PacioliNumberComponent {
  */
 function createMatrixHTMLTable(
   matrix: PacioliMatrix,
-  options: Partial<MatrixOptions>,
+  options: Partial<MatrixAttributes>,
 ): HTMLElement {
   let effMatrix = matrix;
 

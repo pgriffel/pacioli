@@ -32,7 +32,7 @@ import { PacioliError } from "../../pacioli-error";
 import type { PacioliList } from "../../values/list";
 import type { SIUnit } from "uom-ts";
 import { parseUnit } from "../../api";
-import type { NumberOptions } from "../pacioli-number-component";
+import type { NumberAttributes } from "../pacioli-number-component";
 import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
 import {
   mergeAttributeSpecs,
@@ -44,14 +44,6 @@ import {
   getBooleAttribute,
 } from "../utils/attributes";
 import { evaluateWebComponentDefinition } from "../utils/definition";
-
-/**
- * Options for Pacioli's table component.
- */
-export interface TableOptions extends NumberOptions {
-  nozerorows: boolean;
-  totals: boolean;
-}
 
 interface ColumnData {
   header: string;
@@ -72,6 +64,14 @@ const TABLE_ATTRIBUTES = {
   booleans: ["nozerorows", "totals"],
   numbers: [],
 };
+
+/**
+ * Attribues for Pacioli's table component.
+ */
+export interface TableAttributes extends NumberAttributes {
+  nozerorows: boolean;
+  totals: boolean;
+}
 
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
@@ -225,8 +225,8 @@ export class PacioliTableComponent extends PacioliNumberComponent {
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<TableOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<TableOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<TableAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<TableAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.contentParent().appendChild(DOMTable(columns, options));

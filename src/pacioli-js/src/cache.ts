@@ -318,7 +318,11 @@ export function lookupType(id: string): PacioliType {
   return cache.get(full) as PacioliType;
 }
 
-export function storeValue(module: string, name: string, value: PacioliValue) {
+export function storePacioliValue(
+  module: string,
+  name: string,
+  value: PacioliValue,
+) {
   cache.set(module + "_" + name, rawValueFromValue(value));
   cache.set("u_" + module + "_" + name, typeFromValue(value));
 }

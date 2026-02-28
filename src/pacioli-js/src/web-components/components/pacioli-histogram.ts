@@ -21,13 +21,8 @@
  */
 
 import { PacioliContext } from "../../context";
-import type { HistogramOptions } from "../../charts/d3-histogram";
 import { Histogram } from "../../charts/d3-histogram";
-import {
-  NUMBER_ATTRIBUTES,
-  PacioliNumberComponent,
-} from "../pacioli-number-component";
-
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
 import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
 import {
@@ -36,13 +31,19 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the histogram component
  */
 const HISTOGRAM_ATTRIBUTES = {
-  strings: ["unit", "caption", "xlabel", "ylabel", "heuristic"],
-  booleans: ["nopopup", "notooltip"],
+  strings: ["unit", "xlabel", "ylabel", "heuristic"],
+  booleans: [],
   numbers: [
     "bins",
     "lower",
@@ -55,9 +56,28 @@ const HISTOGRAM_ATTRIBUTES = {
   ],
 };
 
+/**
+ * Types for the histogram attributes
+ */
+export interface HistogramAttributes extends ChartsAttributes {
+  unit: string;
+  xlabel: string;
+  ylabel: string;
+  heuristic: string;
+  bins: number;
+  lower: number;
+  upper: number;
+  gap: number;
+  ylower: number;
+  yupper: number;
+  xticks: number;
+  yticks: number;
+}
+
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
   NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
   HISTOGRAM_ATTRIBUTES,
 );
 
@@ -97,7 +117,7 @@ const STYLES = `
 /**
  * Web component for a histogram. A wrapper around the Histogram class.
  */
-export class PacioliHistogramComponent extends PacioliNumberComponent {
+export class PacioliHistogramComponent extends PacioliChartComponent {
   /**
    * Label of the x-axis
    */
@@ -118,22 +138,6 @@ export class PacioliHistogramComponent extends PacioliNumberComponent {
 
   set ylabel(value: string | undefined) {
     this.setStringAttribute("ylabel", value);
-  }
-
-  get nopopup(): boolean {
-    return this.getBooleAttribute("nopopup");
-  }
-
-  set nopopup(value: boolean) {
-    this.setBooleAttribute("nopopup", value);
-  }
-
-  get notooltip(): boolean {
-    return this.getBooleAttribute("notooltip");
-  }
-
-  set notooltip(value: boolean) {
-    this.setBooleAttribute("notooltip", value);
   }
 
   /**
@@ -198,11 +202,6 @@ export class PacioliHistogramComponent extends PacioliNumberComponent {
   chart?: Histogram;
 
   /**
-   * The data displayed in the histogram
-   */
-  data?: PacioliValue;
-
-  /**
    * Web component field.
    */
   static readonly observedAttributes =
@@ -214,49 +213,19 @@ export class PacioliHistogramComponent extends PacioliNumberComponent {
   }
 
   /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.updateChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    // Compute the data using the new parameter values
-    this.data = this.evaluateDefinition();
-
-    // Refresh the chart
-    this.updateChart(this.data);
-  }
-
-  /**
    * Removed any existing chart and creates a new one with the current settings.
    *
    * Calls the callbacks.
    *
    * @param data The data to display in the chart
    */
-  private updateChart(data: PacioliValue) {
+  override drawChart(data: PacioliValue) {
     this.clearContent();
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<HistogramAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<HistogramAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.chart = new Histogram(data, PacioliContext.si(), options);

@@ -49,7 +49,7 @@ export {
   oneNumbers,
   oneNumbersFromShape,
   fetchValue,
-  storeValue,
+  storePacioliValue,
   createCoordinates,
 } from "./cache";
 

@@ -45,12 +45,6 @@ export interface PieChartOptions extends DefaultChartOptions {
   labelOffset?: number;
   decimals?: number;
   zeros: boolean;
-
-  /**
-   * Callback for mouse clicks. Parameter number is the value of the clicked
-   * part, label is the name of the index set element of the clicked part, and
-   * fraction is the percentage of the value of the total value.
-   */
   tooltipOffset: { dx: number; dy: number };
 }
 

@@ -53,13 +53,6 @@ export interface HistogramOptions extends DefaultChartOptions {
   decimals?: number;
   gap: number;
   heuristic: string;
-  onclick?: (
-    values: { keys: string[]; value: string }[],
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum,
-    options: HistogramOptions,
-  ) => void;
   tooltipOffset: { dx: number; dy: number };
 }
 

@@ -20,13 +20,9 @@
  * SOFTWARE.
  */
 
-import type { LineChartOptions } from "../../charts/d3-line-chart";
 import { LineChart } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
-import {
-  NUMBER_ATTRIBUTES,
-  PacioliNumberComponent,
-} from "../pacioli-number-component";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
 import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
 import {
@@ -35,19 +31,44 @@ import {
   optionsFromScript,
   optionsFromAttributes,
 } from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the histogram component
  */
 const LINE_CHART_ATTRIBUTES = {
-  strings: ["caption", "label", "xlabel", "unit", "xunit", "yunit"],
-  booleans: ["smooth", "rotate", "nopopup", "notooltip"],
+  strings: ["label", "xlabel", "unit", "xunit", "yunit"],
+  booleans: ["smooth", "rotate"],
   numbers: ["norm", "ylower", "yupper", "xticks", "yticks"],
 };
+
+/**
+ * Types for the histogram attributes
+ */
+export interface LineChartAttributes extends ChartsAttributes {
+  unit: string;
+  label: string;
+  xlabel: string;
+  xunit: string;
+  yunit: string;
+  smooth: boolean;
+  rotate: boolean;
+  norm: number;
+  ylower: number;
+  yupper: number;
+  xticks: number;
+  yticks: number;
+}
 
 const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
   COMMON_ATTRIBUTES,
   NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
   LINE_CHART_ATTRIBUTES,
 );
 
@@ -89,7 +110,7 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the LineChart class.
  */
-export class PacioliLineChartComponent extends PacioliNumberComponent {
+export class PacioliLineChartComponent extends PacioliChartComponent {
   /**
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
@@ -160,36 +181,10 @@ export class PacioliLineChartComponent extends PacioliNumberComponent {
   }
 
   /**
-   * Suppress the default popup alert on click
-   */
-  get nopopup(): boolean {
-    return this.getBooleAttribute("nopopup");
-  }
-
-  set nopopup(value: boolean) {
-    this.setBooleAttribute("nopopup", value);
-  }
-
-  /**
-   * Disable the tooltip entirely
-   */
-  get notooltip(): boolean {
-    return this.getBooleAttribute("notooltip");
-  }
-
-  set notooltip(value: boolean) {
-    this.setBooleAttribute("notooltip", value);
-  }
-
-  /**
    * The line chart
    */
   chart?: LineChart;
 
-  /**
-   * The Pacioli value displayed in the chart.
-   */
-  data?: PacioliValue;
   /**
    * Web component field.
    */
@@ -202,40 +197,15 @@ export class PacioliLineChartComponent extends PacioliNumberComponent {
   }
 
   /**
-   * Web component life-cycle event.
+   * ChartComponent method.
    */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.drawChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    this.data = this.evaluateDefinition();
-
-    this.drawChart(this.data);
-  }
-
-  private drawChart(data: PacioliValue) {
+  override drawChart(data: PacioliValue) {
     this.clearContent();
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<LineChartAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<LineChartAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.chart = new LineChart(data, PacioliContext.si(), options);
