@@ -37,6 +37,7 @@ import {
   collectAllAttributes,
   optionsFromAttributes,
 } from "../utils/attributes";
+import { PacioliError } from "../../pacioli-error";
 
 /**
  * Attribues supported by the 3D scene component
@@ -320,9 +321,22 @@ function loadSpaceData(
 ) {
   // Cast the PacioliValue to the expected type and hope it works out at runtime.
   // TODO: Improve error handling with runtime checks on the returned value
+  // Update: added a first check.
   switch (kind) {
     case "scene": {
-      space.loadScene(data as unknown as PacioliScene);
+      if (data.kind === "tuple") {
+        if (data.length === 7) {
+          space.loadScene(data as unknown as PacioliScene);
+        } else {
+          throw new PacioliError(
+            `Invalid scene. Could it be an animation? In that case add kind="animation" or kind="stateful-animation"`,
+          );
+        }
+      } else {
+        throw new PacioliError(
+          `Cannot load scene. Expected a tuple but got a ${kind}`,
+        );
+      }
       break;
     }
     case "animation": {
