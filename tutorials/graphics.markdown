@@ -74,11 +74,14 @@ display. It can be added to a web page.
 
 Create file `blocks.pacioli` with the following content.
 
+    import graphics;
+    import geometry;
+    
     declare blocks_scene :: Scene(metre, Geom3!);
 
     define blocks_scene = empty_scene("blocks");
 
-Function `empty_scene` creates an empty scene. It expects
+Function `empty_scene` from the `graphics` library creates an empty scene. It expects
 a short description that is only intended for identifying the scene in log and error messages.
 
 The type declaration is optional. In the remainder type declarations are included for readability.
@@ -348,5 +351,8 @@ Function `add_animation_callback` creates an animation. It expects a function of
 type `(second, Scene(a, Geom3!u)) -> Scene(a, Geom3!u)`. This callback is passed a
 time parameter and the previous scene, and computes the new scene. In this case
 it rotates the blocks. The previous scene is not used in this case.
+
+Finally the scene needs to be changed to an anmiation in the HTML page. Add `kind="animation"` to
+the `pacioli-scene` element.
 
 [threejs]: http://www.threejs.org
