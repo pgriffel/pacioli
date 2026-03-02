@@ -92,6 +92,15 @@
             "mainClass": "pacioli.Pacioli",
             "projectName": "pacioli",
             "args": "version"
-        }
+        },
+         {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "List libs",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "libs -target markdown -lib lib/"
+        },
     ]
 }
