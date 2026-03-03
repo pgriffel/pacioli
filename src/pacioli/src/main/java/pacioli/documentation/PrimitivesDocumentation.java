@@ -28,6 +28,7 @@ import java.io.FileWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.Pacioli;
 import pacioli.ast.expression.ExpressionNode;
@@ -85,14 +86,15 @@ public class PrimitivesDocumentation {
 
         Pacioli.log("Generating built-in %s documentation in directory %s", this.target, dirName);
 
+        writeAPIFile("base" + extension, version, "base", true, false);
+
         writeAPIFile("io" + extension, version, "io", true, true);
         writeAPIFile("string" + extension, version, "string", true, true);
         writeAPIFile("list" + extension, version, "list", true, true);
         writeAPIFile("array" + extension, version, "array", true, false);
         writeAPIFile("matrix" + extension, version, "matrix", true, true);
-        writeAPIFile("base" + extension, version, "base", true, false);
         writeAPIFile("system" + extension, version, "system", true, false);
-        writeAPIFile("standard" + extension, version, "standard", false, true);
+        writeAPIFile("misc" + extension, version, "misc", false, true);
     }
 
     private void writeAPIFile(String name, String version, String module, boolean base, boolean standard)
@@ -103,11 +105,11 @@ public class PrimitivesDocumentation {
         }
     }
 
+    static List<String> PARAM_NAMES = List.of("x", "y", "z", "u", "v", "w", "a", "b", "c", "d", "e", "f", "g", "h");
+    static List<String> MATRIX_PARAM_NAMES = List.of("A", "B", "C", "D", "E", "F");
+
     private void generateBaseAPI(Writer writer, String version, String module, boolean base, boolean standard)
             throws Exception {
-
-        List<String> paramNames = List.of("x", "y", "z", "u", "v", "w", "a", "b", "c", "d", "e", "f", "g", "h");
-        List<String> matrixParamNames = List.of("A", "B", "C", "D", "E", "F");
 
         List<ValueInfo> infos = new ArrayList<>();
 
@@ -117,7 +119,7 @@ public class PrimitivesDocumentation {
 
         if (base) {
             File theFile = new File(libs.get(0), "base/" + module + ".pacioli");
-            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", module, true);
+            PacioliFile pacioliFile = PacioliFile.loadStandardSubLibrary(theFile, "irrelevant", module, true);
             PacioliTable program = Program.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values().allInfos()) {
                 infos.add(info);
@@ -128,7 +130,7 @@ public class PrimitivesDocumentation {
 
         if (standard) {
             File theFile = new File(libs.get(0), "standard/" + module + ".pacioli");
-            PacioliFile pacioliFile = PacioliFile.libHack(theFile, "irrelevant", module, true);
+            PacioliFile pacioliFile = PacioliFile.loadStandardSubLibrary(theFile, "irrelevant", module, true);
             PacioliTable program = Program.load(pacioliFile).desugar().generateInfos();
             for (ValueInfo info : program.values().allInfos()) {
                 infos.add(info);
@@ -148,86 +150,90 @@ public class PrimitivesDocumentation {
 
         for (ValueInfo info : infos) {
             if (info.isPublic() && info.declaredType().isPresent()) {
-
-                TypeNode type = info.declaredType().get();
-                if (type instanceof SchemaNode && ((SchemaNode) type).type instanceof FunctionTypeNode) {
-
-                    List<String> args = null;
-
-                    // Get the arguments from the function definition if it exists. This
-                    // should work for the standard lib
-                    if (info.definition().isPresent()) {
-                        ExpressionNode body = info.definition().get().body;
-                        if (body instanceof LambdaNode) {
-                            LambdaNode lambda = (LambdaNode) body;
-                            args = lambda.arguments;
-                        }
-                    }
-
-                    // If no definition exists it must be a function from the base lib. Just
-                    // invent parameter names.
-                    if (args == null) {
-                        FunctionTypeNode fun = (FunctionTypeNode) ((SchemaNode) type).type;
-                        if (fun.domain instanceof TypeApplicationNode) {
-                            TypeApplicationNode tuple = (TypeApplicationNode) fun.domain;
-                            List<String> params = new ArrayList<>();
-                            int p = 0;
-                            int q = 0;
-                            for (TypeNode arg : tuple.args) {
-                                if (arg instanceof TypePerNode) {
-                                    params.add(matrixParamNames.get(q++));
-                                } else {
-                                    params.add(paramNames.get(p++));
-                                }
-                            }
-                            args = params;
-                            // args = paramNames.subList(0, tuple.args.size());
-                        } else {
-                            // Must be function 'tuple' or 'format'
-                            args = List.of("...");
-                        }
-                    }
-
-                    if (info.definition().isPresent()) { // foute check. acos etc gaat fout. Hebben wel body, maar zijn
-                                                         // primitive!?
-                        generator.addFunction(info.name(), args, type.pretty());
-                        if (info.generalInfo().documentation().isPresent()) {
-                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                        }
-
-                    } else {
-                        generator.addPrimitiveFunction(info.name(), args, type.pretty());
-                        if (info.generalInfo().documentation().isPresent()) {
-                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                        }
-
-                    }
-
-                    if (info.generalInfo().documentation().isEmpty()) {
-                        Pacioli.log("  no documentation for function %s", info.name());
-                    }
-
-                } else {
-
-                    if (info.definition().isPresent()) {
-                        generator.addValue(info.name(), type.pretty());
-                        if (info.generalInfo().documentation().isPresent()) {
-                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                        }
-                    } else {
-                        generator.addPrimitiveValue(info.name(), type.pretty());
-                        if (info.generalInfo().documentation().isPresent()) {
-                            generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                        }
-                    }
-
-                    if (info.generalInfo().documentation().isEmpty()) {
-                        Pacioli.log("  no documentation for value %s", info.name());
-                    }
-                }
+                addInfo(info, generator);
             }
         }
 
         generator.generate(writer, target);
+    }
+
+    static public void addInfo(ValueInfo info, DocumentationGenerator generator) {
+
+        TypeNode type = info.declaredType().get();
+        if (type instanceof SchemaNode && ((SchemaNode) type).type instanceof FunctionTypeNode) {
+
+            List<String> args = null;
+
+            // Get the arguments from the function definition if it exists. This
+            // should work for the standard lib
+            if (info.definition().isPresent()) {
+                ExpressionNode body = info.definition().get().body;
+                if (body instanceof LambdaNode) {
+                    LambdaNode lambda = (LambdaNode) body;
+                    args = lambda.arguments;
+                }
+            }
+
+            // If no definition exists it must be a function from the base lib. Just
+            // invent parameter names.
+            if (args == null) {
+                FunctionTypeNode fun = (FunctionTypeNode) ((SchemaNode) type).type;
+                if (fun.domain instanceof TypeApplicationNode) {
+                    TypeApplicationNode tuple = (TypeApplicationNode) fun.domain;
+                    List<String> params = new ArrayList<>();
+                    int p = 0;
+                    int q = 0;
+                    for (TypeNode arg : tuple.args) {
+                        if (arg instanceof TypePerNode) {
+                            params.add(MATRIX_PARAM_NAMES.get(q++));
+                        } else {
+                            params.add(PARAM_NAMES.get(p++));
+                        }
+                    }
+                    args = params;
+                    // args = paramNames.subList(0, tuple.args.size());
+                } else {
+                    // Must be function 'tuple' or 'format'
+                    args = List.of("...");
+                }
+            }
+
+            if (info.definition().isPresent()) { // foute check. acos etc gaat fout. Hebben wel body, maar zijn
+                                                 // primitive!?
+                generator.addFunction(info.name(), args, type.pretty());
+                if (info.generalInfo().documentation().isPresent()) {
+                    generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                }
+
+            } else {
+                generator.addPrimitiveFunction(info.name(), args, type.pretty());
+                if (info.generalInfo().documentation().isPresent()) {
+                    generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                }
+
+            }
+
+            if (info.generalInfo().documentation().isEmpty()) {
+                Pacioli.log("  no documentation for function %s", info.name());
+            }
+
+        } else {
+
+            if (info.definition().isPresent()) {
+                generator.addValue(info.name(), type.pretty());
+                if (info.generalInfo().documentation().isPresent()) {
+                    generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                }
+            } else {
+                generator.addPrimitiveValue(info.name(), type.pretty());
+                if (info.generalInfo().documentation().isPresent()) {
+                    generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
+                }
+            }
+
+            if (info.generalInfo().documentation().isEmpty()) {
+                Pacioli.log("  no documentation for value %s", info.name());
+            }
+        }
     }
 }

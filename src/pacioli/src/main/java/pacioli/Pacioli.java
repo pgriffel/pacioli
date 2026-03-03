@@ -280,10 +280,13 @@ public class Pacioli {
                 }
             } else if (command.equals("baseapi")) {
                 if (files.isEmpty()) {
-                    displayError("No files to read.");
-                }
-                for (String file : files) {
-                    baseApiCommand(file, libs, target);
+                    displayError(
+                            "No output directory. Give a directory to store the generated documentation.");
+                } else if (files.size() > 1) {
+                    displayError(
+                            "Did not expect multiple arguments. Give one directory to store the generated documentation.");
+                } else {
+                    baseApiCommand(files.get(0), libs, target);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
@@ -477,7 +480,7 @@ public class Pacioli {
             }
 
             switch (target) {
-                case "markdown": {
+                case "", "markdown": {
                     System.out.print(LibCatalog.asMarkdown(libFiles));
                     break;
                 }
@@ -485,7 +488,7 @@ public class Pacioli {
                     System.out.print(LibCatalog.asJson(libFiles));
                     break;
                 }
-                case "", "html": {
+                case "html": {
                     System.out.print(LibCatalog.asHTML(libFiles));
                     break;
                 }
@@ -522,8 +525,8 @@ public class Pacioli {
                 includes.add(x.fsFile());
             });
 
-            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
-                                                                                         // above
+            // TODO: version, see above
+            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target.isBlank() ? "markdown" : target);
 
         } catch (IOException e) {
             println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);

@@ -28,7 +28,6 @@ export
     matrix2d,
     vector3d,
     matrix3d,
-    space_vec,
     to_cartesian2d,
     to_polar2d,
     to_cartesian3d,
@@ -121,16 +120,6 @@ declare vector3d ::
 
 define vector3d(a, b, c) = 
     make_matrix([tuple(Geom3@x, _, a), tuple(Geom3@y, _, b), tuple(Geom3@z, _, c)]);
-
-# ----------------------------------------------------------------------------
-
-# Obsolete. Use vector3d
-
-declare space_vec ::
-    for_unit a: (a, a, a) -> a*Geom3!;
-
-define space_vec(a, b, c) = 
-    vector3d(a, b, c);
 
 # ----------------------------------------------------------------------------
 # Matrix construction
