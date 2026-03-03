@@ -13,8 +13,9 @@ A Petri net's state is defined by its marking. A marking m is a vector P → ℕ
 For any place p ∈ P value m(p) is the number of tokens in that place.
 
 A Petri net changes state by firing transitions. In a matrix setting it is natural to define firing of transitions in parallel.
+
 Given a transition vector x of type T → ℕ where x(t) is number of times transition t ∈ T fires, the new marking m' is given by
 
-    m' = m + Gx under the condition that Fx ≥ m 
+m' = m + Gx under the condition that Fx ≥ m 
 
 where flow matrix G is defined as G = B - F

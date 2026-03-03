@@ -226,9 +226,9 @@ public class PacioliFile implements Printable {
     }
 
     /**
-     * Hack for generating the base lib API
+     * Hack for generating base and standard lib API
      */
-    public static PacioliFile loadStandardSubLibrary(File file, String path, String module, boolean isInclude) {
+    public static PacioliFile fromPrimitiveSubLibrary(File file, String path, String module, boolean isInclude) {
         return new PacioliFile(file, path, module, 0, isInclude, true);
     }
 

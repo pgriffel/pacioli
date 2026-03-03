@@ -74,8 +74,8 @@ import pacioli.lsp.PacioliWorkspaceService;
 public class Pacioli {
 
     // Constants
-    private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.6.0-SNAPSHOT";
+    private static final String OPTIONS_FILE = "debug.options";
+    public static final String VERSION = "v0.6.0-SNAPSHOT";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
