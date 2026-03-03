@@ -143,7 +143,7 @@ export class PacioliContext {
     return this;
   }
 
-  public findUnitVector(name: string): UnitVector | undefined {
-    return this.unitVectors.get(name);
+  public findUnitVector(id: string): UnitVector | undefined {
+    return this.unitVectors.get(id);
   }
 }

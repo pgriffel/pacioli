@@ -24,13 +24,14 @@ import type { DimNum } from "uom-ts";
 import { NR_DECIMALS } from "../primitives";
 import type { TableColumn } from "./table-column";
 import { defaultContext } from "../cache";
+import { stringifyCell } from "./util";
 
 /**
- * Exactly the same as DOMOptions. TODO: consider merging.
+ * Options for the TableBuilder
  */
 export interface TableBuilderOptions {
   decimals: number;
-  ignoredecimals: boolean;
+  raw: boolean;
   exponential: boolean;
   zero: string;
   nozerorows: boolean;
@@ -41,7 +42,7 @@ export interface TableBuilderOptions {
 
 const DEFAULT_TABLE_BUILDER_OPTTIONS = {
   decimals: NR_DECIMALS,
-  ignoredecimals: false,
+  raw: false,
   exponential: false,
   nozerorows: false,
   totals: false,
@@ -82,8 +83,7 @@ export class TableBuilder {
    */
   isSingleScalar(): boolean {
     return (
-      this.columns.length === 0 ||
-      (this.columns[0].indexHeaders.length === 0 && this.columns.length <= 1)
+      this.columns.length === 1 && this.columns[0].indexHeaders.length === 0
     );
   }
 
@@ -93,7 +93,7 @@ export class TableBuilder {
 
   stringifiedSinguleScalar(): string {
     // TODO: zero returnen if zero?
-    return (this.options?.ignoredecimals ?? false)
+    return (this.options?.raw ?? false)
       ? this.singuleScalar().toFixed()
       : this.singuleScalar().toFixed(this.options?.decimals ?? NR_DECIMALS);
   }
@@ -118,9 +118,9 @@ export class TableBuilder {
     return {
       zeroString: this.options.zero,
       omitDecimals:
-        column.options.ignoredecimals === true ||
-        this.options.ignoredecimals === true ||
-        DEFAULT_TABLE_BUILDER_OPTTIONS.ignoredecimals,
+        column.options.raw === true ||
+        this.options.raw === true ||
+        DEFAULT_TABLE_BUILDER_OPTTIONS.raw,
       nrDecimals:
         column.options.decimals ??
         this.options.decimals ??
@@ -304,7 +304,7 @@ function domFromTable(data: TableBuilder): HTMLElement {
   }
 
   const table = document.createElement("table");
-  table.className = "pacioli-table";
+  table.part = "table";
 
   // Create the table
   const thead = document.createElement("thead");
@@ -314,11 +314,13 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
   // Create the header row
   const row = document.createElement("tr");
+  row.part = "header row";
 
   // Add the index headers
   for (const text of data.indexHeaders()) {
     const header = document.createElement("th");
     header.className = "key";
+    header.part = "header key";
     header.innerHTML = text;
     row.appendChild(header);
   }
@@ -329,6 +331,7 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
     headerElement.innerHTML = header;
     headerElement.className = "value";
+    headerElement.part = "header value";
     headerElement.colSpan = 2;
 
     row.appendChild(headerElement);
@@ -340,11 +343,13 @@ function domFromTable(data: TableBuilder): HTMLElement {
   for (const row of data.rows()) {
     // Create a new row
     const rowElt = document.createElement("tr");
+    rowElt.part = "body row";
 
     // Add the index
     for (const idx of row.index) {
       const cell = document.createElement("td");
       cell.className = "key";
+      cell.part = "body key";
       cell.innerHTML = idx;
       rowElt.appendChild(cell);
     }
@@ -355,9 +360,11 @@ function domFromTable(data: TableBuilder): HTMLElement {
       const unitCell = document.createElement("td");
 
       valueCell.className = "value";
+      valueCell.part = "body value";
       valueCell.innerHTML = value.magnitude;
 
       unitCell.className = "unit";
+      unitCell.part = "body unit";
       unitCell.innerHTML = value.unit;
 
       rowElt.appendChild(valueCell);
@@ -375,15 +382,18 @@ function domFromTable(data: TableBuilder): HTMLElement {
 
   if (showTotals && indexWidth > 0) {
     const totalRow = document.createElement("tr");
+    totalRow.part = "total row";
 
     const cell = document.createElement("td");
     cell.className = "total key";
+    cell.part = "total title";
     cell.innerHTML = "Total";
     totalRow.appendChild(cell);
 
     for (let i = 1; i < indexWidth; i++) {
       const cell = document.createElement("td");
       cell.className = "key";
+      cell.part = "total key";
       cell.innerHTML = "";
       totalRow.appendChild(cell);
     }
@@ -391,11 +401,13 @@ function domFromTable(data: TableBuilder): HTMLElement {
     for (const value of data.totals()) {
       let cell = document.createElement("td");
       cell.className = "total value";
+      cell.part = "total value";
       cell.innerHTML = value ? value.magnitude : "";
       totalRow.appendChild(cell);
 
       cell = document.createElement("td");
       cell.className = "total unit";
+      cell.part = "total unit";
       cell.appendChild(document.createTextNode(value ? value.unit : ""));
 
       totalRow.appendChild(cell);
@@ -405,28 +417,6 @@ function domFromTable(data: TableBuilder): HTMLElement {
   }
 
   return table;
-}
-
-function stringifyCell(
-  cell: DimNum,
-  options: {
-    zeroString: string | undefined;
-    omitDecimals: boolean;
-    nrDecimals: number;
-    exponential: boolean;
-  },
-): string {
-  if (cell.magnitude.isZero() && options.zeroString !== undefined) {
-    return options.zeroString;
-  } else if (options.exponential) {
-    return options.omitDecimals
-      ? cell.magnitude.toExponential()
-      : cell.magnitude.toExponential(options.nrDecimals);
-  } else {
-    return options.omitDecimals
-      ? cell.magnitude.toFixed()
-      : cell.magnitude.toFixed(options.nrDecimals);
-  }
 }
 
 // function tableDataHeadersEqual(left: TableData, right: TableData): boolean {

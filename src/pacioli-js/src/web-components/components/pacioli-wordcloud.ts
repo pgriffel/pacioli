@@ -20,27 +20,39 @@
  * SOFTWARE.
  */
 
-import type { WordCloudOptions } from "../../charts/d3-wordcloud";
 import { WordCloud } from "../../charts/d3-wordcloud";
-import type { PacioliMatrix } from "../../values/matrix";
-import { getNumber } from "../../raw-values/raw-matrix";
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes } from "../utils";
-import type { PacioliString } from "../../values/string";
+import type { CommonAttributes } from "../pacioli-web-component";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromAttributes,
+  optionsFromScript,
+} from "../utils/attributes";
+import type { PacioliValue } from "../../values/pacioli-value";
 
 /**
  * Attribues supported by the word cloud component
  */
-const SUPPORTED_ATTRIBUTES = {
+const WORDCLOUD_ATTRIBUTES = {
   strings: [],
-  booleans: [],
-  numbers: ["width", "height"],
+  booleans: ["nopopup", "notooltip"],
+  numbers: [],
 };
 
 /**
- * Pacioli format for wordcloud data. A list of tuples.
+ * Attribues for Pacioli's word cloud component.
  */
-type WordCloudData = [PacioliString, PacioliMatrix][];
+export interface WordCloudAttributes extends CommonAttributes {
+  nopopup: boolean;
+  notooltip: boolean;
+}
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  WORDCLOUD_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the word cloud component
@@ -51,10 +63,34 @@ const STYLES = ``;
  * Web component for a line chart. A wrapper around the WordCloud class.
  */
 export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
+  get nopopup(): boolean {
+    return this.getBooleAttribute("nopopup");
+  }
+
+  set nopopup(value: boolean) {
+    this.setBooleAttribute("nopopup", value);
+  }
+
+  get notooltip(): boolean {
+    return this.getBooleAttribute("notooltip");
+  }
+
+  set notooltip(value: boolean) {
+    this.setBooleAttribute("notooltip", value);
+  }
+
+  /**
+   * Web component field.
+   */
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
+
   /**
    * The word cloud
    */
   chart?: WordCloud;
+
+  data?: PacioliValue;
 
   constructor() {
     super();
@@ -62,42 +98,59 @@ export class PacioliWordCloudComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Pacioli web component life-cycle event.
+   * Web component life-cycle event.
    */
-  override parametersChanged() {
-    // Compute the words.
-    const words = wordData(
-      this.evaluateDefinition() as unknown as WordCloudData,
-    );
+  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
+    try {
+      if (this.data !== undefined) {
+        // Reload the data if the definition changes. The initial load is done in
+        // parametersChanged.
+        if (name === "definition") {
+          this.data = this.evaluateDefinition();
+        }
 
-    // Add a new word cloud to the content parent
-    this.clearContent();
-    this.chart = new WordCloud(words, this.chartOptions());
-    this.chart.draw(this.contentParent());
+        this.drawChart(this.data);
+      }
+    } catch (err: unknown) {
+      this.displayError(err instanceof Error ? err.message : String(err));
+    }
   }
 
   /**
-   * Creates an options for the chart from the element's attributes.
-   *
-   * @returns An object with only the entries that are found in the attributes.
+   * Pacioli web component life-cycle event.
    */
-  chartOptions(): Partial<WordCloudOptions> {
-    return optionsFromAttributes<WordCloudOptions>(this, SUPPORTED_ATTRIBUTES);
-  }
-}
+  override parametersChanged() {
+    this.data = this.evaluateDefinition();
 
-/**
- * Transforms word cloud data from Pacioli format to the word cloud
- * format.
- *
- * @param data word cloud data in Pacioli format
- * @returns word cloud data in word cloud component format
- */
-function wordData(data: WordCloudData): [string, number][] {
-  return data.map(([key, value]) => [
-    key.value,
-    getNumber(value.numbers, 0, 0),
-  ]);
+    this.drawChart(this.data);
+  }
+
+  private drawChart(data: PacioliValue) {
+    this.clearContent();
+
+    const options = {
+      ...optionsFromScript<WordCloudAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<WordCloudAttributes>(this, SUPPORTED_ATTRIBUTES),
+    };
+
+    const chart = new WordCloud(data, options);
+
+    const defaultHandler = chart.clickHandler;
+    chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      chart.tooltipText = undefined;
+    }
+
+    this.chart = chart;
+
+    this.chart.draw(this.contentParent());
+  }
 }
 
 customElements.define("pacioli-wordcloud", PacioliWordCloudComponent);

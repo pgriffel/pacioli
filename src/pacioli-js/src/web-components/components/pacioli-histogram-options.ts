@@ -22,10 +22,10 @@
 
 import { PacioliWebController } from "../pacioli-web-controller";
 import {
-  addButtonEventListener,
   addInputEventListener,
-  targetElements,
-} from "../utils";
+  addButtonEventListener,
+} from "../utils/attributes";
+import { targetElements } from "../utils/definition";
 import type { PacioliHistogramComponent } from "./pacioli-histogram";
 
 const TEMPLATE = document.createElement("template");

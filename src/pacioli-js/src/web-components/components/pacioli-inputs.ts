@@ -21,13 +21,13 @@
  */
 
 import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import type { PacioliParameter } from "../utils";
+import type { PacioliParameter } from "../utils/definition";
 import {
   targetElements,
   parameterNodes,
   parseParameterNode,
   setParameterNodes,
-} from "../utils";
+} from "../utils/definition";
 
 const TEMPLATE = document.createElement("template");
 

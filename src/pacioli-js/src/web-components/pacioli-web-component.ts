@@ -20,17 +20,25 @@
  * SOFTWARE.
  */
 
-import {
-  evaluateWebComponentDefinition,
-  addParametersObserver,
-  setParameterNodes,
-} from "./utils";
 import type { PacioliValue } from "../values/pacioli-value";
 import type {
   Callable,
   ErrorOutput,
   PacioliWebComponentBase,
 } from "./interfaces";
+import {
+  getNumberAttribute,
+  setNumberAttribute,
+  getStringAttribute,
+  setStringAttribute,
+  getBooleAttribute,
+  setBooleAttribute,
+} from "./utils/attributes";
+import {
+  addParametersObserver,
+  setParameterNodes,
+  evaluateWebComponentDefinition,
+} from "./utils/definition";
 
 const TEMPLATE = document.createElement("template");
 
@@ -51,6 +59,25 @@ TEMPLATE.innerHTML = `
 `;
 
 /**
+ * Attributes shared by all Pacioli web components.
+ */
+export const COMMON_ATTRIBUTES = {
+  strings: ["definition", "caption"],
+  booleans: [],
+  numbers: ["width", "height"],
+};
+
+/**
+ * Types for the common attributes
+ */
+export interface CommonAttributes {
+  definition: string;
+  caption: string;
+  width: number;
+  height: number;
+}
+
+/**
  * Abstract base class for Pacioli web components.
  *
  */
@@ -58,12 +85,20 @@ export abstract class PacioliWebComponent
   extends HTMLElement
   implements PacioliWebComponentBase, Callable, ErrorOutput
 {
-  set definition(value: string) {
+  set definition(value: string | undefined) {
     this.setStringAttribute("definition", value);
   }
 
-  get definition(): string {
+  get definition(): string | undefined {
     return this.getStringAttribute("definition");
+  }
+
+  get caption(): string | undefined {
+    return this.getStringAttribute("caption");
+  }
+
+  set caption(value: string | undefined) {
+    this.setStringAttribute("caption", value);
   }
 
   set width(value: number) {
@@ -82,29 +117,10 @@ export abstract class PacioliWebComponent
     return this.getNumberAttribute("height", 0);
   }
 
-  get margin(): string {
-    return this.getStringAttribute("margin");
-  }
-
-  set margin(value: string) {
-    this.setStringAttribute("margin", value);
-  }
-
-  set decimals(value: number) {
-    this.setNumberAttribute("decimals", value);
-  }
-
-  get decimals(): number {
-    return this.getNumberAttribute("decimals", 0);
-  }
-
-  set ignoredecimals(value: boolean) {
-    this.setBooleAttribute("ignoredecimals", value);
-  }
-
-  get ignoredecimals(): boolean {
-    return this.getBooleAttribute("ignoredecimals");
-  }
+  /**
+   * Was the mutation observer called during initialization?
+   */
+  public isInitialized: boolean = false;
 
   /**
    * Web component life-cycle event.
@@ -122,14 +138,21 @@ export abstract class PacioliWebComponent
       // Make sure the error output pane is hidden
       this.clearErrors();
 
-      // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
-      // We need the children so we can get the parameter values.
+      // Add an observer that calls 'parametersChanged' when a child node changes. Attribute
+      // changes are handled by attributeChangedCallback.
+      addParametersObserver(this);
+
+      // The mutation observer may or may not initialize the componenent. To ensure
+      // initialization a call to parametersChanged is scheduled. Calling parametersChanged
+      // immediately does not work because the DOM children do not exist yet. We need the
+      // children so we can get the parameter values. To avoid duplicate initialization
+      // the isInitialized is set by the mutation observer.
       setTimeout(() => {
         try {
-          this.parametersChanged();
-
-          // Add an observer that calls 'parametersChanged' when a parameter child node changes.
-          addParametersObserver(this);
+          if (!this.isInitialized) {
+            this.parametersChanged();
+            this.isInitialized = true;
+          }
         } catch (err: unknown) {
           this.displayError(err instanceof Error ? err.message : String(err));
         }
@@ -278,20 +301,6 @@ export abstract class PacioliWebComponent
     }
   }
 
-  /**
-   * Helper to reflect a numeric attribute to a property
-   *
-   * @param attribute
-   * @param value
-   */
-  protected setNumberAttribute(attribute: string, value: number | undefined) {
-    if (value === undefined) {
-      this.removeAttribute(attribute);
-    } else {
-      this.setAttribute(attribute, value.toString());
-    }
-  }
-
   protected getNumberAttribute(
     attribute: string,
     defaultValue: number = 0,
@@ -299,55 +308,30 @@ export abstract class PacioliWebComponent
     return getNumberAttribute(this, attribute, defaultValue);
   }
 
-  protected setStringAttribute(attribute: string, value: string | undefined) {
-    if (value === undefined) {
-      this.removeAttribute(attribute);
-    } else {
-      this.setAttribute(attribute, value);
-    }
+  protected setNumberAttribute(attribute: string, value: number | undefined) {
+    setNumberAttribute(this, attribute, value);
   }
 
+  protected getStringAttribute(attribute: string, defaultValue: string): string;
   protected getStringAttribute(
     attribute: string,
-    defaultValue: string = "",
-  ): string {
+    defaultValue?: undefined,
+  ): string | undefined;
+  /* eslint-disable */
+  protected getStringAttribute(attribute: any, defaultValue?: any): any {
     return getStringAttribute(this, attribute, defaultValue);
   }
+  /* eslint-enable */
 
-  protected setBooleAttribute(attribute: string, value: boolean | undefined) {
-    if (value === true) {
-      this.setAttribute(attribute, "");
-    } else {
-      this.removeAttribute(attribute);
-    }
+  protected setStringAttribute(attribute: string, value: string | undefined) {
+    setStringAttribute(this, attribute, value);
   }
 
   protected getBooleAttribute(attribute: string): boolean {
-    return this.hasAttribute(attribute);
+    return getBooleAttribute(this, attribute);
   }
-}
 
-export function getNumberAttribute(
-  element: HTMLElement,
-  attribute: string,
-  defaultValue: number = 0,
-): number {
-  const att = element.getAttribute(attribute);
-  return Number(att ?? defaultValue);
-}
-
-export function getStringAttribute(
-  element: HTMLElement,
-  attribute: string,
-  defaultValue: string = "",
-): string {
-  const att = element.getAttribute(attribute);
-  return att ?? defaultValue;
-}
-
-export function getBooleAttribute(
-  element: HTMLElement,
-  attribute: string,
-): boolean {
-  return element.hasAttribute(attribute);
+  protected setBooleAttribute(attribute: string, value: boolean | undefined) {
+    setBooleAttribute(this, attribute, value);
+  }
 }

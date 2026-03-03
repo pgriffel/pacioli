@@ -48,15 +48,20 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 
+import pacioli.mcp.CompilerAPI;
+import pacioli.mcp.MPCContainer;
+import pacioli.mcp.PacioliMCPServer;
+
 import mvm.MVMException;
 import mvm.Machine;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
-import pacioli.compiler.PrimitivesDocumentation;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.LibCatalog;
+import pacioli.documentation.PrimitivesDocumentation;
 import pacioli.lsp.PacioliLanguageServer;
 import pacioli.lsp.PacioliTextDocumentService;
 import pacioli.lsp.PacioliWorkspaceService;
@@ -69,8 +74,8 @@ import pacioli.lsp.PacioliWorkspaceService;
 public class Pacioli {
 
     // Constants
-    private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.5.0";
+    private static final String OPTIONS_FILE = "debug.options";
+    public static final String VERSION = "v0.6.0-SNAPSHOT";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -143,6 +148,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
+            String target = "";
 
             // Load options first
             loadOptionsFile();
@@ -159,19 +165,7 @@ public class Pacioli {
                     }
                 } else if (arg.equals("-target")) {
                     if (i < args.length) {
-                        String target = args[i++];
-                        if (target.equals("javascript")) {
-                            settings.setTarget(Target.JS);
-                        } else if (target.equals("matlab")) {
-                            settings.setTarget(Target.MATLAB);
-                        } else if (target.equals("mvm")) {
-                            settings.setTarget(Target.MVM);
-                        } else if (target.equals("python")) {
-                            settings.setTarget(Target.PYTHON);
-                        } else {
-                            throw new RuntimeException(
-                                    "Compilation target " + target + " unknown. Expected javascript, matlab or mvm.");
-                        }
+                        target = args[i++];
                     } else {
                         displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
                     }
@@ -196,6 +190,18 @@ public class Pacioli {
                     command = arg;
                 } else {
                     files.add(arg);
+                }
+            }
+
+            if (command.equals("run") || command.equals("interpret") || command.equals("compile")) {
+                if (target.equals("javascript")) {
+                    settings.setTarget(Target.JS);
+                } else if (target.equals("matlab")) {
+                    settings.setTarget(Target.MATLAB);
+                } else if (target.equals("mvm")) {
+                    settings.setTarget(Target.MVM);
+                } else if (target.equals("python")) {
+                    settings.setTarget(Target.PYTHON);
                 }
             }
 
@@ -261,14 +267,26 @@ public class Pacioli {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    apiCommand(file, libs);
+                    apiCommand(file, libs, target);
                 }
-            } else if (command.equals("baseapi")) {
+            } else if (command.equals("libs")) {
+                libsCommand(files, libs, target);
+            } else if (command.equals("man")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
                 }
                 for (String file : files) {
-                    baseApiCommand(file, libs);
+                    manCommand(file, libs, target);
+                }
+            } else if (command.equals("baseapi")) {
+                if (files.isEmpty()) {
+                    displayError(
+                            "No output directory. Give a directory to store the generated documentation.");
+                } else if (files.size() > 1) {
+                    displayError(
+                            "Did not expect multiple arguments. Give one directory to store the generated documentation.");
+                } else {
+                    baseApiCommand(files.get(0), libs, target);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
@@ -280,6 +298,8 @@ public class Pacioli {
                 infoCommand(libs);
             } else if (command.equals("lsp")) {
                 lspCommand(libs);
+            } else if (command.equals("mcp")) {
+                mcpCommand(libs);
             } else {
                 displayError(String.format("Command '%s' unknown", command));
             }
@@ -401,7 +421,7 @@ public class Pacioli {
 
     }
 
-    private static void apiCommand(String fileName, List<File> libs)
+    private static void apiCommand(String fileName, List<File> libs, String target)
             throws Exception {
 
         log("Generating documentation for %s\n", fileName);
@@ -424,9 +444,9 @@ public class Pacioli {
             project.includeTree(file).forEach(x -> {
                 includes.add(x.fsFile());
             });
-            File out = new File(file.fsFile().getParentFile(), file.moduleName() + ".html");
 
-            project.loadBundle().printAPI(out, includes, VERSION, project.docFile()); // TODO: version, see above
+            project.loadBundle().genAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
+                                                                                       // above
 
             Pacioli.log("\nDocumentation ready");
 
@@ -436,9 +456,87 @@ public class Pacioli {
 
     }
 
-    private static void baseApiCommand(String dirName, List<File> libs)
+    private static void libsCommand(List<String> files, List<File> libs, String target)
             throws Exception {
-        new PrimitivesDocumentation(dirName, libs).generate(VERSION);
+
+        try {
+            List<PacioliFile> libFiles;
+
+            if (files.isEmpty()) {
+                libFiles = CompilerAPI.collectLibFiles(libs);
+            } else {
+                libFiles = new ArrayList<>();
+
+                for (String fileName : files) {
+                    Optional<PacioliFile> optionalFile = PacioliFile
+                            .findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+
+                    if (optionalFile.isPresent()) {
+                        libFiles.add(optionalFile.get());
+                    } else {
+                        throw new PacioliException("Error: library '%s' does not exist.", fileName);
+                    }
+                }
+            }
+
+            switch (target) {
+                case "", "markdown": {
+                    System.out.print(LibCatalog.asMarkdown(libFiles));
+                    break;
+                }
+                case "structure": {
+                    System.out.print(LibCatalog.asJson(libFiles));
+                    break;
+                }
+                case "html": {
+                    System.out.print(LibCatalog.asHTML(libFiles));
+                    break;
+                }
+                default: {
+                    throw new PacioliException("Unknown target: " + target);
+                }
+            }
+
+        } catch (IOException e) {
+            println("\nError when generating library list:\n\n%s", e);
+        }
+
+    }
+
+    private static void manCommand(String fileName, List<File> libs, String target)
+            throws Exception {
+
+        Integer version = 0; // TODO, see below
+        Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
+
+        if (!optionalFile.isPresent()) {
+            optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+        }
+
+        if (!optionalFile.isPresent()) {
+            throw new PacioliException("Error: file '%s' does not exist.", fileName);
+        }
+
+        try {
+            PacioliFile file = optionalFile.get();
+            Project project = Project.load(file, libs);
+            List<File> includes = new ArrayList<>();
+            project.includeTree(file).forEach(x -> {
+                includes.add(x.fsFile());
+            });
+
+            // TODO: version, see above
+            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target.isBlank() ? "markdown" : target);
+
+        } catch (IOException e) {
+            println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
+        }
+
+    }
+
+    private static void baseApiCommand(String dirName, List<File> libs, String target)
+            throws Exception {
+        new PrimitivesDocumentation(dirName, libs, target).generate(VERSION);
     }
 
     private static void cleanCommand(String fileName, List<File> libs, CompilationSettings settings)
@@ -639,6 +737,15 @@ public class Pacioli {
         println("   -traceall     toggles tracing of all functions on or off");
     }
 
+    private static void mcpCommand(List<File> libs) {
+        try {
+            PacioliMCPServer server = MPCContainer.fromSystemIO(libs).server;
+            server.start();
+        } catch (Exception e) {
+            Pacioli.logToFile("D:\\pacioli_mcp_error.log", e.getMessage());
+        }
+    }
+
     /*
      * Helpers
      */
@@ -820,7 +927,7 @@ public class Pacioli {
      * @param args
      *               Format arguments
      */
-    private static void logIf(boolean show, String string, Object... args) {
+    public static void logIf(boolean show, String string, Object... args) {
         if (show) {
             log(string, args);
         }

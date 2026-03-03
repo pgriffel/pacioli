@@ -1,0 +1,151 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import si;
+
+export
+    Planet,
+    planetary_mass,
+    planetary_mass_in_kg,
+    planetary_density,
+    planetary_earthmass,
+    earthmass,
+    earthmass_per_yottagram,
+    sidereal_day,
+    sidereal_day_per_day,
+    day_length,
+    sidereal_day_length;
+
+# ------------------------------------------------------------------------------
+# Declarations
+# ------------------------------------------------------------------------------
+
+doc Planet
+    "The planets in the Solar system.";
+
+defindex Planet = 
+    {Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune};
+
+# ------------------------------------------------------------------------------
+
+doc earthmass
+    "The mass of the earth as unit of measurement.";
+
+defunit earthmass "earth" = 5972 * yotta:gram;
+
+# ------------------------------------------------------------------------------
+
+doc earthmass_per_yottagram
+    "Conversion factor from yottagram to earthmass.";
+
+defconv earthmass_per_yottagram :: earthmass / yotta:gram;
+
+# ------------------------------------------------------------------------------
+# Definitions
+# ------------------------------------------------------------------------------
+
+doc planetary_mass
+    "Mass of the planets.";
+
+defmatrix planetary_mass :: yotta:gram * Planet! = {
+    Mercury ->     330.1,
+    Venus   ->    4867,
+    Earth   ->    5972,
+    Mars    ->     641.7,
+    Jupiter -> 1899000,
+    Saturn  ->  568500,
+    Uranus  ->   86820,
+    Neptune ->  102400
+};
+
+# ------------------------------------------------------------------------------
+
+doc planetary_mass_in_kg
+    "Planterary mass converted to kilogram.";
+
+defmatrix planetary_mass_in_kg :: kilo:gram * Planet! = {
+    Mercury ->  3.301e23,
+    Venus   ->  4.867e24,
+    Earth   ->  5.972e24,
+    Mars    ->  6.417e23,
+    Jupiter ->  1.899e27,
+    Saturn  ->  5.685e26,
+    Uranus  ->  8.682e25,
+    Neptune ->  1.024e26
+};
+
+# ------------------------------------------------------------------------------
+
+doc planetary_density
+    "Density of the planets.";
+
+defmatrix planetary_density :: gram/centi:metre^3 * Planet! = {
+    Mercury -> 5.43,
+    Venus   -> 5.24,
+    Earth   -> 5.514,
+    Mars    -> 3.91,
+    Jupiter -> 1.24,
+    Saturn  -> 0.62,
+    Uranus  -> 1.24,
+    Neptune -> 1.61
+};
+
+# ------------------------------------------------------------------------------
+
+doc planetary_earthmass
+    "The mass of the planets relative to earth's mass.";
+
+declare planetary_earthmass :: earthmass*Planet!;
+
+define planetary_earthmass =
+    earthmass_per_yottagram '.*' planetary_mass;
+
+# ------------------------------------------------------------------------------
+
+doc day_length
+    "The length of a day in hours. The equivalent of earth's 24 hour for each planet.";
+
+defmatrix day_length :: hour/day * Planet! = {
+    Mercury	-> 1408,
+    Venus	-> 5832,
+    Earth	-> 24,
+    Mars	-> 24.62,
+    Jupiter	-> 9.9,
+    Saturn	-> 10.7,
+    Uranus	-> 17.2,
+    Neptune	-> 16.1
+};
+
+# ------------------------------------------------------------------------------
+
+defunit sidereal_day "sid" = 0.9972685185185185 * day;
+
+defconv sidereal_day_per_day :: sidereal_day / day;
+
+# ------------------------------------------------------------------------------
+
+doc sidereal_day_length
+    "The length of a day in hours. The equivalent of earth's 24 hour for each planet.";
+
+declare sidereal_day_length ::
+    hour/sidereal_day*Planet!;
+
+define sidereal_day_length =
+    day_length '/.' sidereal_day_per_day;

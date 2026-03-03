@@ -20,38 +20,42 @@
  * SOFTWARE.
  */
 
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import type { NumberAttributes } from "../pacioli-number-component";
+import {
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import { DOM } from "../../dom/dom";
 import type { PacioliValue } from "../../values/pacioli-value";
-
-/**
- * Options for Pacioli's value component.
- */
-export interface ValueOptions {
-  decimals: number;
-
-  zero?: string;
-
-  nozerorows: boolean;
-
-  totals: boolean;
-
-  ignoredecimals: boolean;
-
-  ascii: boolean;
-
-  clipboard: boolean;
-}
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
 
 /**
  * Attribues supported by the Pacioli value component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["zero"],
-  booleans: ["nozerorows", "ignoredecimals", "totals", "ascii", "clipboard"],
-  numbers: ["decimals"],
+const VALUE_ATTRIBUTES = {
+  strings: [],
+  booleans: ["totals"],
+  numbers: [],
 };
+
+/**
+ * Attribues for Pacioli's value component.
+ */
+export interface ValueAttributes extends NumberAttributes {
+  totals: boolean;
+}
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  VALUE_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the Pacioli value component
@@ -105,7 +109,7 @@ td.total {
 /**
  * Web component for a Pacioli value. A wrapper around the DOM function.
  */
-export class PacioliValueComponent extends PacioliShadowTreeComponent {
+export class PacioliValueComponent extends PacioliNumberComponent {
   /**
    * The Pacioli value displayed in the table.
    */
@@ -119,15 +123,8 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static readonly observedAttributes = [
-    "definition",
-    "decimals",
-    "ignoredecimals",
-    "totals",
-    "nozeros",
-    "ascii",
-    "clipboard",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   /**
    * Web component life-cycle event.
@@ -162,8 +159,8 @@ export class PacioliValueComponent extends PacioliShadowTreeComponent {
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<ValueOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<ValueOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<ValueAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<ValueAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.contentParent().appendChild(DOM(value, options));

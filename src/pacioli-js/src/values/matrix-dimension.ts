@@ -42,8 +42,19 @@ export class MatrixDimension {
     return true;
   }
 
+  toText(): string {
+    return this.indexSets.map((set) => set.name).join(" % ");
+  }
+
   public kronecker(other: MatrixDimension): MatrixDimension {
     return new MatrixDimension([...this.indexSets, ...other.indexSets]);
+  }
+
+  public slice(
+    start?: number  ,
+    end?: number  ,
+  ): MatrixDimension {
+    return new MatrixDimension(this.indexSets.slice(start, end));
   }
 
   public order(): number {

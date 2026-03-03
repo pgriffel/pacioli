@@ -38,7 +38,7 @@ export
 # ------------------------------------------------------------------------------
 
 doc Text
-    "A spotlight. Is an element of a <code>Scene(a, Geom3!u)</code> scene.";
+    "A spotlight. Is an element of a `Scene(a, Geom3!u)` scene.";
 
 defrecord for_unit a, Geom3!u: Text(a, Geom3!u) as text where
     characters: String,

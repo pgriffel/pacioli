@@ -32,7 +32,7 @@ import {
   parseMargin,
   ToolTip,
 } from "./chart-utils";
-import type { BandChartData } from "./chart-data";
+import type { BandChartData, BandChartEntry } from "./chart-data";
 import { bandChartData } from "./chart-data";
 import { parseUnit } from "../api";
 
@@ -66,25 +66,6 @@ export interface BarChartOptions extends DefaultChartOptions {
   padding: number;
 
   /**
-   * Callback for mouse clicks. Parameter number is the value of the clicked
-   * bar and label is the name of the index set element of the clicked bar.
-   */
-  onclick?: (number: DimNum, label: string, options: BarChartOptions) => void;
-
-  /**
-   * Callback for tooltips. Parameter number is the value of the clicked bar and
-   * label is the name of the index set element of the clicked bar.
-   *
-   * The callback must return a HTML string that is inserted into the DOM.
-   *
-   * The styling can be overwritten with the div.pacioli-ts-bar-chart css class using
-   * the !important tag.
-   *
-   * Set the tooltip option to undefined to disable the default tooltip.
-   */
-  tooltip?: (number: DimNum, label: string, options: BarChartOptions) => string;
-
-  /**
    * Offset of the tooltip from the mouse position
    */
   tooltipOffset: { dx: number; dy: number };
@@ -95,36 +76,45 @@ export interface BarChartOptions extends DefaultChartOptions {
   zeros: boolean;
 }
 
+export type BarChartEvent = CustomEvent<{
+  number: DimNum;
+  label: string;
+  options: BarChartOptions;
+}>;
+
 const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
 
-const DEFAULT_BAR_CHART_OPTIONS = {
+const DEFAULT_BAR_CHART_OPTIONS: BarChartOptions = {
   width: 640,
   height: 360,
-  label: "",
   zeros: true,
   convert: true,
   decimals: 2,
   padding: 0.05,
-  onclick: barChartClickHandler,
-  tooltip: barChartTooltip,
   tooltipOffset: { dx: 16, dy: -64 },
 };
 
-function barChartClickHandler(
-  number: DimNum,
-  label: string,
-  options: BarChartOptions,
-) {
-  const header = options.caption ?? "Bar chart";
+/**
+ * Default click handler for the BarChart
+ *
+ * @param event A custom barchart event
+ */
+function barChartClickHandler(event: BarChartEvent) {
+  const { number, label, options } = event.detail;
 
-  alert(`${header}\n\n Value for ${label} is ${number.toText()}`);
+  alert(
+    `${options.caption ?? "Bar chart"}\n\n Value for ${label} is ${number.toText()}`,
+  );
 }
 
-function barChartTooltip(
-  number: DimNum,
-  label: string,
-  options: BarChartOptions,
-) {
+/**
+ * Default tooltip text for the BarChart
+ *
+ * @param event A custom barchart event
+ */
+function barChartTooltipText(event: BarChartEvent) {
+  const { number, label, options } = event.detail;
+
   return `${label}: ${number.toFixed(options.decimals)}`;
 }
 
@@ -145,9 +135,28 @@ export class BarChart {
    */
   options: BarChartOptions;
 
+  /**
+   * Callback for mouse clicks. Parameter number is the value of the clicked
+   * bar and label is the name of the index set element of the clicked bar.
+   */
+  clickHandler?: (event: BarChartEvent) => void = barChartClickHandler;
+
+  /**
+   * Callback for tooltips. Parameter number is the value of the clicked bar and
+   * label is the name of the index set element of the clicked bar.
+   *
+   * The callback must return a HTML string that is inserted into the DOM.
+   *
+   * The styling can be overwritten with the div.pacioli-ts-bar-chart css class using
+   * the !important tag.
+   *
+   * Set the tooltip option to undefined to disable the default tooltip.
+   */
+  tooltipText?: (event: BarChartEvent) => string = barChartTooltipText;
+
   constructor(
-    public data: PacioliValue,
-    private context: PacioliContext,
+    public readonly data: PacioliValue,
+    private readonly context: PacioliContext,
     options: Partial<BarChartOptions>,
   ) {
     this.options = { ...DEFAULT_BAR_CHART_OPTIONS, ...options };
@@ -205,7 +214,14 @@ export class BarChart {
         `translate(${margin.left.toString()},${margin.top.toString()})`,
       );
 
-      appendBarChart(inner, input, margin, this.options);
+      appendBarChart(
+        inner,
+        input,
+        margin,
+        this.options,
+        this.clickHandler,
+        this.tooltipText,
+      );
     }
 
     // Add the caption above all other elements
@@ -228,6 +244,8 @@ function appendBarChart(
   data: BandChartData,
   margin: Margin,
   options: BarChartOptions,
+  clickHandler2?: (event: BarChartEvent) => void,
+  tooltipText?: (event: BarChartEvent) => string,
 ): void {
   const width = options.width - margin.left - margin.right;
   const height = options.height - margin.top - margin.bottom;
@@ -325,26 +343,36 @@ function appendBarChart(
     .attr("height", (d) => {
       return Math.abs(y(0) - y(d.value)); // idem
     })
-    .on("click", (_, d) => {
-      const handler = options.onclick;
-
-      if (handler) {
+    .on("click", (_, d: BandChartEntry) => {
+      if (clickHandler2) {
         tooltip.hide();
+
+        const evt = new CustomEvent("onclick", {
+          detail: {
+            number: DimNum.fromNumber(d.value, data.unit),
+            label: d.label,
+            options,
+          },
+        });
 
         // Without the timeout the display: none does not have an effect
         setTimeout(() => {
-          handler(DimNum.fromNumber(d.value, data.unit), d.label, options);
+          clickHandler2(evt);
         }, 0);
       }
     })
     .on("mouseover", (event: MouseEvent, d) => {
-      if (options.tooltip) {
-        tooltip.show(
-          options.tooltip(
-            DimNum.fromNumber(d.value, data.unit),
-            d.label,
+      if (tooltipText) {
+        const evt = new CustomEvent("tooltip", {
+          detail: {
+            number: DimNum.fromNumber(d.value, data.unit),
+            label: d.label,
             options,
-          ),
+          },
+        });
+
+        tooltip.show(
+          tooltipText(evt),
           event.pageX + options.tooltipOffset.dx,
           event.pageY + options.tooltipOffset.dy,
         );

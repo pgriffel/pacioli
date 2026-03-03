@@ -28,7 +28,6 @@ export
     matrix2d,
     vector3d,
     matrix3d,
-    space_vec,
     to_cartesian2d,
     to_polar2d,
     to_cartesian3d,
@@ -52,14 +51,14 @@ export
 # ----------------------------------------------------------------------------
 
 doc Geom2
-    "Index set for a 2D geometric space. Defined as the set <code>{x, y}</code>.";
+    "Index set for a 2D geometric space. Defined as the set `{x, y}`.";
 
 defindex Geom2 = {x, y};
 
 # ----------------------------------------------------------------------------
 
 doc Geom3
-    "Index set for a 3D geometric space. Defined as the set <code>{x, y, z}</code>.";
+    "Index set for a 3D geometric space. Defined as the set `{x, y, z}`.";
 
 defindex Geom3 = {x, y, z};
 
@@ -70,7 +69,10 @@ doc basis2d
     
     Example:
     
-    <code>let (vx, vy) = basis2d in ... end</code>";
+        let (ex, ey) = basis2d in
+            ...
+        end
+    ";
 
 declare basis2d ::
     Tuple(Geom2!, Geom2!);
@@ -85,7 +87,9 @@ doc basis3d
     
     Example:
     
-    <code>let (i, j, k) = basis3d in ... end</code>";
+        let (i, j, k) = basis3d in
+            ... 
+        end`";
 
 declare basis3d ::
     Tuple(Geom3!, Geom3!, Geom3!);
@@ -98,7 +102,7 @@ define basis3d =
 # ----------------------------------------------------------------------------
 
 doc vector2d
-    "Creates a <code>Geom2</code> vector.";
+    "Creates a `Geom2` vector.";
 
 declare vector2d ::
     for_unit a: (a, a) -> a*Geom2!;
@@ -109,23 +113,13 @@ define vector2d(a, b) =
 # ----------------------------------------------------------------------------
 
 doc vector3d
-    "Creates a <code>Geom3</code> vector.";
+    "Creates a `Geom3` vector.";
 
 declare vector3d ::
     for_unit a: (a, a, a) -> a*Geom3!;
 
 define vector3d(a, b, c) = 
     make_matrix([tuple(Geom3@x, _, a), tuple(Geom3@y, _, b), tuple(Geom3@z, _, c)]);
-
-# ----------------------------------------------------------------------------
-
-# Obsolete. Use vector3d
-
-declare space_vec ::
-    for_unit a: (a, a, a) -> a*Geom3!;
-
-define space_vec(a, b, c) = 
-    vector3d(a, b, c);
 
 # ----------------------------------------------------------------------------
 # Matrix construction
@@ -135,7 +129,7 @@ declare matrix2d ::
     for_unit a: (a, a, a, a) -> a * Geom2! per Geom2!;
 
 doc matrix2d
-    "Creates a <code>Geom2</code> matrix. The arguments are in row-major order.";
+    "Creates a `Geom2` matrix. The arguments are in row-major order.";
 
 define matrix2d(a, b, c, d) =
     let 
@@ -154,7 +148,7 @@ declare matrix3d ::
     for_unit a: (a, a, a, a, a, a, a, a, a) -> a * Geom3! per Geom3!;
 
 doc matrix3d
-    "Creates a <code>Geom3</code> matrix. The arguments are in row-major order.";
+    "Creates a `Geom3` matrix. The arguments are in row-major order.";
 
 define matrix3d(a, b, c, d, e, f, g, h, i) =
     let 
@@ -177,7 +171,7 @@ declare det2d ::
     for_unit a, Geom2!u: (a * Geom2! per Geom2!) -> a^2;
 
 doc det2d
-    "Determinant of a <code>Geom2</code> matrix";
+    "Determinant of a `Geom2` matrix";
 
 define det2d(A) =
     let 
@@ -195,7 +189,7 @@ declare det3d ::
     for_unit a, Geom3!u: (a * Geom3! per Geom3!) -> a^3;
 
 doc det3d
-    "Determinant of a <code>Geom3</code> matrix";
+    "Determinant of a `Geom3` matrix";
 
 define det3d(A) =
     let 
@@ -219,9 +213,9 @@ define det3d(A) =
 doc to_cartesian3d
     "Creates a vector in cartesian coordinates from polar coordinates.
 
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
     
-    <code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>";
+    `to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v`";
 
 declare to_cartesian3d ::
     for_unit a: (a, radian, radian) -> a*Geom3!;
@@ -238,9 +232,9 @@ define to_cartesian3d(radius, inclination, azimuth) =
 doc inclination
     "The inclination for polar coordinates.
     
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
     
-    <code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>";
+    `to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v`";
 
 declare inclination ::
     for_unit a: (a*Geom3!) -> radian;
@@ -253,9 +247,9 @@ define inclination(vec) =
 doc azimuth
     "The azimuth for polar coordinates.
     
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
 
-    <code>to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v</code>";
+    `to_cartesian3d(norm(v), inclination(v), azimuth(v)) = v`";
 
 declare azimuth ::
     for_unit a: (a*Geom3!) -> radian;
@@ -269,9 +263,9 @@ doc to_polar3d
     "Gives polar coordinates for a vector in cartesian coordinates. A tuple
     with the norm, the inclination and the azimuth.
     
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
 
-    <code>let (nrm, inc, azi) = to_polar3d(v) in to_cartesian3d(nrm, inc, azi) end = v</code>";
+    `let (nrm, inc, azi) = to_polar3d(v) in to_cartesian3d(nrm, inc, azi) end = v`";
 
 declare to_polar3d ::
     for_unit a: (a*Geom3!) -> Tuple(a, radian, radian);
@@ -282,11 +276,11 @@ define to_polar3d(vec) =
 # ----------------------------------------------------------------------------
 
 doc polar_angle
-    "The angle for polar coordinates in <code>Geom2</code>.
+    "The angle for polar coordinates in `Geom2`.
     
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
 
-    <code>to_cartesian2d(norm(v), polar_angle(v)) = v</code>";
+    `to_cartesian2d(norm(v), polar_angle(v)) = v`";
 
 declare polar_angle ::
     for_unit a: (a*Geom2!) -> radian;
@@ -300,9 +294,9 @@ doc to_polar2d
     "Gives polar coordinates for a vector in cartesian coordinates. A tuple
     with the norm and the angle.
     
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
 
-    <code>let (nrm, ang) = to_polar2d(v) in to_cartesian2d(nrm, ang) end = v</code>";
+    `let (nrm, ang) = to_polar2d(v) in to_cartesian2d(nrm, ang) end = v`";
 
 declare to_polar2d ::
     for_unit a: (a*Geom2!) -> Tuple(a, radian);
@@ -315,9 +309,9 @@ define to_polar2d(vec) =
 doc to_cartesian2d
     "Creates a vector in cartesian coordinates from polar coordinates.
     
-    For any vector <code>v</code> the following equality holds
+    For any vector `v` the following equality holds
 
-    <code>to_cartesian2d(norm(v), polar_angle(v)) = v</code>";
+    `to_cartesian2d(norm(v), polar_angle(v)) = v`";
 
 declare to_cartesian2d ::
     for_unit a: (a, radian) -> a*Geom2!;

@@ -104,26 +104,25 @@ defunit decimals "decs";
 # ----------------------------------------------------------------------------
 
 doc One
-    "The 'empty' index set. Contains just the element <code>_</code>.
+    "The 'empty' index set. Contains just the element `_`.
     
-    Value <code>_</code> is used as index for a column vector (n by 1 matrix) 
+    Value `_` is used as index for a column vector (n by 1 matrix) 
     or a row vector (1 by n matrix).
     
-    Satisfies <code>One % X = X % One = X</code>.";
+    Satisfies `One % X = X % One = X`.";
 
 defindex One = {_};
 
 doc _
-    "The single entry for the One index set. Shorthand for  <code>One@_</code>
+    "The single entry for the One index set. Shorthand for  `One@_`
     
     Use this as index for a column vector (n by 1 matrix) or a row vector
     (1 by n matrix).
 
-    For example <code>get(x, 2, _)</code> gets the 2 entry from a column 
+    For example `get(x, 2, _)` gets the 2 entry from a column 
     vector. 
     
-    If <code>x</code> is a scalar then <code>get(x, _, _)</code> equals
-    <code>x</code>.";
+    If `x` is a scalar then `get(x, _, _)` equals `x`.";
 
 declare _ :: One;
 
@@ -149,16 +148,14 @@ doc make_matrix
 
     For example
 
-    <pre>
-    defindex Direction = {longitude, lattitude};
+        defindex Direction = {longitude, lattitude};
 
-    define foo =
-        make_matrix([
-            tuple(Direction@longitude, _, 10*|degree|), 
-            tuple(Direction@lattitude, _, 20*|degree|)]);
-    </pre>
+        define foo =
+            make_matrix([
+                tuple(Direction@longitude, _, 10*|degree|), 
+                tuple(Direction@lattitude, _, 20*|degree|)]);
 
-    creates a vector of type <code>degree*Direction!</code>";
+    creates a vector of type `degree*Direction!`";
 
 declare_primitive make_matrix(entries) ::
   for_index P,Q: for_unit a: (List(Tuple(P, Q, a))) -> a*P! per Q!;
@@ -172,11 +169,9 @@ doc magnitude
     A dimensioned matrix A is an element-wise product RU with R a dimensionless
     magnitude matrix and U a unit matrix.
 
-    Using function <code>unit</code> this can be expressed as:
+    Using function `unit` this can be expressed as:
 
-    <pre>
-    A = magnitude(A) * unit(A)
-    </pre>";
+        A = magnitude(A) * unit(A)";
 
 declare_primitive magnitude(A) ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> P! per Q!;
@@ -188,9 +183,7 @@ doc scalar_unit
     
     Is part of the unit of a matrix. For any matrix A:
 
-    <pre>
-    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
-    </pre>";
+        unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)";
 
 declare_primitive scalar_unit(A) ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a;
@@ -203,9 +196,7 @@ doc row_unit
     
     Is part of the unit of a matrix. For any matrix A:
 
-    <pre>
-    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
-    </pre>";
+        unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)";
 
 declare_primitive row_unit(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u;
@@ -218,9 +209,7 @@ doc column_unit
     
     Is part of the unit of a matrix. For any matrix A:
 
-    <pre>
-    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
-    </pre>";
+        unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)";
 
 declare_primitive column_unit(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v;
@@ -250,9 +239,7 @@ doc row
     
     For all indices q it satisfies
 
-    <pre>
-    get_num(row(A, x), _, q) = get_num(A, x, q)
-    </pre>";
+        get_num(row(A, x), _, q) = get_num(A, x, q)";
 
 declare_primitive row(A, p) ::
   for_index P,Q: for_unit a,Q!v: (a*P! per Q!v, P) -> a per Q!v;
@@ -266,9 +253,7 @@ doc column
     
     For all indices p it satisfies
 
-    <pre>
-    get_num(column(A, x), p, _) = get_num(A, p, x)
-    </pre>";
+        get_num(column(A, x), p, _) = get_num(A, p, x)";
 
 declare_primitive column(A, q) ::
   for_index P,Q: for_unit a,P!v: (a*P!v per Q!, Q) -> a*P!v;
@@ -295,7 +280,7 @@ declare_primitive get_num(A, p, q) ::
 # ----------------------------------------------------------------------------
 
 doc left_identity
-    "The left identify of a matrix. Solution to <code>X '*' A = A</code>";
+    "The left identify of a matrix. Solution to `X '*' A = A`";
 
 declare_primitive left_identity(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> P!u per P!u;
@@ -303,7 +288,7 @@ declare_primitive left_identity(A) ::
 # ----------------------------------------------------------------------------
 
 doc right_identity
-    "The right identify of a matrix. Solution to <code>A '*' X = A</code>";
+    "The right identify of a matrix. Solution to `A '*' X = A`";
 
 declare_primitive right_identity(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per Q!v;
@@ -316,9 +301,7 @@ doc signum
 
     Satisfies:
   
-    <pre>
-    signum(A) = positive_support(A) - negative_support(A)
-    </pre>";
+        signum(A) = positive_support(A) - negative_support(A)";
 
 declare_primitive signum(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -331,9 +314,7 @@ doc support
     
     Satisfies:
 
-    <pre>
-    get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end
-    </pre>";
+        get(support(A), p, q) = if get_num(A, p, q) = 0 then 0 else 1 end";
 
 declare_primitive support(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -347,9 +328,7 @@ doc positive_support
     
     Satisfies:
     
-    <pre>
-    get(support(A), p, q) = if get_num(A, p, q) > 0 then 1 else 0 end
-    </pre>";
+        get(support(A), p, q) = if get_num(A, p, q) > 0 then 1 else 0 end";
 
 declare_primitive positive_support(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -362,9 +341,7 @@ doc negative_support
     
     Satisfies:
     
-    <pre>
-    get(support(A), p, q) = if get_num(A, p, q) < 0 then 1 else 0 end
-    </pre>";
+        get(support(A), p, q) = if get_num(A, p, q) < 0 then 1 else 0 end";
 
 declare_primitive negative_support(A) ::
   for_index D,E: for_unit a,D!b,E!c: (a*D!b per E!c) -> D! per E!;
@@ -376,14 +353,12 @@ declare_primitive negative_support(A) ::
 doc sum
     "Sum of two matrices.
     
-    Corresponds with operator <code>+</code>. Expression <code>A + B</code>
-    is parsed as <code>sum(A, B)</code>.
+    Corresponds with operator `+`. Expression `A + B`
+    is parsed as `sum(A, B)`.
 
     For all indices p and q it satisfies
     
-    <pre>
-    get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)
-    </pre>";
+        get_num(A + B, p, q) = get_num(A, p, q) + get_num(B, p, q)";
 
 declare_primitive sum(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
@@ -393,14 +368,12 @@ declare_primitive sum(A, B) ::
 doc minus
     "Difference of two matrices.
     
-    Corresponds with operator <code>-</code>. Expression <code>A - B</code>
-    is parsed as <code>minus(A, B)</code>.
+    Corresponds with operator `-`. Expression `A - B`
+    is parsed as `minus(A, B)`.
 
     For all indices p and q it satisfies
     
-    <pre>
-    get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)
-    </pre>";
+        get_num(A - B, p, q) = get_num(A, p, q) - get_num(B, p, q)";
 
 declare_primitive minus(A, B) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> a*P!u per Q!v;
@@ -410,14 +383,12 @@ declare_primitive minus(A, B) ::
 doc multiply
     "Element-wise product of two matrices.
 
-    Corresponds with operator <code>*</code>. Expression <code>A * B</code>
-    is parsed as <code>multiply(A, B)</code>.
+    Corresponds with operator `*`. Expression `A * B`
+    is parsed as `multiply(A, B)`.
 
     For all indices p and q it satisfies
 
-    <pre>
-    get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)
-    </pre>";
+        get(A * B, p, q) = get_num(A, p, q) * get_num(B, p, q)";
 
 declare_primitive multiply(A, B) ::
   for_index P,Q: for_unit a,b,P!u,P!w,Q!v,Q!z: (a*P!u per Q!v, b*P!w per Q!z) -> a*b*P!u*P!w per Q!v*Q!z;
@@ -427,14 +398,12 @@ declare_primitive multiply(A, B) ::
 doc divide
     "Element-wise division of two matrices.
     
-    Corresponds with operator <code>/</code>. Expression <code>A / B</code>
-    is parsed as <code>divide(A, B)</code>.
+    Corresponds with operator `/`. Expression `A / B`
+    is parsed as `divide(A, B)`.
 
     For all indices p and q it satisfies
     
-    <pre>
-    get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)
-    </pre>";
+        get(A / B, p, q) = get_num(A, p, q) / get_num(B, p, q)";
 
 declare_primitive divide(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
@@ -444,14 +413,12 @@ declare_primitive divide(A, B) ::
 doc left_divide
     "Element-wise left division of two matrices.
     
-    Corresponds with operator <code>\\</code>. Expression <code>A \\ B</code>
-    is parsed as <code>left_divide(A, B)</code>.
+    Corresponds with operator `\\`. Expression `A \\ B`
+    is parsed as `left_divide(A, B)`.
 
     Satisfies
     
-    <pre>
-    left_divide(A, B) = divide(B, A)
-    </pre>";
+        left_divide(A, B) = divide(B, A)";
 
 declare_primitive left_divide(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!x/P!u per b*Q!y/Q!v;
@@ -463,9 +430,7 @@ doc expt
     
     For all indices p and q it satisfies
     
-    <pre>
-    get(expt(A, x), p, q) = expt(get(A, p, q), x)
-    </pre>";
+        get(expt(A, x), p, q) = expt(get(A, p, q), x)";
 
 declare_primitive expt(A, n) ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
@@ -475,11 +440,9 @@ declare_primitive expt(A, n) ::
 doc mexpt
     "Exponent of a matrix.
     
-    For any matrices <code>A</code> and <code>B</code> it satisfies
+    For any matrices `A` and `B` it satisfies
     
-    <pre>
-    get(expt(A, x), p, q) = expt(get(A, p, q), x)
-    </pre>";
+        get(expt(A, x), p, q) = expt(get(A, p, q), x)";
 
 declare_primitive mexpt(A, n) ::
   for_index P: for_unit P!u: (P!u per P!u, 1) -> P!u per P!u;
@@ -489,9 +452,8 @@ declare_primitive mexpt(A, n) ::
 doc mmult
     "Matrix multiplication.
 
-    Corresponds with operator <code>'*'</code>. Expression <code>A '*' B</code>
-    is parsed as <code>mmult(A, B)</code>.
-    ";
+    Corresponds with operator `'*'`. Expression `A '*' B`
+    is parsed as `mmult(A, B)`.";
 
 declare_primitive mmult(A, B) ::
   for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w: (a*P!u per Q!v, b*Q!v per R!w) -> a*b*P!u per R!w;
@@ -501,12 +463,10 @@ declare_primitive mmult(A, B) ::
 doc scale
     "Multiplies a matrix with a scalar factor.
     
-    Corresponds with operator <code>'.*'</code>. Expression <code>x '.*' A</code>
-    is parsed as <code>scale(x, A)</code>.
+    Corresponds with operator `'.*'`. Expression `x '.*' A`
+    is parsed as `scale(x, A)`.
 
-    <pre>
-    get_num(scale(x, A), p, q) = x * get_num(A, p, q)
-    </pre>";
+        get_num(scale(x, A), p, q) = x * get_num(A, p, q)";
 
 declare_primitive scale(c, A) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*b*P!u per Q!v;
@@ -516,12 +476,10 @@ declare_primitive scale(c, A) ::
 doc rscale
     "Multiplies a matrix by a scalar factor.
     
-    Corresponds with operator <code>'*.'</code>. Expression <code>A '*.' x</code>
-    is parsed as <code>rscale(A, x)</code>.
+    Corresponds with operator `'*.'`. Expression `A '*.' x`
+    is parsed as `rscale(A, x)`.
 
-    <pre>
-    get_num(rscale(A, x), p, q) = get_num(A, p, q) * x
-    </pre>";
+        get_num(rscale(A, x), p, q) = get_num(A, p, q) * x";
 
 declare_primitive rscale(A, c) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*b*P!u per Q!v;
@@ -531,12 +489,10 @@ declare_primitive rscale(A, c) ::
 doc scale_down
     "Divides a matrix by a scalar factor.
 
-    Corresponds with operator <code>'/.'</code>. Expression <code>A '/.' x</code>
-    is parsed as <code>scale_down(A, x)</code>.    
+    Corresponds with operator `'/.'`. Expression `A '/.' x`
+    is parsed as `scale_down(A, x)`.    
 
-    <pre>
-    get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x
-    </pre>";
+        get_num(scale_down(A, x), p, q) = get_num(A, p, q) / x";
 
 declare_primitive scale_down(A, c) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a*P!u per Q!v, b) -> a*P!u per b*Q!v;
@@ -546,12 +502,10 @@ declare_primitive scale_down(A, c) ::
 doc lscale_down
     "Divides a scalar factor by a matrix.
 
-    Corresponds with operator <code>'./'</code>. Expression <code>x '/.' A</code>
-    is parsed as <code>lscale_down(x, A)</code>.
+    Corresponds with operator `'./'`. Expression `x '/.' A`
+    is parsed as `lscale_down(x, A)`.
 
-    <pre>
-    get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)
-    </pre>";
+        get_num(lscale_down(x, A), p, q) = x / get_num(A, p, q)";
 
 declare_primitive lscale_down(c, A) ::
   for_index P,Q: for_unit a,b,P!u,Q!v: (a, b*P!u per Q!v) -> a*P!u per b*Q!v;
@@ -561,12 +515,10 @@ declare_primitive lscale_down(c, A) ::
 doc negative
     "The negation of a matrix. 
     
-    Corresponds with prefix operator <code>'-'</code>. Expression <code>-A</code>
-    is parsed as <code>negative(A)</code>.
+    Corresponds with prefix operator `'-'`. Expression `-A`
+    is parsed as `negative(A)`.
 
-    <pre>
-    get_num(negative(A), p, q) = -get_num(A, p, q)
-    </pre>";
+        get_num(negative(A), p, q) = -get_num(A, p, q)";
 
 declare_primitive negative(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -576,12 +528,10 @@ declare_primitive negative(A) ::
 doc reciprocal
     "The element-wise reciprocal of a matrix.
 
-    Corresponds with postfix operator <code>^R</code>. Expression <code>A^R</code>
-    is parsed as <code>reciprocal(A)</code>.
+    Corresponds with postfix operator `^R`. Expression `A^R`
+    is parsed as `reciprocal(A)`.
     
-    <pre>
-    get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)
-    </pre>";
+        get_num(reciprocal(A), p, q) = 1/get_num(A, p, q)";
 
 declare_primitive reciprocal(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a^-1*P!u^-1 per Q!v^-1;
@@ -591,8 +541,9 @@ declare_primitive reciprocal(A) ::
 doc transpose
     "The transpose of a matrix. Swaps the row and column dimensions.
     
-    Corresponds with postfix operator <code>^T</code>: <code>A^T</code>
-    is parsed as <code>transpose(A)</code>.";
+    Corresponds with postfix operator `^T`: `A^T`
+    
+    Is parsed as `transpose(A)`.";
 
 declare_primitive transpose(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*Q!v^-1 per P!u^-1;
@@ -602,11 +553,9 @@ declare_primitive transpose(A) ::
 doc dim_inv
     "The dimensional inverse of a matrix.
     
-    Corresponds to the postfix <code>^D</code> operator: <code>dim_inv(A) = A^D</code>.
+    Corresponds to the postfix `^D` operator: `dim_inv(A) = A^D`.
 
-    Combines the transpose and the reciprocal: <code>A^D = A^R^T = A^T^R</code>
-    
-    ";
+    Combines the transpose and the reciprocal: `A^D = A^R^T = A^T^R`";
 
 declare_primitive dim_inv(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
@@ -617,12 +566,10 @@ doc dim_div
     "Dimensional division. Equals multiplying with the 
     <a href=\"#dim_inv\">dimensional inverse<a>.
     
-    Corresponds with symbol <code>per</code>: <code>A per B</code> is parsed as
-    <code>dim_div(A, B)</code>.
+    Corresponds with symbol `per`: `A per B` is parsed as
+    `dim_div(A, B)`.
     
-    <pre>
-    dim_div(A, B) = A '*' B^D
-    </pre>";
+        dim_div(A, B) = A '*' B^D";
 
 declare_primitive dim_div(A, B) ::
   for_index D,E,H: for_unit a,D!b,E!c,f,H!g: (a*D!b per E!c, f*H!g per E!c) -> a*D!b per f*H!g;
@@ -689,13 +636,11 @@ declare_primitive is_zero(A) ::
 doc sqrt
     "Element-wise square root.
     
-    <code>get_num(sqrt(A), p, q) = sqrt(get_num(A, p, q))</code>
+    `get_num(sqrt(A), p, q) = sqrt(get_num(A, p, q))`
     
-    or using the element-wise product <code>*</code>
+    or using the element-wise product `*`
     
-    <pre>
-    sqrt(A) * sqrt(A) = sqrt(A)^2 = A
-    </pre>";
+        sqrt(A) * sqrt(A) = sqrt(A)^2 = A";
 
 declare_primitive sqrt(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^2*P!u^2 per Q!v^2) -> a*P!u per Q!v;
@@ -704,13 +649,11 @@ declare_primitive sqrt(A) ::
 doc cbrt
     "Element-wise cube root.
     
-    <code>get_num(cbrt(A), p, q) = cbrt(get_num(A, p, q))</code>
+    `get_num(cbrt(A), p, q) = cbrt(get_num(A, p, q))`
     
-    or using the element-wise product <code>*</code>
+    or using the element-wise product `*`
     
-    <pre>
-    cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A
-    </pre>";
+        cbrt(A) * cbrt(A) * cbrt(A) = cbrt(A)^3 = A";
 
 declare_primitive cbrt(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a^3*P!u^3 per Q!v^3) -> a*P!u per Q!v;
@@ -720,14 +663,12 @@ declare_primitive cbrt(A) ::
 doc log
     "Element-wise log.
     
-    <code>get_num(log(A), p, q) = log(get_num(A, p, q))</code>
+    `get_num(log(A), p, q) = log(get_num(A, p, q))`
     
-    Inverse of the exponent <code>exp</code> function. For scalars the following
+    Inverse of the exponent `exp` function. For scalars the following
     holds:
     
-    <pre>
-    expt(b, log(x, b)) = x
-    </pre>";
+        expt(b, log(x, b)) = x";
 
 declare_primitive log(A, base) ::
   for_index P,Q: (P! per Q!, 1) -> P! per Q!;
@@ -735,12 +676,10 @@ declare_primitive log(A, base) ::
 # ----------------------------------------------------------------------------
 
 doc exp
-    "Element-wise natural exponent <code>e^x</code>. Only defined for dimensionless
+    "Element-wise natural exponent `e^x`. Only defined for dimensionless
     matrices.
 
-    <pre>
-    get(exp(A), p, q) = exp(get(A, p, q))
-    </pre>";
+        get(exp(A), p, q) = exp(get(A, p, q))";
 
 declare_primitive exp(A) ::
   for_index P,Q: (P! per Q!) -> P! per Q!;
@@ -750,9 +689,7 @@ declare_primitive exp(A) ::
 doc ln
     "Element-wise natural logarithm
 
-    <pre>
-    get(ln(A), p, q) = ln(get(A, p, q))
-    </pre>";
+        get(ln(A), p, q) = ln(get(A, p, q))";
 
 declare_primitive ln(A) ::
   for_index P,Q: (P! per Q!) -> P! per Q!;
@@ -762,9 +699,7 @@ declare_primitive ln(A) ::
 doc abs
     "Absolute value of a matrix. Each entry is negated if it is negative.
 
-    <pre>
-    get(abs(A), p, q) = abs(get(A, p, q))
-    </pre>";
+        get(abs(A), p, q) = abs(get(A, p, q))";
 
 declare_primitive abs(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -800,9 +735,7 @@ doc mod
     
     Could be defined as
 
-    <pre>
-    mod(A, B) = A - abs(B)*floor(A/abs(B))
-    </pre>";
+        mod(A, B) = A - abs(B)*floor(A/abs(B))";
 
 
 doc abs_min
@@ -813,9 +746,7 @@ doc abs_min
 
     Could be defined as
 
-    <pre>
-    abs_min(A, B) = A - B*round(A/B)
-    </pre>";
+        abs_min(A, B) = A - B*round(A/B)";
 
 declare_primitive mod(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u per Q!v;
@@ -830,9 +761,7 @@ doc div
     
     For any a and b the following holds:
 
-    <pre>
-    a = div(a, b) * b + rem(a, b)
-    </pre>";
+        a = div(a, b) * b + rem(a, b)";
     
 declare_primitive div(A, B) ::
   for_index P,Q: for_unit a,b,P!u,Q!v,P!x,Q!y: (a*P!u per Q!v, b*P!x per Q!y) -> a*P!u/P!x per b*Q!v/Q!y;
@@ -844,15 +773,11 @@ doc rem
     
     Could be defined as
 
-    <pre>
-    rem(A, B) = A - B*truncate(A/B)
-    </pre>
+        rem(A, B) = A - B*truncate(A/B)
     
     For any a and b the following holds:
 
-    <pre>
-    a = div(a, b) * b + rem(a, b)
-    </pre>";
+        a = div(a, b) * b + rem(a, b)";
 
 declare_primitive rem(A, B) ::
     for_unit a, b, P!u, Q!v, P!x, Q!y: for_index P, Q:
@@ -863,9 +788,7 @@ declare_primitive rem(A, B) ::
 doc sin
     "Element-wise sine function.
     
-    <pre>
-    get(sin(A), p, q) = sin(get(A, p, q))
-    </pre>";
+        get(sin(A), p, q) = sin(get(A, p, q))";
 
 declare_primitive sin(A) ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
@@ -875,9 +798,7 @@ declare_primitive sin(A) ::
 doc cos
     "Element-wise cosine function.
     
-    <pre>
-    get(cos(A), p, q) = cos(get(A, p, q))
-    </pre>";
+        get(cos(A), p, q) = cos(get(A, p, q))";
 
 declare_primitive cos(A) ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
@@ -887,9 +808,7 @@ declare_primitive cos(A) ::
 doc tan
     "Element-wise tangent function.
     
-    <pre>
-    get(tan(A), p, q) = tan(get(A, p, q))
-    </pre>";
+        get(tan(A), p, q) = tan(get(A, p, q))";
 
 declare_primitive tan(A) ::
   for_index P,Q: (radian * P! per Q!) -> P! per Q!;
@@ -942,18 +861,14 @@ doc truncate
 
     Could be defined as
     
-    <pre>
-    ceiling(negatives(A)) + floor(positives(A))
-    </pre>";
+        ceiling(negatives(A)) + floor(positives(A))";
     
 doc round
     "Rounds every matrix entry to the nearest integer. Halves are rounded up.
     
     Could be defined as
     
-    <pre>
-    round(A) = floor(A + 0.5 '.*' unit(A))
-    </pre>";
+        round(A) = floor(A + 0.5 '.*' unit(A))";
 
 declare_primitive floor(A) ::
   for_index P,Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -988,15 +903,13 @@ doc singular_value_list
     
     List of tuples (s,v,w) such that
 
-    <pre>
-    A = sum[s '.*' v '*' w^T | (s,v,w) <- svd(A)]
-    </pre>
+        A = sum[s '.*' v '*' w^T | (s,v,w) <- svd(A)]
 
     with scalar s the singular values, and vectors v and w the singular vectors.
     
     Note: for dimensionally non-uniform matrices the inner product is not defined.
     Therefore the orthogonality of the singular vectors assumes the identity metric
-    (which is equivalent to ignoring the units) instead of the inner product. See
+    instead of the inner product (which is equivalent to ignoring the units). See
     function gsvd from the metrics library for a more general version that accepts
     other metrics.";
     
@@ -1020,7 +933,7 @@ declare_primitive qr_decomposition(A) ::
 doc cholesky_decomposition
    "The Cholesky decomposition of a matrix.
   
-    Decomposes a matrix into product L '*' L^T, with L a lower triangular matrix.
+    Decomposes a matrix into product `L '*' L^T`, with `L` a lower triangular matrix.
 
     It is an error if the matrix is not symmetric or is not positive definite.";
 
@@ -1032,7 +945,7 @@ declare_primitive cholesky_decomposition ::
 doc eigenvalue_decomposition
    "The eigenvalue decomposition of a matrix.
    
-   A pair of matrices (D, V) such that A = V '*' D '*' V'^'-1.
+   A pair of matrices (D, V) such that `A = V '*' D '*' V'^'-1`.
    
    The input matrix A, and the output matrices D and V are n x n matrices.
    
@@ -1048,7 +961,7 @@ declare_primitive eigenvalue_decomposition(A) ::
 doc eigenvalue_list
    "List form of the eigenvalue decomposition of a matrix.
 
-   List of pairs (c, v) such that A '*' v = c '.*' v.
+   List of pairs (c, v) such that `A '*' v = c '.*' v`.
    
    The scalars c are the eigenvalues. The vectors v are the corresponding 
    eigenvectors.";

@@ -19,6 +19,7 @@ test/**/*.js
 /src/uom-ts/test/
 doc/*
 !doc/index.html
+!doc/index.md
 vscode/pacioli/lib/
 vscode/pacioli/out/
 vscode/pacioli/dist/

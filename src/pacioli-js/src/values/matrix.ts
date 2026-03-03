@@ -122,6 +122,10 @@ export class PacioliMatrix {
       tableOptions,
     );
   }
+
+  public reorder(rowOrder: number, columnOrder: number): PacioliMatrix {
+    return reorderMatrix(this, rowOrder, columnOrder);
+  }
 }
 
 /**
@@ -181,8 +185,8 @@ export function matrixKeyValueList(
 
   return {
     values: kvList,
-    rows: matrix.shape.rowNames(),
-    columns: matrix.shape.columnNames(),
+    rows: matrix.shape.rowHeaders(),
+    columns: matrix.shape.columnHeaders(),
   };
 }
 
@@ -261,4 +265,59 @@ export function convert_unit(
     convertedValues.push(values[i] * factor.toNumber());
   }
   return tagMatrix([rows, columns, convertedValues], m, n, "COO");
+}
+
+/**
+ * Helper for the Matrix type. Temporary until calling Pacioli functions
+ * is implemented!? Could be/should be/is a glbl_ function!?
+ */
+export function reorderMatrix(
+  matrix: PacioliMatrix,
+  rowOrder: number,
+  columnOrder: number,
+) {
+  const numbers = matrix.numbers;
+  const shape = matrix.shape;
+
+  const oldRowOrder = shape.rowOrder();
+  const oldColumnOrder = shape.columnOrder();
+
+  if (rowOrder === oldRowOrder && columnOrder === oldColumnOrder) {
+    return matrix;
+  }
+
+  const coo = getCOONumbers(numbers);
+
+  const rows = coo[0];
+  const columns = coo[1];
+  const values = coo[2];
+
+  const reorderedRows = [];
+  const reorderedColumns = [];
+  const reorderedValues = [];
+
+  for (const [i, row] of rows.entries()) {
+    const rowCoords = shape.rowCoordinates(row);
+    const columnCoords = shape.columnCoordinates(columns[i]);
+
+    const totalCoords = rowCoords.join(columnCoords);
+
+    const reorderedRowCoords = totalCoords.slice(0, rowOrder);
+    const reorderedColumnCoords = totalCoords.slice(rowOrder);
+
+    reorderedRows.push(reorderedRowCoords.position());
+    reorderedColumns.push(reorderedColumnCoords.position());
+    reorderedValues.push(values[i]);
+  }
+
+  const reorderedShape = shape.reorder(rowOrder, columnOrder);
+
+  const rawMatrix = tagMatrix(
+    [reorderedRows, reorderedColumns, reorderedValues],
+    reorderedShape.nrRows(),
+    reorderedShape.nrColumns(),
+    "COO",
+  );
+
+  return new PacioliMatrix(reorderedShape, rawMatrix);
 }

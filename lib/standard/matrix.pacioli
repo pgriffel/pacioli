@@ -63,7 +63,7 @@ doc set_precision
     
     This is a global effect.
 
-    See function <code>precision</code>";
+    See function `precision`";
 
 declare set_precision :: (decimals) -> Void;
 
@@ -77,7 +77,7 @@ doc precision
 
     It is also used as a treshold to determine if a matrix entry is printed.
 
-    See <code>set_precision</code>";
+    See `set_precision`";
 
 declare precision ::
     () -> decimals;
@@ -90,7 +90,7 @@ define precision() =
 # ------------------------------------------------------------------------------
 
 doc inner
-    "The inner product between two vectors. The usual product <code>x^T '*' y</code>
+    "The inner product between two vectors. The usual product `x^T '*' y`
     between two vectors.";
 
 declare inner ::
@@ -101,7 +101,7 @@ define inner(x,y) = x^T '*' y;
 # ------------------------------------------------------------------------------
 
 doc outer
-    "The outer product between two vectors. The usual product <code>x '*' y^T</code>
+    "The outer product between two vectors. The usual product `x '*' y^T`
     between a column and row vector.";
 
 declare outer ::
@@ -120,7 +120,7 @@ define neg(x) = -1 '.*' x;  # duplicate of negative. Which of the two names do w
 
 doc norm
     "The norm of a vector. The square root of the inner product
-     <code>sqrt(x^T '*' x)</code>
+     `sqrt(x^T '*' x)`
      
     The vector must be dimensionally uniform.";
 
@@ -169,15 +169,11 @@ doc unit
     
     Is defined as:
 
-    <pre>
-    unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
-    </pre>
+        unit(A) = scalar_unit(A) '.*' row_unit(A) per column_unit(A)
 
     Any matrix A is the product of a magnitude and a unit:
 
-    <pre>
-    A = magnitude(A) * unit(A)
-    </pre>";
+        A = magnitude(A) * unit(A)";
 
 declare unit ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> a*P!u per Q!v;
@@ -190,12 +186,10 @@ define unit(A) =
 doc delta
     "Kronecker delta.
 
-    For example <code>delta(Geom3@x)</code> gives a base vector in the x direction
+    For example `delta(Geom3@x)` gives a base vector in the x direction
     in 3D space.
     
-    <pre>
-    get(delta(p), x, _) = if p = x then 1 else 0 end
-    </pre>";
+        get(delta(p), x, _) = if p = x then 1 else 0 end";
 
 declare delta ::
   for_index P: (P) -> P!;
@@ -212,9 +206,7 @@ doc map_matrix
     
     For example
     
-    <pre>
-    map_matrix((x) -> x + 10*|metre|, A)
-    </pre>
+        map_matrix((x) -> x + 10*|metre|, A)
     
     adds 10 metre to each matrix entry of A.";
 
@@ -262,29 +254,24 @@ doc complement
     
     Is defined as:
 
-    <pre>
-    complement(A) = unit(A) - A
-    </pre>
+        complement(A) = unit(A) - A
     
     For example, with definitions
 
-    <pre>
-    defindex Nibble = {bit0, bit1, bit2, bit3};
-
-    defmatrix nibble :: Nibble! = {
-        bit0 -> 1,
-        bit3 -> 1
-    };
-    </pre>
-
-    expression <code>complement(nibble)</code> yields
     
-    <pre>
-    Nibble        Value
-    -------------------
-    bit1              1
-    bit2              1
-    </pre>";
+        defindex Nibble = {bit0, bit1, bit2, bit3};
+
+        defmatrix nibble :: Nibble! = {
+            bit0 -> 1,
+            bit3 -> 1
+        };
+    
+    expression `complement(nibble)` gives
+    
+        Nibble        Value
+        -------------------
+        bit1              1
+        bit2              1";
 
 define complement(A) = unit(A) - A;
 
@@ -295,9 +282,7 @@ doc positives
 
     A matrix A can be factored in a positive and negative part as follows:
     
-    <pre>
-    A = positives(A) + negatives(A)
-    </pre>";
+        A = positives(A) + negatives(A)";
 
 define positives(A) = A * positive_support(A);
 
@@ -308,9 +293,7 @@ doc negatives
     
     A matrix A can be factored in a positive and negative part as follows:
     
-    <pre>
-    A = positives(A) + negatives(A)
-    </pre>";
+        A = positives(A) + negatives(A)";
 
 define negatives(A) = A * negative_support(A);
 
@@ -349,9 +332,7 @@ doc right_inverse
     
     In code:
 
-    <pre>
-    A '*' right_inverse(A) = left_identity(A)
-    </pre>";
+        A '*' right_inverse(A) = left_identity(A)";
 
 declare right_inverse ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
@@ -365,9 +346,7 @@ doc left_inverse
     
     In code:
 
-    <pre>
-    left_inverse(A) '*' A = right_identity(A)
-    </pre>";
+        left_inverse(A) '*' A = right_identity(A)";
 
 declare left_inverse ::
   for_index P,Q: for_unit a,P!u,Q!v: (a*P!u per Q!v) -> Q!v per a*P!u;
@@ -391,9 +370,7 @@ doc kleene
     
     Equals the series
 
-    <pre>
-    I + A + A'^'2 + A'^'3 ...
-    </pre>";
+        I + A + A'^'2 + A'^'3 ...";
 
 declare kleene ::
   for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
@@ -407,9 +384,7 @@ doc closure
     
     Equals the series
 
-    <pre>
-    A + A'^'2 + A'^'3 ...
-    </pre>";
+        A + A'^'2 + A'^'3 ...";
 
 declare closure ::
   for_index P: for_unit P!u: (P!u per P!u) -> P!u per P!u;
@@ -421,14 +396,12 @@ define closure(x) = kleene(x) - left_identity(x);
 doc left_division
     "Left division of matrices. Matrix division means multiplying with the inverse.
 
-    Corresponds with operator <code>'\\'</code>. Expression <code>A '\\' B</code>
-    is parsed as <code>left_division(A, B)</code>.
+    Corresponds with operator `'\\'`. Expression `A '\\' B`
+    is parsed as `left_division(A, B)`.
 
     Defined as:
     
-    <pre>
-    left_division(x,y) = inverse(x) '*' y
-    </pre>";
+        left_division(x,y) = inverse(x) '*' y";
 
 declare left_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w:
     (a*P!u per Q!v, b*P!u per R!w) -> b*Q!v per a*R!w;
@@ -440,14 +413,12 @@ define left_division(x,y) = inverse(x) '*' y;
 doc right_division
     "Division of matrices. Matrix division means multiplying with the inverse.
 
-    Corresponds with operator <code>'/'</code>. Expression <code>A '/' B</code>
-    is parsed as <code>right_division(A, B)</code>.
+    Corresponds with operator `'/'`. Expression `A '/' B`
+    is parsed as `right_division(A, B)`.
 
     Defined as:
     
-    <pre>
-    right_division(x,y) = x '*' inverse(y)
-    </pre>";
+        right_division(x,y) = x '*' inverse(y)";
 
 declare right_division :: for_index P,Q,R: for_unit a,b,P!u,Q!v,R!w:
     (a*P!u per Q!v, b*R!w per Q!v) -> a*P!u per b*R!w;
@@ -508,7 +479,7 @@ doc compare_index
     "Comparison of indices. Negative if x comes before y, positive if y comes before
     x, zero if x and y are equal.
     
-    Is the order of the indices in the index set definition. See <code>index_less</code>";
+    Is the order of the indices in the index set definition. See `index_less`";
 
 declare compare_index :: for_index P: (P, P) -> 1;
 

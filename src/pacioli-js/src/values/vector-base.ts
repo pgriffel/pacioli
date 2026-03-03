@@ -25,11 +25,15 @@ import type { UnitVector } from "./unit-vector";
 import type { ToText } from "./pacioli-value";
 
 export class VectorBase implements UOMBase, ToText {
+  public readonly name;
+
   constructor(
-    public vector: UnitVector,
-    public position: number,
-    public name: string,
-  ) {}
+    public readonly vector: UnitVector,
+    public readonly position: number,
+    public readonly baseName: string,
+  ) {
+    this.name = baseName + ":" + position.toString();
+  }
 
   getName(): string {
     return this.name;
@@ -44,6 +48,6 @@ export class VectorBase implements UOMBase, ToText {
   }
 
   public shift(delta: number): VectorBase {
-    return new VectorBase(this.vector, this.position + delta, this.name);
+    return new VectorBase(this.vector, this.position + delta, this.baseName);
   }
 }

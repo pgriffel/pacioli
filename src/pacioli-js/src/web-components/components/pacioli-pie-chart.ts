@@ -23,18 +23,47 @@
 import type { PieChartOptions } from "../../charts/d3-pie-chart";
 import { PieChart } from "../../charts/d3-pie-chart";
 import { PacioliContext } from "../../context";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the pie chart component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["unit", "caption", "label"],
+const PIE_CHART_ATTRIBUTES = {
+  strings: ["unit", "label"],
   booleans: [],
-  numbers: ["width", "height", "decimals", "radius", "labelOffset"],
+  numbers: ["radius", "labelOffset"],
 };
+
+/**
+ * Types for the histogram attributes
+ */
+export interface PieChartAttributes extends ChartsAttributes {
+  unit: string;
+  label: string;
+  radius: number;
+  labelOffset: number;
+}
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
+  PIE_CHART_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the pie chart
@@ -46,7 +75,7 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the PieChart class.
  */
-export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
+export class PacioliPieChartComponent extends PacioliChartComponent {
   /**
    * Label
    */
@@ -62,7 +91,7 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): string {
+  get unit(): string | undefined {
     return this.getStringAttribute("unit");
   }
 
@@ -87,20 +116,10 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
   chart?: PieChart;
 
   /**
-   * The Pacioli value displayed in the chart.
-   */
-  data?: PacioliValue;
-
-  /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "decimals",
-    "unit",
-    "radius",
-    "margin",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();
@@ -108,34 +127,9 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Web component life-cycle event.
+   * ChartComponent method.
    */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.drawChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    this.data = this.evaluateDefinition();
-
-    this.drawChart(this.data);
-  }
-
-  drawChart(data: PacioliValue): void {
+  override drawChart(data: PacioliValue): void {
     this.clearContent();
     this.clearErrors();
 
@@ -145,6 +139,21 @@ export class PacioliPieChartComponent extends PacioliShadowTreeComponent {
     };
 
     this.chart = new PieChart(data, PacioliContext.si(), options);
+
+    // Intercept the click handler and dispatch the clicks as events.
+    // The default click handler can be turned of by the 'nopopup'
+    // attribute.
+    const defaultHandler = this.chart.clickHandler;
+    this.chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      this.chart.tooltipText = undefined;
+    }
 
     this.chart.draw(this.contentParent());
   }

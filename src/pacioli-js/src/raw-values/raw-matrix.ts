@@ -451,7 +451,7 @@ export function tableBuilderFromRawMatrix(
 
   const options = {
     decimals: NR_DECIMALS,
-    ignoredecimals: false,
+    raw: false,
     nozerorows: false,
     totals: true,
   };

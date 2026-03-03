@@ -147,7 +147,7 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
         // return String.format("Pacioli.bangShape('%s', '%s', '%s', '%s').rowUnit",
         // indexSetName.home, indexSetName.name,
         // unitName.home, unitName.name);
-        return String.format("Pacioli.unitVectorType('%s', '%s_%s', %s)", indexSetName.home(), indexSetName.name(),
+        return String.format("Pacioli.unitVectorType('vbase_%s_%s_%s', %s)", indexSetName.home(), indexSetName.name(),
                 this.unitName.name(), position);
     }
 

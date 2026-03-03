@@ -39,8 +39,6 @@ import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
 import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
@@ -48,6 +46,8 @@ import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.DocumentationGenerator;
+import pacioli.documentation.PrimitivesDocumentation;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -165,21 +165,26 @@ public class Bundle {
     }
 
     public void addPrimitiveTypes() {
+        addPrimitiveTypesToEnv(environment, libs);
+    }
+
+    public static void addPrimitiveTypesToEnv(PacioliTable environment, List<File> libs) {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
             environment.types().put(type, new ParametricInfo(type, file, true, true, new Location()));
         }
-        ValueInfo nmodeInfo = ValueInfo.builder()
-                .name("nmode")
-                .file(file)
-                .isGlobal(true)
-                .isMonomorphic(false)
-                .location(new Location())
-                .isPublic(true)
-                .build();
-        environment.values().put("nmode", nmodeInfo);
+        // Makes generating docs crash. Uncomment when nmode experiment continues.
+        // ValueInfo nmodeInfo = ValueInfo.builder()
+        // .name("nmode")
+        // .file(file)
+        // .isGlobal(true)
+        // .isMonomorphic(false)
+        // .location(new Location())
+        // .isPublic(true)
+        // .build();
+        // environment.values().put("nmode", nmodeInfo);
     }
 
     static Bundle empty(PacioliFile file, List<File> libs) {
@@ -414,8 +419,13 @@ public class Bundle {
         for (String value : names) {
             ValueInfo info = environment.values().lookup(value);
             boolean fromProgram = info.generalInfo().module().equals(file.module());
-            if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
-                    && info.isUserDefined()) {
+            if (info.name().equals("nmode")) {
+                Pacioli.println("NMODE");
+            }
+            if ((includePrivate || info.isPublic()) && fromProgram
+            // && info.definition().isPresent()
+            // && info.isUserDefined()
+            ) {
                 TypeObject type = rewriteTypes ? info.localType() : info.publicType();
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
                 Pacioli.println("%s :: %s", info.name(), text);
@@ -435,6 +445,61 @@ public class Bundle {
         }
     }
 
+    public void genAPI(
+            List<File> includes,
+            String version,
+            File docFile,
+            String target) throws PacioliException, IOException {
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, true);
+
+        String extension;
+
+        switch (target) {
+            case "markdown": {
+                extension = ".md";
+                break;
+            }
+            case "structure": {
+                extension = ".txt";
+                break;
+            }
+            case "", "html": {
+                extension = ".html";
+                break;
+            }
+            default: {
+                throw new PacioliException("Unknown target: " + target);
+            }
+        }
+
+        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
+
+        Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
+
+        try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
+                PrintWriter writer = new PrintWriter(fileWriter)) {
+            generator.generate(writer, target);
+        } catch (Exception e) {
+            throw e;
+        }
+    }
+
+    public void printAPI(
+            List<File> includes,
+            String version,
+            File docFile,
+            String target) throws Exception {
+
+        // TODO: see if an earlier generated file exists and reuse that
+
+        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, false);
+
+        PrintWriter writer = new PrintWriter(System.out);
+        generator.generate(writer, target);
+        writer.flush();
+    }
+
     /**
      * Generates a html page with documentation for the bundle's module.
      * 
@@ -444,15 +509,13 @@ public class Bundle {
      * @throws PacioliException
      * @throws IOException
      */
-    public void printAPI(
-            File output,
+    public DocumentationGenerator libraryDocumentationGenerator(
             List<File> includes,
             String version,
-            File docFile) throws PacioliException, IOException {
+            File docFile,
+            boolean verbose) throws PacioliException, IOException {
 
-        FileWriter out = new FileWriter(output, Pacioli.CHARSET, false);
-        PrintWriter writer = new PrintWriter(out);
-        DocumentationGenerator generator = new DocumentationGenerator(writer, file.moduleName(), version);
+        DocumentationGenerator generator = new DocumentationGenerator(file.moduleName(), version);
 
         int nrValues = 0;
         int nrFunctions = 0;
@@ -460,40 +523,21 @@ public class Bundle {
         int nrIndexSets = 0;
 
         if (docFile.exists()) {
-            Pacioli.log("Found doc file %s, including contents...", docFile.getAbsolutePath());
+            Pacioli.logIf(verbose, "Found doc file %s, including contents...", docFile.getAbsolutePath());
             generator.setIntroFromDocFile(docFile);
         } else {
-            Pacioli.log("No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
+            Pacioli.logIf(verbose, "No doc file found at %s, using standard intro...", docFile.getAbsolutePath());
         }
 
-        Pacioli.log("Collecting exports...");
+        Pacioli.logIf(verbose, "Collecting exports...");
 
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
                     && info.location().file().isPresent()
-                    && includes.contains(info.location().file().get())
-                    && info.definition().isPresent()
-                    && info.isUserDefined()) {
-                ExpressionNode body = info.definition().get().body;
-                if (body instanceof LambdaNode) {
-                    LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.publicType());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.log("  no documentation for function %s", info.name());
-                    }
-                    nrFunctions++;
-                } else {
-                    generator.addValue(info.name(), info.publicType());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.log("  no documentation for value %s", info.name());
-                    }
-                    nrValues++;
-                }
+                    && includes.contains(info.location().file().get())) {
+                PrimitivesDocumentation.addInfo(info, generator);
+
             }
         }
 
@@ -509,7 +553,7 @@ public class Bundle {
                     if (info.generalInfo().documentation().isPresent()) {
                         generator.addTypeDoc(info.name(), info.generalInfo().documentation().get());
                     } else {
-                        Pacioli.log("  no documentation for type %s", info.name());
+                        Pacioli.logIf(verbose, "  no documentation for type %s", info.name());
                     }
                     nrTypes++;
                 }
@@ -518,25 +562,21 @@ public class Bundle {
                     if (info.generalInfo().documentation().isPresent()) {
                         generator.addIndexSetDoc(info.name(), info.generalInfo().documentation().get());
                     } else {
-                        Pacioli.log("  no documentation for index set %s", info.name());
+                        Pacioli.logIf(verbose, "  no documentation for index set %s", info.name());
                     }
                     nrIndexSets++;
                 }
             }
         }
 
-        Pacioli.log("Generating documentation entries...");
-        Pacioli.log("  types:       %s", nrTypes);
-        Pacioli.log("  index sets:  %s", nrIndexSets);
-        Pacioli.log("  values:      %s", nrValues);
-        Pacioli.log("  functions:   %s", nrFunctions);
+        // TODO: move to the caller!?
+        Pacioli.logIf(verbose, "Generating documentation entries...");
+        Pacioli.logIf(verbose, "  types:       %s", nrTypes);
+        Pacioli.logIf(verbose, "  index sets:  %s", nrIndexSets);
+        Pacioli.logIf(verbose, "  values:      %s", nrValues);
+        Pacioli.logIf(verbose, "  functions:   %s", nrFunctions);
 
-        generator.generate();
-
-        Pacioli.log("Writing file %s...", output.getAbsolutePath());
-
-        out.close();
-        writer.close();
+        return generator;
     }
 
     public void printSymbolTables() {

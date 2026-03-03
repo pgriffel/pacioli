@@ -29,7 +29,7 @@ import { getNumber } from "../raw-values/raw-matrix";
 import type { PacioliString } from "../values/string";
 import type { PacioliTuple } from "../values/tuple";
 import { moveObject, rotateObject, vector2THREE } from "./threejs";
-import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper";
+import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 
 /**
  * Are VertexNormalsHelper normals added to a mesh?

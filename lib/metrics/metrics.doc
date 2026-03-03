@@ -1,12 +1,11 @@
-<p>
 Some funtioncs to work with metrics.
 
-<p>
-A metric matrix has form <code> a^2/P!u per P!u </code>
+A metric matrix has form `a^2/P!u per P!u`
 
-<pre>
-define my_svd =
-    gsvd(my_metric_left, my_metric_right);
+Example
 
-my_svd(A);
-</pre>
+    define my_svd =
+        gsvd(my_metric_left, my_metric_right);
+
+    my_svd(A);
+

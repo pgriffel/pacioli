@@ -20,30 +20,57 @@
  * SOFTWARE.
  */
 
-import type { LineChartOptions } from "../../charts/d3-line-chart";
 import { LineChart } from "../../charts/d3-line-chart";
 import { PacioliContext } from "../../context";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the histogram component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["caption", "margin", "label", "xlabel", "unit", "xunit", "yunit"],
+const LINE_CHART_ATTRIBUTES = {
+  strings: ["label", "xlabel", "unit", "xunit", "yunit"],
   booleans: ["smooth", "rotate"],
-  numbers: [
-    "width",
-    "height",
-    "decimals",
-    "norm",
-    "ylower",
-    "yupper",
-    "xticks",
-    "yticks",
-  ],
+  numbers: ["norm", "ylower", "yupper", "xticks", "yticks"],
 };
+
+/**
+ * Types for the histogram attributes
+ */
+export interface LineChartAttributes extends ChartsAttributes {
+  unit: string;
+  label: string;
+  xlabel: string;
+  xunit: string;
+  yunit: string;
+  smooth: boolean;
+  rotate: boolean;
+  norm: number;
+  ylower: number;
+  yupper: number;
+  xticks: number;
+  yticks: number;
+}
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
+  LINE_CHART_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the line chart
@@ -83,12 +110,12 @@ const STYLES = `
 /**
  * Web component for a line chart. A wrapper around the LineChart class.
  */
-export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
+export class PacioliLineChartComponent extends PacioliChartComponent {
   /**
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): string {
+  get unit(): string | undefined {
     return this.getStringAttribute("unit");
   }
 
@@ -100,7 +127,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement in the x direction. Is derived from the data if no
    * unit attribute is given.
    */
-  get xunit(): string {
+  get xunit(): string | undefined {
     return this.getStringAttribute("xunit");
   }
 
@@ -112,7 +139,7 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
    * The unit of measurement in the y direction. Is derived from the data if no
    * unit attribute is given.
    */
-  get yunit(): string {
+  get yunit(): string | undefined {
     return this.getStringAttribute("yunit");
   }
 
@@ -159,21 +186,10 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   chart?: LineChart;
 
   /**
-   * The Pacioli value displayed in the chart.
-   */
-  data?: PacioliValue;
-  /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "unit",
-    "xunit",
-    "yunit",
-    "smooth",
-    "ylower",
-    "yupper",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();
@@ -181,43 +197,31 @@ export class PacioliLineChartComponent extends PacioliShadowTreeComponent {
   }
 
   /**
-   * Web component life-cycle event.
+   * ChartComponent method.
    */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.drawChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    this.data = this.evaluateDefinition();
-
-    this.drawChart(this.data);
-  }
-
-  private drawChart(data: PacioliValue) {
+  override drawChart(data: PacioliValue) {
     this.clearContent();
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<LineChartOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<LineChartAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<LineChartAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.chart = new LineChart(data, PacioliContext.si(), options);
+
+    // intercept click handler and dispatch as event
+    const defaultHandler = this.chart.clickHandler;
+    this.chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      this.chart.tooltipText = undefined;
+    }
 
     this.chart.draw(this.contentParent());
   }

@@ -24,8 +24,8 @@ import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
   addButtonEventListener,
   addCheckBoxEventListener,
-  targetElements,
-} from "../utils";
+} from "../utils/attributes";
+import { targetElements } from "../utils/definition";
 import type { PacioliSceneComponent } from "./pacioli-scene";
 
 const TEMPLATE = document.createElement("template");

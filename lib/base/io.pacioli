@@ -37,7 +37,7 @@ declare_primitive with_output_file(path, body) ::
 # ----------------------------------------------------------------------------
 
 doc write_string
-    "Write a string to a file. Use <code>with_output_file</code> to get a file
+    "Write a string to a file. Use `with_output_file` to get a file
     handle.";
 
 declare_primitive write_string(file, text) ::

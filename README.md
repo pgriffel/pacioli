@@ -28,10 +28,7 @@ The repository contains a 'launch.json' file for running from source.
 ## Command line
 
 The compiler is a Java application that compiles and runs Pacioli programs.
-See also the [installation][install] and [building from source][build] pages.
-
-[install]: install
-[build]: build
+See also the [installation](INSTALL.md) and [building from source](BUILD.md) pages.
 
 ### Running the compiler
 

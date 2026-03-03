@@ -7,7 +7,7 @@
 
     <title>Pacioli-js Tests</title>
 
-    <script type="text/javascript" src="../js/pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="../js/pacioli-0.6.0.bundle.js"></script>
     <link rel="stylesheet" href="pacioli_js.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
@@ -432,6 +432,14 @@
 
         const newChart = document.createElement("pacioli-bar-chart")
 
+        // newChart.setAttribute("notooltip", "")
+
+        newChart.setAttribute("nopopup", "")
+
+        newChart.addEventListener('onclick', (e) => {
+            alert(`Custom text: ${e.detail.label} = ${e.detail.number.toFixed(3)}`);
+        })
+
         slot.appendChild(newChart)
 
         newChart.definition = "web_components:land_area"
@@ -455,6 +463,18 @@
 
         lineCharts[0].yupper = input.value
     }
+
+    // attach listeners to verify bubbling of onclick events for all chart types
+    window.addEventListener('load', () => {
+        ['pacioli-bar-chart', 'pacioli-line-chart', 'pacioli-pie-chart', 'pacioli-histogram', 'pacioli-scatter-plot', 'pacioli-wordcloud'].forEach(tag => {
+            document.querySelectorAll(tag).forEach((elt) => {
+                elt.addEventListener('onclick', (e) => {
+                    console.log(`clicked ${tag}`, e.detail);
+                    alert(`Clicked ${tag}: ${JSON.stringify(e.detail)}`);
+                });
+            });
+        });
+    });
 
     // TODO: test options attribute. The options attribute passes options from a Pacioli script to a chart!?
 </script>

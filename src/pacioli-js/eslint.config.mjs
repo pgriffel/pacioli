@@ -15,6 +15,7 @@ export default defineConfig([
   eslintPluginUnicorn.configs.recommended,
   {
     rules: {
+      "unicorn/no-array-reduce": "off", // meh
       "unicorn/prevent-abbreviations": "off", // meh
       "unicorn/catch-error-name": "off", // meh
       "unicorn/prefer-dom-node-append": "off", // meh
@@ -45,9 +46,9 @@ export default defineConfig([
       "@typescript-eslint/no-for-in-array": "off",
       "@typescript-eslint/no-deprecated": "off",
       "@typescript-eslint/no-unnecessary-condition": "off",
-      "@typescript-eslint/strict-boolean-expressions": "error",
-      "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-import-type-side-effects": "error",
+      "@typescript-eslint/strict-boolean-expressions": "warn",
+      "@typescript-eslint/consistent-type-imports": "warn",
+      "@typescript-eslint/no-import-type-side-effects": "warn",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {

@@ -6,7 +6,7 @@ module.exports = (env) => {
     mode: env.mode ?? "production",
     output: {
       path: path.resolve(__dirname, "dist"),
-      filename: "pacioli-0.5.1.bundle.js",
+      filename: "pacioli-0.6.0.bundle.js",
       library: "Pacioli",
     },
     resolve: {

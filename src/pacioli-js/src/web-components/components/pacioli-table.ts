@@ -20,46 +20,37 @@
  * SOFTWARE.
  */
 
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
 import {
-  evaluateWebComponentDefinition,
-  optionsFromAttributes,
-  optionsFromScript,
-} from "../utils";
+  NUMBER_ATTRIBUTES,
+  PacioliNumberComponent,
+} from "../pacioli-number-component";
 import { DOMTable } from "../../dom/dom";
 import type { PacioliTuple } from "../../values/tuple";
 import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliMatrix } from "../../values/matrix";
 import { PacioliError } from "../../pacioli-error";
-import {
-  getBooleAttribute,
-  getNumberAttribute,
-  getStringAttribute,
-} from "../pacioli-web-component";
 import type { PacioliList } from "../../values/list";
 import type { SIUnit } from "uom-ts";
 import { parseUnit } from "../../api";
-
-/**
- * Options for Pacioli's table component.
- */
-export interface TableOptions {
-  decimals: number;
-  zero?: string;
-  nozerorows: boolean;
-  totals: boolean;
-  ignoredecimals: boolean;
-  exponential: boolean;
-  ascii: boolean;
-  clipboard: boolean;
-}
+import type { NumberAttributes } from "../pacioli-number-component";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+  getStringAttribute,
+  getNumberAttribute,
+  getBooleAttribute,
+} from "../utils/attributes";
+import { evaluateWebComponentDefinition } from "../utils/definition";
 
 interface ColumnData {
   header: string;
   value: PacioliMatrix | PacioliList;
   unit?: SIUnit;
   decimals?: number;
-  ignoredecimals?: boolean;
+  raw?: boolean;
   exponential?: boolean;
   showTotal?: boolean;
   total?: PacioliMatrix;
@@ -68,18 +59,25 @@ interface ColumnData {
 /**
  * Attribues supported by the table component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["zero"],
-  booleans: [
-    "nozerorows",
-    "ignoredecimals",
-    "exponential",
-    "totals",
-    "ascii",
-    "clipboard",
-  ],
-  numbers: ["decimals"],
+const TABLE_ATTRIBUTES = {
+  strings: [],
+  booleans: ["nozerorows", "totals"],
+  numbers: [],
 };
+
+/**
+ * Attribues for Pacioli's table component.
+ */
+export interface TableAttributes extends NumberAttributes {
+  nozerorows: boolean;
+  totals: boolean;
+}
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  TABLE_ATTRIBUTES,
+);
 
 function pacioliTableError(message: string): PacioliError {
   return new PacioliError(
@@ -98,10 +96,10 @@ const VALID_TABLE_DATA_MESSAGE = `Valid chart data for a table is
  * Style sheet for the table component
  */
 const STYLES = ` 
-.pacioli-table {
-
-border-spacing: 0;
-border-collapse: collapse;
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+}
 
 tr {
    height: 28px;
@@ -140,22 +138,21 @@ td.unit {
 td.total {
   font-weight: bold;
 }
-}
 `;
 
 /**
  * Web component for a table. A wrapper around the DOMTable function.
  */
-export class PacioliTableComponent extends PacioliShadowTreeComponent {
+export class PacioliTableComponent extends PacioliNumberComponent {
   /**
    * Is a total row added?
    */
-  get totals(): string {
-    return this.getStringAttribute("totals");
+  get totals(): boolean {
+    return this.getBooleAttribute("totals");
   }
 
-  set totals(value: string) {
-    this.setStringAttribute("totals", value);
+  set totals(value: boolean) {
+    this.setBooleAttribute("totals", value);
   }
 
   /**
@@ -167,50 +164,6 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
 
   set nozerorows(value: boolean) {
     this.setBooleAttribute("nozerorows", value);
-  }
-
-  /**
-   * Is the decimals attribute ignored?
-   */
-  get ignoredecimals(): boolean {
-    return this.getBooleAttribute("ignoredecimals");
-  }
-
-  set ignoredecimals(value: boolean) {
-    this.setBooleAttribute("ignoredecimals", value);
-  }
-
-  /**
-   * Is the table displayed in ASCII format?
-   */
-  get ascii(): boolean {
-    return this.getBooleAttribute("ascii");
-  }
-
-  set ascii(value: boolean) {
-    this.setBooleAttribute("ascii", value);
-  }
-
-  /**
-   * Is the table displayed in clipboard format?
-   */
-  get clipboard(): boolean {
-    return this.getBooleAttribute("clipboard");
-  }
-
-  set clipboard(value: boolean) {
-    this.setBooleAttribute("clipboard", value);
-  }
-
-  /**
-   * Is exponential notation for numbers used?
-   */
-  get exopnential(): boolean {
-    return this.getBooleAttribute("exopnential");
-  }
-
-  set exopnential(value: boolean) {
-    this.setBooleAttribute("exopnential", value);
   }
 
   /**
@@ -227,16 +180,8 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   /**
    * Web component field.
    */
-  static readonly observedAttributes = [
-    "definition",
-    "decimals",
-    "totals",
-    "nozerorows",
-    "ignoredecimals",
-    "exopnential",
-    "ascii",
-    "clipboard",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   /**
    * Web component life-cycle event.
@@ -263,7 +208,9 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
   override parametersChanged(): void {
     this.columns = this.collectColumns();
 
-    this.drawTable(this.columns);
+    if (this.columns !== undefined && this.columns.length > 0) {
+      this.drawTable(this.columns);
+    }
   }
 
   collectColumns(): ColumnData[] {
@@ -278,8 +225,8 @@ export class PacioliTableComponent extends PacioliShadowTreeComponent {
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<TableOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<TableOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<TableAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<TableAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.contentParent().appendChild(DOMTable(columns, options));
@@ -301,12 +248,11 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
       const decimals = element.hasAttribute("decimals")
         ? getNumberAttribute(element, "decimals")
         : undefined;
-      const ignoredecimals = getBooleAttribute(element, "ignoredecimals");
+      const raw = getBooleAttribute(element, "raw");
       const exponential = getBooleAttribute(element, "exponential");
       const showTotal = getBooleAttribute(element, "totals");
-      const unit = element.hasAttribute("unit")
-        ? parseUnit(getStringAttribute(element, "unit"))
-        : undefined;
+      const unitAtt = getStringAttribute(element, "unit");
+      const unit = unitAtt === undefined ? undefined : parseUnit(unitAtt);
 
       const value = evaluateWebComponentDefinition(element);
 
@@ -321,7 +267,7 @@ function columnDataFromChildElements(element: HTMLElement): ColumnData[] {
         value: value,
         unit,
         decimals,
-        ignoredecimals,
+        raw,
         exponential,
         showTotal,
       });

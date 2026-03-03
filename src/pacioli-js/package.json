@@ -1,6 +1,6 @@
 {
   "name": "pacioli-ts",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Pacioli typescript runtime system",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,8 +14,8 @@
     "build": "node esbuild.js && tsc --emitDeclarationOnly",
     "build:tsc": "tsc",
     "bundle": "npm run build:tsc && webpack",
-    "bundle:dev": "rm -f \"/dist/pacioli-0.5.1.bundle.js\" && npm run build:tsc && webpack --env mode=development && cp \"dist/pacioli-0.5.1.bundle.js\" \"../../js/pacioli-0.5.1.bundle.js\"",
-    "bundle:win": "del \"dist\\pacioli-0.5.1.bundle.js\" && npm run build:tsc && webpack --env mode=development && copy \"dist\\pacioli-0.5.1.bundle.js\" \"..\\..\\js\\pacioli-0.5.1.bundle.js\"",
+    "bundle:dev": "rm -f \"/dist/pacioli-0.6.0.bundle.js\" && npm run build:tsc && webpack --env mode=development && cp \"dist/pacioli-0.6.0.bundle.js\" \"../../js/pacioli-0.6.0.bundle.js\"",
+    "bundle:win": "del \"dist\\pacioli-0.6.0.bundle.js\" && npm run build:tsc && webpack --env mode=development && copy \"dist\\pacioli-0.6.0.bundle.js\" \"..\\..\\js\\pacioli-0.6.0.bundle.js\"",
     "bundle:esbuild": "node esbundle.js",
     "package": "npm run build && npm pack",
     "package:tsc": "npm run build:tsc && npm pack",

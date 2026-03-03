@@ -505,6 +505,6 @@ export function bandChartDataFromVector(
     unit: data.getUnit(0, 0),
     max: max ?? 0,
     min: min ?? 0,
-    label: shape.rowName(),
+    label: shape.rowHeader(),
   };
 }

@@ -21,9 +21,13 @@
  */
 
 import * as fc from "fast-check";
+import "jasmine";
 import { arbitraryShape } from "./context.arbitraries";
 import { testContext } from "./test-context";
-import "jasmine";
+import { MatrixShape, SIVector } from "../src/values/matrix-shape";
+import { SIUnit, UOM } from "uom-ts";
+import { MatrixDimension } from "../src/values/matrix-dimension";
+import { VectorBase } from "../src/values/vector-base";
 
 describe("Shape", () => {
   describe("rowOrder", () => {
@@ -75,6 +79,55 @@ describe("Shape", () => {
           },
         ),
       );
+    });
+  });
+
+  describe("reorder", () => {
+    it("should should change a (1,1) matix into a (2,0) vector", () => {
+      const Geom3 = testContext.findIndexSet("Geom3");
+      const Geom3Standard = testContext.findUnitVector("Geom3!standard");
+      const Person = testContext.findIndexSet("Person");
+
+      if (
+        Geom3 === undefined ||
+        Geom3Standard === undefined ||
+        Person === undefined
+      ) {
+        console.log(Geom3, Geom3Standard, Person);
+        throw new Error("Incorrect test setup!!!");
+      }
+
+      const base = new VectorBase(Geom3Standard, 0, "Geom3!standard");
+
+      const shapeA = new MatrixShape(
+        SIUnit.ONE,
+        new MatrixDimension([Person]),
+        SIVector.ONE,
+        new MatrixDimension([Geom3, Geom3]),
+        UOM.fromBase(base).mult(UOM.fromBase(base.shift(1))),
+      );
+
+      const shapeB = new MatrixShape(
+        SIUnit.ONE,
+        new MatrixDimension([Person, Geom3]),
+        UOM.fromBase(base.shift(1)).reciprocal(),
+        new MatrixDimension([Geom3]),
+        UOM.fromBase(base),
+      );
+
+      expect(shapeA.toText()).toEqual(
+        "(|Person||Geom3 % Geom3|Geom3!standard:0*Geom3!standard:1|)",
+      );
+
+      expect(shapeB.toText()).toEqual(
+        "(|Person % Geom3|/Geom3!standard:1|Geom3|Geom3!standard:0|)",
+      );
+
+      expect(shapeA.reorder(2, 1).toText()).toEqual(
+        "(|Person % Geom3|/Geom3!standard:1|Geom3|Geom3!standard:0|)",
+      );
+
+      expect(shapeA.reorder(2, 1).equals(shapeB)).toEqual(true);
     });
   });
 });

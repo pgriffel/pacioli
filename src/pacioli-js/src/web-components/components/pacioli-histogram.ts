@@ -21,25 +21,33 @@
  */
 
 import { PacioliContext } from "../../context";
-import type { HistogramOptions } from "../../charts/d3-histogram";
 import { Histogram } from "../../charts/d3-histogram";
-import { PacioliShadowTreeComponent } from "../pacioli-shadow-tree-component";
-import { optionsFromAttributes, optionsFromScript } from "../utils";
+import { NUMBER_ATTRIBUTES } from "../pacioli-number-component";
 import type { PacioliValue } from "../../values/pacioli-value";
+import { COMMON_ATTRIBUTES } from "../pacioli-web-component";
+import {
+  mergeAttributeSpecs,
+  collectAllAttributes,
+  optionsFromScript,
+  optionsFromAttributes,
+} from "../utils/attributes";
+import type {
+  ChartsAttributes} from "../pacioli-chart-component";
+import {
+  CHART_ATTRIBUTES,
+  PacioliChartComponent,
+} from "../pacioli-chart-component";
 
 /**
  * Attribues supported by the histogram component
  */
-const SUPPORTED_ATTRIBUTES = {
-  strings: ["unit", "margin", "caption", "xlabel", "ylabel", "heuristic"],
+const HISTOGRAM_ATTRIBUTES = {
+  strings: ["unit", "xlabel", "ylabel", "heuristic"],
   booleans: [],
   numbers: [
-    "width",
-    "height",
     "bins",
     "lower",
     "upper",
-    "decimals",
     "gap",
     "ylower",
     "yupper",
@@ -47,6 +55,31 @@ const SUPPORTED_ATTRIBUTES = {
     "yticks",
   ],
 };
+
+/**
+ * Types for the histogram attributes
+ */
+export interface HistogramAttributes extends ChartsAttributes {
+  unit: string;
+  xlabel: string;
+  ylabel: string;
+  heuristic: string;
+  bins: number;
+  lower: number;
+  upper: number;
+  gap: number;
+  ylower: number;
+  yupper: number;
+  xticks: number;
+  yticks: number;
+}
+
+const SUPPORTED_ATTRIBUTES = mergeAttributeSpecs(
+  COMMON_ATTRIBUTES,
+  NUMBER_ATTRIBUTES,
+  CHART_ATTRIBUTES,
+  HISTOGRAM_ATTRIBUTES,
+);
 
 /**
  * Style sheet for the histogram component
@@ -84,7 +117,7 @@ const STYLES = `
 /**
  * Web component for a histogram. A wrapper around the Histogram class.
  */
-export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
+export class PacioliHistogramComponent extends PacioliChartComponent {
   /**
    * Label of the x-axis
    */
@@ -111,7 +144,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    * The unit of measurement. Is derived from the data if no unit attribute
    * is given.
    */
-  get unit(): string {
+  get unit(): string | undefined {
     return this.getStringAttribute("unit");
   }
 
@@ -122,7 +155,7 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   /**
    * The heuristic used for the number of bins.
    */
-  get heuristic(): string {
+  get heuristic(): string | undefined {
     return this.getStringAttribute("heuristic");
   }
 
@@ -169,58 +202,14 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
   chart?: Histogram;
 
   /**
-   * The data displayed in the histogram
-   */
-  data?: PacioliValue;
-
-  /**
    * Web component field.
    */
-  static observedAttributes = [
-    "definition",
-    "unit",
-    "bins",
-    "lower",
-    "upper",
-    "ylower",
-    "yupper",
-    "heuristic",
-    "gap",
-  ];
+  static readonly observedAttributes =
+    collectAllAttributes(SUPPORTED_ATTRIBUTES);
 
   constructor() {
     super();
     this.adoptStyles(STYLES);
-  }
-
-  /**
-   * Web component life-cycle event.
-   */
-  attributeChangedCallback(name: string, _oldValue: string, _newValue: string) {
-    try {
-      if (this.data !== undefined) {
-        // Reload the data if the definition changes. The initial load is done in
-        // parametersChanged.
-        if (name === "definition") {
-          this.data = this.evaluateDefinition();
-        }
-
-        this.updateChart(this.data);
-      }
-    } catch (err: unknown) {
-      this.displayError(err instanceof Error ? err.message : String(err));
-    }
-  }
-
-  /**
-   * Pacioli web component life-cycle event.
-   */
-  override parametersChanged(): void {
-    // Compute the data using the new parameter values
-    this.data = this.evaluateDefinition();
-
-    // Refresh the chart
-    this.updateChart(this.data);
   }
 
   /**
@@ -230,16 +219,32 @@ export class PacioliHistogramComponent extends PacioliShadowTreeComponent {
    *
    * @param data The data to display in the chart
    */
-  private updateChart(data: PacioliValue) {
+  override drawChart(data: PacioliValue) {
     this.clearContent();
     this.clearErrors();
 
     const options = {
-      ...optionsFromScript<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
-      ...optionsFromAttributes<HistogramOptions>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromScript<HistogramAttributes>(this, SUPPORTED_ATTRIBUTES),
+      ...optionsFromAttributes<HistogramAttributes>(this, SUPPORTED_ATTRIBUTES),
     };
 
     this.chart = new Histogram(data, PacioliContext.si(), options);
+
+    // Intercept the click handler and dispatch the clicks as events.
+    // The default click handler can be turned of by the 'nopopup'
+    // attribute.
+    const defaultHandler = this.chart.clickHandler;
+    this.chart.clickHandler = (event) => {
+      this.dispatchEvent(event);
+
+      if (!this.nopopup && defaultHandler) {
+        defaultHandler(event);
+      }
+    };
+
+    if (this.notooltip) {
+      this.chart.tooltipText = undefined;
+    }
 
     this.chart.draw(this.contentParent());
   }

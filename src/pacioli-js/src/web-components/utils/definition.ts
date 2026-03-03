@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright 2026 Paul Griffioen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -21,16 +21,16 @@
  */
 
 import type { SIUnit } from "uom-ts";
-import type { PacioliString } from "../values/string";
-import type { PacioliMatrix } from "../values/matrix";
-import { num, parseDimNum, value } from "../api";
-import { PacioliFunction } from "../values/function";
-import type { PacioliValue } from "../values/pacioli-value";
-import type { PacioliWebComponent } from "./pacioli-web-component";
-import type { PacioliBoole } from "../values/boole";
-import { pacioliFalse, pacioliTrue } from "../values/boole";
-import { string } from "../cache";
-import { PacioliError } from "../pacioli-error";
+import type { PacioliString } from "../../values/string";
+import type { PacioliMatrix } from "../../values/matrix";
+import { num, parseDimNum, value } from "../../api";
+import { PacioliFunction } from "../../values/function";
+import type { PacioliValue } from "../../values/pacioli-value";
+import type { PacioliWebComponent } from "../pacioli-web-component";
+import type { PacioliBoole } from "../../values/boole";
+import { pacioliFalse, pacioliTrue } from "../../values/boole";
+import { string } from "../../cache";
+import { PacioliError } from "../../pacioli-error";
 
 /**
  * Types for the parsed PacioliSceneComponent parameters. The parameters are passed via
@@ -161,7 +161,6 @@ export function addParametersObserver(
   element: PacioliWebComponent,
 ): MutationObserver {
   const observer = new MutationObserver(() => {
-    // element.parametersChanged();
     try {
       element.parametersChanged();
     } catch (err: unknown) {
@@ -169,7 +168,11 @@ export function addParametersObserver(
     }
   });
 
-  observer.observe(element, { childList: true, subtree: true });
+  observer.observe(element, {
+    attributes: false,
+    childList: true,
+    subtree: true,
+  });
 
   return observer;
 }
@@ -276,248 +279,4 @@ export function targetElements(element: HTMLElement): HTMLElement[] {
     }
     return components;
   }
-}
-
-/**
- * The Pacioli web component that is referenced by an element's 'for' attribute. Returns
- * undefined if no such component is found.
- *
- * @param element The element with the 'for' attribute
- * @returns The referenced element, or undefined if it is not found.
- */
-export function getPacioliWebComponentById(
-  elementId: string,
-): PacioliWebComponent | null {
-  const element = document.getElementById(elementId);
-
-  if (element) {
-    if ("setParameters" in element) {
-      return element as PacioliWebComponent;
-    } else {
-      throw new Error(
-        `Id ${elementId} does not reference a Pacioli web component. Please provide a valid id.`,
-      );
-    }
-  } else {
-    return null;
-  }
-}
-
-/**
- * Collects existing string attribute values from an element.
- *
- * @param element A DOM element
- * @param attributes A list of attribute names
- * @returns An object with an entry for each attribute in argument attributes that exists
- * in element
- */
-export function optionalStringAttributes(
-  element: HTMLElement,
-  attributes: string[],
-) {
-  let object = {};
-  for (const attribute of attributes) {
-    const value = element.getAttribute(attribute);
-    if (value !== null) {
-      object = { ...object, [attribute]: value };
-    }
-  }
-  return object;
-}
-
-/**
- * Collects existing numeric attribute values from an element.
- *
- * @param element A DOM element
- * @param attributes A list of attribute names
- * @returns An object with an entry for each attribute in argument attributes that exists
- * in element
- */
-export function optionalNumberAttributes(
-  element: HTMLElement,
-  attributes: string[],
-) {
-  let object = {};
-  for (const attribute of attributes) {
-    const value = element.getAttribute(attribute);
-    if (value !== null) {
-      const num = Number(value);
-      if (Number.isFinite(num)) {
-        object = { ...object, [attribute]: num };
-      } else {
-        throw new Error(`Invalid number ${value} for attritube ${attribute}`);
-      }
-    }
-  }
-  return object;
-}
-
-/**
- * Collects boolean attribute values from an element.
- *
- * @param element A DOM element
- * @param attributes A list of attribute names
- * @returns An object with an entry for each attribute in argument attributes
- */
-export function optionalBooleanAttributes(
-  element: HTMLElement,
-  attributes: string[],
-) {
-  let object = {};
-  for (const attribute of attributes) {
-    object = { ...object, [attribute]: element.hasAttribute(attribute) };
-  }
-  return object;
-}
-
-/**
- * Unfinished experiment to check the validity of encountered web-component attributes.
- */
-const FLAG_EXPERIMENT_CHECK_ATTRIBUTES: boolean = false;
-
-export function optionsFromAttributes<Options>(
-  element: HTMLElement,
-  supportedAttributes: {
-    strings: string[];
-    booleans: string[];
-    numbers: string[];
-  },
-): Partial<Options> {
-  if (FLAG_EXPERIMENT_CHECK_ATTRIBUTES) {
-    const SYSTEM_ATTRIBUTES = ["id", "definition"];
-
-    for (const attribute of element.getAttributeNames()) {
-      if (
-        !SYSTEM_ATTRIBUTES.includes(attribute) &&
-        !supportedAttributes.strings.includes(attribute) &&
-        !supportedAttributes.booleans.includes(attribute) &&
-        !supportedAttributes.numbers.includes(attribute)
-      ) {
-        console.warn(`Skipping unknown attribute ${attribute}`);
-      }
-    }
-  }
-
-  return {
-    ...optionalStringAttributes(element, supportedAttributes.strings),
-    ...optionalBooleanAttributes(element, supportedAttributes.booleans),
-    ...optionalNumberAttributes(element, supportedAttributes.numbers),
-  };
-}
-
-export function optionsFromScript<Options>(
-  element: HTMLElement,
-  supportedAttributes: {
-    strings: string[];
-    booleans: string[];
-    numbers: string[];
-  },
-): Partial<Options> {
-  if (!element.hasAttribute("options")) {
-    return {};
-  }
-
-  const optionValue = evaluateWebComponentDefinition(element, "options");
-  // TODO: accept tuples?! Zie random_vec_histogram_options in web_components.pacioli
-  if (optionValue.kind === "list") {
-    const table = new Map<string, string | null>();
-
-    for (const item of optionValue) {
-      if (item.kind !== "tuple") {
-        throw new Error(
-          `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`,
-        );
-      }
-      if (item[0].kind !== "string") {
-        throw new Error(
-          `chart option key must be a string, got a ${item[0].kind}`,
-        );
-      }
-      if (item[1].kind !== "string") {
-        throw new Error(
-          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`,
-        );
-      }
-      if (table.has(item[0].value)) {
-        console.warn(`Duplicate chart attribute ${item[0].value}`);
-      }
-      const key = item[0].value;
-      const value = item[1].value;
-      table.set(key, value);
-    }
-
-    let object = {};
-
-    for (const attribute of supportedAttributes.strings) {
-      if (table.has(attribute)) {
-        object = { ...object, [attribute]: table.get(attribute) };
-        table.set(attribute, null);
-      }
-    }
-
-    for (const attribute of supportedAttributes.booleans) {
-      if (table.has(attribute)) {
-        object = { ...object, [attribute]: table.get(attribute) === "true" };
-        table.set(attribute, null);
-      }
-    }
-
-    for (const attribute of supportedAttributes.numbers) {
-      if (table.has(attribute)) {
-        const value = table.get(attribute);
-        const num = Number(value);
-        if (Number.isFinite(num)) {
-          object = { ...object, [attribute]: num };
-          table.set(attribute, null);
-        } else {
-          throw new Error(
-            `invalid number ${num.toString()} for attritube ${attribute}`,
-          );
-        }
-      }
-    }
-
-    for (const key of table.keys()) {
-      if (table.get(key) !== null) {
-        console.warn(`Ignoring unknown chart option '${key}'`);
-      }
-    }
-
-    return object;
-  } else {
-    throw new Error(
-      `attribute options must be a list, got a ${optionValue.kind}`,
-    );
-  }
-}
-
-export function addInputEventListener(
-  inputElement: HTMLInputElement,
-  handler: (value: string) => void,
-) {
-  inputElement.addEventListener("change", (event: Event) => {
-    event.preventDefault();
-    const target = event.target as HTMLInputElement;
-    handler(target.value);
-  });
-}
-
-export function addButtonEventListener(
-  element: HTMLButtonElement,
-  handler: () => void,
-) {
-  element.addEventListener("click", (event: Event) => {
-    handler();
-    event.preventDefault();
-  });
-}
-
-export function addCheckBoxEventListener(
-  element: HTMLElement,
-  handler: (checked: boolean) => void,
-) {
-  element.addEventListener("change", (event: Event) => {
-    event.preventDefault();
-    handler((event.target as HTMLInputElement).checked);
-  });
 }

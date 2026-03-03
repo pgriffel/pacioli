@@ -30,7 +30,7 @@ import type { SIUnit } from "uom-ts";
 
 type DOMOptions = {
   decimals: number;
-  ignoredecimals: boolean;
+  raw: boolean;
   exponential: boolean;
   zero: string;
   nozerorows: boolean;
@@ -130,7 +130,7 @@ export function DOMTable(
     value: PacioliMatrix | PacioliList;
     unit?: SIUnit;
     decimals?: number;
-    ignoredecimals?: boolean;
+    raw?: boolean;
     exponential?: boolean;
     showTotal?: boolean;
     total?: PacioliMatrix;
@@ -141,7 +141,7 @@ export function DOMTable(
     const columnOptions: Partial<TableColumnOptions> = {
       decimals: column.decimals,
       unit: column.unit,
-      ignoredecimals: column.ignoredecimals,
+      raw: column.raw,
       exponential: column.exponential,
       showTotal: column.showTotal,
       total: column.total,

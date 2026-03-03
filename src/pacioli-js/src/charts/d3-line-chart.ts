@@ -55,10 +55,14 @@ export interface LineChartOptions extends DefaultChartOptions {
   rotate?: boolean;
   smooth?: boolean;
   zeros?: boolean;
-  onclick?: (x: DimNum, y: DimNum, options: LineChartOptions) => void;
-  tooltip?: (x: DimNum, y: DimNum, options: LineChartOptions) => string;
   tooltipOffset: { dx: number; dy: number };
 }
+
+export type LineChartEvent = CustomEvent<{
+  number: DimNum;
+  label: DimNum;
+  options: LineChartOptions;
+}>;
 
 const DEFAULT_CHART_MARGIN = { left: 64, top: 32, right: 16, bottom: 40 };
 
@@ -75,8 +79,6 @@ const DEFAULT_LINE_CHART_OPTIONS = {
   smooth: false,
   zeros: true,
   convert: true,
-  onclick: lineChartClickHandler,
-  tooltip: lineChartTooltip,
   tooltipOffset: { dx: 16, dy: -64 },
 };
 
@@ -93,6 +95,12 @@ const DEFAULT_LINE_CHART_OPTIONS = {
  */
 export class LineChart {
   public readonly options: LineChartOptions;
+
+  /** click handler invoked with a ChartEvent */
+  clickHandler?: (event: LineChartEvent) => void = lineChartClickHandler;
+
+  /** tooltip generator invoked with a ChartEvent; returns HTML text */
+  tooltipText?: (event: LineChartEvent) => string = lineChartTooltip;
 
   constructor(
     public readonly data: PacioliValue,
@@ -161,7 +169,15 @@ export class LineChart {
           `translate(${m.left.toString()},${m.top.toString()})`,
         );
 
-      appendLineChart(group, data, w, h, this.options);
+      appendLineChart(
+        group,
+        data,
+        w,
+        h,
+        this.options,
+        this.clickHandler,
+        this.tooltipText,
+      );
     }
 
     // Add the caption above all other elements
@@ -176,15 +192,11 @@ export class LineChart {
  * @param number
  * @param options
  */
-function lineChartClickHandler(
-  label: DimNum,
-  number: DimNum,
-  options: LineChartOptions,
-) {
+function lineChartClickHandler(event: LineChartEvent) {
+  const { label, number, options } = event.detail;
+
   alert(
-    `${options.xlabel} = ${label.toText()}\n${
-      options.ylabel
-    } = ${number.toText()}`,
+    `${options.xlabel} = ${label.toText()}\n${options.ylabel} = ${number.toText()}`,
   );
 }
 
@@ -196,11 +208,8 @@ function lineChartClickHandler(
  * @param options
  * @returns
  */
-function lineChartTooltip(
-  label: DimNum,
-  number: DimNum,
-  options: LineChartOptions,
-) {
+function lineChartTooltip(event: LineChartEvent) {
+  const { label, number, options } = event.detail;
   return `${options.xlabel} = ${label.toFixed(options.decimals)} <br> ${
     options.ylabel
   } = ${number.toFixed(options.decimals)}`;
@@ -221,6 +230,8 @@ function appendLineChart(
   w: number,
   h: number,
   options: LineChartOptions,
+  clickHandler?: (event: LineChartEvent) => void,
+  tooltipText?: (event: LineChartEvent) => string,
 ) {
   const yMin = options.ylower ?? data.yLower;
   const yMax = options.yupper ?? data.yUpper;
@@ -355,30 +366,36 @@ function appendLineChart(
     .style("pointer-events", "all")
     // .style("display", "none")
     .on("click", (_, entry) => {
-      const handler = options.onclick;
-
-      if (handler) {
+      if (clickHandler) {
         tooltip.hide();
         tooltipDot.style("display", "none");
 
+        const evt: LineChartEvent = new CustomEvent("onclick", {
+          detail: {
+            number: DimNum.fromNumber(entry.y, data.yUnit),
+            label: DimNum.fromNumber(entry.x, data.xUnit),
+            // using x as label for consistency with earlier API
+            options,
+          },
+        });
+
         // Without the timeout the tooltip.hide and display: none do not have an effect
         setTimeout(() => {
-          handler(
-            DimNum.fromNumber(entry.x, data.xUnit),
-            DimNum.fromNumber(entry.y, data.yUnit),
-            options,
-          );
+          clickHandler(evt);
         }, 0);
       }
     })
     .on("mouseover", (event: MouseEvent, entry) => {
-      if (options.tooltip) {
-        // Call the tooltip callback to get the HTML to display
+      if (tooltipText) {
         tooltip.show(
-          options.tooltip(
-            DimNum.fromNumber(entry.x, data.xUnit),
-            DimNum.fromNumber(entry.y, data.yUnit),
-            options,
+          tooltipText(
+            new CustomEvent("tooltip", {
+              detail: {
+                number: DimNum.fromNumber(entry.y, data.yUnit),
+                label: DimNum.fromNumber(entry.x, data.xUnit),
+                options,
+              },
+            }),
           ),
           event.pageX + options.tooltipOffset.dx,
           event.pageY + options.tooltipOffset.dy,
