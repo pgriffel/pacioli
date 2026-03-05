@@ -357,15 +357,15 @@ define scene2() =
 
 define mesh2 =
     let d = -5*|metre| in
-        move_mesh(cube_mesh(10*|metre|, make_color("blue")), space_vec(d, d, d))
+        move_mesh(cube_mesh(10*|metre|, make_color("blue")), vector3d(d, d, d))
     end;
 
 define pathPoints = [
-    space_vec( 1, 1, 1),
-    space_vec( 1,-1, 1),
-    space_vec(-1,-1,-1),
-    space_vec(-1, 1,-1),
-    space_vec( 1, 1, 1)
+    vector3d( 1, 1, 1),
+    vector3d( 1,-1, 1),
+    vector3d(-1,-1,-1),
+    vector3d(-1, 1,-1),
+    vector3d( 1, 1, 1)
 ];
 
 define path1 = default_path([2.5 * |metre| '.*' x | x <- pathPoints]);
@@ -577,7 +577,7 @@ define the_scene(n, k, freq) =
 define weird_arrows(n, k) =
     let 
         c = 2*|metre|,
-        ith_vec(i) = space_vec(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3)
+        ith_vec(i) = vector3d(expt(-0.5, i) * i, expt(0.5, i) * i^2, expt(0.5, i) * i^3)
     in
         [ arrow | i <- naturals(n),
                   src := c '.*' ith_vec(i),
