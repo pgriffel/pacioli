@@ -63,16 +63,7 @@ Replace the dots with your compiler command.
 
 ## Download
 
-Binaries are included in zip file `pacioli.zip` for the current
-release. Extract the zip file to get a directory `pacioli` containing
-`pacioli.jar` and directory `lib` with the necessary Pacioli
-libraries.
-
-To get the latest sources:
-
-    git clone https://github.com/pgriffel/pacioli.git
-
-Or download a zip file from the [GitHub repository][gh].
+The .jar file is included in the release assets.
 
 Runtime support for deployment via the web requires
 [pacioli-0.6.0.bundle.js][pacioli_js].
