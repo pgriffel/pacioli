@@ -17,16 +17,9 @@ expressions into the language to give access to the units.
 
 Create a file `intro.pacioli` with the following code:
 
-    module Intro;
-
-    include si;
-
     10;
     11*|gram|;
     12*|metre|;
-
-This creates a module `Intro` and includes the pre-defined units from
-the `si` module.
 
 Run the file as follows:
 
@@ -35,10 +28,10 @@ Run the file as follows:
 This should produce output like
 
     Running file 'intro.pacioli'
-    10.000000
-    11.000000 g
-    12.000000 m
-    Ready in 59 ms
+
+    10.00
+    11.00 g
+    12.00 m
 
 The three expressions are evaluated and the resulting values with the
 proper units are printed.
@@ -110,9 +103,9 @@ The type is semantic, the order of multiplication is irrelevant
 The unit of both expressions is the same:
 
     Running file 'intro.pacioli'
-    2.000000 g*m
-    2.000000 g*m
-    Ready in 72 ms
+
+    2.00 g*m
+    2.00 g*m
 
 ### Unit Inference
 
