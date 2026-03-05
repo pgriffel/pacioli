@@ -5,10 +5,10 @@
 <h1>The geometry library</h1>
 
 <p>The geometry library has functions and types for 2-dimensional and 3-dimensional vector spaces.</p>
-<p>The <code>Geom2</code> and <code>Geom3</code> index sets define the space's coordinates.
-For the <code>Geom2</code> space vectors and matrices can be constructed with functions <code>vector2d</code>
-and <code>matrix2d</code>.
-For the <code>Geom3</code> space vectors and matrices can be constructed with functions <code>vector3d</code>
+<p>The <code>Geom2</code> and <code>Geom3</code> index sets define the space's coordinates.</p>
+<p>For the <code>Geom2</code> space vectors and matrices can be constructed with functions <code>vector2d</code>
+and <code>matrix2d</code>.</p>
+<p>For the <code>Geom3</code> space vectors and matrices can be constructed with functions <code>vector3d</code>
 and <code>matrix3d</code>.</p>
 <p>Base vectors are also available. Values <code>basis2d</code> and <code>basis3d</code> are tuples containing the
 vectors. They can be used like</p>
@@ -36,7 +36,6 @@ end
 <a href="#polar_angle">polar_angle</a> :: for_unit a: (a*Geom2!) -> radian
 <a href="#rotation">rotation</a> :: (radian, radian, radian) -> Geom3! per Geom3!
 <a href="#signed_volume">signed_volume</a> :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^3
-<a href="#space_vec">space_vec</a> :: for_unit a: (a, a, a) -> a*Geom3!
 <a href="#surface_area">surface_area</a> :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^2
 <a href="#surface_volume">surface_volume</a> :: for_unit a: (List(Tuple(a*Geom3!, a*Geom3!, a*Geom3!))) -> a^3
 <a href="#to_cartesian2d">to_cartesian2d</a> :: for_unit a: (a, radian) -> a*Geom2!
@@ -207,14 +206,6 @@ the same unit of measurement.</p>
 <p>Volume enclosed by three position vectors.</p>
 
 
-<h3 id="space_vec">space_vec</h3>
-
-<pre>
-:: for_unit a: (a, a, a) -> a*Geom3!
-</pre>
-
-
-
 <h3 id="surface_area">surface_area</h3>
 
 <pre>
@@ -306,5 +297,5 @@ with the norm, the inclination and the azimuth.</p>
 </pre>
 
 <p>Creates a <code>Geom3</code> vector.</p>
-<p><small>Version v0.5.0, 2026-02-17T14:14:15.515095+01:00[Europe/Amsterdam]</small></body>
+<p><small>Version v0.6.0, 2026-03-05T15:49:20.907230814+01:00[Europe/Amsterdam]</small></body>
 </html>
