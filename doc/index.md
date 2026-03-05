@@ -1,6 +1,6 @@
 # Pacioli Library Documentation
 
-Pacioli version 0.5
+Pacioli version 0.6
 
 ## Built-in
 
