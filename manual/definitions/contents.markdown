@@ -4,7 +4,7 @@ title: Definitions and Declarations
 
 # Pacioli Manual
 
-Manual for Pacioli 0.5.0
+Manual for Pacioli {{ site.pacioli_version }}
 
 ---
 

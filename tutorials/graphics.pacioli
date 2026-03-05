@@ -28,7 +28,7 @@ declare make_block1 ::
 define make_block1(size, color, offset) = 
     begin
         mesh := cube_mesh(size, color);
-        mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+        mesh := move_mesh(mesh, vector3d(0*|metre|, 0*|metre|, offset));
 
         return mesh;
     end;
@@ -73,7 +73,7 @@ declare make_block2 ::
 define make_block2(size, color, offset) = 
     begin
         mesh := cube_mesh(size, color);
-        mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+        mesh := move_mesh(mesh, vector3d(0*|metre|, 0*|metre|, offset));
         mesh := with_mesh_material("Phong", mesh);
 
         return mesh;
@@ -122,7 +122,7 @@ declare make_block3 ::
 define make_block3(name, size, color, offset) = 
     begin
         mesh := cube_mesh(size, color);
-        mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+        mesh := move_mesh(mesh, vector3d(0*|metre|, 0*|metre|, offset));
         mesh := with_mesh_material("Phong", mesh);
         mesh := with_mesh_name(name, mesh);
 
