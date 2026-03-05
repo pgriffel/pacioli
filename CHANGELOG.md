@@ -1,6 +1,15 @@
 # Changelog
 
-## [0.5.0] 2025-12-??
+## [0.6.0] ?
+
+### Changed
+
+- Fixed incorrect ids in generated code
+- Added `libs` and `man` commands
+- Fixed incorrect loading of base and standard libraries
+- Improved the documentation generator
+
+## [0.5.0] 2026-02-18
 
 ### Changed
 

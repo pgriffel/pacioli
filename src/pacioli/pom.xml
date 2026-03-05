@@ -5,13 +5,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>pacioli</groupId>
 	<artifactId>pacioli</artifactId>
-	<version>0.5.0</version>
+	<version>0.6.0</version>
 	<name>pacioli</name>
 	<description>Pacioli compiler</description>
 
 	<properties>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
 
 	<!-- Import JUnit BOM for consistent versions -->

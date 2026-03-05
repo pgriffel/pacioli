@@ -53,21 +53,19 @@ export interface HistogramOptions extends DefaultChartOptions {
   decimals?: number;
   gap: number;
   heuristic: string;
-  onclick?: (
-    values: { keys: string[]; value: string }[],
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum,
-    options: HistogramOptions,
-  ) => void;
-  tooltip?: (
-    frequency: DimNum,
-    lower: DimNum,
-    upper: DimNum,
-    options: HistogramOptions,
-  ) => string;
   tooltipOffset: { dx: number; dy: number };
 }
+
+export type HistogramEvent = CustomEvent<{
+  values: {
+    keys: string[];
+    value: string;
+  }[];
+  frequency: DimNum;
+  lower: DimNum;
+  upper: DimNum;
+  options: HistogramOptions;
+}>;
 
 const DEFAULT_CHART_MARGIN = { left: 48, top: 32, right: 16, bottom: 64 };
 
@@ -80,8 +78,6 @@ const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
   decimals: 2,
   gap: 1,
   heuristic: "d3",
-  onclick: histogramClickHanler,
-  tooltip: histogramTooltip,
   tooltipOffset: { dx: 16, dy: -64 },
 };
 
@@ -98,6 +94,9 @@ const DEFAULT_HISTOGRAM_OPTIONS: HistogramOptions = {
  */
 export class Histogram {
   options: HistogramOptions;
+
+  clickHandler?: (event: HistogramEvent) => void = histogramClickHandler;
+  tooltipText?: (event: HistogramEvent) => string = histogramTooltipText;
 
   params?: {
     lower: number;
@@ -207,6 +206,8 @@ export class Histogram {
         nrBins,
         data.unit,
         this.options,
+        this.clickHandler,
+        this.tooltipText,
       );
     }
 
@@ -227,32 +228,20 @@ export class Histogram {
   }
 }
 
-function histogramClickHanler(
-  values: { keys: string[]; value: string }[],
-  frequency: DimNum,
-  lower: DimNum,
-  upper: DimNum,
-  options: HistogramOptions,
-) {
+function histogramClickHandler(event: HistogramEvent) {
+  const { frequency, lower, upper } = event.detail;
   const text =
     "There are " +
     frequency.toFixed(0) +
     " values in the range " +
-    lower.toFixed(options.decimals) +
+    lower.toFixed(event.detail.options.decimals) +
     " to " +
-    upper.toFixed(options.decimals);
-  const mat = values.map(
-    (value) => `\n${value.keys.toString()}  ${value.value} `,
-  );
-  alert(text + mat.join(","));
+    upper.toFixed(event.detail.options.decimals);
+  alert(text);
 }
 
-function histogramTooltip(
-  frequency: DimNum,
-  lower: DimNum,
-  upper: DimNum,
-  options: HistogramOptions,
-): string {
+function histogramTooltipText(event: HistogramEvent): string {
+  const { frequency, lower, upper, options } = event.detail;
   return `${lower.toFixed(options.decimals)}..${upper.toFixed(
     options.decimals,
   )}: ${frequency.toFixed(0)}`;
@@ -268,6 +257,8 @@ function appendHistogram(
   nrBins: number,
   unit: SIUnit,
   options: HistogramOptions,
+  clickHandler?: (event: HistogramEvent) => void,
+  tooltipText?: (event: HistogramEvent) => string,
 ) {
   const dataRange = upper - lower;
 
@@ -377,29 +368,41 @@ function appendHistogram(
       return height - range(d.length);
     })
     .on("click", (_, d) => {
-      const handler = options.onclick;
-
-      if (handler) {
+      if (clickHandler) {
         tooltip.hide();
-
         const dat = binData(d, data, options.decimals ?? 2);
-
+        const evt: HistogramEvent = new CustomEvent("onclick", {
+          detail: {
+            values: dat.value,
+            frequency: dat.frequency,
+            lower: dat.lower,
+            upper: dat.upper,
+            options,
+          },
+        });
         // Without the timeout the tooltip.hide() does not have an effect
         setTimeout(() => {
-          handler(dat.value, dat.frequency, dat.lower, dat.upper, options);
+          clickHandler(evt);
         }, 0);
       }
     })
     .on("mouseover", (event: MouseEvent, d) => {
-      if (options.tooltip) {
+      if (tooltipText) {
         // Determine the data in the clicked bin
         const dat = binData(d, data, options.decimals ?? 2);
 
-        // Call the tooltip callback to get the HTML to display, add it to the DOM and
-        // move it the proper position. Use the event's pageX and pageY properties to
-        // determine the mouse position on the screen
+        const evt: HistogramEvent = new CustomEvent("tooltip", {
+          detail: {
+            values: dat.value,
+            frequency: dat.frequency,
+            lower: dat.lower,
+            upper: dat.upper,
+            options,
+          },
+        });
+
         tooltip.show(
-          options.tooltip(dat.frequency, dat.lower, dat.upper, options),
+          tooltipText(evt),
           event.pageX + options.tooltipOffset.dx,
           event.pageY + options.tooltipOffset.dy,
         );

@@ -214,7 +214,9 @@ define make_cube_mesh(name, size, color) =
             face(2,3,7),
             face(3,4,7), 
             face(3,0,4)
-        ]
+        ],
+
+        offset = vector3d(0.5, 0.5, 0.5)
     in
-        named_mesh([vertex(size '.*' v, color) | v <- vertex_points], faces, name)
+        named_mesh([vertex(size '.*' (v - offset), color) | v <- vertex_points], faces, name)
     end;

@@ -1,0 +1,3 @@
+Functions for the `Map` type.
+
+A `Map(a, b)` maps keys of type `a` to values of type `b`.

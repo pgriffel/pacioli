@@ -250,8 +250,10 @@ public class Project {
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
             PacioliTable env = bundle.visibleInfos(
-                    importedModules(program.ast()),
+                    importedModules(current, program.ast()),
                     includedModules(current, program.ast()));
+
+            Bundle.addPrimitiveTypesToEnv(env, libs);
 
             // Analyze the code and add the result to the bundle
             bundle.load(program.analyze(env), current.equals(file));
@@ -269,18 +271,16 @@ public class Project {
         bundle.generateCode(writer, settings, modules);
     }
 
-    private List<String> importedModules(ProgramNode programNode) {
+    private List<String> importedModules(PacioliFile current, ProgramNode programNode) {
 
         List<String> modules = new ArrayList<String>();
 
-        // The base and standard libraries are always included
-        PacioliFile baseFile = PacioliFile.requireLibrary("base", libs);
-        PacioliFile standardFile = PacioliFile.requireLibrary("standard", libs);
-
         // Collect all libraries
         ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>();
-        allLibs.add(baseFile);
-        allLibs.add(standardFile);
+
+        for (PacioliFile toAdd : libsToAdd(current, libs)) {
+            allLibs.add(toAdd);
+        }
         for (PacioliFile pacioliFile : findImports(programNode, libs)) {
             allLibs.add(pacioliFile);
         }
@@ -291,13 +291,6 @@ public class Project {
             for (PacioliFile file : includeTree(lib)) {
                 modules.add(file.module());
             }
-        }
-
-        // For base libraries the modules will be empty. This would mean that the
-        // primitive types will not be available. Therefore we add the base module if
-        // no modules were found.
-        if (modules.isEmpty()) {
-            modules.add(baseFile.module());
         }
 
         return modules;
@@ -315,6 +308,26 @@ public class Project {
         return modules;
     }
 
+    private static List<PacioliFile> libsToAdd(PacioliFile current, List<File> libs) {
+        List<PacioliFile> toAdd = new ArrayList<>();
+
+        PacioliFile standard = PacioliFile.requireLibrary("standard", libs);
+        PacioliFile base = PacioliFile.requireLibrary("base", libs);
+
+        boolean isBase = current.fsFile().toPath().startsWith(base.fsFile().getParentFile().toPath());
+        boolean isStandard = current.fsFile().toPath().startsWith(standard.fsFile().getParentFile().toPath());
+
+        if (!isBase) {
+            toAdd.add(base);
+        }
+
+        if (!isStandard && !isBase) {
+            toAdd.add(standard);
+        }
+
+        return toAdd;
+    }
+
     /**
      * Constructs the project graph
      * 
@@ -327,10 +340,6 @@ public class Project {
      */
     private static DefaultDirectedGraph<PacioliFile, DefaultEdge> projectGraph(PacioliFile file, List<File> libs)
             throws Exception {
-
-        // The libraries to include in each file
-        PacioliFile standard = PacioliFile.requireLibrary("standard", libs);
-        PacioliFile base = PacioliFile.requireLibrary("base", libs);
 
         // The graph that will be build up
         DefaultDirectedGraph<PacioliFile, DefaultEdge> graph = new DefaultDirectedGraph<>(DefaultEdge.class);
@@ -361,14 +370,9 @@ public class Project {
                 // Locate the imports. Add the base lib unless this is the base lib. Add the
                 // standard lib unless this is the base lib or the standard lib
                 ArrayList<PacioliFile> allLibs = new ArrayList<PacioliFile>(findImports(programNode, libs));
-                boolean isBase = current.fsFile().toPath().startsWith(base.fsFile().getParentFile().toPath());
-                boolean isStandard = current.fsFile().toPath().startsWith(standard.fsFile().getParentFile().toPath());
-                if (!isBase) {
-                    allLibs.add(base);
-                }
-                // if (!current.equals(standard) && !current.equals(base)) {
-                if (!isStandard && !isBase) {
-                    allLibs.add(standard);
+
+                for (PacioliFile toAdd : libsToAdd(current, libs)) {
+                    allLibs.add(toAdd);
                 }
 
                 for (PacioliFile pacioliFile : allLibs) {

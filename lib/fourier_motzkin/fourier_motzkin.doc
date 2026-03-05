@@ -1,0 +1,7 @@
+The Fourier-Motzkin algorithm computes all nullifiers of an integer matrix.
+That is, all integer vectors `v` such that `A '*' v` is zero.
+
+The implementation is an adaptation of Colom and Silva's algorithm from
+
+'Convex geometry and semiflows in P/T nets. A comparative study of algorithms
+for computation of minimal P-semiflows.' (Advances in Petri Nets, 1990).

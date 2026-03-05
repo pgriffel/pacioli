@@ -1,0 +1,7 @@
+Some functions for random sampling
+
+- random_nat
+- pick
+- choose
+- sample
+- shuffle

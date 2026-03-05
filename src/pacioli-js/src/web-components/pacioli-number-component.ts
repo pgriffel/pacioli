@@ -21,11 +21,21 @@
  */
 
 import { PacioliShadowTreeComponent } from "./pacioli-shadow-tree-component";
+import type { CommonAttributes } from "./pacioli-web-component";
 
 /**
- * Options for the PacioliNumberComponent class.
+ * Attributes provided by the PacioliNumberComponent class.
  */
-export interface NumberOptions {
+export const NUMBER_ATTRIBUTES = {
+  strings: ["zero"],
+  booleans: ["raw", "exponential", "ascii", "clipboard"],
+  numbers: ["decimals"],
+};
+
+/**
+ * Types for the numeric attributes
+ */
+export interface NumberAttributes extends CommonAttributes {
   decimals: number;
   zero?: string;
   raw: boolean;
@@ -33,12 +43,6 @@ export interface NumberOptions {
   ascii: boolean;
   clipboard: boolean;
 }
-
-export const NUMBER_ATTRIBUTES = {
-  strings: ["zero"],
-  booleans: ["raw", "exponential", "ascii", "clipboard"],
-  numbers: ["decimals"],
-};
 
 /**
  * Abstract class for web components displaying some numerical computed PacioliValue.

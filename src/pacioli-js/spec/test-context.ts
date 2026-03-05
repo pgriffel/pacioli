@@ -73,13 +73,13 @@ testContext
     ]),
   );
 
-testContext.addUnitVectorFromJSON("standard", "Geom3", [
+testContext.addUnitVectorFromJSON("Geom3!standard", "Geom3", [
   { name: "x", unit: metreJSON },
   { name: "y", unit: metreJSON },
   { name: "z", unit: metreJSON },
 ]);
 
-testContext.addUnitVectorFromJSON("small", "Geom3", [
+testContext.addUnitVectorFromJSON("Geom3!small", "Geom3", [
   { name: "x", unit: nanometreJSON },
   { name: "y", unit: nanometreJSON },
   { name: "z", unit: nanometreJSON },

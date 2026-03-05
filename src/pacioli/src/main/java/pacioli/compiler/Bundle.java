@@ -22,11 +22,9 @@
 
 package pacioli.compiler;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +39,6 @@ import pacioli.Pacioli;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.visitors.CodeGenerator;
 import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.MVMGenerator;
@@ -51,6 +47,7 @@ import pacioli.ast.visitors.PythonGenerator;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.documentation.DocumentationGenerator;
+import pacioli.documentation.PrimitivesDocumentation;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -168,21 +165,26 @@ public class Bundle {
     }
 
     public void addPrimitiveTypes() {
+        addPrimitiveTypesToEnv(environment, libs);
+    }
+
+    public static void addPrimitiveTypesToEnv(PacioliTable environment, List<File> libs) {
         PacioliFile file = PacioliFile.requireLibrary("base", libs);
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
             environment.types().put(type, new ParametricInfo(type, file, true, true, new Location()));
         }
-        ValueInfo nmodeInfo = ValueInfo.builder()
-                .name("nmode")
-                .file(file)
-                .isGlobal(true)
-                .isMonomorphic(false)
-                .location(new Location())
-                .isPublic(true)
-                .build();
-        environment.values().put("nmode", nmodeInfo);
+        // Makes generating docs crash. Uncomment when nmode experiment continues.
+        // ValueInfo nmodeInfo = ValueInfo.builder()
+        // .name("nmode")
+        // .file(file)
+        // .isGlobal(true)
+        // .isMonomorphic(false)
+        // .location(new Location())
+        // .isPublic(true)
+        // .build();
+        // environment.values().put("nmode", nmodeInfo);
     }
 
     static Bundle empty(PacioliFile file, List<File> libs) {
@@ -417,8 +419,13 @@ public class Bundle {
         for (String value : names) {
             ValueInfo info = environment.values().lookup(value);
             boolean fromProgram = info.generalInfo().module().equals(file.module());
-            if ((includePrivate || info.isPublic()) && fromProgram && info.definition().isPresent()
-                    && info.isUserDefined()) {
+            if (info.name().equals("nmode")) {
+                Pacioli.println("NMODE");
+            }
+            if ((includePrivate || info.isPublic()) && fromProgram
+            // && info.definition().isPresent()
+            // && info.isUserDefined()
+            ) {
                 TypeObject type = rewriteTypes ? info.localType() : info.publicType();
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
                 Pacioli.println("%s :: %s", info.name(), text);
@@ -473,6 +480,8 @@ public class Bundle {
         try (FileWriter fileWriter = new FileWriter(outputFile, Pacioli.CHARSET, false);
                 PrintWriter writer = new PrintWriter(fileWriter)) {
             generator.generate(writer, target);
+        } catch (Exception e) {
+            throw e;
         }
     }
 
@@ -480,16 +489,15 @@ public class Bundle {
             List<File> includes,
             String version,
             File docFile,
-            String target) throws PacioliException, IOException {
+            String target) throws Exception {
 
         // TODO: see if an earlier generated file exists and reuse that
 
         DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, false);
 
-        try (BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(System.out));
-                PrintWriter writer = new PrintWriter(fileWriter)) {
-            generator.generate(writer, target);
-        }
+        PrintWriter writer = new PrintWriter(System.out);
+        generator.generate(writer, target);
+        writer.flush();
     }
 
     /**
@@ -527,28 +535,9 @@ public class Bundle {
             ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
                     && info.location().file().isPresent()
-                    && includes.contains(info.location().file().get())
-                    && info.definition().isPresent()
-                    && info.isUserDefined()) {
-                ExpressionNode body = info.definition().get().body;
-                if (body instanceof LambdaNode) {
-                    LambdaNode lambda = (LambdaNode) body;
-                    generator.addFunction(info.name(), lambda.arguments, info.publicType());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.logIf(verbose, "  no documentation for function %s", info.name());
-                    }
-                    nrFunctions++;
-                } else {
-                    generator.addValue(info.name(), info.publicType());
-                    if (info.generalInfo().documentation().isPresent()) {
-                        generator.addValueDoc(info.name(), info.generalInfo().documentation().get());
-                    } else {
-                        Pacioli.logIf(verbose, "  no documentation for value %s", info.name());
-                    }
-                    nrValues++;
-                }
+                    && includes.contains(info.location().file().get())) {
+                PrimitivesDocumentation.addInfo(info, generator);
+
             }
         }
 

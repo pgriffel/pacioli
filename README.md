@@ -23,7 +23,7 @@ After the extension is installed VS Code will recognize .pacioli files. No other
 
 The repository contains a 'launch.json' file for running from source.
 
-[vsix]: https://pgriffel.github.io/pacioli/pacioli-0.5.0.vsix
+[vsix]: https://pgriffel.github.io/pacioli/pacioli-0.6.0.vsix
 
 ## Command line
 
@@ -66,9 +66,10 @@ Replace the dots with your compiler command.
 The .jar file is included in the release assets.
 
 Runtime support for deployment via the web requires
-[pacioli-0.5.1.bundle.js][pacioli_js].
+[pacioli-0.6.0.bundle.js][pacioli_js].
 
-[pacioli_js]: http://pgriffel.github.io/pacioli/js/pacioli-0.5.1.bundle.js
+[gh]: https://github.com/pgriffel/pacioli
+[pacioli_js]: http://pgriffel.github.io/pacioli/js/pacioli-0.6.0.bundle.js
 
 ## License
 

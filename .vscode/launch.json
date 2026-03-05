@@ -87,11 +87,29 @@
         },
         {
             "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Generate base documentation",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "baseapi doc/built-in -lib lib/"
+        },
+        {
+            "type": "java",
             "name": "Version",
             "request": "launch",
             "mainClass": "pacioli.Pacioli",
             "projectName": "pacioli",
             "args": "version"
-        }
+        },
+         {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "List libs",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "libs -target markdown -lib lib/"
+        },
     ]
 }

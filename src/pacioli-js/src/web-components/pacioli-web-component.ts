@@ -58,11 +58,24 @@ TEMPLATE.innerHTML = `
   </div>
 `;
 
+/**
+ * Attributes shared by all Pacioli web components.
+ */
 export const COMMON_ATTRIBUTES = {
-  strings: ["definition", "margin"],
+  strings: ["definition", "caption"],
   booleans: [],
   numbers: ["width", "height"],
 };
+
+/**
+ * Types for the common attributes
+ */
+export interface CommonAttributes {
+  definition: string;
+  caption: string;
+  width: number;
+  height: number;
+}
 
 /**
  * Abstract base class for Pacioli web components.
@@ -78,6 +91,14 @@ export abstract class PacioliWebComponent
 
   get definition(): string | undefined {
     return this.getStringAttribute("definition");
+  }
+
+  get caption(): string | undefined {
+    return this.getStringAttribute("caption");
+  }
+
+  set caption(value: string | undefined) {
+    this.setStringAttribute("caption", value);
   }
 
   set width(value: number) {
@@ -96,13 +117,10 @@ export abstract class PacioliWebComponent
     return this.getNumberAttribute("height", 0);
   }
 
-  get margin(): string | undefined {
-    return this.getStringAttribute("margin");
-  }
-
-  set margin(value: string | undefined) {
-    this.setStringAttribute("margin", value);
-  }
+  /**
+   * Was the mutation observer called during initialization?
+   */
+  public isInitialized: boolean = false;
 
   /**
    * Web component life-cycle event.
@@ -120,14 +138,21 @@ export abstract class PacioliWebComponent
       // Make sure the error output pane is hidden
       this.clearErrors();
 
-      // Schedule a call to parametersChanged. It must be delayed until the DOM children exist.
-      // We need the children so we can get the parameter values.
+      // Add an observer that calls 'parametersChanged' when a child node changes. Attribute
+      // changes are handled by attributeChangedCallback.
+      addParametersObserver(this);
+
+      // The mutation observer may or may not initialize the componenent. To ensure
+      // initialization a call to parametersChanged is scheduled. Calling parametersChanged
+      // immediately does not work because the DOM children do not exist yet. We need the
+      // children so we can get the parameter values. To avoid duplicate initialization
+      // the isInitialized is set by the mutation observer.
       setTimeout(() => {
         try {
-          this.parametersChanged();
-
-          // Add an observer that calls 'parametersChanged' when a parameter child node changes.
-          addParametersObserver(this);
+          if (!this.isInitialized) {
+            this.parametersChanged();
+            this.isInitialized = true;
+          }
         } catch (err: unknown) {
           this.displayError(err instanceof Error ? err.message : String(err));
         }

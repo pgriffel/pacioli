@@ -22,8 +22,8 @@ import geometry;
 import si;
 
 map_magnitude(
-    (a) -> space_vec(1, 2, 3) + a,
-    space_vec(1*|metre|, 1*|metre|, 1*|metre|));
+    (a) -> vector3d(1, 2, 3) + a,
+    vector3d(1*|metre|, 1*|metre|, 1*|metre|));
 
 # ------------------------------------------------------------------------------
 # Functions dimensioned and map_magnitude

@@ -48,6 +48,7 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 
+import pacioli.mcp.CompilerAPI;
 import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
@@ -59,6 +60,7 @@ import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Program;
 import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
+import pacioli.documentation.LibCatalog;
 import pacioli.documentation.PrimitivesDocumentation;
 import pacioli.lsp.PacioliLanguageServer;
 import pacioli.lsp.PacioliTextDocumentService;
@@ -72,8 +74,8 @@ import pacioli.lsp.PacioliWorkspaceService;
 public class Pacioli {
 
     // Constants
-    private static String OPTIONS_FILE = "debug.options";
-    private static String VERSION = "v0.5.0";
+    private static final String OPTIONS_FILE = "debug.options";
+    public static final String VERSION = "v0.6.0";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -267,6 +269,8 @@ public class Pacioli {
                 for (String file : files) {
                     apiCommand(file, libs, target);
                 }
+            } else if (command.equals("libs")) {
+                libsCommand(files, libs, target);
             } else if (command.equals("man")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
@@ -276,10 +280,13 @@ public class Pacioli {
                 }
             } else if (command.equals("baseapi")) {
                 if (files.isEmpty()) {
-                    displayError("No files to read.");
-                }
-                for (String file : files) {
-                    baseApiCommand(file, libs, target);
+                    displayError(
+                            "No output directory. Give a directory to store the generated documentation.");
+                } else if (files.size() > 1) {
+                    displayError(
+                            "Did not expect multiple arguments. Give one directory to store the generated documentation.");
+                } else {
+                    baseApiCommand(files.get(0), libs, target);
                 }
             } else if (command.equals("graph") || command.equals("symbols")) {
                 debugCommand(command, files, libs);
@@ -449,6 +456,53 @@ public class Pacioli {
 
     }
 
+    private static void libsCommand(List<String> files, List<File> libs, String target)
+            throws Exception {
+
+        try {
+            List<PacioliFile> libFiles;
+
+            if (files.isEmpty()) {
+                libFiles = CompilerAPI.collectLibFiles(libs);
+            } else {
+                libFiles = new ArrayList<>();
+
+                for (String fileName : files) {
+                    Optional<PacioliFile> optionalFile = PacioliFile
+                            .findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
+
+                    if (optionalFile.isPresent()) {
+                        libFiles.add(optionalFile.get());
+                    } else {
+                        throw new PacioliException("Error: library '%s' does not exist.", fileName);
+                    }
+                }
+            }
+
+            switch (target) {
+                case "", "markdown": {
+                    System.out.print(LibCatalog.asMarkdown(libFiles));
+                    break;
+                }
+                case "structure": {
+                    System.out.print(LibCatalog.asJson(libFiles));
+                    break;
+                }
+                case "html": {
+                    System.out.print(LibCatalog.asHTML(libFiles));
+                    break;
+                }
+                default: {
+                    throw new PacioliException("Unknown target: " + target);
+                }
+            }
+
+        } catch (IOException e) {
+            println("\nError when generating library list:\n\n%s", e);
+        }
+
+    }
+
     private static void manCommand(String fileName, List<File> libs, String target)
             throws Exception {
 
@@ -471,8 +525,8 @@ public class Pacioli {
                 includes.add(x.fsFile());
             });
 
-            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
-                                                                                         // above
+            // TODO: version, see above
+            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target.isBlank() ? "markdown" : target);
 
         } catch (IOException e) {
             println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);

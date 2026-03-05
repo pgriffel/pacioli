@@ -25,11 +25,7 @@ import { SIUnit } from "uom-ts";
 import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape } from "./values/matrix-shape";
-import type {
-  PacioliType,
-  PacioliUnit,
-  PacioliVector,
-} from "./types/pacioli-type";
+import type { PacioliUnit, PacioliVector } from "./types/pacioli-type";
 import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import type { PacioliIndex } from "./types/matrix";
@@ -38,12 +34,17 @@ import type { PacioliValue } from "./values/pacioli-value";
 import { boxRawValue, typeFromValue } from "./values/pacioli-value";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
-import { defaultContext, fetchUnit, initialNumbers, lookupItem } from "./cache";
+import {
+  defaultContext,
+  fetchUnit,
+  initialNumbers,
+  lookupType,
+  lookupValue,
+} from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import { GenericType } from "./types/generic";
 import type BigNumber from "bignumber.js";
-import type { RawValue } from "./raw-values/raw-value";
 
 // -----------------------------------------------------------------------------
 // New
@@ -68,11 +69,10 @@ export function value(
   name: string,
   context: PacioliContext = defaultContext,
 ): PacioliValue {
-  return boxRawValue(
-    lookupItem<RawValue>(module + "_" + name, context),
-    lookupItem<PacioliType>("u_" + module + "_" + name, context),
-    context,
-  );
+  // Global name used by compiler
+  const id = module + "_" + name;
+
+  return boxRawValue(lookupValue(id), lookupType(id), context);
 }
 
 // Just a synonym for value
@@ -81,9 +81,11 @@ export function fun(
   name: string,
   context: PacioliContext = defaultContext,
 ): PacioliFunction {
-  const type = lookupItem<PacioliType>("u_" + module + "_" + name, context);
-  const value = lookupItem<RawValue>(module + "_" + name, context);
-  const box = boxRawValue(value, type, context);
+  // Global name used by compiler
+  const id = module + "_" + name;
+
+  const box = boxRawValue(lookupValue(id), lookupType(id), context);
+
   if (box instanceof PacioliFunction) {
     return box;
   } else {
@@ -125,20 +127,15 @@ export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
 
 // Used only by VectorBase. In asJs method.
 export function unitVectorType(
-  module: string,
-  type: string,
+  id: string,
   position: number,
 ): UOM<VectorBaseType> {
-  return UOM.fromBase(new VectorBaseType(module + "_" + type, position));
+  return UOM.fromBase(new VectorBaseType(id, position));
 }
 
-// export function unitFromBase<T extends UOMBase>(base: T): UOM<T> {
-//   return UOM.fromBase(base);
-// }
-
 // Used only by ScalarUnitVar. In asJs method.
-export function unitFromVarName(varName: string): PacioliUnit {
-  return UOM.fromBase(new UnitVar("_" + varName + "_"));
+export function unitFromVarName(id: string): PacioliUnit {
+  return UOM.fromBase(new UnitVar(id));
 }
 
 export function typeFromVarName(varName: string): TypeVar {
@@ -198,6 +195,8 @@ export function tuple(array: PacioliValue[]): PacioliValue {
   return new PacioliTuple(...array);
 }
 
+let varCounter = 0;
+
 export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
@@ -205,6 +204,16 @@ export function list(array: PacioliValue[]): PacioliValue {
   const vList = array.map(function (elt) {
     return elt; //.value;
   });
+
+  // Does this work? Untested!
+  if (vList.length === 0) {
+    return new PacioliList(
+      new GenericType("List", [
+        typeFromVarName(`_xyzzy${(varCounter++).toString()}_`),
+      ]),
+    );
+  }
+
   return new PacioliList(
     new GenericType("List", [typeFromValue(array[0])]),
     ...vList,
