@@ -4,7 +4,7 @@ title: Units of Measurement
 
 # Units of measurement
 
-Manual for Pacioli 0.5.0
+Manual for Pacioli {{ site.pacioli_version }}
 
 ---
 

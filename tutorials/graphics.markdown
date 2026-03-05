@@ -76,7 +76,7 @@ Create file `blocks.pacioli` with the following content.
 
     import graphics;
     import geometry;
-    
+
     declare blocks_scene :: Scene(metre, Geom3!);
 
     define blocks_scene = empty_scene("blocks");
@@ -144,7 +144,7 @@ To stack multiple blocks we add helper function `make_block`.
     define make_block(size, color, offset) =
         begin
             mesh := cube_mesh(size, color);
-            mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+            mesh := move_mesh(mesh, vector3d(0*|metre|, 0*|metre|, offset));
             return mesh;
         end;
 
@@ -250,7 +250,7 @@ We need to add the right material to the blocks for the light to have effect. Ch
     define make_block(size, color, offset) =
         begin
             mesh := cube_mesh(size, color);
-            mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+            mesh := move_mesh(mesh, vector3d(0*|metre|, 0*|metre|, offset));
             mesh := with_mesh_material("Phong", mesh);
 
             return mesh;
@@ -304,7 +304,7 @@ locate the element when applying changes.
     define make_block(name, size, color, offset) =
         begin
             mesh := cube_mesh(size, color);
-            mesh := move_mesh(mesh, space_vec(0*|metre|, 0*|metre|, offset));
+            mesh := move_mesh(mesh, vector3d(0*|metre|, 0*|metre|, offset));
             mesh := with_mesh_material("Phong", mesh);
             mesh := with_mesh_name(name, mesh);
 

@@ -4,7 +4,7 @@ title: Pacioli Manual
 
 # Pacioli Manual
 
-Manual for Pacioli 0.5
+Manual for Pacioli {{ site.pacioli_version }}
 
 ---
 

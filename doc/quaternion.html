@@ -17,7 +17,7 @@ scalar part has unit <code>a</code> and the vector part has unit <code>a*Geom3!<
 <a href="#quaternion2str">quaternion2str</a> :: for_unit a: (Quaternion(a), a) -> String
 <a href="#quaternion2string">quaternion2string</a> :: for_unit a: (Quaternion(a), decimals, a) -> String
 <a href="#quaternion_conjugate">quaternion_conjugate</a> :: for_unit a: (Quaternion(a)) -> Quaternion(a)
-<a href="#quaternion_inverse">quaternion_inverse</a> :: for_unit a: (Quaternion(a)) -> Quaternion(1/a)
+<a href="#quaternion_inverse">quaternion_inverse</a> :: for_unit a: (Quaternion(a)) -> Quaternion(a^-1)
 <a href="#quaternion_norm">quaternion_norm</a> :: for_unit a: (Quaternion(a)) -> a
 <a href="#quaternion_product">quaternion_product</a> :: for_unit a, b: (Quaternion(a), Quaternion(b)) -> Quaternion(a*b)
 <a href="#quaternion_scalar">quaternion_scalar</a> :: for_unit a: (Quaternion(a)) -> a
@@ -90,7 +90,7 @@ a - bi - cj - dk.</p>
 <h3 id="quaternion_inverse">quaternion_inverse</h3>
 
 <pre>
-:: for_unit a: (Quaternion(a)) -> Quaternion(1/a)
+:: for_unit a: (Quaternion(a)) -> Quaternion(a^-1)
 </pre>
 
 <p>The inverse of a quaternion. quaternion_product(q, inverse(q)) = 1</p>
@@ -160,5 +160,5 @@ vector3d(b, c, d).</p>
 </pre>
 
 <p>Scales a quaternion to one with norm 1.</p>
-<p><small>Version v0.5.0, 2026-02-17T14:14:21.923535200+01:00[Europe/Amsterdam]</small></body>
+<p><small>Version v0.6.0, 2026-03-05T15:49:25.894939013+01:00[Europe/Amsterdam]</small></body>
 </html>
