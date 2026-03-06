@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.6.0] ?
+## [0.6.1] ?
+
+### Changed
+
+- Some refactoring of Project and Bundle classes in the compiler
+
+## [0.6.0] 2026-03-05
 
 ### Changed
 

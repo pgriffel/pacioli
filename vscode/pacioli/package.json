@@ -2,7 +2,7 @@
   "name": "pacioli",
   "displayName": "Pacioli",
   "description": "The Pacioli language",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "publisher": "PRG",
   "repository": "https://github.com/pgriffel/pacioli",
   "icon": "icon.png",
