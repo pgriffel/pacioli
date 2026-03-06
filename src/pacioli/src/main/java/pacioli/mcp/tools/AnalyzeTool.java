@@ -61,8 +61,7 @@ public class AnalyzeTool {
             }
 
             PacioliFile file = opt.get();
-            Project project = Project.load(file, libs);
-            Bundle bundle = project.loadBundle();
+            Bundle bundle = Bundle.fromFile(file, libs);
 
             JsonArray symbols = new JsonArray();
             for (ValueInfo info : bundle.allValueInfos()) {

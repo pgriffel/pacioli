@@ -205,7 +205,7 @@ public class DocumentState {
         var path = new URI(uri).getPath();
         var pacioliFile = PacioliFile.get(path, 0).get();
 
-        var bundle = Project.load(pacioliFile, libs).loadBundle();
+        var bundle = Bundle.fromFile(pacioliFile, libs);
 
         var identifierIndex = buildIdentifierIndex(bundle);
         var semanticTokenList = buildSemanticTokens(bundle, identifierIndex);
