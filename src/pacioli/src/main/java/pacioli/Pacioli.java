@@ -48,7 +48,6 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 
-import pacioli.mcp.CompilerAPI;
 import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
@@ -451,46 +450,13 @@ public class Pacioli {
 
     }
 
-    private static void libsCommand(List<String> files, List<File> libs, String target)
+    private static void libsCommand(List<String> args, List<File> libs, String target)
             throws Exception {
 
         try {
-            List<PacioliFile> libFiles;
+            LibCatalog catalog = new LibCatalog(libs);
 
-            if (files.isEmpty()) {
-                libFiles = CompilerAPI.collectLibFiles(libs);
-            } else {
-                libFiles = new ArrayList<>();
-
-                for (String fileName : files) {
-                    Optional<PacioliFile> optionalFile = PacioliFile
-                            .findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
-
-                    if (optionalFile.isPresent()) {
-                        libFiles.add(optionalFile.get());
-                    } else {
-                        throw new PacioliException("Error: library '%s' does not exist.", fileName);
-                    }
-                }
-            }
-
-            switch (target) {
-                case "", "markdown": {
-                    System.out.print(LibCatalog.asMarkdown(libFiles));
-                    break;
-                }
-                case "structure": {
-                    System.out.print(LibCatalog.asJson(libFiles));
-                    break;
-                }
-                case "html": {
-                    System.out.print(LibCatalog.asHTML(libFiles));
-                    break;
-                }
-                default: {
-                    throw new PacioliException("Unknown target: " + target);
-                }
-            }
+            System.out.println(catalog.generate(args, target));
 
         } catch (IOException e) {
             println("\nError when generating library list:\n\n%s", e);
@@ -732,7 +698,7 @@ public class Pacioli {
             PacioliMCPServer server = MPCContainer.fromSystemIO(libs).server;
             server.start();
         } catch (Exception e) {
-            Pacioli.logToFile("D:\\pacioli_mcp_error.log", e.getMessage());
+            Pacioli.logToFile("pacioli_mcp_error.log", e.getMessage());
         }
     }
 

@@ -32,6 +32,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import pacioli.compiler.PacioliFile;
+import pacioli.documentation.LibCatalog;
 import pacioli.mcp.CompilerAPI;
 
 public class ListLibrariesTool {
@@ -46,7 +47,7 @@ public class ListLibrariesTool {
         var res = new com.google.gson.JsonObject();
         var arr = new com.google.gson.JsonArray();
 
-        for (PacioliFile file : CompilerAPI.collectLibFiles(libs)) {
+        for (PacioliFile file : LibCatalog.collectLibFiles(libs)) {
             var lib = new JsonObject();
 
             lib.addProperty("name", file.moduleName());

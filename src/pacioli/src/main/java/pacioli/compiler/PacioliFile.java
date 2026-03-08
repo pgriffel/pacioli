@@ -23,7 +23,9 @@
 package pacioli.compiler;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -147,6 +149,19 @@ public class PacioliFile implements Printable {
 
     public File docFile() {
         return new File(fsFile.getParentFile(), this.moduleName + ".doc");
+    }
+
+    /**
+     * Contents of the .doc file, if it exists.
+     * 
+     * @return The file contents
+     */
+    public Optional<String> documentation() {
+        try {
+            return Optional.of(String.join("\n", Files.readAllLines(this.docFile().toPath())));
+        } catch (IOException e) {
+            return Optional.empty();
+        }
     }
 
     public Optional<PacioliFile> findInclude(String name) {
