@@ -5,6 +5,7 @@
 ### Changed
 
 - Some refactoring of Project and Bundle classes in the compiler
+- Added the VS Code plugin to the maven build
 
 ## [0.6.0] 2026-03-05
 
