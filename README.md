@@ -23,7 +23,7 @@ After the extension is installed VS Code will recognize .pacioli files. No other
 
 The repository contains a 'launch.json' file for running from source.
 
-[vsix]: https://pgriffel.github.io/pacioli/pacioli-0.6.0.vsix
+[vsix]: https://pgriffel.github.io/pacioli/pacioli-0.6.1.vsix
 
 ## Command line
 

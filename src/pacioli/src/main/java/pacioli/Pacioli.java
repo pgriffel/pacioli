@@ -48,12 +48,12 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 
-import pacioli.mcp.CompilerAPI;
 import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
 import mvm.MVMException;
 import mvm.Machine;
+import pacioli.compiler.Bundle;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
@@ -69,13 +69,13 @@ import pacioli.lsp.PacioliWorkspaceService;
 /**
  * The main entry point of the compiler.
  *
- * The code mainly handles PacioliFile, Program and Project objects.
+ * The code mainly handles PacioliFile, Program, Project and Bundle objects.
  */
 public class Pacioli {
 
     // Constants
     private static final String OPTIONS_FILE = "debug.options";
-    public static final String VERSION = "v0.6.0";
+    public static final String VERSION = "v0.6.2-SNAPSHOT";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -413,7 +413,7 @@ public class Pacioli {
         log("Displaying types for file '%s'", file.fsFile());
 
         try {
-            Project.load(file, libs).loadBundle().printTypes(rewriteTypes, includePrivate, false);
+            Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, false);
 
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
@@ -439,14 +439,8 @@ public class Pacioli {
 
         try {
             PacioliFile file = optionalFile.get();
-            Project project = Project.load(file, libs);
-            List<File> includes = new ArrayList<>();
-            project.includeTree(file).forEach(x -> {
-                includes.add(x.fsFile());
-            });
 
-            project.loadBundle().genAPI(includes, VERSION, project.docFile(), target); // TODO: version, see
-                                                                                       // above
+            Bundle.fromFile(file, libs).genAPI(VERSION, target); // TODO: version, see above
 
             Pacioli.log("\nDocumentation ready");
 
@@ -456,46 +450,13 @@ public class Pacioli {
 
     }
 
-    private static void libsCommand(List<String> files, List<File> libs, String target)
+    private static void libsCommand(List<String> args, List<File> libs, String target)
             throws Exception {
 
         try {
-            List<PacioliFile> libFiles;
+            LibCatalog catalog = new LibCatalog(libs);
 
-            if (files.isEmpty()) {
-                libFiles = CompilerAPI.collectLibFiles(libs);
-            } else {
-                libFiles = new ArrayList<>();
-
-                for (String fileName : files) {
-                    Optional<PacioliFile> optionalFile = PacioliFile
-                            .findLibrary(FilenameUtils.removeExtension(new File(fileName).getName()), libs);
-
-                    if (optionalFile.isPresent()) {
-                        libFiles.add(optionalFile.get());
-                    } else {
-                        throw new PacioliException("Error: library '%s' does not exist.", fileName);
-                    }
-                }
-            }
-
-            switch (target) {
-                case "", "markdown": {
-                    System.out.print(LibCatalog.asMarkdown(libFiles));
-                    break;
-                }
-                case "structure": {
-                    System.out.print(LibCatalog.asJson(libFiles));
-                    break;
-                }
-                case "html": {
-                    System.out.print(LibCatalog.asHTML(libFiles));
-                    break;
-                }
-                default: {
-                    throw new PacioliException("Unknown target: " + target);
-                }
-            }
+            System.out.println(catalog.generate(args, target));
 
         } catch (IOException e) {
             println("\nError when generating library list:\n\n%s", e);
@@ -519,14 +480,9 @@ public class Pacioli {
 
         try {
             PacioliFile file = optionalFile.get();
-            Project project = Project.load(file, libs);
-            List<File> includes = new ArrayList<>();
-            project.includeTree(file).forEach(x -> {
-                includes.add(x.fsFile());
-            });
 
             // TODO: version, see above
-            project.loadBundle().printAPI(includes, VERSION, project.docFile(), target.isBlank() ? "markdown" : target);
+            Bundle.fromFile(file, libs).printAPI(VERSION, target.isBlank() ? "markdown" : target);
 
         } catch (IOException e) {
             println("\nError: cannot generate documentation for file '%s':\n\n%s", fileName, e);
@@ -558,7 +514,7 @@ public class Pacioli {
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
                 log("Creating bundle for file '%s'", file);
-                Project project = Project.load(file, libs);
+                Project project = Project.fromFile(file, libs);
                 bundle(project, settings);
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
@@ -600,7 +556,7 @@ public class Pacioli {
         // If so, compile and run it
         try {
 
-            Project project = Project.load(file.get(), libs);
+            Project project = Project.fromFile(file.get(), libs);
 
             List<PacioliFile> modifiedFiles = project.modifiedFiles(settings.target());
 
@@ -648,9 +604,9 @@ public class Pacioli {
             log("Displaying symbol tables for file '%s'", file.fsFile());
 
             try {
-                Project project = Project.load(file, libs);
+                Project project = Project.fromFile(file, libs);
                 project.printInfo();
-                project.loadBundle().printSymbolTables();
+                Bundle.fromFile(file, libs).printSymbolTables();
             } catch (IOException e) {
                 println("\nError while printing info and symbol tables for file '%s':\n\n%s", fileName, e);
             }
@@ -725,6 +681,9 @@ public class Pacioli {
         println("   parse         prints the code as it is parsed");
         println("   desugar       prints the code as it is parsed and desugared");
         println("   api           generates documentation");
+        println("   libs          displays all available libraries");
+        println("   man           displays library documentation");
+        println("   lsp           start a language server");
         println("   version       displays the compiler version");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
@@ -742,7 +701,7 @@ public class Pacioli {
             PacioliMCPServer server = MPCContainer.fromSystemIO(libs).server;
             server.start();
         } catch (Exception e) {
-            Pacioli.logToFile("D:\\pacioli_mcp_error.log", e.getMessage());
+            Pacioli.logToFile("pacioli_mcp_error.log", e.getMessage());
         }
     }
 
@@ -782,7 +741,7 @@ public class Pacioli {
         Path dstPath = project.bundlePath(settings.target());
 
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(dstPath.toFile(), CHARSET)))) {
-            project.generateCode(writer, settings);
+            Bundle.fromProject(project).generateCode(writer, settings);
         }
 
         return dstPath;

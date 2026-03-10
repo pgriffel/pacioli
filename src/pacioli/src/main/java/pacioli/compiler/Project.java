@@ -23,7 +23,6 @@
 package pacioli.compiler;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -41,23 +40,25 @@ import org.jgrapht.traverse.DepthFirstIterator;
 import org.jgrapht.traverse.TopologicalOrderIterator;
 
 import pacioli.Pacioli;
-import pacioli.Pacioli.Options;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
 import pacioli.ast.ProgramNode;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.parser.Parser;
-import pacioli.symboltable.PacioliTable;
 
 /**
- * The Project class's purpose is to compile and bundle a file with all its
- * includes and dependencies. It finds all directly and indirectly dependent
- * files and builds a Bundle from all definitions in them.
+ * The Project class answers queries about the the import and include graph for
+ * a Pacioli file.
+ * 
+ * It recursively builds a graph from the imports and includes. The graph
+ * includes the standard and base libraries.
  */
 public class Project {
 
-    private final PacioliFile file;
-    private final List<File> libs;
+    public final PacioliFile file;
+
+    public final List<File> libs;
+
     private final DefaultDirectedGraph<PacioliFile, DefaultEdge> graph;
 
     private Project(PacioliFile file, List<File> libs, DefaultDirectedGraph<PacioliFile, DefaultEdge> graph)
@@ -65,10 +66,6 @@ public class Project {
         this.file = file;
         this.libs = libs;
         this.graph = graph;
-    }
-
-    public File docFile() {
-        return this.file.docFile();
     }
 
     /**
@@ -81,7 +78,7 @@ public class Project {
      * @return The constructed project
      * @throws Exception
      */
-    public static Project load(PacioliFile file, List<File> libs) throws Exception {
+    public static Project fromFile(PacioliFile file, List<File> libs) throws Exception {
         return new Project(file, libs, projectGraph(file, libs));
     }
 
@@ -230,48 +227,7 @@ public class Project {
         Pacioli.println("\n");
     }
 
-    public Bundle loadBundle() throws Exception {
-
-        Pacioli.trace("Loading module '%s'", this.file.moduleName());
-
-        Bundle bundle = Bundle.empty(file, libs);
-
-        bundle.addPrimitiveTypes();
-
-        for (PacioliFile current : orderedFiles()) {
-
-            if (Options.showFileLoads) {
-                Pacioli.log("Loading %s", current.moduleName());
-            }
-
-            // Parse the file
-            Program program = Program.load(current).desugar();
-
-            // Filter the bundle's total symbol tables for the directly used modules of the
-            // program
-            PacioliTable env = bundle.visibleInfos(
-                    importedModules(current, program.ast()),
-                    includedModules(current, program.ast()));
-
-            Bundle.addPrimitiveTypesToEnv(env, libs);
-
-            // Analyze the code and add the result to the bundle
-            bundle.load(program.analyze(env), current.equals(file));
-        }
-
-        return bundle;
-    }
-
-    public void generateCode(PrintWriter writer, CompilationSettings settings) throws Exception {
-        List<String> modules = new ArrayList<>();
-        for (PacioliFile file : includeTree(this.file)) {
-            modules.add(file.module());
-        }
-        Bundle bundle = this.loadBundle();
-        bundle.generateCode(writer, settings, modules);
-    }
-
-    private List<String> importedModules(PacioliFile current, ProgramNode programNode) {
+    public List<String> importedModules(PacioliFile current, ProgramNode programNode) {
 
         List<String> modules = new ArrayList<String>();
 
@@ -296,7 +252,7 @@ public class Project {
         return modules;
     }
 
-    private List<String> includedModules(PacioliFile file, ProgramNode programNode) {
+    public List<String> includedModules(PacioliFile file, ProgramNode programNode) {
 
         List<String> modules = new ArrayList<String>();
 

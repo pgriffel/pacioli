@@ -5,19 +5,57 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>prg</groupId>
-  <artifactId>pacioli-aggregate</artifactId>
-  <version>0.6.0</version>
+  <properties>
+    <revision>0.6.2</revision>
+    <changelist>-SNAPSHOT</changelist>
+  </properties>
 
+  <groupId>pgriffel-pacioli</groupId>
+  <artifactId>pacioli-aggregate</artifactId>
+  <version>${revision}${changelist}</version>
   <name>pacioli-aggregate</name>
   <url>https://github.com/pgriffel/pacioli</url>
 
+  <!-- Indicate that we're not building a .jar file -->
   <packaging>pom</packaging>
 
+  <!-- The children we are aggregating -->
   <modules>
     <module>uom</module>
     <module>mvm</module>
     <module>pacioli</module>
+    <module>vscode</module>
   </modules>
+
+  <build>
+    <plugins>
+      <!-- To ensure that all variables are removed from the POM files when installed -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.1.0</version>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+          <flattenMode>resolveCiFriendliesOnly</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
