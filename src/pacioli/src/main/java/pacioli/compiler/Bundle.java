@@ -497,7 +497,7 @@ public class Bundle {
             String version,
             String target) throws PacioliException, IOException {
 
-        DocumentationGenerator generator = libraryDocumentationGenerator(version, true);
+        DocumentationGenerator generator = libraryDocumentationGenerator(version, true).addVersionInfo(true);
 
         String extension;
 
