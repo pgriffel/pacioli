@@ -7,7 +7,7 @@
 
   <properties>
     <revision>0.6.1</revision>
-    <changelist>-SNAPSHOT</changelist>
+    <changelist></changelist>
   </properties>
 
   <groupId>pgriffel-pacioli</groupId>

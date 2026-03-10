@@ -75,7 +75,7 @@ public class Pacioli {
 
     // Constants
     private static final String OPTIONS_FILE = "debug.options";
-    public static final String VERSION = "v0.6.1-SNAPSHOT";
+    public static final String VERSION = "v0.6.1";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -681,6 +681,9 @@ public class Pacioli {
         println("   parse         prints the code as it is parsed");
         println("   desugar       prints the code as it is parsed and desugared");
         println("   api           generates documentation");
+        println("   libs          displays all available libraries");
+        println("   man           displays library documentation");
+        println("   lsp           start a language server");
         println("   version       displays the compiler version");
         println("   info          displays information about this compiler and installation");
         println("   help          displays this help information");
