@@ -29,7 +29,7 @@ url: "http://pgriffel.github.io" # the base hostname & protocol for your site, e
 
 bundle_url: https://pgriffel.github.io/pacioli/js/pacioli-0.6.0.bundle.js
 bundle_name: pacioli-0.6.0.bundle.js
-pacioli_version: v0.6.0
+pacioli_version: v0.6.1
 
 # Build settings
 theme: jekyll-theme-architect
