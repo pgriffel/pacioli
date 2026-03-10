@@ -74,6 +74,8 @@ public class DocumentationGenerator {
 
     private String intro;
 
+    private boolean addVersionInfo = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -202,6 +204,11 @@ public class DocumentationGenerator {
         this.setIntro(total);
     }
 
+    public DocumentationGenerator addVersionInfo(boolean add) {
+        this.addVersionInfo = add;
+        return this;
+    }
+
     /**
      * Generates a documentation page with documentation for the bundle's module.
      * 
@@ -239,7 +246,9 @@ public class DocumentationGenerator {
      */
     public void markdown(final Writer writer) throws PacioliException, IOException {
         writer.write(this.docBuilder().markdown());
-        writer.write(String.format("\nVersion %s, %s", version, ZonedDateTime.now()));
+        if (this.addVersionInfo) {
+            writer.write(String.format("\nVersion %s, %s", version, ZonedDateTime.now()));
+        }
     }
 
     /**
@@ -268,9 +277,11 @@ public class DocumentationGenerator {
 
     private void writeHTMLFooter(final Writer writer) throws IOException {
 
-        writer.write("<p><small>");
-        writer.write(String.format("Version %s, %s", version, ZonedDateTime.now()));
-        writer.write("</small>");
+        if (this.addVersionInfo) {
+            writer.write("<p><small>");
+            writer.write(String.format("Version %s, %s", version, ZonedDateTime.now()));
+            writer.write("</small>");
+        }
 
         writer.write("</body>\n");
         writer.write("</html>\n");

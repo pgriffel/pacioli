@@ -1,6 +1,12 @@
 # Changelog
 
-## [0.6.0] ?
+## [0.6.1] 2026-03-11
+
+### Changed
+
+- Added the VS Code plugin to the maven build
+
+## [0.6.0] 2026-03-05
 
 ### Changed
 

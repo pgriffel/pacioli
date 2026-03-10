@@ -112,7 +112,7 @@ public class PrimitivesDocumentation {
 
         List<ValueInfo> infos = new ArrayList<>();
 
-        DocumentationGenerator generator = new DocumentationGenerator(module, version);
+        DocumentationGenerator generator = new DocumentationGenerator(module, version).addVersionInfo(true);
 
         File docFile = null;
 

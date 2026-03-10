@@ -34,6 +34,7 @@ import java.util.Map;
 import com.google.gson.JsonObject;
 
 import pacioli.compiler.PacioliFile;
+import pacioli.documentation.LibCatalog;
 
 public class MCPResourceManager {
 
@@ -86,7 +87,7 @@ public class MCPResourceManager {
     String handleLibraries() throws IOException {
         var arr = new com.google.gson.JsonArray();
 
-        for (PacioliFile file : CompilerAPI.collectLibFiles(libs)) {
+        for (PacioliFile file : LibCatalog.collectLibFiles(libs)) {
 
             var lib = new JsonObject();
 
@@ -110,7 +111,7 @@ public class MCPResourceManager {
     String handleLibrariesTEXT() throws IOException {
         var out = new StringBuilder();
 
-        for (PacioliFile file : CompilerAPI.collectLibFiles(libs)) {
+        for (PacioliFile file : LibCatalog.collectLibFiles(libs)) {
 
             out.append(file.moduleName());
 

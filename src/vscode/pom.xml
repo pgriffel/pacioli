@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>pgriffel-pacioli</groupId>
+        <artifactId>pacioli-aggregate</artifactId>
+        <version>${revision}${changelist}</version>
+    </parent>
+
+    <groupId>pgriffel-pacioli</groupId>
+    <artifactId>pacioli-vsix</artifactId>
+    <name>Pacioli-vsix</name>
+    <description>Pacioli VS Code extension</description>
+
+    <!-- Indicate that we're not building a .jar file -->
+    <packaging>pom</packaging>
+
+    <!-- The Pacioli .jar file must have been build. It is copied below. -->
+    <dependencies>
+        <dependency>
+            <groupId>pgriffel-pacioli</groupId>
+            <artifactId>pacioli</artifactId>
+            <version>${revision}${changelist}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Copy the Pacioli .jar file before building. It must be named 'pacioli.jar'. -->
+            <plugin>
+                <groupId>com.coderplus.maven.plugins</groupId>
+                <artifactId>copy-rename-maven-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <id>copy-file</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <sourceFile>
+                                ${basedir}/../pacioli/target/pacioli-${revision}${changelist}-jar-with-dependencies.jar</sourceFile>
+                            <destinationFile>${basedir}/pacioli/pacioli.jar</destinationFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Copy the lib directory before building -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-resource-one</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/pacioli/lib</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/../../lib</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build the VS Code extension. Produces the .vsix file -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.15.0</version> <!-- Check for latest version -->
+
+                <configuration>
+                    <nodeVersion>v22.17.1</nodeVersion>
+                    <npmVersion>10.9.2</npmVersion>
+                    <workingDirectory>${project.basedir}/pacioli</workingDirectory>
+                    <!-- Cache directory for node_modules (speeds up builds) -->
+                    <!-- <cacheDirectory>${project.build.directory}/node-cache</cacheDirectory> -->
+                </configuration>
+
+                <!-- Executions: Map npm commands to Maven lifecycle phases -->
+                <executions>
+
+                    <!-- 1. Install Node.js and npm (runs in Maven's "initialize" phase) -->
+                    <execution>
+                        <id>install-node-and-npm</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>install-node-and-npm</goal>
+                        </goals>
+                    </execution>
+
+                    <!-- 2. Run "npm install" (installs dependencies, runs in "generate-resources"
+                    phase) -->
+                    <execution>
+                        <id>npm-install</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>install</arguments> <!-- Equivalent to "npm install" -->
+                        </configuration>
+                    </execution>
+
+                    <!-- 3. Run "npm run build" (builds the app, runs in "package" phase) -->
+                    <execution>
+                        <id>npm-run-build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>npm</goal>
+                        </goals>
+                        <configuration>
+                            <arguments>run package</arguments> <!-- Equivalent to "npm run build" -->
+                        </configuration>
+                    </execution>
+
+                </executions>
+            </plugin>
+
+            <!-- Remove the installed and copied files during cleaning -->
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>${project.basedir}/pacioli</directory>
+                            <includes>
+                                <include>pacioli.jar</include>
+                                <include>node_modules/**</include>
+                                <include>lib/**</include>
+                                <include>dist/**</include>
+                            </includes>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>  

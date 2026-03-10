@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
+import pacioli.Pacioli.Options;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
@@ -86,17 +87,129 @@ public class Bundle {
             "File",
             "Data");
 
-    private final PacioliFile file;
-    private final List<File> libs;
-    private final PacioliTable environment = PacioliTable.empty();
+    public final Project project;
+
+    private final PacioliTable environment;
 
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    private Bundle(PacioliFile file, List<File> libs) {
-        this.file = file;
-        this.libs = libs;
+    private Bundle(Project project, PacioliTable environment) {
+        this.project = project;
+        this.environment = environment;
+    }
+
+    public static Bundle fromFile(PacioliFile file, List<File> libs) throws Exception {
+        return fromProject(Project.fromFile(file, libs));
+    }
+
+    // rename to fromProject
+    static public Bundle fromProject(Project project) throws Exception {
+
+        Pacioli.trace("Loading module '%s'", project.file.moduleName());
+
+        Bundle bundle = new Bundle(project, PacioliTable.empty());
+
+        addPrimitiveTypesToEnv(bundle.environment, project.libs);
+
+        for (PacioliFile current : project.orderedFiles()) {
+
+            if (Options.showFileLoads) {
+                Pacioli.log("Loading %s", current.moduleName());
+            }
+
+            // Parse the file
+            Program program = Program.load(current).desugar();
+
+            // Filter the bundle's total symbol tables for the directly used modules of the
+            // program
+            PacioliTable env = bundle.visibleInfos(
+                    project.importedModules(current, program.ast()),
+                    project.includedModules(current, program.ast()));
+
+            addPrimitiveTypesToEnv(env, project.libs);
+
+            // Analyze the code and add the result to the bundle
+            bundle.load(program.analyze(env), current.equals(project.file));
+        }
+
+        return bundle;
+    }
+
+    private void load(PacioliTable other, boolean includeToplevels) throws Exception {
+        // See duplicate code in Progam
+        other.values().localInfos().forEach(info -> {
+
+            if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
+                Pacioli.log("Adding value %s", info.globalName());
+            }
+
+            if (environment.values().contains(info.globalName())) {
+                throw new PacioliException(info.location(), "Duplicate name: %s, %s %s",
+                        info.globalName(),
+                        environment.values().lookup(info.globalName()).location().equals(info.location()),
+                        environment.values().lookup(info.globalName()).location().description());
+            }
+
+            environment.values().put(info.globalName(), info);
+
+        });
+
+        other.types().localInfos().forEach(info -> {
+            if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
+                Pacioli.log("Adding type %s %s", info.globalName(), info.name());
+            }
+
+            if (environment.types().contains(info.globalName())) {
+                throw new PacioliException(info.location(), "Duplicate name: %s %s", info.globalName(),
+                        environment.types().lookup(info.globalName()).location().description());
+            }
+
+            environment.types().put(info.globalName(), info);
+
+        });
+
+        if (includeToplevels) {
+            other.toplevels().forEach(topLevel -> {
+                environment.toplevels().add(topLevel);
+            });
+        }
+    }
+
+    private static void addPrimitiveTypesToEnv(PacioliTable environment, List<File> libs) {
+        PacioliFile file = PacioliFile.requireLibrary("base", libs);
+        for (String type : PRIMITIVE_TYPES) {
+            // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
+            // environment.types.put(type, new ParametricInfo(info));
+            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location()));
+        }
+        // Makes generating docs crash. Uncomment when nmode experiment continues.
+        // ValueInfo nmodeInfo = ValueInfo.builder()
+        // .name("nmode")
+        // .file(file)
+        // .isGlobal(true)
+        // .isMonomorphic(false)
+        // .location(new Location())
+        // .isPublic(true)
+        // .build();
+        // environment.values().put("nmode", nmodeInfo);
+    }
+
+    private List<File> includedFilesRec() {
+        List<File> files = new ArrayList<>();
+        for (PacioliFile include : this.project.includeTree(this.project.file)) {
+            files.add(include.fsFile());
+        }
+        return files;
+    }
+
+    private List<String> includedModulesRec() {
+        List<String> modules = new ArrayList<>();
+        for (PacioliFile include : this.project.includeTree(this.project.file)) {
+            modules.add(include.module());
+        }
+        return modules;
     }
 
     public PacioliTable visibleInfos(List<String> importedModules, List<String> includedModules) {
@@ -164,76 +277,9 @@ public class Bundle {
         return table;
     }
 
-    public void addPrimitiveTypes() {
-        addPrimitiveTypesToEnv(environment, libs);
-    }
+    public void generateCode(PrintWriter writer, CompilationSettings settings) {
 
-    public static void addPrimitiveTypesToEnv(PacioliTable environment, List<File> libs) {
-        PacioliFile file = PacioliFile.requireLibrary("base", libs);
-        for (String type : PRIMITIVE_TYPES) {
-            // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
-            // environment.types.put(type, new ParametricInfo(info));
-            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location()));
-        }
-        // Makes generating docs crash. Uncomment when nmode experiment continues.
-        // ValueInfo nmodeInfo = ValueInfo.builder()
-        // .name("nmode")
-        // .file(file)
-        // .isGlobal(true)
-        // .isMonomorphic(false)
-        // .location(new Location())
-        // .isPublic(true)
-        // .build();
-        // environment.values().put("nmode", nmodeInfo);
-    }
-
-    static Bundle empty(PacioliFile file, List<File> libs) {
-        return new Bundle(file, libs);
-    }
-
-    void load(PacioliTable other, boolean includeToplevels) throws Exception {
-        // See duplicate code in Progam
-        other.values().localInfos().forEach(info -> {
-
-            if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
-                Pacioli.log("Adding value %s", info.globalName());
-            }
-
-            if (environment.values().contains(info.globalName())) {
-                throw new PacioliException(info.location(), "Duplicate name: %s, %s %s",
-                        info.globalName(),
-                        environment.values().lookup(info.globalName()).location().equals(info.location()),
-                        environment.values().lookup(info.globalName()).location().description());
-            }
-
-            environment.values().put(info.globalName(), info);
-
-        });
-
-        other.types().localInfos().forEach(info -> {
-            if (Pacioli.Options.showSymbolTableAdditions.contains(info.name())) {
-                Pacioli.log("Adding type %s %s", info.globalName(), info.name());
-            }
-
-            if (environment.types().contains(info.globalName())) {
-                throw new PacioliException(info.location(), "Duplicate name: %s %s", info.globalName(),
-                        environment.types().lookup(info.globalName()).location().description());
-            }
-
-            environment.types().put(info.globalName(), info);
-
-        });
-
-        if (includeToplevels) {
-            other.toplevels().forEach(topLevel -> {
-                environment.toplevels().add(topLevel);
-            });
-        }
-    }
-
-    public void generateCode(PrintWriter writer, CompilationSettings settings, List<String> includeTreeModules) {
-
-        Pacioli.trace("Generating code for %s", this.file.module());
+        Pacioli.trace("Generating code for %s", this.project.file.module());
 
         boolean indentCode = false; // feature flag
 
@@ -293,6 +339,8 @@ public class Bundle {
         // Collect all functions and values with a definition from the value table
         var shakeCallTree = true; // feature flag
         if (shakeCallTree) {
+
+            List<String> includeTreeModules = this.includedModulesRec();
 
             // Add the 'uses' closure of all value definitions from the file we are
             // compiling
@@ -370,7 +418,7 @@ public class Bundle {
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels()) {
             assert (def.location().file().isPresent());
-            if (def.location().file().get().equals(file.fsFile())) {
+            if (def.location().file().get().equals(this.project.file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
@@ -396,7 +444,7 @@ public class Bundle {
 
         for (String value : names) {
             ValueInfo info = environment.values().lookup(value);
-            boolean fromProgram = info.generalInfo().module().equals(file.module());
+            boolean fromProgram = info.generalInfo().module().equals(this.project.file.module());
             if (fromProgram && info.definition().isPresent() && (true || info.isUserDefined())) {
                 // Pacioli.println("%s =", info.name());
                 Pacioli.println("%s;\n", info.definition().get().pretty());
@@ -418,7 +466,7 @@ public class Bundle {
 
         for (String value : names) {
             ValueInfo info = environment.values().lookup(value);
-            boolean fromProgram = info.generalInfo().module().equals(file.module());
+            boolean fromProgram = info.generalInfo().module().equals(this.project.file.module());
             if (info.name().equals("nmode")) {
                 Pacioli.println("NMODE");
             }
@@ -446,12 +494,10 @@ public class Bundle {
     }
 
     public void genAPI(
-            List<File> includes,
             String version,
-            File docFile,
             String target) throws PacioliException, IOException {
 
-        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, true);
+        DocumentationGenerator generator = libraryDocumentationGenerator(version, true).addVersionInfo(true);
 
         String extension;
 
@@ -473,7 +519,8 @@ public class Bundle {
             }
         }
 
-        File outputFile = new File(file.fsFile().getParentFile(), file.moduleName() + extension);
+        File outputFile = new File(this.project.file.fsFile().getParentFile(),
+                this.project.file.moduleName() + extension);
 
         Pacioli.log("Writing file %s...", outputFile.getAbsolutePath());
 
@@ -486,14 +533,12 @@ public class Bundle {
     }
 
     public void printAPI(
-            List<File> includes,
             String version,
-            File docFile,
             String target) throws Exception {
 
         // TODO: see if an earlier generated file exists and reuse that
 
-        DocumentationGenerator generator = libraryDocumentationGenerator(includes, version, docFile, false);
+        DocumentationGenerator generator = libraryDocumentationGenerator(version, false);
 
         PrintWriter writer = new PrintWriter(System.out);
         generator.generate(writer, target);
@@ -510,12 +555,13 @@ public class Bundle {
      * @throws IOException
      */
     public DocumentationGenerator libraryDocumentationGenerator(
-            List<File> includes,
             String version,
-            File docFile,
             boolean verbose) throws PacioliException, IOException {
 
-        DocumentationGenerator generator = new DocumentationGenerator(file.moduleName(), version);
+        List<File> includes = this.includedFilesRec();
+        File docFile = this.project.file.docFile();
+
+        DocumentationGenerator generator = new DocumentationGenerator(this.project.file.moduleName(), version);
 
         int nrValues = 0;
         int nrFunctions = 0;
@@ -648,7 +694,7 @@ public class Bundle {
     public List<IdentifierInfo> allIdentifiers() {
         List<IdentifierInfo> all = new ArrayList<>();
 
-        var infos = environment.values().allInfos(info -> info.isFromFile(this.file));
+        var infos = environment.values().allInfos(info -> info.isFromFile(this.project.file));
         for (Info info : infos) {
             if (info instanceof ValueInfo vd && vd.declaration().isPresent()) {
                 all.addAll(vd.declaration().get().allIdentifiers());
@@ -665,7 +711,7 @@ public class Bundle {
             }
         }
 
-        var typeInfos = environment.types().allInfos(info -> info.isFromFile(this.file));
+        var typeInfos = environment.types().allInfos(info -> info.isFromFile(this.project.file));
         for (Info info : typeInfos) {
             // if (info instanceof ValueInfo vd && vd.declaredType().isPresent()) {
             // all.addAll(vd.declaredType().get().allIdentifiers());

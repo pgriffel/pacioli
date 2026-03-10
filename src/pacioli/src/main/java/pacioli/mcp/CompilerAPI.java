@@ -24,12 +24,7 @@ package pacioli.mcp;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,38 +66,6 @@ public class CompilerAPI {
     public static String libraryDocumentation(File docFile) throws IOException {
         List<String> read = Files.readAllLines(docFile.toPath());
         return String.join("\n", read);
-    }
-
-    public static String libraryAPI(File docFile) throws IOException {
-        List<String> read = Files.readAllLines(docFile.toPath());
-        return String.join("\n", read);
-    }
-
-    public static List<PacioliFile> collectLibFiles(List<File> libs) throws IOException {
-        var libraries = new ArrayList<PacioliFile>();
-
-        for (File lib : libs) {
-            libraries.addAll(scanLibDirectory(lib));
-        }
-
-        return libraries;
-    }
-
-    public static List<PacioliFile> scanLibDirectory(File path) throws IOException {
-        var libraries = new ArrayList<PacioliFile>();
-
-        Files.walkFileTree(Path.of(path.getAbsolutePath()), new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                PacioliFile
-                        .findLibrary(dir.getFileName().toString(), List.of(path))
-                        .ifPresent(libraries::add);
-
-                return super.preVisitDirectory(dir, attrs);
-            }
-        });
-
-        return libraries;
     }
 
     public static JsonObject valueInfoJson(ValueInfo info) {
