@@ -23,13 +23,11 @@
 package pacioli.mcp;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Map;
 
 import com.google.gson.JsonArray;
@@ -38,10 +36,8 @@ import com.google.gson.JsonObject;
 
 public class PacioliMCPServer {
     // TODO: better logging
-    // private static final String LOGFILE =
-    // "/home/paul/code/pacioli/mcp-server.log";
     private static final String LOGFILE = null;
-    // private static final String LOGFILE = "D:\\code\\pacioli\\mcp-server.log";
+    // private static final String LOGFILE = "pacioli-mcp-server.log";
 
     private final MCPResourceManager resourceManager;
     private final MCPToolHandler toolHandler;
@@ -221,39 +217,19 @@ public class PacioliMCPServer {
     private static JsonObject listTools() {
         JsonArray toolArray = new JsonArray();
 
-        // toolArray.add(toolInfo(
-        // "analyze_file",
-        // "Parse and analyze a Pacioli file, returning symbols, types, and
-        // diagnostics",
-        // Map.ofEntries(
-        // Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to
-        // analyze")))));
-
         toolArray.add(toolInfo(
-                "infer_types",
-                "Runs type inference on a file.",
+                "locate_references",
+                "Finds all references to a Pacioli value or type and returns a list of their locations.",
                 Map.ofEntries(
-                        Map.entry("filepath", toolProperty("string", "Path to the Pacioli file to infer types for")))));
-
-        // toolArray.add(toolInfo(
-        // "list_symbols",
-        // "Extract all public symbols from a module (API listing)",
-        // Map.ofEntries(
-        // Map.entry("filepath",
-        // toolProperty("string", "Path to the Pacioli file to analyze")))));
+                        Map.entry("name", toolProperty("string", "Name of the Pacioli value or type")),
+                        Map.entry("file", toolProperty("string", "Pacioli file where the name is from")),
+                        Map.entry("kind", toolProperty("string", "One of 'value' or 'type'")))));
 
         toolArray.add(toolInfo(
-                "library_documentation",
-                "Library documentation",
+                "project_graph",
+                "Gives all files that are reachable from a Pacioil file via import or includes, including the base and standard libraries",
                 Map.ofEntries(
-                        Map.entry("name",
-                                toolProperty("string", "Name of the library")))));
-
-        // Is also a resource? Remove this as tool?
-        toolArray.add(toolInfo(
-                "list_libraries",
-                "List all available Pacioli libraries",
-                Map.ofEntries()));
+                        Map.entry("file", toolProperty("string", "A Pacioli file")))));
 
         JsonObject result = new JsonObject();
 
@@ -297,12 +273,6 @@ public class PacioliMCPServer {
     private static JsonObject listResources() {
         JsonArray resourceArray = new JsonArray();
 
-        resourceArray.add(resourceInfo(
-                "pacioli:///libraries",
-                "libraries",
-                "List of all libraries",
-                "List of all available Pacioli libraries"));
-
         JsonObject result = new JsonObject();
 
         result.add("resources", resourceArray);
@@ -310,29 +280,23 @@ public class PacioliMCPServer {
         return result;
     }
 
-    private static JsonObject resourceInfo(
-            String uri,
-            String name,
-            String title,
-            String description) {
+    // private static JsonObject resourceInfo(
+    // String uri,
+    // String name,
+    // String title,
+    // String description) {
 
-        JsonObject info = new JsonObject();
-        info.addProperty("uri", uri);
-        info.addProperty("name", name);
-        info.addProperty("title", title);
-        info.addProperty("description", description);
+    // JsonObject info = new JsonObject();
+    // info.addProperty("uri", uri);
+    // info.addProperty("name", name);
+    // info.addProperty("title", title);
+    // info.addProperty("description", description);
 
-        return info;
-    }
+    // return info;
+    // }
 
     private static JsonObject listResourceTemplates() {
         JsonArray resourceArray = new JsonArray();
-
-        resourceArray.add(resourceTemplateInfo(
-                "pacioli:///definition{?file,library,definition}",
-                "definition",
-                "Value or function definition",
-                "Definition of a user or library function or value. Use the file parameter for a user function or value. Use the library parameter for a library function or value."));
 
         JsonObject result = new JsonObject();
 
@@ -341,18 +305,18 @@ public class PacioliMCPServer {
         return result;
     }
 
-    private static JsonObject resourceTemplateInfo(
-            String uri,
-            String name,
-            String title,
-            String description) {
+    // private static JsonObject resourceTemplateInfo(
+    // String uri,
+    // String name,
+    // String title,
+    // String description) {
 
-        JsonObject info = new JsonObject();
-        info.addProperty("uriTemplate", uri);
-        info.addProperty("name", name);
-        info.addProperty("title", title);
-        info.addProperty("description", description);
+    // JsonObject info = new JsonObject();
+    // info.addProperty("uriTemplate", uri);
+    // info.addProperty("name", name);
+    // info.addProperty("title", title);
+    // info.addProperty("description", description);
 
-        return info;
-    }
+    // return info;
+    // }
 }

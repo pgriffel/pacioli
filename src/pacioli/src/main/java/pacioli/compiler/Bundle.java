@@ -29,14 +29,17 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
 import pacioli.Pacioli.Options;
+import pacioli.ast.Node;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
@@ -824,5 +827,58 @@ public class Bundle {
                 finished.add(info);
             }
         }
+    }
+
+    /**
+     * A map mapping the name of all types in the Bundle to the nodes that
+     * reference the type.
+     * 
+     * @return
+     */
+    public Map<String, List<Node>> typeReferencesMap() {
+        Map<String, List<Node>> map = new HashMap<>();
+
+        for (TypeInfo info : environment.types().allInfos()) {
+            for (Node ref : info.definition().map(Node::references).orElse(List.of())) {
+                String name = ref.getInfo().orElseThrow().name();
+
+                if (!map.containsKey(name)) {
+                    map.put(name, new ArrayList<>());
+                }
+
+                List<Node> refList = map.get(name);
+
+                refList.add(ref);
+            }
+
+        }
+
+        return map;
+    }
+
+    /**
+     * A map mapping the name of all value in the Bundle to the nodes that
+     * reference the value.
+     * 
+     * @return
+     */
+    public Map<String, List<Node>> valueReferencesMap() {
+        Map<String, List<Node>> map = new HashMap<>();
+
+        for (ValueInfo info : allValueInfos()) {
+            for (Node ref : info.definition().map(Node::references).orElse(List.of())) {
+                String name = ref.getInfo().orElseThrow().name();
+
+                if (!map.containsKey(name)) {
+                    map.put(name, new ArrayList<>());
+                }
+
+                List<Node> refList = map.get(name);
+
+                refList.add(ref);
+            }
+        }
+
+        return map;
     }
 }

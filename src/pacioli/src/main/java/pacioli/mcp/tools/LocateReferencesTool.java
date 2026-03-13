@@ -23,51 +23,72 @@
 package pacioli.mcp.tools;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
+import pacioli.ast.Node;
+import pacioli.compiler.Bundle;
 import pacioli.compiler.PacioliFile;
-import pacioli.documentation.LibCatalog;
-import pacioli.mcp.CompilerAPI;
+import pacioli.mcp.MCPException;
 
-public class ListLibrariesTool {
+public class LocateReferencesTool {
     private final List<File> libs;
 
-    public ListLibrariesTool(List<File> libs) {
+    public LocateReferencesTool(List<File> libs) {
         this.libs = new ArrayList<>(libs);
     }
 
-    public String call(JsonObject args) throws IOException {
-        // Return list of library directories
+    public String call(JsonObject args) throws Exception {
+
+        if (!args.has("file")) {
+            throw new MCPException("missing 'file' argument");
+        }
+
+        if (!args.has("name")) {
+            throw new MCPException("missing 'name' argument");
+        }
+
+        String path = args.get("file").getAsString();
+        String name = args.get("name").getAsString();
+
+        // Should be 'value' or 'type'
+        String kind = args.has("kind") ? args.get("kind").getAsString() : "value";
+
+        PacioliFile file = PacioliFile.get(path, 0).orElseThrow(() -> new MCPException("file not found: " + path));
+
+        Bundle bundle = Bundle.fromFile(file, libs);
+
+        Map<String, List<Node>> referencesMap = kind.equals("type")
+                ? bundle.typeReferencesMap()
+                : bundle.valueReferencesMap();
+
+        List<Node> refs = referencesMap.get(name);
+
+        if (refs == null) {
+            throw new MCPException(String.format("Name '%s' does not exist in file %s", name, file.module()));
+        }
+
         var res = new com.google.gson.JsonObject();
         var arr = new com.google.gson.JsonArray();
 
-        for (PacioliFile file : LibCatalog.collectLibFiles(libs)) {
-            var lib = new JsonObject();
+        for (Node ref : refs) {
+            JsonObject s = new JsonObject();
 
-            lib.addProperty("name", file.moduleName());
-            lib.addProperty("file", file.fsFile().toString());
-            try {
-                String docu = CompilerAPI.libraryDocumentation(file.docFile());
-                lib.addProperty("documentation", docu);
-            } catch (IOException e) {
-            }
+            s.addProperty("file", ref.location().file().get().getCanonicalFile().toString());
+            s.addProperty("startLine", ref.location().fromLine);
+            s.addProperty("startColumn", ref.location().fromColumn);
 
-            var entry = new JsonObject();
-            entry.addProperty("type", "text");
-            entry.addProperty("text", lib.toString());
-            arr.add(entry);
+            arr.add(s);
         }
 
-        res.add("content", arr);
+        res.add("references", arr);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(res);
 
-        // return res.toString();
     }
 }

@@ -36,12 +36,12 @@ import com.google.gson.JsonObject;
 /**
  * Test for the 'list_libraries' tool. Should be a resource?!
  */
-class ListLibrariesToolIT {
+class ProjectGraphToolIT {
 
     static final List<File> LIBS = TestEnvironment.LIBS;
 
     @Test
-    void listLibrariesTool() throws Exception {
+    void projectGraphTool() throws Exception {
 
         // Setup
         TestConnection testConnection = new TestConnection();
@@ -56,26 +56,33 @@ class ListLibrariesToolIT {
         });
         testConnection.initialize();
 
-        // When the 'list_libraries' tool is called
-        JsonObject arguments = new JsonObject();
-        JsonObject listResp = testConnection.callTool("list_libraries", arguments);
+        // Given the file bom.pacioli from the samples
+        File bomFile = new File("../../samples/bom/bom.pacioli");
 
-        // Then the call should succeed
-        assertNotNull(listResp, "No response to analyze_file");
+        // When the 'locate_references' tool is called with name 'BoM'
+        JsonObject arguments = new JsonObject();
+        arguments.addProperty("file", bomFile.getAbsolutePath());
+
+        JsonObject listResp = testConnection.callTool("project_graph", arguments);
+
+        // Then the call should succeed and the reply should contain property 'result'
         assertTrue(listResp.has("result"));
 
-        // And the result should contain property 'libraries'
+        // And the result should have property 'content'
         JsonObject r = listResp.getAsJsonObject("result");
         assertTrue(r.has("content"));
 
+        // And the content should have size one
         JsonArray contents = r.getAsJsonArray("content");
         assertEquals(1, contents.size());
 
-        String text = contents.get(0).getAsJsonObject().get("text").getAsString();
+        // And the content element should have property 'text'
+        JsonObject contents0 = contents.get(0).getAsJsonObject();
+        assertTrue(contents0.has("text"));
 
-        // assertTrue(text.startsWith("{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"name\\\":\\\"base\\\","));
-        // assertTrue(text.endsWith("naturals(5) = [0, 1, 2, 3, 4]\\\\n )\\\\n ]);
-        // \\\\n</pre>\\\"}\"}]}"));
+        // Then the text should be correct
+        String text = contents0.get("text").getAsString();
+        assertEquals(1894316135, text.hashCode());
 
         // Teardown
         server.stop();

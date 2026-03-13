@@ -30,18 +30,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.Test;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
  * Test for the 'list_libraries' tool. Should be a resource?!
  */
-class LibraryDocumentationIT {
+class CollectReferencesToolIT {
 
     static final List<File> LIBS = TestEnvironment.LIBS;
 
     @Test
-    void listLibrariesTool() throws Exception {
+    void collectReferencesTool() throws Exception {
 
         // Setup
         TestConnection testConnection = new TestConnection();
@@ -56,32 +57,53 @@ class LibraryDocumentationIT {
         });
         testConnection.initialize();
 
-        // When the 'list_libraries' tool is called
-        JsonObject arguments = new JsonObject();
-        arguments.addProperty("name", "geometry");
-        JsonObject listResp = testConnection.callTool("library_documentation", arguments);
+        // Given the file bom.pacioli from the samples
+        File bomFile = new File("../../samples/bom/bom.pacioli");
 
-        // Then the call should succeed
-        assertNotNull(listResp, "No response to library_documentation");
+        // When the 'locate_references' tool is called with name 'BoM'
+        JsonObject arguments = new JsonObject();
+        arguments.addProperty("file", bomFile.getAbsolutePath());
+        arguments.addProperty("name", "BoM");
+        JsonObject listResp = testConnection.callTool("locate_references", arguments);
+
+        // Then the call should succeed and the reply should contain property 'result'
         assertTrue(listResp.has("result"));
 
-        // And the result should contain property 'libraries'
+        // And the result should have property 'content'
         JsonObject r = listResp.getAsJsonObject("result");
         assertTrue(r.has("content"));
 
-        JsonObject c = r.get("content").getAsJsonArray().get(0).getAsJsonObject();
-
+        // And the content should have size one
         JsonArray contents = r.getAsJsonArray("content");
         assertEquals(1, contents.size());
 
-        String text = contents.get(0).getAsJsonObject().get("text").getAsString();
+        // And the content element should have property 'text'
+        JsonObject contents0 = contents.get(0).getAsJsonObject();
+        assertTrue(contents0.has("text"));
 
-        assertTrue(text.startsWith("# The geometry library"));
-        assertTrue(text.contains("Area of the triangle given by three position vectors."));
+        // When the text is parsed as Json object
+        String text = contents0.get("text").getAsString();
+        Gson gson = new Gson();
+        JsonObject textObject = gson.fromJson(text, JsonObject.class);
 
-        // assertTrue(text.startsWith("{\"content\":[{\"type\":\"text\",\"text\":\"{\\\"name\\\":\\\"base\\\","));
-        // assertTrue(text.endsWith("naturals(5) = [0, 1, 2, 3, 4]\\\\n )\\\\n ]);
-        // \\\\n</pre>\\\"}\"}]}"));
+        // Then the parsed text element should have property 'references'
+        assertTrue(textObject.has("references"));
+
+        // And the references should have two elements
+        JsonArray refs = textObject.get("references").getAsJsonArray();
+        assertEquals(2, refs.size());
+
+        // And the first element should have the correct location
+        JsonObject ref0 = refs.get(0).getAsJsonObject();
+        assertEquals(bomFile.getCanonicalPath(), ref0.get("file").getAsString());
+        assertEquals(103, ref0.get("startLine").getAsInt());
+        assertEquals(12, ref0.get("startColumn").getAsInt());
+
+        // And the second element should have the correct location
+        JsonObject ref1 = refs.get(1).getAsJsonObject();
+        assertEquals(bomFile.getCanonicalPath(), ref1.get("file").getAsString());
+        assertEquals(109, ref1.get("startLine").getAsInt());
+        assertEquals(15, ref1.get("startColumn").getAsInt());
 
         // Teardown
         server.stop();

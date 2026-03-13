@@ -22,59 +22,57 @@
 
 package pacioli.mcp.tools;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-import pacioli.compiler.Bundle;
 import pacioli.compiler.PacioliFile;
 import pacioli.compiler.Project;
-import pacioli.symboltable.info.ValueInfo;
-import pacioli.mcp.CompilerAPI;
 import pacioli.mcp.MCPException;
 
-public class AnalyzeTool {
+public class ProjectGraphTool {
     private final List<File> libs;
 
-    public AnalyzeTool(List<File> libs) {
+    public ProjectGraphTool(List<File> libs) {
         this.libs = new ArrayList<>(libs);
     }
 
-    public JsonObject call(JsonObject args) throws MCPException {
-        try {
-            String path = args.has("filepath") ? args.get("filepath").getAsString() : null;
+    public String call(JsonObject args) throws Exception {
 
-            JsonObject out = new JsonObject();
-
-            if (path == null) {
-                out.addProperty("error", "missing 'filepath' argument");
-                return out;
-            }
-
-            var opt = PacioliFile.get(path, 0);
-            if (opt.isEmpty()) {
-                out.addProperty("error", "file not found: " + path);
-                return out;
-            }
-
-            PacioliFile file = opt.get();
-            Bundle bundle = Bundle.fromFile(file, libs);
-
-            JsonArray symbols = new JsonArray();
-            for (ValueInfo info : bundle.allValueInfos()) {
-                if (info.generalInfo().module().equals(file.module())) {
-                    symbols.add(CompilerAPI.valueInfoJson(info));
-                }
-            }
-
-            out.add("symbols", symbols);
-            out.addProperty("file", path);
-            return out;
-        } catch (Exception e) {
-            throw new MCPException("analyze failed: " + e.getMessage());
+        if (!args.has("file")) {
+            throw new MCPException("missing 'file' argument");
         }
+
+        String path = args.get("file").getAsString();
+
+        var opt = PacioliFile.get(path, 0);
+
+        if (opt.isEmpty()) {
+            throw new MCPException("file not found: " + path);
+        }
+
+        PacioliFile file = opt.get();
+
+        Project proj = Project.fromFile(file, libs);
+
+        // Create a stream to hold the output
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        // IMPORTANT: Save the old System.out!
+        PrintStream old = System.out;
+        // Tell Java to use your special stream
+        System.setOut(ps);
+        // Print some output: goes to your special stream
+
+        proj.printInfo();
+
+        // Put things back
+        System.out.flush();
+        System.setOut(old);
+
+        return baos.toString();
     }
 }

@@ -64,17 +64,6 @@ public class MCPTransport {
     }
 
     public void close() {
-        // TODO: is this close needed? The integration test hangs when this close is
-        // called.
-        // try {
-        // in.close();
-        // } catch (Exception e) {
-        // // ignore
-        // }
-        try {
-            out.close();
-        } catch (Exception e) {
-            // ignore
-        }
+        out.flush();
     }
 }

@@ -156,13 +156,11 @@ public class LibCatalog {
      * directory is a directory where Pacioli libraries are located. Multiple lib
      * directories can be passed to the compiler via the command line.
      * 
-     * TODO: make private when mcp is removed!?
-     * 
      * @param libs
      * @return
      * @throws IOException
      */
-    public static List<PacioliFile> collectLibFiles(List<File> libs) throws IOException {
+    private static List<PacioliFile> collectLibFiles(List<File> libs) throws IOException {
         var libraries = new ArrayList<PacioliFile>();
 
         for (File lib : libs) {
