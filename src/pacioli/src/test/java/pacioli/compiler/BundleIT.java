@@ -3,11 +3,14 @@ package pacioli.compiler;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import pacioli.ast.Node;
+import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.ValueDefinition;
+import pacioli.compiler.Bundle.ReferencesTable;
 import pacioli.mcp.TestEnvironment;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 
 import org.junit.jupiter.api.Test;
@@ -65,25 +68,32 @@ class BundleIT {
         // When a Bundle is created from the file
         Bundle bundle = Bundle.fromFile(file, LIBS);
 
-        Map<String, List<Node>> valueReferencesMap = bundle.valueReferencesMap();
+        ReferencesTable referencesTable = bundle.buildReferencesTable();
 
-        String module = file.moduleName();
         String name = "BoM";
 
-        Boolean allNamesCorrect = valueReferencesMap.get(name).stream()
-                .map(x -> x.getInfo().orElseThrow().globalName().equals("bom_BoM"))
+        Boolean allNamesCorrect = referencesTable.getValueReferences(name).stream()
+                .map(x -> {
+                    if (x instanceof ValueDefinition vd) {
+                        return vd.id.name().equals(name);
+                    } else {
+                        Optional<Info> info = x.getInfo();
+
+                        return info.isPresent() && info.get().name().equals(name);
+                    }
+                })
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
 
-        String usedNames = valueReferencesMap.get(name).stream()
+        String usedNames = referencesTable.getValueReferences(name).stream()
                 .map(x -> {
                     return x.location().file().orElseThrow().getName() + ":" +
                             x.location().fromLine;
                 })
                 .collect(Collectors.joining(","));
 
-        assertEquals("bom.pacioli:103,bom.pacioli:109", usedNames);
+        assertEquals("bom.pacioli:103,bom.pacioli:84,bom.pacioli:109,bom.pacioli:132", usedNames);
     }
 
     @Test
@@ -95,24 +105,31 @@ class BundleIT {
         // When a Bundle is created from the file
         Bundle bundle = Bundle.fromFile(file, LIBS);
 
-        Map<String, List<Node>> typeReferencesMap = bundle.typeReferencesMap();
+        ReferencesTable referencesTable = bundle.buildReferencesTable();
 
-        String module = file.moduleName();
         String name = "Product";
 
-        Boolean allNamesCorrect = typeReferencesMap.get(name).stream()
-                .map(x -> x.getInfo().orElseThrow().globalName().equals("index_bom_Product"))
+        Boolean allNamesCorrect = referencesTable.getTypeReferences(name).stream()
+                .map(x -> {
+                    if (x instanceof IndexSetDefinition isd) {
+                        return isd.id.name().equals(name);
+                    } else {
+                        return x.getInfo().orElseThrow().name().equals(name);
+                    }
+                })
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
 
-        String usedNames = typeReferencesMap.get(name).stream()
+        String usedNames = referencesTable.getTypeReferences(name).stream()
                 .map(x -> {
                     return x.location().file().orElseThrow().getName() + ":" +
                             x.location().fromLine;
                 })
                 .collect(Collectors.joining(","));
 
-        assertEquals("bom.pacioli:48,bom.pacioli:37,bom.pacioli:59", usedNames);
+        assertEquals(
+                "bom.pacioli:118,bom.pacioli:118,bom.pacioli:71,bom.pacioli:71,bom.pacioli:84,bom.pacioli:84,bom.pacioli:77,bom.pacioli:48,bom.pacioli:37,bom.pacioli:59",
+                usedNames);
     }
 }

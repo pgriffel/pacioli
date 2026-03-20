@@ -830,55 +830,92 @@ public class Bundle {
     }
 
     /**
-     * A map mapping the name of all types in the Bundle to the nodes that
-     * reference the type.
-     * 
-     * @return
+     * A mapping from a value or type name to a list with all references to the
+     * value or type.
      */
-    public Map<String, List<Node>> typeReferencesMap() {
-        Map<String, List<Node>> map = new HashMap<>();
+    public record ReferencesTable(Map<String, List<Node>> values, Map<String, List<Node>> types) {
 
-        for (TypeInfo info : environment.types().allInfos()) {
-            for (Node ref : info.definition().map(Node::references).orElse(List.of())) {
-                String name = ref.getInfo().orElseThrow().name();
-
-                if (!map.containsKey(name)) {
-                    map.put(name, new ArrayList<>());
-                }
-
-                List<Node> refList = map.get(name);
-
-                refList.add(ref);
-            }
-
+        /**
+         * All nodes (typically identifier nodes) that refer to the value with the given
+         * name. Includes the definition of the value itself.
+         * 
+         * @param name Name of some value
+         * @return All references to the value
+         */
+        public List<Node> getValueReferences(String name) {
+            return this.values.get(name);
         }
 
-        return map;
+        /**
+         * All nodes (typically identifier nodes) that refer to the type with the given
+         * name. Includes the definition of the type itself.
+         * 
+         * @param name Name of some type
+         * @return All references to the type
+         */
+        public List<Node> getTypeReferences(String name) {
+            return this.types.get(name);
+        }
+    }
+
+    static List<Node> refTableEntry(Map<String, List<Node>> table, String name) {
+        if (!table.containsKey(name)) {
+            table.put(name, new ArrayList<>());
+        }
+
+        return table.get(name);
     }
 
     /**
-     * A map mapping the name of all value in the Bundle to the nodes that
-     * reference the value.
-     * 
-     * @return
+     * Builds a ReferencesTable for the bundle.
      */
-    public Map<String, List<Node>> valueReferencesMap() {
-        Map<String, List<Node>> map = new HashMap<>();
+    public ReferencesTable buildReferencesTable() {
+        Map<String, List<Node>> valuesTable = new HashMap<>();
+        Map<String, List<Node>> typeTable = new HashMap<>();
 
         for (ValueInfo info : allValueInfos()) {
-            for (Node ref : info.definition().map(Node::references).orElse(List.of())) {
-                String name = ref.getInfo().orElseThrow().name();
 
-                if (!map.containsKey(name)) {
-                    map.put(name, new ArrayList<>());
+            if (info.definition().isPresent()) {
+                Definition definition = info.definition().get();
+
+                // Add the definition itself
+                refTableEntry(valuesTable, info.name()).add(definition);
+
+                // Add all references in the definition's body
+                for (Node ref : definition.references()) {
+                    Info refInfo = ref.getInfo().orElseThrow();
+
+                    refTableEntry(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name()).add(ref);
                 }
-
-                List<Node> refList = map.get(name);
-
-                refList.add(ref);
             }
         }
 
-        return map;
+        for (TypeInfo info : environment.types().allInfos()) {
+
+            if (info.definition().isPresent()) {
+                Definition definition = info.definition().get();
+
+                // Add the definition itself
+                refTableEntry(typeTable, info.name()).add(definition);
+
+                // Add all references in the definition's body
+                for (Node ref : definition.references()) {
+                    Info refInfo = ref.getInfo().orElseThrow();
+
+                    refTableEntry(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name()).add(ref);
+                }
+            }
+        }
+
+        for (Toplevel info : environment.toplevels()) {
+
+            // Add all references in the toplevel's body
+            for (Node ref : info.body.references()) {
+                Info refInfo = ref.getInfo().orElseThrow();
+                refTableEntry(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name()).add(ref);
+            }
+        }
+
+        return new ReferencesTable(valuesTable, typeTable);
     }
 }

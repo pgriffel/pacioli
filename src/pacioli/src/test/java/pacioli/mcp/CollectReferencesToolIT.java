@@ -91,7 +91,7 @@ class CollectReferencesToolIT {
 
         // And the references should have two elements
         JsonArray refs = textObject.get("references").getAsJsonArray();
-        assertEquals(2, refs.size());
+        assertEquals(4, refs.size());
 
         // And the first element should have the correct location
         JsonObject ref0 = refs.get(0).getAsJsonObject();
@@ -99,11 +99,11 @@ class CollectReferencesToolIT {
         assertEquals(103, ref0.get("startLine").getAsInt());
         assertEquals(12, ref0.get("startColumn").getAsInt());
 
-        // And the second element should have the correct location
+        // And the second element (the definition) should have the correct location
         JsonObject ref1 = refs.get(1).getAsJsonObject();
         assertEquals(bomFile.getCanonicalPath(), ref1.get("file").getAsString());
-        assertEquals(109, ref1.get("startLine").getAsInt());
-        assertEquals(15, ref1.get("startColumn").getAsInt());
+        assertEquals(84, ref1.get("startLine").getAsInt());
+        assertEquals(0, ref1.get("startColumn").getAsInt());
 
         // Teardown
         server.stop();

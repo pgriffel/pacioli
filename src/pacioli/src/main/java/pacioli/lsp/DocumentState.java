@@ -40,13 +40,15 @@ import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureInformation;
+
+import pacioli.ast.Node;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
-import pacioli.compiler.Project;
+import pacioli.compiler.Bundle.ReferencesTable;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
@@ -199,6 +201,41 @@ public class DocumentState {
             }
         }
         return List.of();
+    }
+
+    public List<org.eclipse.lsp4j.Location> locateReferences(Position position) {
+        List<Info> infos = this.locateInfo(position.getLine(), position.getCharacter());
+
+        List<org.eclipse.lsp4j.Location> locations = new ArrayList<>();
+
+        if (infos.isEmpty()) {
+            return locations;
+        }
+
+        String name = infos.get(0).name();
+
+        ReferencesTable refTable = this.bundle.buildReferencesTable();
+
+        List<Node> refNodes = infos.get(0) instanceof ValueInfo
+                ? refTable.getValueReferences(name)
+                : refTable.getTypeReferences(name);
+
+        if (refNodes == null) {
+            throw new RuntimeException("Name not found: " + name);
+        }
+
+        for (Node node : refNodes) {
+            var loc = node.location();
+            if (loc.file().isPresent()) {
+                var uri = loc.file().get().toURI();
+
+                var range = new Range(new Position(loc.fromLine, loc.fromColumn),
+                        new Position(loc.toLine, loc.toColumn));
+                locations.add(new org.eclipse.lsp4j.Location(uri.toString(), range));
+            }
+        }
+
+        return locations;
     }
 
     static public DocumentState buildState(String uri, List<File> libs) throws Exception {

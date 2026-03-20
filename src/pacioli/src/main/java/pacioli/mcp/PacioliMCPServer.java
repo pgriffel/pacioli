@@ -222,8 +222,7 @@ public class PacioliMCPServer {
                 "Finds all references to a Pacioli value or type and returns a list of their locations.",
                 Map.ofEntries(
                         Map.entry("name", toolProperty("string", "Name of the Pacioli value or type")),
-                        Map.entry("file", toolProperty("string", "Pacioli file where the name is from")),
-                        Map.entry("kind", toolProperty("string", "One of 'value' or 'type'")))));
+                        Map.entry("file", toolProperty("string", "Pacioli file where the name is from")))));
 
         toolArray.add(toolInfo(
                 "project_graph",
