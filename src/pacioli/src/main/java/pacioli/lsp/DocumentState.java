@@ -26,9 +26,12 @@ import java.io.File;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.Hover;
@@ -48,7 +51,6 @@ import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
-import pacioli.compiler.Bundle.ReferencesTable;
 import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
@@ -144,25 +146,28 @@ public class DocumentState {
 
     public Hover hover(Position position) {
         List<Info> infos = this.locateInfo(position.getLine(), position.getCharacter());
+
         if (infos.size() > 0) {
             List<String> markups = new ArrayList<>();
-            for (Info inf : infos) {
-                if (inf instanceof ValueInfo vi && inf.isGlobal()) {
-                    markups.add(infoMarkup(vi));
-                }
-                if (inf instanceof TypeInfo vi && inf.isGlobal()) {
-                    String markup = String.format("### %s%n%n%s %n %n %s%n%nsource: %s%n",
-                            inf instanceof UnitInfo ? "Unit" : "Type",
-                            inf.name(),
-                            vi.generalInfo().documentation().map(doc -> doc.asMarkdown()).orElse(""),
-                            infoModulePath(inf));
 
-                    // We get multiple results here. Remove the return and hover over a record type
-                    // to reproduce.
-                    // markups.add(markup);
+            for (Info inf : new HashSet<>(infos)) {
+                var loc = inf.location();
 
-                    var content = new MarkupContent(MarkupKind.MARKDOWN, markup);
-                    return new Hover(content);
+                if (!loc.isCollapsed()) {
+
+                    if (inf instanceof ValueInfo vi && inf.isGlobal()) {
+                        markups.add(infoMarkup(vi));
+                    }
+
+                    if (inf instanceof TypeInfo vi && inf.isGlobal()) {
+                        String markup = String.format("### %s%n%n%s %n %n %s%n%nsource: %s%n",
+                                inf instanceof UnitInfo ? "Unit" : "Type",
+                                inf.name(),
+                                vi.generalInfo().documentation().map(doc -> doc.asMarkdown()).orElse(""),
+                                infoModulePath(inf));
+
+                        markups.add(markup);
+                    }
                 }
             }
 
@@ -174,68 +179,88 @@ public class DocumentState {
         }
     }
 
-    private List<Info> locateInfo(Integer line, Integer column) {
+    public List<Info> locateInfo(Integer line, Integer column) {
+        List<Info> infos = new ArrayList<>();
+
         if (this.identifierIndex != null) {
             var candidates = this.identifierIndex.get(line);
-            List<Info> infos = new ArrayList<>();
+
             if (candidates != null) {
-                // Info info = null;
-                // Integer minSize = null;
-                // Search for the token with the minimum length. This is necessary because the
-                // grammar gives wrong locations. Often they are too wide and overlap with
-                // other tokens (was e.g. the case for binop). This can be removed if the
-                // grammar is fixed.
                 for (IdentifierInfo candidate : candidates) {
                     var loc = candidate.location();
-                    // var size = loc.toColumn - loc.fromColumn;
-                    // if (loc.fromColumn <= column && column < loc.toColumn && (minSize == null ||
-                    // size < minSize)) {
-                    // info = candidate.info().orElse(null);
-                    // minSize = size;
-                    // }
+
                     if (loc.fromColumn <= column && column < loc.toColumn && candidate.info().isPresent()) {
                         infos.add(candidate.info().get());
                     }
                 }
-                return infos;
             }
         }
-        return List.of();
+
+        return infos;
     }
 
-    public List<org.eclipse.lsp4j.Location> locateReferences(Position position) {
+    public Optional<Info> identifierAtLocation(Position position) {
         List<Info> infos = this.locateInfo(position.getLine(), position.getCharacter());
+
+        if (infos.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(infos.get(0));
+        }
+    }
+
+    public List<org.eclipse.lsp4j.Location> locateValueReferences(String name) {
+
+        List<Node> refNodes = this.bundle.buildReferencesTable().getValueReferences(name);
+
+        if (refNodes == null) {
+            throw new RuntimeException("Value '" + name + "'' not found");
+        }
 
         List<org.eclipse.lsp4j.Location> locations = new ArrayList<>();
 
-        if (infos.isEmpty()) {
-            return locations;
-        }
-
-        String name = infos.get(0).name();
-
-        ReferencesTable refTable = this.bundle.buildReferencesTable();
-
-        List<Node> refNodes = infos.get(0) instanceof ValueInfo
-                ? refTable.getValueReferences(name)
-                : refTable.getTypeReferences(name);
-
-        if (refNodes == null) {
-            throw new RuntimeException("Name not found: " + name);
-        }
-
         for (Node node : refNodes) {
             var loc = node.location();
-            if (loc.file().isPresent()) {
+
+            if (loc.file().isPresent() && !loc.isCollapsed()) {
                 var uri = loc.file().get().toURI();
 
-                var range = new Range(new Position(loc.fromLine, loc.fromColumn),
+                var range = new Range(
+                        new Position(loc.fromLine, loc.fromColumn),
                         new Position(loc.toLine, loc.toColumn));
+
                 locations.add(new org.eclipse.lsp4j.Location(uri.toString(), range));
             }
         }
 
         return locations;
+    }
+
+    public List<org.eclipse.lsp4j.Location> locateTypeReferences(String name) {
+
+        List<Node> refNodes = this.bundle.buildReferencesTable().getTypeReferences(name);
+
+        if (refNodes == null) {
+            throw new RuntimeException("Type '" + name + "'' not found");
+        }
+
+        Set<org.eclipse.lsp4j.Location> locations = new HashSet<>();
+
+        for (Node node : refNodes) {
+            var loc = node.location();
+
+            if (loc.file().isPresent() && !loc.isCollapsed()) {
+                var uri = loc.file().get().toURI();
+
+                var range = new Range(
+                        new Position(loc.fromLine, loc.fromColumn),
+                        new Position(loc.toLine, loc.toColumn));
+
+                locations.add(new org.eclipse.lsp4j.Location(uri.toString(), range));
+            }
+        }
+
+        return new ArrayList<>(locations);
     }
 
     static public DocumentState buildState(String uri, List<File> libs) throws Exception {

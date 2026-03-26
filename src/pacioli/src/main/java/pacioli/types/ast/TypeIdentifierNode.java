@@ -80,16 +80,13 @@ public class TypeIdentifierNode extends AbstractNode implements TypeNode {
         super(location);
         this.name = name;
         this.kind = null;
-        // assert (!name.contains("!"));
     }
 
-    // public TypeIdentifierNode(Location location, String name, Info info) {
-    // super(location);
-    // this.name = name;
-    // this.kind = null;
-    // assert (!name.contains("!"));
-    // this.info = info;
-    // }
+    public TypeIdentifierNode collapseLocation() {
+        var copy = new TypeIdentifierNode(this.location().collapse(), this.name);
+        copy.info = this.info;
+        return copy;
+    }
 
     public String name() {
         return name;

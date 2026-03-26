@@ -33,6 +33,7 @@ import pacioli.ast.visitors.AllIdentifiersVisitor;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.ast.visitors.CountNodes;
 import pacioli.ast.visitors.DesugarVisitor;
+import pacioli.ast.visitors.HideIdentifiersVisitor;
 import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.LiftStatements;
 import pacioli.ast.visitors.MVMGenerator;
@@ -73,6 +74,10 @@ public interface Node extends Printable {
      */
     default public Node desugar() {
         return new DesugarVisitor().nodeAccept(this);
+    }
+
+    default public Node hideIdentifiers() {
+        return new HideIdentifiersVisitor().nodeAccept(this);
     }
 
     default public void rewriteOverloads() {

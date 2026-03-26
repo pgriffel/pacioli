@@ -67,6 +67,8 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.Info;
+import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
@@ -223,7 +225,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
                 return this.getState(uri).hover(pos);
             } catch (Exception e) {
-                return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
+                this.logInfo("hover error: %s", e.getMessage());
+                return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, e.getMessage()));
             }
         });
     }
@@ -245,20 +248,35 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     @Override
     public CompletableFuture<List<? extends org.eclipse.lsp4j.Location>> references(ReferenceParams params) {
+
         return CompletableFuture.supplyAsync(() -> {
             try {
                 var uri = params.getTextDocument().getUri();
                 var pos = params.getPosition();
 
-                this.logInfo("references %s n=%s", uri, this.getState(uri).locateReferences(pos).size());
+                List<org.eclipse.lsp4j.Location> locs = new ArrayList<>();
 
-                return new ArrayList<>(this.getState(uri).locateReferences(pos));
+                List<Info> infos = this.getState(uri).locateInfo(pos.getLine(), pos.getCharacter());
+
+                for (Info info : infos) {
+                    DocumentState state = this.getState(this.rootPath == null ? uri : this.rootPath.toUri().toString());
+
+                    if (info instanceof ValueInfo) {
+                        locs.addAll(state.locateValueReferences(info.name()));
+                    } else {
+                        locs.addAll(state.locateTypeReferences(info.name()));
+                    }
+                }
+
+                return locs;
 
             } catch (Exception e) {
                 this.logInfo("references error: %s", e.getMessage());
+
                 return List.of();
             }
         });
+
     }
 
     /**

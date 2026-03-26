@@ -56,14 +56,14 @@ public class Location {
      * @param column Zero based offset on the line of the position in the file
      * @param offset Zero based position in the file
      */
-    public Location() {
-        this.file = null;
-        this.fromOffset = null;
-        this.toOffset = null;
-        this.fromLine = null;
-        this.fromColumn = null;
-        this.toLine = null;
-        this.toColumn = null;
+    public Location(File file) {
+        this.file = file;
+        this.fromOffset = 0;
+        this.toOffset = 0;
+        this.fromLine = 0;
+        this.fromColumn = 0;
+        this.toLine = 0;
+        this.toColumn = 0;
     }
 
     @Override
@@ -149,6 +149,10 @@ public class Location {
 
     public Location collapse() {
         return new Location(this.file, this.fromLine, this.fromColumn, this.fromOffset);
+    }
+
+    public boolean isCollapsed() {
+        return this.fromLine == this.toLine && this.fromColumn == this.toColumn;
     }
 
     /**

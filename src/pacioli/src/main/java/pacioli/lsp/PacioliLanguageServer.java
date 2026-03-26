@@ -29,6 +29,8 @@ import java.nio.file.Path;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DefinitionOptions;
@@ -44,6 +46,8 @@ import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
 import org.eclipse.lsp4j.WorkspaceFolder;
 import org.eclipse.lsp4j.WorkspaceServerCapabilities;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -69,6 +73,24 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         this.textDocumentService = textDocumentService;
         this.workspaceService = workspaceService;
         this.libs = libs;
+    }
+
+    public Void start() throws InterruptedException, ExecutionException {
+
+        // Socket clientSocket = new Socket("127.0.0.1", 9925);
+
+        Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, System.in, System.out
+        // clientSocket.getInputStream(), clientSocket.getOutputStream()
+        );
+
+        LanguageClient client = launcher.getRemoteProxy();
+
+        this.connect(client);
+
+        Future<Void> future = launcher.startListening();
+
+        // Pacioli.logToFile("pacioli_lsp_error.log", "listening");
+        return future.get();
     }
 
     /**

@@ -123,102 +123,107 @@ public class RecordDefinition extends AbstractNode implements Definition {
         return "record";
     }
 
+    // The following methods are used by the DesugarVisitor to desugar a
+    // RecordDefinition. To get correct hover and references output in the LSP we
+    // have to be careful with identifier locations in the generated code, because
+    // they will appear in hover and references output. Identifier that should not
+    // appear in the output are hidden by collapsing the identifiers' locations. See
+    // buildReferencesTable in Bundle and locateInfo in DocumentState.
+
     public TypeDefinition typeDefinition() {
 
-        Location invisible = this.type.location().collapse();
+        Location typeLocation = this.type.location();
 
-        var type = new TypeApplicationNode(
-                invisible,
-                new TypeIdentifierNode(invisible, "Tuple"),
+        var typeApp = new TypeApplicationNode(
+                typeLocation,
+                new TypeIdentifierNode(typeLocation.collapse(), "Tuple"),
                 this.memberTypes());
 
-        return new TypeDefinition(invisible, this.quantNodes, this.typeApplicationNode(), type);
+        return new TypeDefinition(this.location(), this.quantNodes, this.type, typeApp);
     }
 
     public Documentation constructorDocumentation() {
 
-        Location invisible = this.id.location().collapse();
+        Location idLocation = this.id.location();
 
         return new Documentation(
-                invisible,
-                new IdentifierNode("make_" + this.baseName(), invisible),
+                idLocation,
+                new IdentifierNode("make_" + this.baseName(), idLocation),
                 new StringNode(
                         String.format("Constructor for record <code>%s</code>", this.type.pretty()),
-                        invisible));
+                        idLocation));
     }
 
     public Declaration constructorDeclaration() {
 
-        Location location = this.id.location();
-        Location invisible = location.collapse();
+        Location idLocation = this.id.location();
 
-        var constructorId = new IdentifierNode("make_" + this.baseName(), invisible);
+        var constructorId = new IdentifierNode("make_" + this.baseName(), idLocation);
 
         var schema = new SchemaNode(
-                invisible,
+                idLocation,
                 this.quantNodes,
                 new FunctionTypeNode(
-                        invisible,
+                        idLocation,
                         new TypeApplicationNode(
-                                invisible,
-                                new TypeIdentifierNode(invisible, "Tuple"),
+                                idLocation,
+                                new TypeIdentifierNode(idLocation.collapse(), "Tuple"),
                                 this.memberTypes()),
                         this.typeApplicationNode()));
 
-        return new Declaration(invisible, constructorId, schema);
+        return new Declaration(idLocation, constructorId, schema);
 
     }
 
     public ValueDefinition constructorDefinition() {
 
-        Location location = this.id.location();
-        Location invisible = location.collapse();
+        Location idLocation = this.id.location();
 
-        var constructorId = new IdentifierNode("make_" + this.baseName(), location);
+        var constructorId = new IdentifierNode("make_" + this.baseName(), idLocation);
 
         // (field1, ..., fieldN) -> tuple(field1, ..., fieldN)
         var constructorBody = new LambdaNode(
                 this.funParams(),
                 new ApplicationNode(
-                        new IdentifierNode("tuple", invisible),
+                        new IdentifierNode("tuple", idLocation.collapse()),
                         this.funArgs(),
-                        invisible),
-                invisible);
+                        idLocation),
+                idLocation);
 
-        return new ValueDefinition(invisible, constructorId, constructorBody);
+        return new ValueDefinition(this.location(), constructorId, constructorBody);
     }
 
     public Documentation getterDocumentation(FieldDefinition binding) {
 
         String fieldName = binding.id.name();
 
-        Location invisible = binding.id.location().collapse();
+        Location idLocation = binding.id.location();
 
         return new Documentation(
-                invisible,
-                new IdentifierNode(this.baseName() + "_" + fieldName, invisible),
+                idLocation,
+                new IdentifierNode(this.baseName() + "_" + fieldName, idLocation),
                 new StringNode(String.format("Getter for record <code>%s</code>", this.type.pretty()),
-                        invisible));
+                        idLocation));
     }
 
     public Declaration getterDeclaration(FieldDefinition binding) {
 
-        Location invisible = binding.id.location().collapse();
+        Location idLocation = binding.id.location();
 
-        var getterId = new IdentifierNode(this.baseName() + "_" + binding.id.name(), invisible);
+        var getterId = new IdentifierNode(this.baseName() + "_" + binding.id.name(), idLocation);
 
         var schema = new SchemaNode(
-                invisible,
+                idLocation,
                 this.quantNodes,
                 new FunctionTypeNode(
-                        invisible,
+                        idLocation,
                         new TypeApplicationNode(
-                                invisible,
-                                new TypeIdentifierNode(invisible, "Tuple"),
+                                idLocation,
+                                new TypeIdentifierNode(idLocation.collapse(), "Tuple"),
                                 List.of(this.typeApplicationNode())),
                         binding.type));
 
-        return new Declaration(invisible, getterId, schema);
+        return new Declaration(idLocation, getterId, schema);
     }
 
     public ValueDefinition getterDefinition(FieldDefinition binding) {
@@ -236,46 +241,46 @@ public class RecordDefinition extends AbstractNode implements Definition {
                 new ApplicationNode(
                         new IdentifierNode("apply", invisible),
                         List.of(
-                                new LambdaNode(this.funParams(), new IdentifierNode(fieldName, invisible), invisible),
+                                new LambdaNode(this.funParams(), new IdentifierNode(fieldName, invisible), location),
                                 new IdentifierNode("record", invisible)),
-                        invisible),
-                invisible);
+                        location),
+                location);
 
-        return new ValueDefinition(invisible, getterId, getterBody);
+        return new ValueDefinition(location, getterId, getterBody);
     }
 
     public Documentation setterDocumentation(FieldDefinition binding) {
 
-        Location invisible = binding.id.location().collapse();
+        Location location = binding.id.location();
 
         return new Documentation(
-                invisible,
-                new IdentifierNode("with_" + this.baseName() + "_" + binding.id.name(), invisible),
+                location,
+                new IdentifierNode("with_" + this.baseName() + "_" + binding.id.name(), location),
                 new StringNode(
                         String.format("Setter for record <code>%s</code>", this.type.pretty()),
-                        invisible));
+                        location));
     }
 
     public Declaration setterDeclaration(FieldDefinition binding) {
 
-        Location invisible = binding.id.location().collapse();
+        Location location = binding.id.location();
 
-        var setterId = new IdentifierNode("with_" + this.baseName() + "_" + binding.id.name(), invisible);
+        var setterId = new IdentifierNode("with_" + this.baseName() + "_" + binding.id.name(), location);
 
         TypeApplicationNode recordType = this.typeApplicationNode();
 
         var schema = new SchemaNode(
-                invisible,
+                location,
                 this.quantNodes,
                 new FunctionTypeNode(
-                        invisible,
+                        location,
                         new TypeApplicationNode(
-                                invisible,
-                                new TypeIdentifierNode(invisible, "Tuple"),
-                                List.of(binding.type, recordType)),
+                                location,
+                                new TypeIdentifierNode(location.collapse(), "Tuple"),
+                                List.of((TypeNode) binding.type.hideIdentifiers(), recordType)),
                         recordType));
 
-        return new Declaration(invisible, setterId, schema);
+        return new Declaration(location, setterId, schema);
     }
 
     public ValueDefinition setterDefinition(FieldDefinition binding) {
@@ -304,13 +309,13 @@ public class RecordDefinition extends AbstractNode implements Definition {
                                         new ApplicationNode(
                                                 new IdentifierNode("tuple", invisible),
                                                 this.funArgs(),
-                                                invisible),
-                                        invisible),
+                                                location),
+                                        location),
                                 new IdentifierNode("record", invisible)),
-                        invisible),
-                invisible);
+                        location),
+                location);
 
-        return new ValueDefinition(invisible, setterId, setterBody);
+        return new ValueDefinition(location, setterId, setterBody);
     }
 
     private String baseName() {
@@ -318,7 +323,7 @@ public class RecordDefinition extends AbstractNode implements Definition {
     }
 
     private TypeApplicationNode typeApplicationNode() {
-        if (this.type instanceof TypeApplicationNode ta) {
+        if (this.type.hideIdentifiers() instanceof TypeApplicationNode ta) {
             return ta;
         } else {
             throw new PacioliException(this.type.location(), "Expected a type application");
@@ -328,7 +333,7 @@ public class RecordDefinition extends AbstractNode implements Definition {
     private List<TypeNode> memberTypes() {
         List<TypeNode> memberTypes = new ArrayList<>();
         for (FieldDefinition binding : this.fields) {
-            memberTypes.add(binding.type);
+            memberTypes.add((TypeNode) binding.type.hideIdentifiers());
         }
         return memberTypes;
     }

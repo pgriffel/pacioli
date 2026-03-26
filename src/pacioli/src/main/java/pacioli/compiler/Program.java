@@ -392,10 +392,10 @@ public class Program {
     private void putTypeBuilder(Map<String, InfoBuilder<?, ? extends TypeInfo>> typeBuilders, String name,
             InfoBuilder<?, ? extends TypeInfo> builder) {
         if (typeBuilders.containsKey(name)) {
-            throw new PacioliException(builder.definitionLocation().orElse(new Location()),
+            throw new PacioliException(builder.definitionLocation().orElseThrow(),
                     "Duplicate definition for '%s'. It is already defined in %s.",
                     name,
-                    typeBuilders.get(name).definitionLocation().orElse(new Location()).description());
+                    typeBuilders.get(name).definitionLocation().orElseThrow().description());
         }
         typeBuilders.put(name, builder);
     }

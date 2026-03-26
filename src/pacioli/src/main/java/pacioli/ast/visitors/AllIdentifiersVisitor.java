@@ -103,7 +103,6 @@ public class AllIdentifiersVisitor extends IdentityVisitor {
     @Override
     public void visit(TypeIdentifierNode node) {
         assert (node.info != null);
-        assert (node.info.definition().isPresent());
         identifiers.add(new IdentifierInfo(node));
     }
 

@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
-import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
@@ -46,18 +46,10 @@ public class ReferencesVisitor extends IdentityVisitor {
         return infos;
     }
 
-    // Override without indexSetDefinition.id.accept(this) to avoid self-reference
-    @Override
-    public void visit(IndexSetDefinition indexSetDefinition) {
-        if (indexSetDefinition.isDynamic()) {
-            indexSetDefinition.body().accept(this);
-        }
-    }
-
     @Override
     public void visit(TypeIdentifierNode node) {
         assert (node.info != null);
-        // assert (node.info.definition().isPresent());
+
         if (node.info.definition().isPresent()) {
             infos.add(node);
         }

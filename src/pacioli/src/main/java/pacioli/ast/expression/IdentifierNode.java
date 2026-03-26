@@ -55,6 +55,12 @@ public class IdentifierNode extends AbstractNode implements ExpressionNode {
         this.kind = null;
     }
 
+    public IdentifierNode collapseLocation() {
+        var copy = new IdentifierNode(this.name, this.kind, this.location().collapse());
+        copy.info = this.info;
+        return copy;
+    }
+
     public IdentifierNode withKind(IdentifierNode id) {
         Kind kind;
         if (id.name.equals("value")) {

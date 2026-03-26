@@ -240,7 +240,11 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(UnitVectorDefinition node) {
-        returnNode(node);
+        returnNode(new UnitVectorDefinition(
+                node.location(),
+                (TypeIdentifierNode) nodeAccept(node.indexSetNode),
+                (TypeIdentifierNode) nodeAccept(node.unitNode),
+                node.items));
     }
 
     @Override
@@ -502,7 +506,9 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(UnitIdentifierNode node) {
         if (nodeAccept(node.name) instanceof TypeIdentifierNode id) {
-            returnNode(new UnitIdentifierNode(node.location(), node.prefix, id));
+            var copy = new UnitIdentifierNode(node.location(), node.prefix, id);
+            copy.info = node.info;
+            returnNode(copy);
         } else {
             throw new RuntimeException("expected a TypeIdentifierNode");
         }

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.compiler.Bundle.ReferencesTable;
@@ -76,6 +77,8 @@ class BundleIT {
                 .map(x -> {
                     if (x instanceof ValueDefinition vd) {
                         return vd.id.name().equals(name);
+                    } else if (x instanceof Declaration vd) {
+                        return vd.id.name().equals(name);
                     } else {
                         Optional<Info> info = x.getInfo();
 
@@ -93,7 +96,8 @@ class BundleIT {
                 })
                 .collect(Collectors.joining(","));
 
-        assertEquals("bom.pacioli:103,bom.pacioli:84,bom.pacioli:109,bom.pacioli:132", usedNames);
+        assertEquals("bom.pacioli:103,bom.pacioli:84,bom.pacioli:109,bom.pacioli:132",
+                usedNames);
     }
 
     @Test
@@ -129,7 +133,47 @@ class BundleIT {
                 .collect(Collectors.joining(","));
 
         assertEquals(
-                "bom.pacioli:118,bom.pacioli:118,bom.pacioli:71,bom.pacioli:71,bom.pacioli:84,bom.pacioli:84,bom.pacioli:77,bom.pacioli:48,bom.pacioli:37,bom.pacioli:59",
+                "bom.pacioli:118,bom.pacioli:118,bom.pacioli:100,bom.pacioli:100,bom.pacioli:71,bom.pacioli:71,bom.pacioli:84,bom.pacioli:84,bom.pacioli:112,bom.pacioli:77,bom.pacioli:106,bom.pacioli:106,bom.pacioli:48,bom.pacioli:37,bom.pacioli:59",
+                usedNames);
+    }
+
+    @Test
+    void bundleReferencesShouldGiveCorrectTypeRefsShells() throws Exception {
+        // Given the file bom.pacioli from the samples
+        File bomFile = new File("../../samples/shells/model.pacioli");
+        PacioliFile file = PacioliFile.get(bomFile, 0).orElseThrow();
+
+        // When a Bundle is created from the file
+        Bundle bundle = Bundle.fromFile(file, LIBS);
+
+        ReferencesTable referencesTable = bundle.buildReferencesTable();
+
+        String name = "Shell";
+
+        Boolean allNamesCorrect = referencesTable.getTypeReferences(name).stream()
+                .map(x -> {
+                    if (x instanceof IndexSetDefinition isd) {
+                        return isd.id.name().equals(name);
+                    } else {
+                        if (x.getInfo().isPresent()) {
+                            return x.getInfo().orElseThrow().name().equals(name);
+                        }
+                        return true;
+                    }
+                })
+                .collect(Collectors.reducing(true, Boolean::logicalAnd));
+
+        assertTrue(allNamesCorrect);
+
+        String usedNames = referencesTable.getTypeReferences(name).stream()
+                .map(x -> {
+                    return x.location().file().orElseThrow().getName() + ":" +
+                            x.location().fromLine;
+                })
+                .collect(Collectors.joining(","));
+
+        assertEquals(
+                "model.pacioli:174,model.pacioli:45,model.pacioli:107,model.pacioli:67,model.pacioli:123,model.pacioli:247,model.pacioli:247,model.pacioli:305,model.pacioli:115,model.pacioli:86,model.pacioli:45",
                 usedNames);
     }
 }

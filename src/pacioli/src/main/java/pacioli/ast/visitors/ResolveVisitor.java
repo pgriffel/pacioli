@@ -162,6 +162,20 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(UnitVectorDefinition node) {
         node.indexSetNode.accept(this);
+
+        // Find the node's name
+        String name = node.name();
+
+        // Lookup the name in the symbol table stack and check it's existence
+        Info typeInfo = typeTables.peek().lookup(name);
+        if (typeInfo == null) {
+            visitorThrow(node.location(), "Type identifier %s unknown", name);
+        }
+
+        node.unitNode.info = typeInfo;
+
+        // node.unitNode.accept(this);
+
         for (UnitDecl entry : node.items) {
             entry.value.accept(this);
         }

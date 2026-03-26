@@ -35,7 +35,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 /**
- * Test for the 'list_libraries' tool. Should be a resource?!
+ * Test for the 'locate_references' MCP tool.
  */
 class CollectReferencesToolIT {
 
@@ -89,25 +89,25 @@ class CollectReferencesToolIT {
         // Then the parsed text element should have property 'references'
         assertTrue(textObject.has("references"));
 
-        // And the references should have two elements
+        // And the references should have 4 elements
         JsonArray refs = textObject.get("references").getAsJsonArray();
         assertEquals(4, refs.size());
 
-        // And the first element should have the correct location
-        JsonObject ref0 = refs.get(0).getAsJsonObject();
-        assertEquals(bomFile.getCanonicalPath(), ref0.get("file").getAsString());
-        assertEquals(103, ref0.get("startLine").getAsInt());
-        assertEquals(12, ref0.get("startColumn").getAsInt());
-
-        // And the second element (the definition) should have the correct location
-        JsonObject ref1 = refs.get(1).getAsJsonObject();
-        assertEquals(bomFile.getCanonicalPath(), ref1.get("file").getAsString());
-        assertEquals(84, ref1.get("startLine").getAsInt());
-        assertEquals(0, ref1.get("startColumn").getAsInt());
+        // And the elements should have the correct locations
+        assertRefEquals(refs.get(0).getAsJsonObject(), bomFile.getCanonicalPath(), 103, 12);
+        assertRefEquals(refs.get(1).getAsJsonObject(), bomFile.getCanonicalPath(), 84, 10);
+        assertRefEquals(refs.get(2).getAsJsonObject(), bomFile.getCanonicalPath(), 109, 15);
+        assertRefEquals(refs.get(3).getAsJsonObject(), bomFile.getCanonicalPath(), 132, 56);
 
         // Teardown
         server.stop();
         exec.shutdown();
         testConnection.close();
+    }
+
+    void assertRefEquals(JsonObject ref3, String file, int start, int end) {
+        assertEquals(file, ref3.get("file").getAsString());
+        assertEquals(start, ref3.get("startLine").getAsInt());
+        assertEquals(end, ref3.get("startColumn").getAsInt());
     }
 }
