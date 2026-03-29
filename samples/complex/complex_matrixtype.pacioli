@@ -1,0 +1,158 @@
+# 
+# Plan: loop de complexe matrices na uit Strang en Roman, en definieer daar functies voor.
+# Ook de uitbreidingen van pacioli zelf, unit aware uitbreidingen.
+# Begin met de datastructuur voor complexe matrices met een beperlt aantal functies.
+# 
+# Datastructuur: paar van matrices voor het Re en het Im deel van de complexe matrix.
+#
+# Plan: functies uit Strang:
+# - length squared
+# - inner product
+# - conjugate transpose
+# - inverse
+#
+
+deftype for_index P,Q: for_unit a, P!u, Q!v:
+    ComplexMatrix(a, P!u, Q!v)  = Tuple(a*P!u per Q!v, a*P!u per Q!v);
+
+# declare make_complexmatrix :: for_type a, b: (a, b) -> ComplexMatrix(a, b);
+
+declare make_complexmatrix :: for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v, a*P!u per Q!v) -> ComplexMatrix(a, P!u, Q!v);
+define make_complexmatrix(re, im) =
+    tuple(re, im);
+
+declare sum_complex :: for_index P, Q: for_unit a, P!u, Q!v:
+    (ComplexMatrix(a, P!u, Q!v), ComplexMatrix(a, P!u, Q!v)) -> ComplexMatrix(a, P!u, Q!v);
+
+define sum_complex(A, B) =
+    let (re_a, im_a) = A,
+        (re_b, im_b) = B
+    in
+        tuple(re_a + re_b, im_a + im_b)
+    end;
+
+declare multiply_element_complex :: for_index D, E: for_unit a,f, D!b, D!g, E!c, E!h:
+    (ComplexMatrix(a, D!b, E!c), ComplexMatrix(f, D!g, E!h)) -> ComplexMatrix(a*f, D!b*D!g, E!c*E!h);
+
+define multiply_element_complex(A, B) =
+    let 
+        (re_a, im_a) = A,
+        (re_b, im_b) = B,
+        real_part = re_a * re_b - im_a * im_b,
+        imag_part = re_a * im_b + im_a * re_b
+    in
+        tuple(real_part, imag_part)
+    end;
+
+
+declare multiply_matrix_complex :: for_index D, E, H: for_unit a,f, D!b, E!c, H!g:
+    (ComplexMatrix(a, D!b, E!c), ComplexMatrix(f, E!c, H!g)) -> ComplexMatrix(a*f, D!b, H!g);
+
+# (Tuple(a*D!b per E!c, a*D!b per E!c), Tuple(f*E!c per H!g, f*E!c per H!g)) -> Tuple(a*f*D!b per D!b, a*f*D!b per D!b)
+
+# (Tuple(a*D!b per E!c, a*D!b per E!c), Tuple(f*E!c per H!g, f*E!c per H!g)) -> Tuple(a*f*D!b per H!g, a*f*D!b per H!g)
+# (Tuple(a*D!b per E!c, a*D!b per E!c), Tuple(f*E!c per H!g, f*E!c per H!g)) -> Tuple(a*f*D!b per H!g, a*f*D!b per H!g)
+
+# declare multiply_matrix_complex :: for_index D, E, H: for_unit a, D!b, E!c, f, H!g:
+#     (Tuple(a*D!b per E!c, a*D!b per E!c), Tuple(f*E!c per H!g, f*E!c per H!g)) -> Tuple(a*f*D!b per H!g, a*f*D!b per H!g);
+
+
+define multiply_matrix_complex(A, B) =
+    let
+        (re_a, im_a) = A,
+        (re_b, im_b) = B,
+        real_part = re_a '*' re_b - im_a '*' im_b,
+        imag_part = re_a '*' im_b + im_a '*' re_b
+    in
+        tuple(real_part, imag_part)
+    end;
+
+define print_complexmatrix(A) =
+    let (re, im) = A
+    in
+        [format("%s+i%s", get(re, r, c), get(im, r, c)) | r <- row_domain(re), c <- column_domain(re)]
+    end;
+
+define print_complex(A) =
+    let (re, im) = A
+    in
+        [print_row(r, re, im) | r <- row_domain(re)]
+    end;
+
+define print_row(r, re, im) =
+    [format("%s,%s -> %s+i%s", r, c, get(re, r, c), get(im, r, c)) | c <- column_domain(re)];
+
+define print_complex2(A) =
+    let (re, im) = A
+    in
+        begin
+            printf("(");
+            for r <- row_domain(re) do
+                printf("(");
+                print_row2(r, re, im);
+                printf(")\n");
+            end
+            printf(")");
+        end
+    end;
+
+define print_row2(r, re, im) =
+    begin
+        for c <- column_domain(re) do
+            printf("\t%s,%s -> %s+i%s", r, c, get(re, r, c), get(im, r, c));
+        end
+    end;
+
+defindex Two = {x, y};
+
+defmatrix Re_A :: Two! per Two! = {
+    x,y -> 1,
+    y,x -> 2
+};
+
+defmatrix Im_A :: Two! per Two! = {
+    x,y -> 3,
+    y,x -> 4
+};
+
+defmatrix Re_B :: Two! per Two! = {
+    x,y -> 5,
+    y,x -> 6
+};
+
+defmatrix Im_B :: Two! per Two! = {
+    x,y-> 7,
+    y,x -> 8
+};
+
+# multiply_element_complex(make_complexmatrix(Re_A, Im_A), make_complexmatrix(Re_B, Im_B));
+
+# multiply_matrix_complex(make_complexmatrix(Re_A, Im_A), make_complexmatrix(Re_B, Im_B));
+
+print_complex2(make_complexmatrix(Re_A, Im_A));
+
+define conjugate(A) = 
+    let (re, im) = A
+    in
+        tuple(re, -im)
+    end;
+
+define transpose_complex(A) =
+    let (re, im) = A
+    in
+        tuple(re^T, im^T)
+    end;
+
+define hermitian(x) = transpose_complex(conjugate(x));
+
+define inner_complex(x, y) = multiply_matrix_complex(hermitian(x), y);
+
+# define sqrt_complex(x) = 
+#     let (re, im) = x
+#     in
+#         tuple(sqrt(re), sqrt(im))
+#     end;
+
+define norm_squared_complex(x) = inner_complex(x, x);
+
+
