@@ -28,7 +28,7 @@ define sum_complex(A, B) =
     let (re_a, im_a) = A,
         (re_b, im_b) = B
     in
-        make_matrix_complex(re_a + re_b, im_a + im_b)
+        tuple(re_a + re_b, im_a + im_b)
     end;
 
 declare multiply_element_complex :: for_index D, E: for_unit a,f, D!b, D!g, E!c, E!h:
@@ -41,7 +41,7 @@ define multiply_element_complex(A, B) =
         real_part = re_a * re_b - im_a * im_b,
         imag_part = re_a * im_b + im_a * re_b
     in
-        make_matrix_complex(real_part, imag_part)
+        tuple(real_part, imag_part)
     end;
 
 
@@ -55,7 +55,7 @@ define multiply_matrix_complex(A, B) =
         real_part = re_a '*' re_b - im_a '*' im_b,
         imag_part = re_a '*' im_b + im_a '*' re_b
     in
-        make_matrix_complex(real_part, imag_part)
+        tuple(real_part, imag_part)
     end;
 
 define print_complexmatrix(A) =
@@ -120,7 +120,7 @@ defmatrix Im_B :: Two! per Two! = {
 
 # multiply_matrix_complex(make_matrix_complex(Re_A, Im_A), make_matrix_complex(Re_B, Im_B));
 
-print_complex2(make_matrix_complex(Re_A, Im_A));
+print_complex2(tuple(Re_A, Im_A));
 
 
 #---------------------------------------------------------------------------------------------
@@ -133,7 +133,7 @@ declare conjugate :: for_index P, Q: for_unit a, P!u, Q!v:
 define conjugate(A) = 
     let (re, im) = A
     in
-        make_matrix_complex(re, -im)
+        tuple(re, -im)
     end;
 
 
@@ -143,7 +143,7 @@ declare transpose_complex :: for_index P,Q: for_unit a, P!u, Q!v:
 define transpose_complex(A) =
     let (re, im) = A
     in
-        make_matrix_complex(re^T, im^T)
+        tuple(re^T, im^T)
     end;
 
 declare hermitian :: for_index P,Q: for_unit a, P!u, Q!v:
@@ -184,9 +184,18 @@ define norm_complex(x) = complex_sqrt(norm_squared_complex(x));
 
 declare complex_sqrt :: for_index D, E: for_unit a, D!b, E!c: (ComplexMatrix(a^2, 1, 1)) -> a;
 
+define complex_to_real(x) =
+    let (re, im) = x
+    in
+        re
+    end;
+
+define real_to_complex(x) =
+    tuple(x, 0 '.*' x);
+
 #
-# Complex_srt is defined for a quadratic complex scalar, which is a complex scalar whose value is a real scalar.
-# The resultis the non-negative square root of the value of the quadratic complex scalar.
+# Complex_sqrt is defined for a quadratic complex scalar, which is a complex scalar whose value is a real scalar.
+# The result is the non-negative square root of the value of the quadratic complex scalar.
 #
 define complex_sqrt(x) =
     let (re, im) = x
@@ -195,8 +204,8 @@ define complex_sqrt(x) =
     end;
 
 
-declare outer_complex :: for_index D, E, H: for_unit a,f, D!b, E!c, H!g:
-    (ComplexMatrix(a, D!b, E!c), ComplexMatrix(f, H!g, E!c^-1)) -> ComplexMatrix(a*f, D!b, H!g^-1); 
+declare outer_complex :: for_index D, E, H: for_unit a,f, D!b, H!g:
+    (ComplexMatrix(a, D!b, 1), ComplexMatrix(f, H!g, 1)) -> ComplexMatrix(a*f, D!b, H!g^-1); 
 
 define outer_complex(x, y) = multiply_matrix_complex(x, hermitian(y));
 
@@ -233,7 +242,7 @@ declare neg_complex :: for_index P, Q: for_unit a, P!u, Q!v:
 define neg_complex(A) =
     let (re, im) = A
     in
-        make_matrix_complex(-re, -im)
+        tuple(-re, -im)
     end;
 
 #---------------------------------------------------------------------------------------------
@@ -246,7 +255,7 @@ declare row_complex :: for_index C, D: for_unit a, D!b:
 define row_complex(A, r) =
     let (re, im) = A
     in
-        make_matrix_complex(row(re, r), row(im, r))
+        tuple(row(re, r), row(im, r))
     end;
 
 declare row_domain_complex :: for_index D, E: for_unit a, D!b, E!c:
@@ -274,7 +283,7 @@ declare column_complex :: for_index C, D: for_unit a, C!b:
 define column_complex(A, r) =
     let (re, im) = A
     in
-        make_matrix_complex(column(re, r), column(im, r))
+        tuple(column(re, r), column(im, r))
     end;
 
 declare column_domain_complex :: for_index D, E: for_unit a, D!b, E!c:
@@ -293,4 +302,16 @@ define columns_complex(complex_matrix) =
   [column_complex(complex_matrix,i) | i <- column_domain_complex(complex_matrix)];
 
 
+declare map_matrix_complex ::
+  for_index P,Q: for_unit a,b:
+    ((ComplexMatrix(a, 1, 1)) -> ComplexMatrix(b, 1, 1), ComplexMatrix(a, P!, Q!)) -> ComplexMatrix(b, P!, Q!);
 
+define map_matrix_complex(fun, mat) = 
+    let (re, im) = mat,
+        complex_tuples = [tuple(i, j, fun(tuple(get(re, i, j), get(im, i, j)))) | i <- row_domain(re),
+                                                                                  j <- column_domain(re)],
+        re_tuples = [tuple(i, j, real) | (i, j, c) <- complex_tuples, (real, _) := c],
+        im_tuples = [tuple(i, j, imag) | (i, j, c) <- complex_tuples, (_, imag) := c]
+    in                                                                        
+        tuple(make_matrix(re_tuples), make_matrix(im_tuples))
+    end;
