@@ -6,7 +6,6 @@ import testing;
 import geometry;
 import quaternion;
 import complex;
-include complex;
 
 # ------------------------------------------------------------------------------
 # Running the tests
