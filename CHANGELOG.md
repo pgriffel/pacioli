@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2] ?
+
+### Changed
+
+- Implemented references for the LSP server
+- Experiment with an MCP server
+
 ## [0.6.1] 2026-03-11
 
 ### Changed
