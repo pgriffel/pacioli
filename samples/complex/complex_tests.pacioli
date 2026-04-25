@@ -1,0 +1,112 @@
+# ------------------------------------------------------------------------------
+# Tests for the complex numbers
+# ------------------------------------------------------------------------------
+
+#
+# 1. Basis rotations and reflections of complex numbers. The main point is that a 
+# the geometry of a rotation requires a rotor and a rotee, and that the rotor must
+# be dimensionless in order to obtain a result that has the same unit as the rotee.
+# The result must moreover equal the complex product of rotor and rotee.
+#
+# 2. Two more complicated representations exist for complex numbers, namely the
+# quaternion representation and the matrix representation. These representations 
+# lead to additional questions regarding commutativity of the product.
+#
+# 3. The geometric representation of a complex number as a quaternion requires
+# a shift of the basic representation (a,b,0,0) to (0,a,b,0).
+#
+
+import testing;
+import geometry;
+import quaternion;
+import complex;
+include complex;
+
+# ------------------------------------------------------------------------------
+# Running the tests
+# ------------------------------------------------------------------------------
+
+run_test_suites([
+    rotation_test_suite("dimensioned", test_numbers_dimensioned),
+    rotation_test_suite("dimensionless", test_numbers_dimless)
+]);
+
+# ------------------------------------------------------------------------------
+# Test input
+# ------------------------------------------------------------------------------
+
+define test_numbers_dimless = [
+    make_scalar_complex(0, 0),
+    make_scalar_complex(1, 0),
+    make_scalar_complex(0, 1),
+    make_scalar_complex(1, 1),
+    make_scalar_complex(-1, -1),
+    make_scalar_complex(2, 3),
+    make_scalar_complex(-2, 3)
+];
+
+define test_numbers_dimensioned = [
+    make_scalar_complex(0 * |metre|, 0 * |metre|),
+    make_scalar_complex(1 * |metre|, 0 * |metre|),
+    make_scalar_complex(0 * |metre|, 1 * |metre|),
+    make_scalar_complex(1 * |metre|, 1 * |metre|),
+    make_scalar_complex(-1 * |metre|, -1 * |metre|),
+    make_scalar_complex(2 * |metre|, 3 * |metre|),
+    make_scalar_complex(-2 * |metre|, 3 * |metre|)
+];
+
+
+
+
+
+# ------------------------------------------------------------------------------
+# Rotations tests
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# Rotations
+# ------------------------------------------------------------------------------
+    
+define rotor = make_scalar_complex(0, 2);
+define unit_rotor = unit_complex(rotor);
+
+define rotor_dim = scale_complex_matrix(|metre|, rotor);
+define unit_rotor_dim = scale_complex_matrix(|metre|, unit_rotor);
+
+define rotee = make_scalar_complex(1 * |metre|, 2 * |metre|);
+
+"rotee:";
+complex2str(rotee, |metre|);
+
+"rotor:";
+complex2str(rotor, |1|);
+
+define rotation_test_suite(description, test_numbers) =
+    test_suite(format("Rotation - %s", description), [
+
+        # A dimless rotor produces a complex number with unit metre invariant - also a metre
+        test("rotee is rotated by rotor", () ->
+            multiply_matrix_complex(rotor, rotee) = make_scalar_complex(-4 * |metre|, 2 * |metre|)
+        ),
+
+        # A rotor as a dimensioned complex number does not produce a complex number with unit metre but with metre^2
+        test("rotee is rotated by rotor_dim", () ->
+            multiply_matrix_complex(rotor_dim, rotee) = make_scalar_complex(-4 * |metre^2|, 2 * |metre^2|)
+        )
+    ]);
+
+#
+# Just as quaternions complex numbers can be seen both as numbers and as rotating operators.
+# We call the acting rotating operator the rotor; the rotor acts upon the 'rotee'. Both can be
+# represented as either a quaternion or a complex number.
+# A rotation is the product of a rotor and a rotee, however for complex numbers this is a commutative operation,
+# so rotor(rotee) = rotee(rotor).
+#
+# Finding is that only a dimensionless complex number as rotor leaves the unit of measurement of the rotee invariant.
+#
+# Both a complex number represented as a 2x2 matrix and a complex number represented as a quaternion in which j and k are 0
+# are commutative (they form a normal subgroup). Therefore no sandwich formulas are needed for rotations.
+# For the types
+# 
+
+
+
