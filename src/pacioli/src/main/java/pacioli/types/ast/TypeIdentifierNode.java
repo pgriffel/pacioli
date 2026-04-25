@@ -22,6 +22,8 @@
 
 package pacioli.types.ast;
 
+import java.util.Optional;
+
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
@@ -78,16 +80,13 @@ public class TypeIdentifierNode extends AbstractNode implements TypeNode {
         super(location);
         this.name = name;
         this.kind = null;
-        // assert (!name.contains("!"));
     }
 
-    // public TypeIdentifierNode(Location location, String name, Info info) {
-    // super(location);
-    // this.name = name;
-    // this.kind = null;
-    // assert (!name.contains("!"));
-    // this.info = info;
-    // }
+    public TypeIdentifierNode collapseLocation() {
+        var copy = new TypeIdentifierNode(this.location().collapse(), this.name);
+        copy.info = this.info;
+        return copy;
+    }
 
     public String name() {
         return name;
@@ -100,5 +99,10 @@ public class TypeIdentifierNode extends AbstractNode implements TypeNode {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    @Override
+    public Optional<Info> getInfo() {
+        return Optional.of(info);
     }
 }

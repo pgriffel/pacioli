@@ -62,6 +62,7 @@ import pacioli.compiler.Project;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.documentation.LibCatalog;
 import pacioli.documentation.PrimitivesDocumentation;
+import pacioli.lsp.LSPContainer;
 import pacioli.lsp.PacioliLanguageServer;
 import pacioli.lsp.PacioliTextDocumentService;
 import pacioli.lsp.PacioliWorkspaceService;
@@ -641,32 +642,11 @@ public class Pacioli {
     }
 
     private static void lspCommand(List<File> libs) {
-
         try {
+            PacioliLanguageServer server = LSPContainer.fromSystemIO(libs).server;
 
-            // Socket clientSocket = new Socket("127.0.0.1", 9925);
-
-            var textDocumentService = new PacioliTextDocumentService();
-            var workspaceService = new PacioliWorkspaceService();
-
-            PacioliLanguageServer server = new PacioliLanguageServer(textDocumentService, workspaceService, libs);
-
-            Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server,
-                    System.in, System.out
-            // clientSocket.getInputStream(), clientSocket.getOutputStream()
-            );
-
-            LanguageClient client = launcher.getRemoteProxy();
-
-            server.connect(client);
-
-            Future<Void> future = launcher.startListening();
-
-            // Pacioli.logToFile("pacioli_lsp_error.log", "listening");
-            future.get();
-        } catch (InterruptedException e) {
-            Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
-        } catch (ExecutionException e) {
+            server.start();
+        } catch (InterruptedException | ExecutionException e) {
             Pacioli.logToFile("pacioli_lsp_error.log", e.getMessage());
         }
     }

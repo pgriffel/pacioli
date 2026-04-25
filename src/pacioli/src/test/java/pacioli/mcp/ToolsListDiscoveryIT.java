@@ -72,9 +72,8 @@ class ToolsListDiscoveryIT {
         assertTrue(tools.size() > 0, "Should return at least one tool");
 
         // Verify tools exists
-        boolean hasLibraryDocumentationTool = false;
-        boolean hasInferTypesTool = false;
-        boolean hasListLibrariesTool = false;
+        boolean hasLocateReferencesTool = false;
+        boolean hasProductGraphTool = false;
 
         for (var toolElem : tools) {
             JsonObject tool = toolElem.getAsJsonObject();
@@ -86,8 +85,8 @@ class ToolsListDiscoveryIT {
 
             String toolName = tool.get("name").getAsString();
 
-            if ("library_documentation".equals(toolName)) {
-                hasLibraryDocumentationTool = true;
+            if ("locate_references".equals(toolName)) {
+                hasLocateReferencesTool = true;
 
                 JsonObject schema = tool.getAsJsonObject("inputSchema");
 
@@ -96,17 +95,14 @@ class ToolsListDiscoveryIT {
                 assertTrue(schema.getAsJsonObject("properties").has("name"),
                         "library_documentation should have name property");
 
-            } else if ("infer_types".equals(toolName)) {
-                hasInferTypesTool = true;
-            } else if ("list_libraries".equals(toolName)) {
-                hasListLibrariesTool = true;
+            } else if ("project_graph".equals(toolName)) {
+                hasProductGraphTool = true;
             }
         }
 
-        // And tools 'analyze_file', 'list_symbols' and 'list_libraries' should exist
-        assertTrue(hasLibraryDocumentationTool, "Should have library_documentation tool");
-        assertTrue(hasInferTypesTool, "Should have infer_types tool");
-        assertTrue(hasListLibrariesTool, "Should have list_libraries tool");
+        // And tools 'locate_references' and 'project_graph' should exist
+        assertTrue(hasLocateReferencesTool, "Should have locate_references tool");
+        assertTrue(hasProductGraphTool, "Should have project_graph tool");
 
         // Teardown
         server.stop();

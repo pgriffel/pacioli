@@ -20,22 +20,19 @@
  * SOFTWARE.
  */
 
-package pacioli.mcp;
+package pacioli.lsp;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.net.URI;
 import java.util.List;
 
-public class MCPResourceManager {
+/**
+ * Until a better env setup is created.
+ */
+public class TestEnvironment {
+    public static final List<File> LIBS = List.of(new File("../../lib/"));
 
-    private final List<File> libs;
-
-    public MCPResourceManager(List<File> libs) {
-        this.libs = new ArrayList<>(libs);
-    }
-
-    public String fetch(String uri) throws Exception {
-
-        throw new MCPException(String.format("Resource '%s' unknown", uri));
+    public static URI sampleFileURI(String path) {
+        return new File("../../samples/" + path).toURI();
     }
 }

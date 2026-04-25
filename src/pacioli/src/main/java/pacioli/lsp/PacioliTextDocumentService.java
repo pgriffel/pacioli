@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.StringReader;
 import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -53,6 +54,7 @@ import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.Range;
+import org.eclipse.lsp4j.ReferenceParams;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
 import org.eclipse.lsp4j.SignatureHelp;
@@ -65,6 +67,8 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.Info;
+import pacioli.symboltable.info.ValueInfo;
 
 public class PacioliTextDocumentService implements TextDocumentService {
 
@@ -97,6 +101,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
      * didChange is sent before the signature helper event this works okay.
      */
     private String latestText;
+
+    public Path rootPath;
 
     /**
      * Connects the PacioliTextDocumentService, the PacioliWorkspaceService and the
@@ -219,7 +225,8 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
                 return this.getState(uri).hover(pos);
             } catch (Exception e) {
-                return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, ""));
+                this.logInfo("hover error: %s", e.getMessage());
+                return new Hover(new MarkupContent(MarkupKind.PLAINTEXT, e.getMessage()));
             }
         });
     }
@@ -237,6 +244,39 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 return new SemanticTokens();
             }
         });
+    }
+
+    @Override
+    public CompletableFuture<List<? extends org.eclipse.lsp4j.Location>> references(ReferenceParams params) {
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                var uri = params.getTextDocument().getUri();
+                var pos = params.getPosition();
+
+                List<org.eclipse.lsp4j.Location> locs = new ArrayList<>();
+
+                List<Info> infos = this.getState(uri).locateInfo(pos.getLine(), pos.getCharacter());
+
+                for (Info info : infos) {
+                    DocumentState state = this.getState(this.rootPath == null ? uri : this.rootPath.toUri().toString());
+
+                    if (info instanceof ValueInfo) {
+                        locs.addAll(state.locateValueReferences(info.name()));
+                    } else {
+                        locs.addAll(state.locateTypeReferences(info.name()));
+                    }
+                }
+
+                return locs;
+
+            } catch (Exception e) {
+                this.logInfo("references error: %s", e.getMessage());
+
+                return List.of();
+            }
+        });
+
     }
 
     /**

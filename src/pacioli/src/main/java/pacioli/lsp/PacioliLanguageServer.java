@@ -23,8 +23,14 @@
 package pacioli.lsp;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DefinitionOptions;
@@ -33,10 +39,15 @@ import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
+import org.eclipse.lsp4j.ReferenceOptions;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
+import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.WorkspaceServerCapabilities;
+import org.eclipse.lsp4j.jsonrpc.Launcher;
+import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -62,6 +73,24 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
         this.textDocumentService = textDocumentService;
         this.workspaceService = workspaceService;
         this.libs = libs;
+    }
+
+    public Void start() throws InterruptedException, ExecutionException {
+
+        // Socket clientSocket = new Socket("127.0.0.1", 9925);
+
+        Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(this, System.in, System.out
+        // clientSocket.getInputStream(), clientSocket.getOutputStream()
+        );
+
+        LanguageClient client = launcher.getRemoteProxy();
+
+        this.connect(client);
+
+        Future<Void> future = launcher.startListening();
+
+        // Pacioli.logToFile("pacioli_lsp_error.log", "listening");
+        return future.get();
     }
 
     /**
@@ -97,8 +126,36 @@ public class PacioliLanguageServer implements LanguageServer, LanguageClientAwar
             serverCapabilities.setSemanticTokensProvider(
                     new SemanticTokensWithRegistrationOptions(DocumentState.SEMANTIC_TOKEN_LEGEND, true));
             serverCapabilities.setSignatureHelpProvider(new SignatureHelpOptions(SIGNATURE_HELP_TRIGGER_CHARACTERS));
+            serverCapabilities.setReferencesProvider(new ReferenceOptions());
+            // serverCapabilities.setWorkspace(new WorkspaceServerCapabilities());
 
             this.logInfo("PacioliLanguageServer initialized, waiting for requests...");
+            this.logInfo("folders = %s", params.getWorkspaceFolders());
+
+            try {
+                for (WorkspaceFolder folder : params.getWorkspaceFolders()) {
+                    var uri = new URI(folder.getUri());
+                    var path = Path.of(uri);
+                    var dir = path.toFile();
+                    var name = dir.getName();
+                    var main = path.resolve(name + ".pacioli");
+                    var mainFile = main.toFile();
+                    var mainExists = mainFile.exists();
+
+                    this.logInfo("isdir = %s, path = %s, main = %s, mainFile = %s, hasMain = %s",
+                            dir.isDirectory(),
+                            dir.getAbsolutePath(),
+                            main,
+                            mainFile.getAbsolutePath(),
+                            mainExists);
+
+                    if (mainExists) {
+                        this.textDocumentService.rootPath = main;
+                    }
+                }
+            } catch (URISyntaxException e) {
+                this.logInfo("folders = %s", e.getMessage());
+            }
 
             return new InitializeResult(serverCapabilities);
         });

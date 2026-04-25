@@ -233,7 +233,7 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
         for (TypeAssertion member : this.definition().get().members) {
             memberTypes.add(member.type);
         }
-        TypeIdentifierNode tupleId = new TypeIdentifierNode(new Location(), "Tuple");
+        TypeIdentifierNode tupleId = new TypeIdentifierNode(this.definition.location().collapse(), "Tuple");
         return new TypeApplicationNode(this.definition.location(), tupleId, memberTypes);
     }
 
