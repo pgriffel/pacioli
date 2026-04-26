@@ -7,6 +7,7 @@
 - Implemented references for the LSP server
 - Experiment with an MCP server
 - Fixed array equality
+- Fixed printing terminal output
 
 ## [0.6.1] 2026-03-11
 

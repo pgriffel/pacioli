@@ -47,9 +47,9 @@ public class Print implements Instruction {
         PacioliValue result = body.eval(machine.store);
         if (!(result instanceof TheVoid)) {
             if (System.console() == null) {
-                System.out.println(result.toText());
+                System.out.println(result.toTerminalText());
             } else {
-                System.console().format("%s\n", result.toText());
+                System.console().format("%s\n", result.toTerminalText());
             }
         }
     }

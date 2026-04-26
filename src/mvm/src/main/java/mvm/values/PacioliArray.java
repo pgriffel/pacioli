@@ -49,6 +49,21 @@ public class PacioliArray implements PacioliValue {
     }
 
     @Override
+    public void printTerminalText(PrintWriter out) {
+        out.print("<");
+        if (array.length > 0) {
+            PacioliValue item = array[0];
+            out.print(item == null ? "-" : item.toTerminalText());
+        }
+        for (int i = 1; i < array.length; i++) {
+            out.print(", ");
+            PacioliValue item = array[i];
+            out.print(item == null ? "-" : item.toTerminalText());
+        }
+        out.print(">");
+    }
+
+    @Override
     public int hashCode() {
         return (this.array.length == 0) ? 0 : this.array[0].hashCode();
     }
