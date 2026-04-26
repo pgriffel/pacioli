@@ -50,7 +50,7 @@ public class PacioliArray implements PacioliValue {
 
     @Override
     public int hashCode() {
-        return array.hashCode();
+        return (this.array.length == 0) ? 0 : this.array[0].hashCode();
     }
 
     @Override
@@ -61,8 +61,16 @@ public class PacioliArray implements PacioliValue {
         if (!(other instanceof PacioliArray)) {
             return false;
         }
-        PacioliArray otherList = (PacioliArray) other;
-        return array.equals(otherList.array);
+        PacioliArray otherPacioliArray = (PacioliArray) other;
+        if (this.array.length != otherPacioliArray.array.length) {
+            return false;
+        }
+        for (int i = 0; i < this.array.length; i++) {
+            if (!this.array[i].equals(otherPacioliArray.array[i])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public PacioliValue put(int index, PacioliValue value) throws MVMException {
