@@ -31,7 +31,12 @@ export
     Q_33,
     Q_44,
     Three,
-    Four;
+    Four,
+    random_string_generator,
+    random_char_generator,
+    random_list_generator,
+    random_string_list,
+    random_short_string_list;
 
 declare random_1_by_1_matrix :: () -> 1;
 
@@ -200,3 +205,84 @@ defmatrix Q_33 :: 1/Three! per Three!unit = {
   three, two -> 0,
   three, three -> 1000000
 };
+
+# ------------------------------------------------------------------------------
+# Library testing data generator functions
+#
+# A generator is a function of the form 
+#
+#     () -> some random value
+#
+# The ..._generator functions construct such generators. The default generators
+# are build on top of these generator constructors.
+# ------------------------------------------------------------------------------
+
+doc random_string_generator
+    "Constructs a random string generator. The string has a random size and
+    consists of random characters.
+    
+    The char_generator must be a function of zero aruments that generates
+    characters.
+    
+    The size_generator must be a function that produces natural numbers.
+    
+    Argument p is the probability that one of the fixed strings is returned.";
+
+declare random_string_generator ::
+    (() -> String, () -> 1, 1) -> () -> String;
+
+define random_string_generator(char_generator, size_generator, p) =
+    let 
+        fixed_strings = ["foo", "bar", "123", "*%s!%#$"]
+    in
+        () ->
+            if random() < p then 
+                pick(fixed_strings)
+            else
+                concat[char_generator() | _ <- naturals(size_generator())]
+            end
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare random_char_generator :: (1) -> () -> String;
+
+define random_char_generator(size) =
+    let
+        chars = ["a", "b", "c", "d", "e", "f", "g", "h", "i"],
+        n = min(list_size(chars), size)
+    in
+        () -> nth(random_nat(n), chars)
+    end;
+
+# ------------------------------------------------------------------------------
+
+declare random_list_generator ::
+    for_type T: (() -> T, () -> 1) -> () -> List(T);
+
+define random_list_generator(element_generator, size_generator) =
+    () -> [element_generator() | _ <- naturals(size_generator())];
+
+# ------------------------------------------------------------------------------
+# Library testing data default generators
+# ------------------------------------------------------------------------------
+
+doc random_short_string_list
+    "A list of random size below 10 elements. The elements are short strings.
+    This gives a reasonable probability of duplicate strings.";
+
+declare random_short_string_list :: () -> List(String);
+
+define random_short_string_list =
+    random_list_generator(
+        random_string_generator(random_char_generator(2), () -> random_nat(3), 0.5),
+        () -> random_nat(10));
+
+# ------------------------------------------------------------------------------
+
+declare random_string_list :: () -> List(String);
+
+define random_string_list =
+    random_list_generator(
+        random_string_generator(random_char_generator(5), () -> random_nat(10), 0.25),
+        () -> random_nat(10));

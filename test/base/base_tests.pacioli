@@ -65,7 +65,13 @@ define base_suites = [
     map_suite,
     #mapnz_suite       does not exist in MVM yet
     #kronecker_suite   TODO port in pacioli-ts
-    defconv_suite
+    defconv_suite,
+    distinct_tests,
+    array_from_list_tests,
+    array_to_list_tests,
+    array_equal_tests,
+    row_coordinates_tests,
+    column_coordinates_tests
 ];
 
 run_test_suites(base_suites); 
@@ -1337,4 +1343,132 @@ define defconv_suite = test_suite("defconv", [
     test("should give correct conversion for earthmass per yotta:gram", () ->
         earthmass_per_yottagram = 1/5972 * |earthmass per yotta:gram|
     )
+]);
+
+# ------------------------------------------------------------------------------
+# Function distinct
+# ------------------------------------------------------------------------------
+
+define distinct_tests = test_suite("Function distinct", [
+    test("should give the empty list for an empty list", () ->
+        distinct([]) = []),
+
+    test("should give the original list for a singleton list", () ->
+        distinct([1]) = [1]),
+
+    test("should remove duplicates from a pair of 1s", () ->
+        distinct([1, 1]) = [1]),
+
+    test("should remove duplicates from a longer list", () ->
+        distinct([1, 2, 1, 3, 2, 1, 2, 3]) = [1, 2, 3]),
+
+    test("should remove duplicates from a list of lists", () ->
+        distinct([[1, 2], [1, 1], [2, 1], [1, 2], [1, 2], [2, 1], [1, 1]]) =
+            [[1, 2], [1, 1], [2, 1]]),
+
+    random_test("should give a list containing all elements from the original list exactly once", () ->
+        let 
+            list = random_short_string_list(),
+            without_duplicates = distinct(list)
+        in
+            just(all[count[x = elt | x <- without_duplicates] = 1 | elt <- list])
+        end),
+
+    random_test("should give a list containing just elements from the original list", () ->
+        let 
+            list = random_short_string_list(),
+            without_duplicates = distinct(list)
+        in
+            just(all[contains(list, elt) | elt <- without_duplicates])
+        end)
+]);
+# ------------------------------------------------------------------------------
+# Arrays
+# ------------------------------------------------------------------------------
+
+define array_from_list_tests = test_suite("Function array_from_list", [
+    random_test("should give an array of the right size", () ->
+        just(
+            let 
+                l = random_string_list()
+            in
+                array_size(array_from_list(l)) = list_size(l)
+            end)),
+
+    random_test("should give an array with the right elements at the right position", () ->
+        just(
+            let 
+                l = random_string_list(),
+                n = list_size(l),
+                a = array_from_list(l)
+            in
+                all[array_get(a, i) = nth(i, l) | i <- naturals(n)]
+            end))
+]);
+
+define array_to_list_tests = test_suite("Function array_to_list", [
+    random_test("should give a list of the right size", () ->
+        just(
+            let 
+                a = array_from_list(random_string_list())
+            in
+                array_size(a) = list_size(array_to_list(a))
+            end)),
+
+    random_test("should give a list with the right elements at the right position", () ->
+        just(
+            let 
+                a = array_from_list(random_string_list()),
+                n = array_size(a),
+                l = array_to_list(a)
+            in
+                all[array_get(a, i) = nth(i, l) | i <- naturals(n)]
+            end))
+]);
+
+define array_equal_tests = test_suite("Function equal for arrays", [
+    random_test("should be true for two empty arrays", () ->
+        just(make_array(0) = make_array(0))),
+
+    random_test("should be true for two arrays with equal contents", () -> 
+        just(array_from_list([1,2,3]) = array_from_list([1,2,3]))
+    ),
+
+    random_test("should be false for two arrays with different contents", () -> 
+        just(array_from_list([1,2,3]) != array_from_list([1,2,4]))
+    ),
+
+    random_test("should be false for two arrays with different size", () ->
+        just(array_from_list([1,2,3]) != array_from_list([1,2]))),
+
+    random_test("should be true for two arrays of arrays with equal contents", () ->
+        just(array_from_list([[1,2],[3]]) = array_from_list([[1,2],[3]])))
+]);
+
+# ------------------------------------------------------------------------------
+# Coordinates
+# ------------------------------------------------------------------------------
+
+define row_coordinates_tests = test_suite("Function row_coordinates", [
+    test("should give Geom3@x for index 0 for |Geom3!|", () ->
+        row_coordinates(|Geom3!|)(0) = Geom3@x),
+
+    test("should give Geom3@x for index 4 for |Geom3!|", () ->
+        row_coordinates(|Geom3!|)(4) = Geom3@y),
+
+    test("should give Geom3@z for index -1 for |Geom3!|", () ->
+        row_coordinates(|Geom3!|)(-1) = Geom3@z)
+]);
+
+# ------------------------------------------------------------------------------
+
+define column_coordinates_tests = test_suite("Function column_coordinates", [
+    test("should give Geom3@x for index 0 for |Geom3!|", () ->
+        column_coordinates(|Geom3!|^T)(0) = Geom3@x),
+
+    test("should give Geom3@x for index 4 for |Geom3!|", () ->
+        column_coordinates(|Geom3!|^T)(4) = Geom3@y),
+
+    test("should give Geom3@z for index -1 for |Geom3!|", () ->
+        column_coordinates(|Geom3!|^T)(-1) = Geom3@z)
 ]);

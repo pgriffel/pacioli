@@ -82,7 +82,7 @@ class ProjectGraphToolIT {
 
         // Then the text should be correct
         String text = contents0.get("text").getAsString();
-        assertEquals(1894316135, text.hashCode());
+        assertEquals(-112523194, text.hashCode());
 
         // Teardown
         server.stop();
