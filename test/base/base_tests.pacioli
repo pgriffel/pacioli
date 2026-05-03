@@ -1453,7 +1453,7 @@ define row_coordinates_tests = test_suite("Function row_coordinates", [
     test("should give Geom3@x for index 0 for |Geom3!|", () ->
         row_coordinates(|Geom3!|)(0) = Geom3@x),
 
-    test("should give Geom3@x for index 4 for |Geom3!|", () ->
+    test("should give Geom3@y for index 4 for |Geom3!|", () ->
         row_coordinates(|Geom3!|)(4) = Geom3@y),
 
     test("should give Geom3@z for index -1 for |Geom3!|", () ->
@@ -1463,12 +1463,12 @@ define row_coordinates_tests = test_suite("Function row_coordinates", [
 # ------------------------------------------------------------------------------
 
 define column_coordinates_tests = test_suite("Function column_coordinates", [
-    test("should give Geom3@x for index 0 for |Geom3!|", () ->
+    test("should give Geom3@x for index 0 for |Geom3!|^T", () ->
         column_coordinates(|Geom3!|^T)(0) = Geom3@x),
 
-    test("should give Geom3@x for index 4 for |Geom3!|", () ->
+    test("should give Geom3@y for index 4 for |Geom3!|^T", () ->
         column_coordinates(|Geom3!|^T)(4) = Geom3@y),
 
-    test("should give Geom3@z for index -1 for |Geom3!|", () ->
+    test("should give Geom3@z for index -1 for |Geom3!|^T", () ->
         column_coordinates(|Geom3!|^T)(-1) = Geom3@z)
 ]);
