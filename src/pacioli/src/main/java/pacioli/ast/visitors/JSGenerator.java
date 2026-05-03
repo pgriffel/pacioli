@@ -435,7 +435,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ListLiteralNode node) {
-        out.write("[");
+        out.write("Pacioli.tagList([");
         Boolean sep = false;
         for (Node arg : node.elements) {
             if (sep) {
@@ -446,6 +446,6 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             }
             arg.accept(this);
         }
-        out.write("]");
+        out.write("])");
     }
 }

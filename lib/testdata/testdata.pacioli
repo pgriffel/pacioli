@@ -273,16 +273,28 @@ doc random_short_string_list
 
 declare random_short_string_list :: () -> List(String);
 
-define random_short_string_list =
+define random_short_string_list() =
     random_list_generator(
         random_string_generator(random_char_generator(2), () -> random_nat(3), 0.5),
-        () -> random_nat(10));
+        () -> random_nat(10))();
+
+# FIXME: Does not work in javascript
+# define random_short_string_list =
+#     random_list_generator(
+#         random_string_generator(random_char_generator(2), () -> random_nat(3), 0.5),
+#         () -> random_nat(10));
 
 # ------------------------------------------------------------------------------
 
 declare random_string_list :: () -> List(String);
 
-define random_string_list =
+define random_string_list() =
     random_list_generator(
         random_string_generator(random_char_generator(5), () -> random_nat(10), 0.25),
-        () -> random_nat(10));
+        () -> random_nat(10))();
+
+# FIXME: Does not work in javascript
+# define random_string_list =
+#     random_list_generator(
+#         random_string_generator(random_char_generator(5), () -> random_nat(10), 0.25),
+#         () -> random_nat(10));

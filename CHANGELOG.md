@@ -9,6 +9,7 @@
 - Fixed array equality
 - Fixed printing terminal output
 - Added functions 'distinct', 'array_from_list', 'array_to_list', 'row_coordinates' and 'column_coordinates' to the standard library
+- Fixed js code generation for literal lists
 
 ## [0.6.1] 2026-03-11
 
