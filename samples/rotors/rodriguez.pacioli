@@ -1,0 +1,127 @@
+# # Units of Measurement in Rotaties
+#
+# ## Vraag
+#
+# De blog https://iquilezles.org/articles/noacos/ gaat in op rotaties waar acos niet 
+# nodig is. Dit lijkt een aardige uitbreiding van de geometry library, maar direct
+# overnemen van de code geeft een ongewenst type:
+#
+#     rotation_align :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+#
+# In plaats van unit 1/a in het tweede argument zou je unit a willen.
+#
+# De vraag is waar de 1/a vandaan komt en hoe het gefixed kan worden.
+#
+# Een gerelateerde vraag is hoe dit zit voor andere representaties van rotaties:
+# - Euler rotattions
+# - axis-and-angle
+# - Rodrigues rotations
+# - Geometric algebra
+# - Quaternions
+# - ...
+#
+# Een typisch voorbeeld waar units misgaan is projectie van een vector v op een rotatie 
+# as n. Voor projectie wordt vaak de constructie n(n·v) gebruikt. De juiste formule
+# voor projectie is n(n·v/n·n), maar de n·n wordt vaak weggelaten in het geval dat n een
+# unit vector is (je kunt dit ook zien als m/(m·m)(n·v) met n = m/(m·m) de genormaliseerde
+# vector). Numeriek gaat dit goed want n·n is 1, maar de units gaan nu fout.
+#
+# ## Aanpak
+#
+# De verschillende rotatie representaties in Pacioli programmeren en vergelijken.
+#
+# De geometry library ondersteunt op dit moment alleen euler rotations. De functie 
+# 'euler_rotation' is beschikbaar en heeft type:
+#
+#     euler_rotation :: (radian, radian, radian) -> Geom3! per Geom3!
+#
+# De rotatie matrix die het oplevert is een dimensieloze vierkante matrix. Dit is
+# het juiste type aaangezien geometrische ruimtes uniforme units of measurement hebben.
+#
+# Aanpak voor de andere representaties is:
+#
+# 1. Alle varianten coderen zonder units te corrigeren
+# 2. Een testset maken zodat de numerieke juistheid van elke variant getest kan worden
+# 3. Pin-pointen waar de ongewenste units ontstaan.
+# 4. Indien mogelijk de units fixen.
+#
+# Er is al veel (Euler, geometric algebra, quaternions).
+#
+# Links:
+#
+# - https://en.wikipedia.org/wiki/Rotation_matrix
+# - https://github.com/pgriffel/pacioli/blob/ga/lib/geometric_algebra/multivector_layer.pacioli
+
+import geometry;
+
+declare rotation_align1 :: (Geom3!, radian) -> Geom3! per Geom3!;
+
+define rotation_align1(v, a) = 
+    let
+        si = sin(a),
+        co = cos(a),
+        ic = 1 - co,
+        v_x = get(v, Geom3@x, _),
+        v_y = get(v, Geom3@y, _),
+        v_z = get(v, Geom3@z, _)
+    in
+        matrix3d(
+            v_x*v_x*ic + co,      v_y*v_x*ic - si*v_z,  v_z*v_x*ic + si*v_y,
+            v_x*v_y*ic + si*v_z,  v_y*v_y*ic + co,      v_z*v_y*ic - si*v_x,
+            v_x*v_z*ic - si*v_y,  v_y*v_z*ic + si*v_x,  v_z*v_z*ic + co)
+    end;
+
+declare rotation_align2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+define rotation_align2(d, z) =
+    let
+        d_norm = normalized(d),
+        z_norm = normalized(z),
+        ax = cross(z_norm,d_norm),
+        co = inner(z_norm,d_norm),
+        si = norm(ax),
+        v  = ax '/.' si,
+        ic = 1 - co,
+        v_x = get(v, Geom3@x, _),
+        v_y = get(v, Geom3@y, _),
+        v_z = get(v, Geom3@z, _)
+    in
+        matrix3d(
+            v_x*v_x*ic + co,      v_y*v_x*ic - si*v_z,  v_z*v_x*ic + si*v_y,
+            v_x*v_y*ic + si*v_z,  v_y*v_y*ic + co,      v_z*v_y*ic - si*v_x,
+            v_x*v_z*ic - si*v_y,  v_y*v_z*ic + si*v_x,  v_z*v_z*ic + co)
+    end;
+
+declare rotation_align ::
+    for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+# Can the units be fixed?
+
+define rotation_align(d, z) =
+    let
+        v = cross(z, d),
+        c = inner(z, d),
+        k = 1 / (1 + c),
+        v_x = get(v, Geom3@x, _),
+        v_y = get(v, Geom3@y, _),
+        v_z = get(v, Geom3@z, _)
+    in
+        matrix3d(
+            v_x*v_x*k + c,     v_y*v_x*k - v_z,    v_z*v_x*k + v_y,
+            v_x*v_y*k + v_z,   v_y*v_y*k + c,      v_z*v_y*k - v_x,
+            v_x*v_z*k - v_y,   v_y*v_z*k + v_x,    v_z*v_z*k + c)
+    end;
+
+# Correct units! Can we make a rodrigues_align variant? (rodrigues without cos and sin)
+
+declare rodrigues_rotation ::
+    for_unit a: (Geom3!, radian) -> (a*Geom3!) -> a*Geom3!;
+
+define rodrigues_rotation(k, angle) =
+    (v) -> 
+        let 
+            c = cos(angle),
+            s = sin(angle)
+        in
+            v '*.' c + cross(k, v) '*.' s + k '*' inner(k, v) '*.' (1 - c)
+        end;
