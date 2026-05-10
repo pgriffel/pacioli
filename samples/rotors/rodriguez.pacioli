@@ -54,43 +54,9 @@
 
 import geometry;
 
-declare rotation_align1 :: (Geom3!, radian) -> Geom3! per Geom3!;
 
-define rotation_align1(v, a) = 
-    let
-        si = sin(a),
-        co = cos(a),
-        ic = 1 - co,
-        v_x = get(v, Geom3@x, _),
-        v_y = get(v, Geom3@y, _),
-        v_z = get(v, Geom3@z, _)
-    in
-        matrix3d(
-            v_x*v_x*ic + co,      v_y*v_x*ic - si*v_z,  v_z*v_x*ic + si*v_y,
-            v_x*v_y*ic + si*v_z,  v_y*v_y*ic + co,      v_z*v_y*ic - si*v_x,
-            v_x*v_z*ic - si*v_y,  v_y*v_z*ic + si*v_x,  v_z*v_z*ic + co)
-    end;
 
-declare rotation_align2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
 
-define rotation_align2(d, z) =
-    let
-        d_norm = normalized(d),
-        z_norm = normalized(z),
-        ax = cross(z_norm,d_norm),
-        co = inner(z_norm,d_norm),
-        si = norm(ax),
-        v  = ax '/.' si,
-        ic = 1 - co,
-        v_x = get(v, Geom3@x, _),
-        v_y = get(v, Geom3@y, _),
-        v_z = get(v, Geom3@z, _)
-    in
-        matrix3d(
-            v_x*v_x*ic + co,      v_y*v_x*ic - si*v_z,  v_z*v_x*ic + si*v_y,
-            v_x*v_y*ic + si*v_z,  v_y*v_y*ic + co,      v_z*v_y*ic - si*v_x,
-            v_x*v_z*ic - si*v_y,  v_y*v_z*ic + si*v_x,  v_z*v_z*ic + co)
-    end;
 
 declare rotation_align ::
     for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
@@ -102,17 +68,18 @@ define rotation_align(d, z) =
         v = cross(z, d),
         c = inner(z, d),
         k = 1 / (1 + c),
-        v_x = get(v, Geom3@x, _),
-        v_y = get(v, Geom3@y, _),
-        v_z = get(v, Geom3@z, _)
+        k_x = get(v, Geom3@x, _),
+        k_y = get(v, Geom3@y, _),
+        k_z = get(v, Geom3@z, _)
     in
         matrix3d(
-            v_x*v_x*k + c,     v_y*v_x*k - v_z,    v_z*v_x*k + v_y,
-            v_x*v_y*k + v_z,   v_y*v_y*k + c,      v_z*v_y*k - v_x,
-            v_x*v_z*k - v_y,   v_y*v_z*k + v_x,    v_z*v_z*k + c)
+            k_x*k_x*k + c,     k_y*k_x*k - k_z,    k_z*k_x*k + k_y,
+            k_x*k_y*k + k_z,   k_y*k_y*k + c,      k_z*k_y*k - k_x,
+            k_x*k_z*k - k_y,   k_y*k_z*k + k_x,    k_z*k_z*k + c)
     end;
 
 # Correct units! Can we make a rodrigues_align variant? (rodrigues without cos and sin)
+# De rodrigues_rotation komt van de wikipedia pagina https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
 
 declare rodrigues_rotation ::
     for_unit a: (Geom3!, radian) -> (a*Geom3!) -> a*Geom3!;
@@ -125,3 +92,119 @@ define rodrigues_rotation(k, angle) =
         in
             v '*.' c + cross(k, v) '*.' s + k '*' inner(k, v) '*.' (1 - c)
         end;
+
+
+# Rotation_align1 komt uit de blog https://iquilezles.org/articles/noacos/
+# Deze blog herschrijft rotation_align1 naar een vorm zonder sinus en cosinus. De blog vertrekt van de volgende functie.
+
+declare rotation_align1 :: (Geom3!, radian) -> Geom3! per Geom3!;
+
+define rotation_align1(k, a) = 
+    let
+        si = sin(a),
+        co = cos(a),
+        ic = 1 - co,
+        k_x = get(k, Geom3@x, _),
+        k_y = get(k, Geom3@y, _),
+        k_z = get(k, Geom3@z, _)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
+
+#
+# De functies rodrigues_rotation en rotation_aling1 zitten net wat anders in elkaar. De rodrigues_rotation geeft een functie die de rotatie uitvoert,
+# terwijl rotation_align1 direct de rotatie matrix geeft.
+# We maken een intermediate functie die de rodrigues_rotation functie in de vorm schrijft van rotation_align1.
+#
+
+declare rotation_align_int :: for_index C: for_unit a: (Geom3!, radian) -> (a*Geom3!) -> a*Geom3!;
+
+define rotation_align_int(k, a) =
+    let
+        si = sin(a),
+        co = cos(a),
+        ic = 1 - co,
+        k_x = get(k, Geom3@x, _),
+        k_y = get(k, Geom3@y, _),
+        k_z = get(k, Geom3@z, _)
+    in
+    (v) -> 
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co) '*' v
+    end;
+
+#
+# De blogpost werkt de rotation_align1 functie om naar een variant zonder cosinus en sinus op basis van de angle a.
+# De eerste tussenstap is een functie die werkt obv cross en inner product, maar nog steeds met sin en cos. Cross wordt ook normalized.
+# Deze versie krijgt twee vectoren als input. De units a en 1/a zijn ongewenst, je zou twee keer a willen hebben.
+#
+
+declare rotation_align2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+define rotation_align2(d, z) =
+    let
+        axi = normalized(cross(z, d)),
+        ang = acos(inner(z, d)),
+        co = cos(ang),
+        si = sin(ang),
+        k  = axi,
+        ic = 1 - co,
+        k_x = get(k, Geom3@x, _),
+        k_y = get(k, Geom3@y, _),
+        k_z = get(k, Geom3@z, _)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
+
+# We maken een intermediate functie om de ongewenste units te fixen.
+# Door inner(z, d) te delen door inner(n, n) met n = normalized(z) verdwijnen de units a en 1/a.
+#
+declare rotation_align_int2 :: (Geom3!, Geom3!) -> Geom3! per Geom3!;
+
+define rotation_align_int2(d, z) =
+    let
+        axi = normalized(cross(z, d)),
+        n = normalized(z),
+        ang = acos(inner(z, d)/inner(n,n)),
+        co = cos(ang),
+        si = sin(ang),
+        k  = axi,
+        ic = 1 - co,
+        k_x = get(k, Geom3@x, _),
+        k_y = get(k, Geom3@y, _),
+        k_z = get(k, Geom3@z, _)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
+
+
+declare rotation_align3 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+define rotation_align3(d, z) =
+    let
+        ax = cross(z, d),
+        # n  = normalized(z),
+        co = inner(z, d),
+        si = norm(ax),
+        k  = ax '/.' si,
+        ic = 1 - co,
+        k_x = get(k, Geom3@x, _),
+        k_y = get(k, Geom3@y, _),
+        k_z = get(k, Geom3@z, _)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
