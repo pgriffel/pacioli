@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 import random;
+import geometry;
 
 export 
     random_1_by_1_matrix,
@@ -298,3 +299,22 @@ define random_string_list() =
 #     random_list_generator(
 #         random_string_generator(random_char_generator(5), () -> random_nat(10), 0.25),
 #         () -> random_nat(10));
+
+   
+# ------------------------------------------------------------------------------
+# Geometry vectors
+# ------------------------------------------------------------------------------
+
+declare random_geom2 :: for_unit a: (a) -> a*Geom2!;
+
+define random_geom2(u) =
+    let c() = pick([-3, 0, 3]) * random() * u in
+        vector2d(c() , c())
+    end;
+
+declare random_geom3 :: for_unit a: (a) -> a*Geom3!;
+
+define random_geom3(u) =
+    let c() = pick([-3, 0, 3]) * random() * u in
+        vector3d(c() , c() , c())
+    end;
