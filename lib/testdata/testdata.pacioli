@@ -37,7 +37,9 @@ export
     random_char_generator,
     random_list_generator,
     random_string_list,
-    random_short_string_list;
+    random_short_string_list,
+    random_geom2,
+    random_geom3;
 
 declare random_1_by_1_matrix :: () -> 1;
 

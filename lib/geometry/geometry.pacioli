@@ -25,8 +25,10 @@ export
     basis2d,
     basis3d,
     vector2d,
+    values2d,
     matrix2d,
     vector3d,
+    values3d,
     matrix3d,
     to_cartesian2d,
     to_polar2d,
@@ -36,7 +38,7 @@ export
     inclination,
     azimuth,
     cross,
-    cross_sqrt,
+    perpendicular,
     triangle_area,
     signed_volume,
     surface_area,
@@ -120,6 +122,40 @@ declare vector3d ::
 
 define vector3d(a, b, c) = 
     make_matrix([tuple(Geom3@x, _, a), tuple(Geom3@y, _, b), tuple(Geom3@z, _, c)]);
+
+# ----------------------------------------------------------------------------
+# Vector deconstruction
+# ----------------------------------------------------------------------------
+
+doc values2d
+    "The vector's values as a tuple. The opposite of vector2d
+    
+    For example
+
+        let (x, y) = values2d(vector2d(3, 4)) in ... end
+    
+    binds x to 3 and y to 4.";
+
+declare values2d :: for_unit a: (a*Geom2!) -> Tuple(a, a);
+
+define values2d(v) =
+    tuple(get(v, Geom2@x, _), get(v, Geom2@y, _));
+
+# ----------------------------------------------------------------------------
+
+doc values3d
+    "The vector's values as a tuple. The opposite of vector3d
+    
+    For example
+
+        let (x, y, z) = values3d(vector3d(3, 4, 5)) in ... end
+    
+    binds x to 3, y to 4 and z to 5.";
+
+declare values3d :: for_unit a: (a*Geom3!) -> Tuple(a, a, a);
+
+define values3d(v) =
+    tuple(get(v, Geom3@x, _), get(v, Geom3@y, _), get(v, Geom3@z, _));
 
 # ----------------------------------------------------------------------------
 # Matrix construction
@@ -323,28 +359,63 @@ define to_cartesian2d(radius, angle) =
 # Cross Product
 # ----------------------------------------------------------------------------
 
+doc cross
+    "The cross product between two vectors.
+    
+    v x w = |v||w|sin(a)n
+
+    where a is the angle between vectors v and w and n is a unit vector 
+    perpendicular to v and w.";
+
 declare cross ::
     for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
 
-declare cross_sqrt ::
+define cross(v,w) =
+    let
+        (vx, vy, vz) = values3d(v),
+        (wx, wy, wz) = values3d(w)
+    in
+        vector3d(vy*wz - vz*wy, vz*wx - vx*wz, vx*wy - vy*wx)
+    end;
+
+# ----------------------------------------------------------------------------
+
+doc perpendicular
+    "Vector perpendicular to two given vectors. The given vectors and the result come
+    from the same space.
+    
+    This function is the 'square root' of the cross product.
+
+    Defined as
+    
+        cross(v,w) '/.' sqrt(norm(v) * norm(w))
+
+    ### Some properties
+
+    Let p = perpendicular(v, w)
+    
+    The norm |p| satisfies
+
+    |p|^2 = sin(a)^2|v||w|
+
+    where a is the angle between v and w.
+    
+    Furthermore:
+    - p = v x w for dimensionless unit vectors
+    - vector p is zero when v = w
+    - |p|^2 = |v||w| when v and w are orthogonal
+    - |p| = sin(a)|v| = sin(a)|w| when |v| = |w|
+    - |p| = |v| = |w| when v and w are orthogonal and |v| = |w|
+    
+    ### Example
+        
+    Say v = (3m 0m 0m) and w = (0m 3m 0m) then perpendicular(v, w) is (0m 0m 3m), 
+    whereas cross(v, w) is (0m 0m 9m^2)";
+
+declare perpendicular ::
     for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!;
 
-doc cross
-    "The cross product between two vectors.";
-
-define cross(v,w) =
-  let
-      vx = get(v, Geom3@x, _), vy = get(v, Geom3@y, _), vz = get(v, Geom3@z, _),
-      wx = get(w, Geom3@x, _), wy = get(w, Geom3@y, _), wz = get(w, Geom3@z, _)
-  in
-      vector3d(vy*wz - vz*wy, vz*wx - vx*wz, vx*wy - vy*wx)
-  end;
-
-doc cross_sqrt
-    "The cross product between two vectors, but with the norms averaged to keep
-    the same unit of measurement.";
-
-define cross_sqrt(v,w) =
+define perpendicular(v,w) =
     cross(v,w) '/.' sqrt(norm(v) * norm(w));
 
 # ----------------------------------------------------------------------------

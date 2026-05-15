@@ -11,6 +11,7 @@
 - Added functions 'distinct', 'array_from_list', 'array_to_list', 'row_coordinates' and 'column_coordinates' to the standard library
 - Fixed js code generation for literal lists
 - Fixed incorrect cast to matrix type
+- Added functions 'value2d' and 'values3d' to geometry
 
 ## [0.6.1] 2026-03-11
 
