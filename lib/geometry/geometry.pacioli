@@ -382,9 +382,12 @@ define cross(v,w) =
 
 doc perpendicular
     "Vector perpendicular to two given vectors. The given vectors and the result come
-    from the same space.
+    from the same space, and the result vector scales proportionally when the space unit
+    changes.
     
-    This function is the 'square root' of the cross product.
+    This function is the 'square root' of the cross product. It is not a product like
+    the cross function. It lacks distribution over addition, associativity and the Jacobi
+    identity. Sometime however, you just want a perpendicular vector in the same space.
 
     Defined as
     
