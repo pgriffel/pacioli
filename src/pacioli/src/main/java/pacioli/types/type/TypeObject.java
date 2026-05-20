@@ -200,6 +200,10 @@ public interface TypeObject extends Printable {
     }
 
     public default TypeObject unfresh() {
+        return applySubstitution(unfreshSubstitution());
+    }
+
+    public default Substitution unfreshSubstitution() {
 
         // Replace all type variables by type variables named a, b, c, d, ...
         Substitution map = new Substitution();
@@ -222,7 +226,7 @@ public interface TypeObject extends Printable {
         TypeObject unfreshType = applySubstitution(map);
 
         // Replace all unit vector variables by its name prefixed by the index set name.
-        map = new Substitution();
+        Substitution map2 = new Substitution();
         Set<String> names = new VectorVarNames().acceptTypeObject(unfreshType);
         // Set<String> names = unfreshType.unitVecVarCompoundNames();
         for (String name : names) {
@@ -231,10 +235,10 @@ public interface TypeObject extends Printable {
             if (parts.length == 2) {
                 Var var1 = new VectorUnitVar(parts[0] + "!" + parts[1]);
                 Var var2 = new VectorUnitVar(name);
-                map = map.compose(new Substitution(var1, var2));
+                map2 = map2.compose(new Substitution(var1, var2));
             }
         }
-        return unfreshType.applySubstitution(map);
+        return map.compose(map2);
 
     }
 

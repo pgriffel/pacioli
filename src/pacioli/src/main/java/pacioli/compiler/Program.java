@@ -52,6 +52,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.visitors.TransformConversions;
+import pacioli.ast.visitors.TypeInferenceCommitVisitor;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.AliasInfo;
@@ -66,10 +67,12 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
+import pacioli.types.Substitution;
 import pacioli.types.Typing;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
 
 /**
@@ -753,59 +756,100 @@ public class Program {
             Pacioli.log("\nInferring typing of %s", info.name());
         }
 
+        // 1. Infer the body's typing
         Typing typing = def.body.inferTyping(env, this.file);
 
         if (verbose) {
             Pacioli.log("Inferred typing of %s is %s", info.name(), typing.pretty());
         }
 
-        try
+        try {
 
-        {
+            Optional<TypeNode> declared = info.declaredType();
 
-            TypeObject solvedTyping = typing.solve(verbose);
-            TypeObject solved = solvedTyping.unfresh();
+            // 2. Solve the typing
+            Substitution inferenceSolution = typing.solveSubstitution(verbose);
+            TypeObject solvedType = inferenceSolution.apply(typing.type());
+
+            // 3. Rename to user friendly variables
+            Substitution unfreshSubst = solvedType.unfreshSubstitution();
+            TypeObject solved = unfreshSubst.apply(solvedType);
 
             if (verbose) {
                 Pacioli.log("Solved type of %s is\n    %s",
                         info.name(),
-                        Pacioli.Options.printTypesAsString ? solvedTyping.toString() : solved.pretty());
+                        Pacioli.Options.printTypesAsString ? solvedType.toString() : solved.pretty());
                 Pacioli.log("Simple type of %s is\n    %s",
                         info.name(),
-                        Pacioli.Options.printTypesAsString ? solvedTyping.simplify().toString()
+                        Pacioli.Options.printTypesAsString ? solvedType.simplify().toString()
                                 : solved.simplify().pretty());
                 if (Pacioli.Options.showTypeInference) {
                     Pacioli.log("Generalized type of %s is\n    %s",
                             info.name(),
-                            Pacioli.Options.printTypesAsString ? solvedTyping.simplify().generalize().toString()
+                            Pacioli.Options.printTypesAsString ? solvedType.simplify().generalize().toString()
                                     : solved.simplify().generalize().pretty());
                 }
             }
 
-            info.setinferredType(solved.simplify().normalizeMatrixTypes().generalize());
+            // 4. Determine the substitution to update the local variables and the
+            // type to store as the inferred type.
+            Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
+            TypeObject inferredType = solved.simplify().normalizeMatrixTypes();
 
-            Optional<TypeNode> declared = info.declaredType();
-
-            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType().isPresent()) {
+            if (info.isFromFile(this.file) && declared.isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType = info.localType().instantiate();
+                TypeObject inferredType2 = inferredType.generalize().instantiate();// info.localType().instantiate();
 
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(
                             "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                            inferredType.unfresh().pretty(), declaredType.unfresh().pretty());
+                            inferredType2.unfresh().pretty(), declaredType.unfresh().pretty());
                 }
 
-                if (!declaredType.isInstanceOf(inferredType)) {
+                if (!declaredType.isInstanceOf(inferredType2)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
                                     "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
                                     declaredType.unfresh().normalizeMatrixTypes().pretty(),
-                                    inferredType.unfresh().normalizeMatrixTypes().pretty()));
+                                    inferredType2.unfresh().normalizeMatrixTypes().pretty()));
                 }
             }
+
+            // See if there is a type declaration.
+            if (info.isFromFile(this.file) && declared.isPresent()) {
+                // Get the declared type with the code's variable names. We want to use these
+                // variable names so they match the declared type when showing hover messages.
+                TypeObject decld = ((Schema) declared.get().evalType()).type().reduce(i -> i.isFromFile(this.file));
+
+                // Unify the inferred type and the declared type.
+                Substitution unifSubs = solvedType.unify(decld);
+                TypeObject unified = unifSubs.apply(solvedType);
+
+                // Unifying the unified and the declared should give an injective substitution,
+                // because the unified was unified with the declaration.
+                Substitution extra = unified.simplify().unify(decld);
+
+                if (!extra.isInjective()) {
+                    throw new RuntimeException("Expected an injective substitution");
+                }
+
+                // The extra substitution contains mappings from declared names to inferred
+                // names and the other way around. Whatever the unification algorithm returns.
+                // Modify the extra substitution to an equivalent one that has the declared
+                // variable names in its range. We want to map everything to these names.
+                var vars = decld.typeVars();
+                Substitution unfreshSubst2 = extra.removeAll(vars).compose(extra.inverse());
+
+                // Update finalLocalsSubs and inferredType for the type declaration case
+                finalLocalsSubs = unfreshSubst2.compose(unifSubs.compose(inferenceSolution));
+                inferredType = unfreshSubst2.apply(unifSubs.apply(solvedType));
+            }
+
+            // Update the local variable types and store the inferred type
+            def.body.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
+            info.setinferredType(inferredType.generalize());
 
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);

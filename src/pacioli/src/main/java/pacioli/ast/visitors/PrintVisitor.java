@@ -113,6 +113,9 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
+    // WIP
+    boolean printVariableTypes = false;
+
     public PrintVisitor(Printer printer) {
         out = printer;
     }
@@ -748,7 +751,17 @@ public class PrintVisitor implements Visitor {
         write("let ");
 
         newlineUp();
-        node.binding.accept(this);
+
+        if (node.binding instanceof LetBindingNode binding) {
+            out.write(binding.var);
+            if (printVariableTypes) {
+                out.write(":");
+                write(node.table.lookup(binding.var).inferredType().map(x -> x.pretty()).orElse("?"));
+            }
+        } else {
+            node.binding.accept(this);
+        }
+
         newlineDown();
 
         write("in");
@@ -777,6 +790,10 @@ public class PrintVisitor implements Visitor {
                 write(",");
             first = false;
             out.write(var.name());
+            if (printVariableTypes) {
+                out.write(":");
+                write(var.info().inferredType().map(x -> x.pretty()).orElse("?"));
+            }
         }
         write(") = ");
         node.value.accept(this);

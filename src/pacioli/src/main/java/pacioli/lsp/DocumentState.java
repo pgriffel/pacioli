@@ -155,7 +155,7 @@ public class DocumentState {
 
                 if (!loc.isCollapsed()) {
 
-                    if (inf instanceof ValueInfo vi && inf.isGlobal()) {
+                    if (inf instanceof ValueInfo vi) {
                         markups.add(infoMarkup(vi));
                     }
 
@@ -432,8 +432,8 @@ public class DocumentState {
                 return List.of(TOKEN_FUNCTION, MODIFIER_DECLARATION);
             } else {
                 return List.of(
-                        vi.isGlobal() ? TOKEN_PARAMETER : TOKEN_NONE,
-                        MODIFIER_DECLARATION);
+                        vi.isGlobal() ? TOKEN_PARAMETER : TOKEN_VARIABLE,
+                        vi.isGlobal() ? MODIFIER_DECLARATION : MODIFIER_NONE);
             }
         }
 

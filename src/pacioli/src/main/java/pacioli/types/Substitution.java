@@ -93,6 +93,9 @@ public class Substitution implements Printable {
         if (type instanceof Var) {
             if (map.containsKey((Var) type)) {
                 Object obj = map.get((Var) type);
+                if (obj instanceof Unit) {
+                    obj = PowerProduct.normal((Unit) obj);
+                }
                 assert (obj instanceof TypeObject);
                 return (TypeObject) obj;
             } else {
@@ -103,10 +106,16 @@ public class Substitution implements Printable {
         }
     }
 
-    public void removeAll(Set<Var> vars) {
-        for (Var var : vars) {
-            map.remove(var);
+    public Substitution removeAll(Set<Var> vars) {
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
+
+        for (Var var : map.keySet()) {
+            if (!vars.contains(var)) {
+                tmp.put(var, map.get(var));
+            }
         }
+
+        return new Substitution(tmp);
     }
 
     public Substitution compose(Substitution other) {
@@ -150,6 +159,32 @@ public class Substitution implements Printable {
             }
         }
         return true;
+    }
+
+    public Substitution inverse() {
+
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
+
+        for (Var var : map.keySet()) {
+            Object mapped = map.get(var);
+            if (mapped instanceof Unit) {
+                mapped = PowerProduct.normal((Unit) mapped);
+            }
+            if (mapped instanceof Var v) {
+                if (tmp.containsKey(v)) {
+                    throw new RuntimeException(
+                            String.format("Substitution not invertiable. Duplicate entry in range: %s",
+                                    mapped.toString()));
+                } else {
+                    tmp.put(v, var);
+                }
+            } else {
+                throw new RuntimeException(
+                        String.format("Substitution not invertiable. Non var in range: %s", mapped.getClass()));
+            }
+        }
+
+        return new Substitution(tmp);
     }
 
     @Override
