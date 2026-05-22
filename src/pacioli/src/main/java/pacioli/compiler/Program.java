@@ -832,7 +832,9 @@ public class Program {
                 Substitution extra = unified.simplify().unify(decld);
 
                 if (!extra.isInjective()) {
-                    throw new RuntimeException("Expected an injective substitution");
+                    throw new RuntimeException(String.format("Expected an injective substitution in %s. \n%s ",
+                            info.name(),
+                            extra.pretty()));
                 }
 
                 // The extra substitution contains mappings from declared names to inferred
