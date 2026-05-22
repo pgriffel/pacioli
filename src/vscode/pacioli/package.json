@@ -32,7 +32,7 @@
       {
         "language": "pacioli",
         "scopeName": "pacioli",
-        "path": "./syntaxes/pacioli.tmLanguage.json"
+        "path": "./syntaxes/pacioli.language.json"
       }
     ],
     "configuration": {
