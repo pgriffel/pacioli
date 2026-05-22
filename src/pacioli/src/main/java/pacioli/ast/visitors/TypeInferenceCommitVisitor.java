@@ -27,35 +27,11 @@ THE
 
 package pacioli.ast.visitors;
 
-import pacioli.ast.expression.ApplicationNode;
-import pacioli.ast.expression.AssignmentNode;
-import pacioli.ast.expression.BranchNode;
-import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.IdentityVisitor;
-import pacioli.ast.expression.ConstNode;
-import pacioli.ast.expression.ConversionNode;
-import pacioli.ast.expression.DataDefinitionNode;
-import pacioli.ast.expression.DataQueryNode;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.ForNode;
-import pacioli.ast.expression.ForTupleNode;
-import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.IfStatementNode;
-import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
-import pacioli.ast.expression.ListLiteralNode;
-import pacioli.ast.expression.MatrixLiteralNode;
-import pacioli.ast.expression.MatrixTypeNode;
-import pacioli.ast.expression.ProjectionNode;
-import pacioli.ast.expression.ReturnNode;
-import pacioli.ast.expression.ReturnVoidNode;
-import pacioli.ast.expression.SequenceNode;
 import pacioli.ast.expression.StatementNode;
-import pacioli.ast.expression.StringNode;
-import pacioli.ast.expression.TupleAssignmentNode;
-import pacioli.ast.expression.WhileNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.symboltable.info.ValueInfo;
@@ -71,7 +47,9 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
     }
 
     private void commit(ValueInfo info) {
-        if (info == null || info.inferredType().isEmpty()) {
+        // assert (!info.isGlobal());
+        // Filter the global variables. They should not be in the local tables?!
+        if (info == null || info.inferredType().isEmpty() || info.isGlobal()) {
             return;
         }
         TypeObject updatedType = info.inferredType().get().applySubstitution(substitution)
@@ -155,9 +133,7 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
     @Override
     public void visit(StatementNode node) {
         for (var info : node.table.allInfos()) {
-            if (!info.isGlobal()) {
-                commit(info);
-            }
+            commit(info);
         }
         for (var info : node.shadowed.allInfos()) {
             commit(info);
