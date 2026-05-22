@@ -28,6 +28,8 @@ THE
 package pacioli.ast.visitors;
 
 import pacioli.ast.IdentityVisitor;
+import pacioli.ast.expression.ForNode;
+import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
@@ -38,6 +40,14 @@ import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.Substitution;
 import pacioli.types.type.TypeObject;
 
+/**
+ * Applies a substitution to the types of all local identifiers in an AST.
+ * 
+ * Is used during type inference to update the types of all local variables.
+ * Initially each local variable's type is set to some type variables with
+ * the proper constraint. After solving the constraints, this visitor replaces
+ * the type variable with the solved type.
+ */
 public class TypeInferenceCommitVisitor extends IdentityVisitor {
 
     private final Substitution substitution;
@@ -56,11 +66,6 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
                 .simplify().normalizeMatrixTypes();
         info.replaceInferredType(updatedType);
     }
-
-    // @Override
-    // public void visit(IdentifierNode node) {
-    // commit(node.info());
-    // }
 
     @Override
     public void visit(LetNode node) {
@@ -83,25 +88,6 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
         super.visit(node);
     }
 
-    // @Override
-    // public void visit(LetFunctionBindingNode node) {
-    // if (node.table != null) {
-    // commit(node.table.lookup(node.name.name()));
-    // for (var arg : node.args) {
-    // commit(node.table.lookup(arg.name()));
-    // }
-    // }
-    // super.visit(node);
-    // }
-
-    // @Override
-    // public void visit(LetTupleBindingNode node) {
-    // for (var var : node.vars) {
-    // commit(var.info());
-    // }
-    // super.visit(node);
-    // }
-
     @Override
     public void visit(LambdaNode node) {
         if (node.table != null) {
@@ -112,23 +98,23 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
         super.visit(node);
     }
 
-    // @Override
-    // public void visit(ForNode node) {
-    // if (node.table != null && node.var != null) {
-    // commit(node.table.lookup(node.var.name()));
-    // }
-    // super.visit(node);
-    // }
+    @Override
+    public void visit(ForNode node) {
+        if (node.table != null && node.var != null) {
+            commit(node.table.lookup(node.var.name()));
+        }
+        super.visit(node);
+    }
 
-    // @Override
-    // public void visit(ForTupleNode node) {
-    // if (node.table != null) {
-    // for (var var : node.vars) {
-    // commit(node.table.lookup(var.name()));
-    // }
-    // }
-    // super.visit(node);
-    // }
+    @Override
+    public void visit(ForTupleNode node) {
+        if (node.table != null) {
+            for (var var : node.vars) {
+                commit(node.table.lookup(var.name()));
+            }
+        }
+        super.visit(node);
+    }
 
     @Override
     public void visit(StatementNode node) {
