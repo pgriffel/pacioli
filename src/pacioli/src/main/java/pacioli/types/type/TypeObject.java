@@ -48,6 +48,7 @@ import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
 import pacioli.types.visitors.UsesVars;
+import pacioli.types.visitors.GroundVarsVisitor;
 import uom.Unit;
 
 /**
@@ -127,6 +128,19 @@ public interface TypeObject extends Printable {
         return x.applySubstitution(x.unify(y));
     }
 
+    public default Substitution match(TypeObject other) throws PacioliException {
+        return unify(this, other.groundAll(), false);
+    }
+
+    public default boolean matches(TypeObject other) {
+        try {
+            unify(this, other.groundAll(), false);
+            return true;
+        } catch (PacioliException ex) {
+            return false;
+        }
+    }
+
     public default TypeObject instantiate() {
         return this;
     }
@@ -165,23 +179,15 @@ public interface TypeObject extends Printable {
         return result;
     }
 
+    /**
+     * Return a copy of this type with all variable occurrences marked as grounded.
+     */
+    public default TypeObject groundAll() {
+        return new GroundVarsVisitor().typeNodeAccept(this);
+    }
+
     public default boolean isInstanceOf(TypeObject other) {
-        return isInstanceOf(this, other);
-    }
-
-    public static boolean isInstanceOf(TypeObject x, TypeObject y) {
-        try {
-            TypeObject sub = x.fresh();
-            TypeObject sup = y.fresh();
-            TypeObject unified = unified(sub, sup);
-            return alphaEqual(sub, unified);
-        } catch (PacioliException ex) {
-            return false;
-        }
-    }
-
-    public static boolean alphaEqual(TypeObject x, TypeObject y) throws PacioliException {
-        return x.fresh().simplify().unify(y.simplify()).isInjective();
+        return other.matches(this.fresh());
     }
 
     public default Schema generalize(Set<Var> context) {

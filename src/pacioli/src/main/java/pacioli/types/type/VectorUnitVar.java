@@ -37,34 +37,36 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     private final String name;
     public VectorBaseInfo info;
+    private final boolean ground;
 
     // Constructors
 
     public VectorUnitVar(VectorBaseInfo info) {
-        name = info.name();
-        assert (name.contains("!"));
-        this.info = info;
+        this(info.name(), info, false);
     }
 
     public VectorUnitVar(String name) {
+        this(name, null, false);
+    }
+
+    public VectorUnitVar(String name, VectorBaseInfo info, boolean ground) {
         this.name = name;
         assert (name.contains("!"));
-        this.info = null;
+        this.info = info;
+        this.ground = ground;
     }
 
     @Override
     public TypeObject fresh() {
-        return new VectorUnitVar(this.indexSetPart() + "!" + SymbolTable.freshVarName());
+        return new VectorUnitVar(this.indexSetPart() + "!" + SymbolTable.freshVarName(), null, false);
     }
 
     public TypeObject rename(String name) {
-        return new VectorUnitVar(name);
+        return new VectorUnitVar(name, this.info, this.ground);
     }
 
     public VectorUnitVar withIndexSetName(String name) {
-        var var = new VectorUnitVar(name + "!" + this.unitPart());
-        var.info = this.info;
-        return var;
+        return new VectorUnitVar(name + "!" + this.unitPart(), this.info, this.ground);
     }
 
     // Equality
@@ -152,6 +154,16 @@ public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     @Override
     public String asMVMShape(CompilationSettings settings) {
         return TypeObject.super.compileToMVM(settings);
+    }
+
+    @Override
+    public boolean isGround() {
+        return ground;
+    }
+
+    @Override
+    public Var setGround(boolean ground) {
+        return new VectorUnitVar(this.name, this.info, ground);
     }
 
 }

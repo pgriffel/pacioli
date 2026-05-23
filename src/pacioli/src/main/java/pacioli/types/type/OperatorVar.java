@@ -34,22 +34,28 @@ public final class OperatorVar implements Operator, Var {
 
     private final String name;
     private final ParametricInfo info;
+    private final boolean ground;
 
-    public OperatorVar(String name, ParametricInfo info) {
+    public OperatorVar(String name, ParametricInfo info, boolean ground) {
         this.name = name;
         this.info = info;
+        this.ground = ground;
+    }
+
+    public OperatorVar(String name, ParametricInfo info) {
+        this(name, info, false);
     }
 
     public OperatorVar(ParametricInfo info) {
-        this(info.name(), info);
+        this(info.name(), info, false);
     }
 
     public OperatorVar() {
-        this(SymbolTable.freshVarName(), null);
+        this(SymbolTable.freshVarName(), null, false);
     }
 
     public OperatorVar(String name) {
-        this(name, null);
+        this(name, null, false);
     }
 
     @Override
@@ -112,5 +118,15 @@ public final class OperatorVar implements Operator, Var {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isGround() {
+        return ground;
+    }
+
+    @Override
+    public Var setGround(boolean ground) {
+        return new OperatorVar(this.name, this.info, ground);
     }
 }
