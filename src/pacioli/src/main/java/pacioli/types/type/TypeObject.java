@@ -129,38 +129,15 @@ public interface TypeObject extends Printable {
     }
 
     public default Substitution match(TypeObject other) throws PacioliException {
-        return match(this, other);
+        return unify(this, other.groundAll(), false);
     }
 
-    public static Substitution match(TypeObject x, TypeObject y) throws PacioliException {
-        if (x.equals(y)) {
-            return new Substitution();
-        }
-
-        if (x instanceof Var varX) {
-            if (!varX.isGround()) {
-                return new Substitution(varX, y);
-            }
-            if (x.equals(y)) {
-                return new Substitution();
-            }
-            throw new PacioliException("Cannot match a grounded %s and %s", x.description(), y.description());
-        }
-
-        if (y instanceof Var varY) {
-            if (!varY.isGround()) {
-                return new Substitution(varY, x);
-            }
-            if (x.equals(y)) {
-                return new Substitution();
-            }
-            throw new PacioliException("Cannot match %s and a grounded %s", x.description(), y.description());
-        }
-
-        if (x.getClass().equals(y.getClass())) {
-            return x.unificationConstraints(y).solve(false);
-        } else {
-            throw new PacioliException("Cannot match a %s and a %s", x.description(), y.description());
+    public default boolean matches(TypeObject other) {
+        try {
+            unify(this, other.groundAll(), false);
+            return true;
+        } catch (PacioliException ex) {
+            return false;
         }
     }
 
@@ -210,22 +187,7 @@ public interface TypeObject extends Printable {
     }
 
     public default boolean isInstanceOf(TypeObject other) {
-        return isInstanceOf(this, other);
-    }
-
-    public static boolean isInstanceOf(TypeObject x, TypeObject y) {
-        try {
-            TypeObject sub = x.fresh();
-            TypeObject sup = y.fresh();
-            TypeObject unified = unified(sub, sup);
-            return alphaEqual(sub, unified);
-        } catch (PacioliException ex) {
-            return false;
-        }
-    }
-
-    public static boolean alphaEqual(TypeObject x, TypeObject y) throws PacioliException {
-        return x.fresh().simplify().unify(y.simplify()).isInjective();
+        return other.matches(this.fresh());
     }
 
     public default Schema generalize(Set<Var> context) {

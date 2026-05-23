@@ -771,7 +771,7 @@ public class Program {
             Substitution inferenceSolution = typing.solveSubstitution(verbose);
             TypeObject solvedType = inferenceSolution.apply(typing.type());
 
-            // 3. Rename to user friendly variables
+            // 3. Rename to user friendly variable names
             Substitution unfreshSubst = solvedType.unfreshSubstitution();
             TypeObject solved = unfreshSubst.apply(solvedType);
 
@@ -796,11 +796,12 @@ public class Program {
             Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
             TypeObject inferredType = solved.simplify().normalizeMatrixTypes();
 
+            // 5. Check the validity of the declared type
             if (info.isFromFile(this.file) && declared.isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType2 = inferredType.generalize().instantiate();// info.localType().instantiate();
+                TypeObject inferredType2 = inferredType.generalize().instantiate();
 
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(
@@ -817,39 +818,22 @@ public class Program {
                 }
             }
 
-            // See if there is a type declaration.
+            // 6. See if there is a type declaration.
             if (info.isFromFile(this.file) && declared.isPresent()) {
-                // Get the declared type with the code's variable names. We want to use these
-                // variable names so they match the declared type when showing hover messages.
+                // 6.a Get the declared type with the code's variable names. We want to use
+                // these variable names so they match the declared type when showing hover
+                // messages.
                 TypeObject decld = ((Schema) declared.get().evalType()).type().reduce(i -> i.isFromFile(this.file));
 
-                // Unify the inferred type and the declared type.
-                Substitution unifSubs = solvedType.unify(decld);
-                TypeObject unified = unifSubs.apply(solvedType);
+                // 6.b Match the inferred type and the declared type.
+                Substitution unifSubs = solvedType.match(decld);
 
-                // Unifying the unified and the declared should give an injective substitution,
-                // because the unified was unified with the declaration.
-                Substitution extra = unified.simplify().unify(decld);
-
-                if (!extra.isInjective()) {
-                    throw new RuntimeException(String.format("Expected an injective substitution in %s. \n%s ",
-                            info.name(),
-                            extra.pretty()));
-                }
-
-                // The extra substitution contains mappings from declared names to inferred
-                // names and the other way around. Whatever the unification algorithm returns.
-                // Modify the extra substitution to an equivalent one that has the declared
-                // variable names in its range. We want to map everything to these names.
-                var vars = decld.typeVars();
-                Substitution unfreshSubst2 = extra.removeAll(vars).compose(extra.inverse());
-
-                // Update finalLocalsSubs and inferredType for the type declaration case
-                finalLocalsSubs = unfreshSubst2.compose(unifSubs.compose(inferenceSolution));
-                inferredType = unfreshSubst2.apply(unifSubs.apply(solvedType));
+                // 6.c Update finalLocalsSubs and inferredType for the type declaration case
+                finalLocalsSubs = unifSubs.compose(inferenceSolution);
+                inferredType = unifSubs.apply(solvedType);
             }
 
-            // Update the local variable types and store the inferred type
+            // 7. Update the local variable types and store the inferred type
             def.body.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
             info.setinferredType(inferredType.generalize());
 

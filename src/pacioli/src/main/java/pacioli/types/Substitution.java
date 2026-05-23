@@ -25,7 +25,6 @@ package pacioli.types;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +33,6 @@ import pacioli.compiler.Printable;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
-import uom.Fraction;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
@@ -136,102 +134,6 @@ public class Substitution implements Printable {
                 tmp.put(var, apply((Unit) obj));
             }
         }
-        return new Substitution(tmp);
-    }
-
-    <T> boolean isUnitSingular(PowerProduct<T> unit) {
-        if (unit.bases().size() != 1) {
-            return false;
-        }
-
-        Fraction power = unit.power(unit.bases().iterator().next());
-
-        return power.equals(Fraction.ONE) || power.equals(Fraction.MINONE);
-    }
-
-    <T> T singleBase(PowerProduct<T> unit) {
-        return unit.bases().iterator().next();
-    }
-
-    public boolean isInjective() {
-
-        Set<Var> check = new HashSet<Var>();
-
-        for (Var var : map.keySet()) {
-            Object obj = map.get(var);
-            if (obj instanceof PowerProduct pp) {
-                if (!isUnitSingular(pp)) {
-                    return false;
-                }
-
-                obj = singleBase(pp);
-            }
-            // if (obj instanceof Unit) {
-            // obj = PowerProduct.normal((Unit) obj);
-            // }
-            if (!(obj instanceof Var)) {
-                return false;
-            } else {
-                Var objVar = (Var) obj;
-                if (check.contains(objVar)) {
-                    return false;
-                } else {
-                    check.add(objVar);
-                }
-            }
-        }
-        return true;
-    }
-
-    public Substitution inverse() {
-
-        Map<Var, Object> tmp = new HashMap<Var, Object>();
-
-        for (Var var : map.keySet()) {
-            Object mapped = map.get(var);
-
-            if (mapped instanceof PowerProduct pp) {
-
-                if (isUnitSingular(pp)) {
-                    var base = singleBase(pp);
-
-                    if (base instanceof Var v) {
-
-                        if (tmp.containsKey(v)) {
-                            throw new RuntimeException(
-                                    String.format("Substitution not invertiable. Duplicate entry in range: %s",
-                                            mapped.toString()));
-                        } else {
-                            Fraction power = pp.power(base);
-
-                            var elt = power.equals(Fraction.ONE) ? var : new PowerProduct<>(var).raise(power);
-
-                            tmp.put(v, elt);
-                        }
-                    } else {
-                        throw new RuntimeException(
-                                String.format("Substitution not invertiable. Powerproduct not invertable: %s",
-                                        pp.pretty()));
-                    }
-                } else {
-                    throw new RuntimeException(
-                            String.format("Substitution not invertiable. Powerproduct not invertable: %s",
-                                    pp.pretty()));
-                }
-            } else if (mapped instanceof Var v) {
-                if (tmp.containsKey(v)) {
-                    throw new RuntimeException(
-                            String.format("Substitution not invertiable. Duplicate entry in range: %s",
-                                    mapped.toString()));
-                } else {
-                    tmp.put(v, var);
-                }
-            } else {
-                throw new RuntimeException(
-                        String.format("Substitution not invertiable. Non var in range: %s", mapped.getClass()));
-            }
-        }
-
         return new Substitution(tmp);
     }
 
