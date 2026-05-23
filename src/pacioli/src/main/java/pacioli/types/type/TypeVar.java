@@ -133,7 +133,7 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     }
 
     @Override
-    public Var setGround(boolean ground) {
+    public TypeVar setGround(boolean ground) {
         return new TypeVar(this.name, this.info, ground);
     }
 }

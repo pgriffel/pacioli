@@ -128,6 +128,42 @@ public interface TypeObject extends Printable {
         return x.applySubstitution(x.unify(y));
     }
 
+    public default Substitution match(TypeObject other) throws PacioliException {
+        return match(this, other);
+    }
+
+    public static Substitution match(TypeObject x, TypeObject y) throws PacioliException {
+        if (x.equals(y)) {
+            return new Substitution();
+        }
+
+        if (x instanceof Var varX) {
+            if (!varX.isGround()) {
+                return new Substitution(varX, y);
+            }
+            if (x.equals(y)) {
+                return new Substitution();
+            }
+            throw new PacioliException("Cannot match a grounded %s and %s", x.description(), y.description());
+        }
+
+        if (y instanceof Var varY) {
+            if (!varY.isGround()) {
+                return new Substitution(varY, x);
+            }
+            if (x.equals(y)) {
+                return new Substitution();
+            }
+            throw new PacioliException("Cannot match %s and a grounded %s", x.description(), y.description());
+        }
+
+        if (x.getClass().equals(y.getClass())) {
+            return x.unificationConstraints(y).solve(false);
+        } else {
+            throw new PacioliException("Cannot match a %s and a %s", x.description(), y.description());
+        }
+    }
+
     public default TypeObject instantiate() {
         return this;
     }
