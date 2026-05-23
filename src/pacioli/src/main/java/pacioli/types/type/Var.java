@@ -47,5 +47,22 @@ public interface Var extends Printable {
      * 
      * @return The info for the variable
      */
-    Optional<? extends Info> info();
-}
+    Optional<? extends Info> info();}
+
+    /**
+     * Whether this variable is grounded. Grounded variables do not act as
+     * variables during matching/unification and should be treated as concrete
+     * values.
+     * Default: false.
+     */
+    default boolean isGround() {
+        return false;
+    }
+
+    /**
+     * Mark this variable as grounded (or ungrounded). Concrete implementations
+     * that carry mutable state should override this to allow marking.
+     */
+    default Var setGround(boolean ground) {
+        throw new UnsupportedOperationException("setGround not supported");
+    }

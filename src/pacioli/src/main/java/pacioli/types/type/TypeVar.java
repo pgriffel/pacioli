@@ -36,32 +36,36 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
     private final TypeVarInfo info;
+    private final boolean ground;
 
     // Constructors
 
     public TypeVar(TypeVarInfo info) {
-        name = info.name();
-        this.info = info;
+        this(info.name(), info, false);
     }
 
     public TypeVar() {
-        name = SymbolTable.freshVarName();
-        this.info = null;
+        this(SymbolTable.freshVarName(), null, false);
     }
 
     public TypeVar(String name) {
+        this(name, null, false);
+    }
+
+    public TypeVar(String name, TypeVarInfo info, boolean ground) {
         this.name = name;
-        this.info = null;
+        this.info = info;
+        this.ground = ground;
     }
 
     @Override
     public TypeObject fresh() {
-        return new TypeVar(SymbolTable.freshVarName());
+        return new TypeVar(SymbolTable.freshVarName(), null, false);
     }
 
     @Override
     public TypeObject rename(String name) {
-        return new TypeVar(name);
+        return new TypeVar(name, this.info, this.ground);
     }
 
     // Equality
@@ -121,5 +125,15 @@ public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isGround() {
+        return ground;
+    }
+
+    @Override
+    public Var setGround(boolean ground) {
+        return new TypeVar(this.name, this.info, ground);
     }
 }
