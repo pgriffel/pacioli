@@ -47,7 +47,7 @@ public interface Var extends Printable {
      * 
      * @return The info for the variable
      */
-    Optional<? extends Info> info();}
+    Optional<? extends Info> info();
 
     /**
      * Whether this variable is grounded. Grounded variables do not act as
@@ -66,3 +66,4 @@ public interface Var extends Printable {
     default Var setGround(boolean ground) {
         throw new UnsupportedOperationException("setGround not supported");
     }
+}
