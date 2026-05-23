@@ -48,6 +48,7 @@ import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
 import pacioli.types.visitors.UsesVars;
+import pacioli.types.visitors.GroundVarsVisitor;
 import uom.Unit;
 
 /**
@@ -163,6 +164,13 @@ public interface TypeObject extends Printable {
         }
         TypeObject result = applySubstitution(mgu);
         return result;
+    }
+
+    /**
+     * Return a copy of this type with all variable occurrences marked as grounded.
+     */
+    public default TypeObject groundAll() {
+        return new GroundVarsVisitor().typeNodeAccept(this);
     }
 
     public default boolean isInstanceOf(TypeObject other) {
