@@ -101,19 +101,19 @@ public interface TypeObject extends Printable {
         // Do the TypeVars first. A TypeVar could for example refer to an index set. In
         // that case the more specific IndexSetVar is prefered. Always substituting
         // typevars first is an attempt to force this. Is this sufficient?
-        if (x instanceof TypeVar) {
+        if (x instanceof TypeVar v && !v.isGround()) {
             return new Substitution((Var) x, y);
         }
 
-        if (y instanceof TypeVar) {
+        if (y instanceof TypeVar v && !v.isGround()) {
             return new Substitution((Var) y, x);
         }
 
-        if (x instanceof Var) {
+        if (x instanceof Var v && !v.isGround()) {
             return new Substitution((Var) x, y);
         }
 
-        if (y instanceof Var) {
+        if (y instanceof Var v && !v.isGround()) {
             return new Substitution((Var) y, x);
         }
 
