@@ -52,9 +52,9 @@ define plot =
 <a href="#parametric_plot_options_show_parts">parametric_plot_options_show_parts</a> :: (ParametricPlotOptions) -> Boole
 <a href="#parametric_plot_options_show_total">parametric_plot_options_show_total</a> :: (ParametricPlotOptions) -> Boole
 <a href="#parametric_plot_options_wireframe">parametric_plot_options_wireframe</a> :: (ParametricPlotOptions) -> Boole
-<a href="#plot_parametric_path">plot_parametric_path</a> :: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+<a href="#plot_parametric_path">plot_parametric_path</a> :: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!)) -> Scene(c, Geom3!)
 <a href="#plot_parametric_surface">plot_parametric_surface</a> :: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
-<a href="#plot_parametric_surface_deltas">plot_parametric_surface_deltas</a> :: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+<a href="#plot_parametric_surface_deltas">plot_parametric_surface_deltas</a> :: for_unit a, b, c: ((a, b) -> c*Geom3!, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!)) -> Scene(c, Geom3!)
 <a href="#plot_parametric_surface_grid">plot_parametric_surface_grid</a> :: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
 <a href="#range2d_u">range2d_u</a> :: for_unit a, b: (Range2D(a, b)) -> Interval(a)
 <a href="#range2d_v">range2d_v</a> :: for_unit a, b: (Range2D(a, b)) -> Interval(b)
@@ -258,7 +258,7 @@ ParametricPlotOptions
 <h3 id="plot_parametric_path">plot_parametric_path</h3>
 
 <pre>
-:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!)) -> Scene(c, Geom3!)
 </pre>
 
 
@@ -292,7 +292,7 @@ type <code>Scene(metre, Geom3!)</code></p>
 <h3 id="plot_parametric_surface_deltas">plot_parametric_surface_deltas</h3>
 
 <pre>
-:: for_unit a, b, c, Geom3!u: ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u)
+:: for_unit a, b, c: ((a, b) -> c*Geom3!, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!)) -> Scene(c, Geom3!)
 </pre>
 
 
@@ -501,5 +501,5 @@ the option wireframe, but it displays rectangles instead of triangles.</p>
 </pre>
 
 <p>Setter for record <code>Range2D(a, b)</code></p>
-<p><small>Version v0.6.0, 2026-03-05T15:49:23.365449441+01:00[Europe/Amsterdam]</small></body>
+<p><small>Version v0.6.2, 2026-05-24T18:22:29.667995800+02:00[Europe/Amsterdam]</small></body>
 </html>

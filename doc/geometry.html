@@ -26,13 +26,13 @@ end
 
 <a href="#azimuth">azimuth</a> :: for_unit a: (a*Geom3!) -> radian
 <a href="#cross">cross</a> :: for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!
-<a href="#cross_sqrt">cross_sqrt</a> :: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!
 <a href="#det2d">det2d</a> :: for_unit a, Geom2!u: (a*Geom2! per Geom2!) -> a^2
 <a href="#det3d">det3d</a> :: for_unit a, Geom3!u: (a*Geom3! per Geom3!) -> a^3
 <a href="#euler_rotation">euler_rotation</a> :: (radian, radian, radian) -> Geom3! per Geom3!
 <a href="#inclination">inclination</a> :: for_unit a: (a*Geom3!) -> radian
 <a href="#matrix2d">matrix2d</a> :: for_unit a: (a, a, a, a) -> a*Geom2! per Geom2!
 <a href="#matrix3d">matrix3d</a> :: for_unit a: (a, a, a, a, a, a, a, a, a) -> a*Geom3! per Geom3!
+<a href="#perpendicular">perpendicular</a> :: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!
 <a href="#polar_angle">polar_angle</a> :: for_unit a: (a*Geom2!) -> radian
 <a href="#rotation">rotation</a> :: (radian, radian, radian) -> Geom3! per Geom3!
 <a href="#signed_volume">signed_volume</a> :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^3
@@ -43,6 +43,8 @@ end
 <a href="#to_polar2d">to_polar2d</a> :: for_unit a: (a*Geom2!) -> Tuple(a, radian)
 <a href="#to_polar3d">to_polar3d</a> :: for_unit a: (a*Geom3!) -> Tuple(a, radian, radian)
 <a href="#triangle_area">triangle_area</a> :: for_unit a: (a*Geom3!, a*Geom3!, a*Geom3!) -> a^2
+<a href="#values2d">values2d</a> :: for_unit a: (a*Geom2!) -> Tuple(a, a)
+<a href="#values3d">values3d</a> :: for_unit a: (a*Geom3!) -> Tuple(a, a, a)
 <a href="#vector2d">vector2d</a> :: for_unit a: (a, a) -> a*Geom2!
 <a href="#vector3d">vector3d</a> :: for_unit a: (a, a, a) -> a*Geom3!
 </pre>
@@ -109,16 +111,9 @@ end`
 </pre>
 
 <p>The cross product between two vectors.</p>
-
-
-<h3 id="cross_sqrt">cross_sqrt</h3>
-
-<pre>
-:: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!
-</pre>
-
-<p>The cross product between two vectors, but with the norms averaged to keep
-the same unit of measurement.</p>
+<p>v x w = |v||w|sin(a)n</p>
+<p>where a is the angle between vectors v and w and n is a unit vector
+perpendicular to v and w.</p>
 
 
 <h3 id="det2d">det2d</h3>
@@ -175,6 +170,39 @@ the same unit of measurement.</p>
 </pre>
 
 <p>Creates a <code>Geom3</code> matrix. The arguments are in row-major order.</p>
+
+
+<h3 id="perpendicular">perpendicular</h3>
+
+<pre>
+:: for_unit a: (a*Geom3!, a*Geom3!) -> a*Geom3!
+</pre>
+
+<p>Vector perpendicular to two given vectors. The given vectors and the result come
+from the same space, and the result vector scales proportionally when the space unit
+changes.</p>
+<p>This function is the 'square root' of the cross product. It is not a product like
+the cross function. It lacks distribution over addition, associativity and the Jacobi
+identity. Sometime however, you just want a perpendicular vector in the same space.</p>
+<p>Defined as</p>
+<pre><code>cross(v,w) '/.' sqrt(norm(v) * norm(w))
+</code></pre>
+<h3>Some properties</h3>
+<p>Let p = perpendicular(v, w)</p>
+<p>The norm |p| satisfies</p>
+<p>|p|^2 = sin(a)^2|v||w|</p>
+<p>where a is the angle between v and w.</p>
+<p>Furthermore:</p>
+<ul>
+<li>p = v x w for dimensionless unit vectors</li>
+<li>vector p is zero when v = w</li>
+<li>|p|^2 = |v||w| when v and w are orthogonal</li>
+<li>|p| = sin(a)|v| = sin(a)|w| when |v| = |w|</li>
+<li>|p| = |v| = |w| when v and w are orthogonal and |v| = |w|</li>
+</ul>
+<h3>Example</h3>
+<p>Say v = (3m 0m 0m) and w = (0m 3m 0m) then perpendicular(v, w) is (0m 0m 3m),
+whereas cross(v, w) is (0m 0m 9m^2)</p>
 
 
 <h3 id="polar_angle">polar_angle</h3>
@@ -281,6 +309,32 @@ with the norm, the inclination and the azimuth.</p>
 <p>Area of the triangle given by three position vectors.</p>
 
 
+<h3 id="values2d">values2d</h3>
+
+<pre>
+:: for_unit a: (a*Geom2!) -> Tuple(a, a)
+</pre>
+
+<p>The vector's values as a tuple. The opposite of vector2d</p>
+<p>For example</p>
+<pre><code>let (x, y) = values2d(vector2d(3, 4)) in ... end
+</code></pre>
+<p>binds x to 3 and y to 4.</p>
+
+
+<h3 id="values3d">values3d</h3>
+
+<pre>
+:: for_unit a: (a*Geom3!) -> Tuple(a, a, a)
+</pre>
+
+<p>The vector's values as a tuple. The opposite of vector3d</p>
+<p>For example</p>
+<pre><code>let (x, y, z) = values3d(vector3d(3, 4, 5)) in ... end
+</code></pre>
+<p>binds x to 3, y to 4 and z to 5.</p>
+
+
 <h3 id="vector2d">vector2d</h3>
 
 <pre>
@@ -297,5 +351,5 @@ with the norm, the inclination and the azimuth.</p>
 </pre>
 
 <p>Creates a <code>Geom3</code> vector.</p>
-<p><small>Version v0.6.0, 2026-03-05T15:49:20.907230814+01:00[Europe/Amsterdam]</small></body>
+<p><small>Version v0.6.2, 2026-05-24T18:22:24.886373400+02:00[Europe/Amsterdam]</small></body>
 </html>
