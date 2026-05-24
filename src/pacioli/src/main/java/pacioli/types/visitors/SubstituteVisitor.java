@@ -44,9 +44,11 @@ public class SubstituteVisitor extends TransformType {
 
     @Override
     public void visit(Schema type) {
-        Substitution reduced = new Substitution(substitution);
-        reduced.removeAll(type.variables());
-        returnTypeNode(new Schema(type.variables(), type.applySubstitution(reduced), type.conditions()));
+        returnTypeNode(
+                new Schema(
+                        type.variables(),
+                        type.applySubstitution(substitution.removeAll(type.variables())),
+                        type.conditions()));
     }
 
     @Override

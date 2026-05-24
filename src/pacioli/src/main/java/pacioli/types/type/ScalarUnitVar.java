@@ -37,26 +37,31 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
 
     private final String name;
     private final ScalarBaseInfo info;
+    private final boolean ground;
 
     // Constructors
 
     public ScalarUnitVar(ScalarBaseInfo info) {
-        name = info.name();
-        this.info = info;
+        this(info.name(), info, false);
     }
 
     public ScalarUnitVar(String name) {
+        this(name, null, false);
+    }
+
+    public ScalarUnitVar(String name, ScalarBaseInfo info, boolean ground) {
         this.name = name;
-        this.info = null;
+        this.info = info;
+        this.ground = ground;
     }
 
     @Override
     public TypeObject fresh() {
-        return new ScalarUnitVar(SymbolTable.freshVarName());
+        return new ScalarUnitVar(SymbolTable.freshVarName(), null, false);
     }
 
     public TypeObject rename(String name) {
-        return new ScalarUnitVar(name);
+        return new ScalarUnitVar(name, this.info, this.ground);
     }
 
     // Equality
@@ -144,5 +149,15 @@ public class ScalarUnitVar extends BaseUnit<TypeBase> implements TypeObject, Uni
     @Override
     public String asMVMShape(CompilationSettings settings) {
         return TypeObject.super.compileToMVM(settings);
+    }
+
+    @Override
+    public boolean isGround() {
+        return ground;
+    }
+
+    @Override
+    public Var setGround(boolean ground) {
+        return new ScalarUnitVar(this.name, this.info, ground);
     }
 }

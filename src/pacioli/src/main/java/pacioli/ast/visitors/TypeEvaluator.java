@@ -32,6 +32,7 @@ import java.util.Stack;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.Definition;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.ClassInfo;
 import pacioli.symboltable.info.IndexSetInfo;
@@ -98,11 +99,16 @@ public class TypeEvaluator extends IdentityVisitor {
         return typeStack.pop();
     }
 
-    public MatrixType matrixTypeAccept(TypeNode child) {
+    public MatrixType matrixTypeAccept(TypeNode child, Location location) {
         child.accept(this);
         TypeObject type = typeStack.pop();
-        assert (type instanceof MatrixType);
-        return (MatrixType) type;
+
+        if (type instanceof MatrixType mt) {
+            return mt;
+        } else {
+            visitorThrow(location, "Expected a matrix type, not a %s", type.description());
+            throw new RuntimeException(" visitorThrow broken?");
+        }
     }
 
     public void returnType(TypeObject value) {
@@ -298,8 +304,8 @@ public class TypeEvaluator extends IdentityVisitor {
     @Override
     public void visit(TypeMultiplyNode node) {
 
-        MatrixType left = matrixTypeAccept(node.left);
-        MatrixType right = matrixTypeAccept(node.right);
+        MatrixType left = matrixTypeAccept(node.left, node.location());
+        MatrixType right = matrixTypeAccept(node.right, node.location());
 
         if (left.singleton()) {
             returnType(left.scale(right));
@@ -314,8 +320,8 @@ public class TypeEvaluator extends IdentityVisitor {
     @Override
     public void visit(TypeDivideNode node) {
 
-        MatrixType left = matrixTypeAccept(node.left);
-        MatrixType right = matrixTypeAccept(node.right);
+        MatrixType left = matrixTypeAccept(node.left, node.location());
+        MatrixType right = matrixTypeAccept(node.right, node.location());
 
         if (left.singleton()) {
             returnType(left.scale(right.reciprocal()));
@@ -333,7 +339,8 @@ public class TypeEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(TypePowerNode node) {
-        returnType(matrixTypeAccept(node.base).raise(new Fraction(Integer.parseInt(node.power.pretty()))));
+        returnType(matrixTypeAccept(node.base, node.location())
+                .raise(new Fraction(Integer.parseInt(node.power.pretty()))));
     }
 
     @Override
@@ -358,6 +365,8 @@ public class TypeEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(TypePerNode node) {
-        returnType(matrixTypeAccept(node.left).join(matrixTypeAccept(node.right).transpose().reciprocal()));
+        var left = matrixTypeAccept(node.left, node.left.location());
+        var right = matrixTypeAccept(node.right, node.right.location());
+        returnType(left.join(right.transpose().reciprocal()));
     }
 }

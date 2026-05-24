@@ -216,9 +216,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
                 ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
-                ExpressionNode tup = new IdentifierNode(tupName, loc2);
+                ExpressionNode tup = new IdentifierNode(tupName, dummyLoc);
                 ExpressionNode loopList = new IdentifierNode("loop_list", dummyLoc);
-                ExpressionNode accuId = new IdentifierNode(accuName, loc2);
+                ExpressionNode accuId = new IdentifierNode(accuName, dummyLoc);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
                 ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
 

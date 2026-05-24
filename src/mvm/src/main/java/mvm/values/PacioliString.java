@@ -38,6 +38,11 @@ public class PacioliString implements PacioliValue {
     }
 
     @Override
+    public void printTerminalText(PrintWriter out) {
+        out.print("\"" + value + "\"");
+    }
+
+    @Override
     public int hashCode() {
         return value.hashCode();
     }

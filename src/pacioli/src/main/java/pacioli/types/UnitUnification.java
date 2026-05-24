@@ -54,7 +54,7 @@ public class UnitUnification {
         List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
         for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar) {
+            if (base instanceof UnitVar unitVar && !unitVar.isGround()) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -117,7 +117,7 @@ public class UnitUnification {
         List<TypeBase> fixedBases = new ArrayList<TypeBase>();
 
         for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar && !ignore.contains((Var) base)) {
+            if (base instanceof UnitVar unitVar && !unitVar.isGround() && !ignore.contains((Var) base)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);

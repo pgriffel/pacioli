@@ -26,20 +26,22 @@ export
     scanl,
     zip_with,
     unzip,
-    remove_nth;
+    remove_nth,
+    distinct;
 
 # ------------------------------------------------------------------------------
 # Lists
 # ------------------------------------------------------------------------------
 
-declare combis :: for_type t: (List(t)) -> List(Tuple(t, t));
-declare flatten :: for_type t: (List(List(t))) -> List(t);
-declare flat_map :: for_type a, b: ((a) -> List(b), List(a)) -> List(b);
-declare scanl1 :: for_type t: ((t, t) -> t, List(t)) -> List(t);
-declare scanl :: for_type s,t: ((t, s) -> t, t, List(s)) -> List(t);
-declare zip_with :: for_type s,t,u: ((s, t) -> u, List(s), List(t)) -> List(u);
-declare unzip :: for_type s, t: (List(Tuple(s, t))) -> Tuple(List(s), List(t));
-declare remove_nth :: for_type t: (1, List(t)) -> List(t);
+declare combis :: for_type T: (List(T)) -> List(Tuple(T, T));
+declare flatten :: for_type T: (List(List(T))) -> List(T);
+declare flat_map :: for_type S, T: ((S) -> List(T), List(S)) -> List(T);
+declare scanl1 :: for_type T: ((T, T) -> T, List(T)) -> List(T);
+declare scanl :: for_type S,T: ((T, S) -> T, T, List(S)) -> List(T);
+declare zip_with :: for_type S,T,U: ((S, T) -> U, List(S), List(T)) -> List(U);
+declare unzip :: for_type S, T: (List(Tuple(S, T))) -> Tuple(List(S), List(T));
+declare remove_nth :: for_type T: (1, List(T)) -> List(T);
+declare distinct :: for_type T: (List(T)) -> List(T);
 
 # ------------------------------------------------------------------------------
 
@@ -132,3 +134,28 @@ define remove_nth(n, list) =
       end
       return result;
   end;
+
+# ------------------------------------------------------------------------------
+
+doc distinct
+    "A copy of a list with all duplicates removed. Keeps items in the original 
+    order
+    
+    For example
+    
+            distinct([1, 3, 1, 2, 1, 2]) = [1, 3, 2]";
+
+define distinct(list) =
+    begin
+        found := empty_map();
+        set := [];
+        
+        for item <- list do
+            if is_nothing(lookup(item, found)) then
+                set := cons(item, set);
+                store(item, true, found);
+            end
+        end
+
+        return reverse(set);
+    end;

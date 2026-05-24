@@ -225,9 +225,9 @@ define path(fun, u0, v0, du, dv, n) =
 # ------------------------------------------------------------------------------
 
 declare plot_parametric_surface_deltas ::
-    for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!u))
-            -> Scene(c, Geom3!u);
+    for_unit a, b, c:
+        ((a, b) -> c*Geom3!, Range2D(a, b), ParametricPlotOptions, Scene(c, Geom3!))
+            -> Scene(c, Geom3!);
 
 define plot_parametric_surface_deltas(fun, range, options, scene) =
     let
@@ -269,7 +269,7 @@ define compute_deltas(fun, range, n, m, delta) =
 
 declare plot_parametric_path ::
     for_unit a, b, c, Geom3!u:
-        ((a, b) -> c*Geom3!u, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!u)) -> Scene(c, Geom3!u);
+        ((a, b) -> c*Geom3!, a, b, a, b, ParametricPlotOptions, Scene(c, Geom3!)) -> Scene(c, Geom3!);
 
 define plot_parametric_path(fun, u0, v0, du, dv, options, scene) =
     let
@@ -350,7 +350,7 @@ define partial_arrows(deltas, color, d) =
 define normal_arrows(deltas, color, d) =
     [ with_arrow_color(color, arrow) |
         (pos, du, dv) <- deltas,
-        arrow := default_arrow(pos, d '.*' cross_sqrt(magnitude(du), magnitude(dv)) * unit(pos))];
+        arrow := default_arrow(pos, d '.*' perpendicular(du, dv))];
 
 # ------------------------------------------------------------------------------
 # Ranges

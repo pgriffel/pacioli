@@ -52,6 +52,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
 import pacioli.ast.visitors.TransformConversions;
+import pacioli.ast.visitors.TypeInferenceCommitVisitor;
 import pacioli.parser.Parser;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.info.AliasInfo;
@@ -66,10 +67,12 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
+import pacioli.types.Substitution;
 import pacioli.types.Typing;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeNode;
+import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
 
 /**
@@ -672,6 +675,10 @@ public class Program {
     // Type inference
     // -------------------------------------------------------------------------
 
+    /**
+     * Infers the type for all infos in the given PacioliTable and updates the
+     * infos with it. Also updates the types of the local variables.
+     */
     private void inferTypes(PacioliTable prog, PacioliTable env) {
 
         Pacioli.trace("Inferring types in module '%s'", this.file.module());
@@ -696,12 +703,32 @@ public class Program {
                 Pacioli.log("\nInferring typing of toplevel %s", i++);
             }
 
-            Typing typing = toplevel.body.inferTyping(prog, this.file);
-            toplevel.type = typing.solve(false).simplify();
+            toplevel.type = inferExpressionTypeAndCommit(prog, toplevel.body);
         }
 
     }
 
+    /**
+     * Helper for inferTypes.
+     */
+    private void inferValueDefinitionTypeRec(ValueInfo info, Set<Info> discovered, Set<Info> finished,
+            PacioliTable env) {
+
+        if (!finished.contains(info)) {
+            if (discovered.contains(info)) {
+                // Pacioli.warn("Cycle in definition of %s", info.name());
+            } else {
+                discovered.add(info);
+                inferUsedTypes(info.definition().get(), discovered, finished, env);
+                inferValueDefinitionTypeAndCommit(info, env);
+                finished.add(info);
+            }
+        }
+    }
+
+    /**
+     * Helper for inferTypes.
+     */
     private void inferUsedTypes(Definition definition, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
         for (Info pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
@@ -718,32 +745,39 @@ public class Program {
         }
     }
 
-    private void inferValueDefinitionTypeRec(ValueInfo info, Set<Info> discovered, Set<Info> finished,
-            PacioliTable env) {
+    /**
+     * Helper for inferTypes.
+     * 
+     * Infers the expression's type and updates the types for local variables in
+     * the definition's body.
+     * 
+     * Returns the inferred type.
+     */
+    private TypeObject inferExpressionTypeAndCommit(PacioliTable prog, ExpressionNode expression) {
+        Typing typing = expression.inferTyping(prog, this.file);
 
-        if (!finished.contains(info)) {
-            if (discovered.contains(info)) {
-                // Pacioli.warn("Cycle in definition of %s", info.name());
-            } else {
-                discovered.add(info);
-                inferUsedTypes(info.definition().get(), discovered, finished, env);
-                inferValueDefinitionType(info, discovered, finished, env);
-                finished.add(info);
-            }
-        }
+        Substitution inferenceSolution = typing.solveSubstitution(false);
+        TypeObject solvedType = inferenceSolution.apply(typing.type());
+
+        Substitution unfreshSubst = solvedType.unfreshSubstitution();
+        Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
+
+        TypeObject solved = unfreshSubst.apply(solvedType);
+
+        expression.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
+
+        return solved.simplify().normalizeMatrixTypes();
     }
 
     /**
-     * @param info
-     * @param discovered
-     * @param finished
-     * @param verbose
-     *                   Determines whether log calls are made or not, independently
-     *                   from any global log setting. Allows the caller to filter
-     *                   logging per definition.
-     * @param env
+     * Helper for inferTypes.
+     * 
+     * Infers the info's definition type, stores it in the the info, and updates the
+     * types for local variables in the definition's body.
+     * 
+     * Uses the declared type if it exists.
      */
-    private void inferValueDefinitionType(ValueInfo info, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
+    private void inferValueDefinitionTypeAndCommit(ValueInfo info, PacioliTable env) {
 
         ValueDefinition def = info.definition().get();
 
@@ -753,59 +787,86 @@ public class Program {
             Pacioli.log("\nInferring typing of %s", info.name());
         }
 
+        // 1. Infer the body's typing
         Typing typing = def.body.inferTyping(env, this.file);
 
         if (verbose) {
             Pacioli.log("Inferred typing of %s is %s", info.name(), typing.pretty());
         }
 
-        try
+        try {
 
-        {
+            Optional<TypeNode> declared = info.declaredType();
 
-            TypeObject solvedTyping = typing.solve(verbose);
-            TypeObject solved = solvedTyping.unfresh();
+            // 2. Solve the typing
+            Substitution inferenceSolution = typing.solveSubstitution(verbose);
+            TypeObject solvedType = inferenceSolution.apply(typing.type());
+
+            // 3. Rename to user friendly variable names
+            Substitution unfreshSubst = solvedType.unfreshSubstitution();
+            TypeObject solved = unfreshSubst.apply(solvedType);
 
             if (verbose) {
                 Pacioli.log("Solved type of %s is\n    %s",
                         info.name(),
-                        Pacioli.Options.printTypesAsString ? solvedTyping.toString() : solved.pretty());
+                        Pacioli.Options.printTypesAsString ? solvedType.toString() : solved.pretty());
                 Pacioli.log("Simple type of %s is\n    %s",
                         info.name(),
-                        Pacioli.Options.printTypesAsString ? solvedTyping.simplify().toString()
+                        Pacioli.Options.printTypesAsString ? solvedType.simplify().toString()
                                 : solved.simplify().pretty());
                 if (Pacioli.Options.showTypeInference) {
                     Pacioli.log("Generalized type of %s is\n    %s",
                             info.name(),
-                            Pacioli.Options.printTypesAsString ? solvedTyping.simplify().generalize().toString()
+                            Pacioli.Options.printTypesAsString ? solvedType.simplify().generalize().toString()
                                     : solved.simplify().generalize().pretty());
                 }
             }
 
-            info.setinferredType(solved.simplify().normalizeMatrixTypes().generalize());
+            // 4. Determine the substitution to update the local variables and the
+            // type to store as the inferred type.
+            Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
+            TypeObject inferredType = solved.simplify().normalizeMatrixTypes();
 
-            Optional<TypeNode> declared = info.declaredType();
-
-            if (info.isFromFile(this.file) && declared.isPresent() && info.inferredType().isPresent()) {
+            // 5. Check the validity of the declared type
+            if (info.isFromFile(this.file) && declared.isPresent()) {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType = info.localType().instantiate();
+                TypeObject inferredType2 = inferredType.generalize().instantiate();
 
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(
                             "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                            inferredType.unfresh().pretty(), declaredType.unfresh().pretty());
+                            inferredType2.unfresh().pretty(), declaredType.unfresh().pretty());
                 }
 
-                if (!declaredType.isInstanceOf(inferredType)) {
+                if (!declaredType.isInstanceOf(inferredType2)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
                                     "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
                                     declaredType.unfresh().normalizeMatrixTypes().pretty(),
-                                    inferredType.unfresh().normalizeMatrixTypes().pretty()));
+                                    inferredType2.unfresh().normalizeMatrixTypes().pretty()));
                 }
             }
+
+            // 6. See if there is a type declaration.
+            if (info.isFromFile(this.file) && declared.isPresent()) {
+                // 6.a Get the declared type with the code's variable names. We want to use
+                // these variable names so they match the declared type when showing hover
+                // messages.
+                TypeObject decld = ((Schema) declared.get().evalType()).type().reduce(i -> i.isFromFile(this.file));
+
+                // 6.b Match the inferred type and the declared type.
+                Substitution unifSubs = solvedType.match(decld);
+
+                // 6.c Update finalLocalsSubs and inferredType for the type declaration case
+                finalLocalsSubs = unifSubs.compose(inferenceSolution);
+                inferredType = unifSubs.apply(solvedType);
+            }
+
+            // 7. Update the local variable types and store the inferred type
+            def.body.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
+            info.setinferredType(inferredType.generalize());
 
         } catch (PacioliException e) {
             throw new RuntimeException("Type error", e);
