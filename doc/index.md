@@ -22,6 +22,7 @@ Pacioli version 0.6
 - [metrics](metrics.md)
 - [graphics/parametric_plots](parametric_plots.md)
 - [petri_net](petri_net.md)
+- [planets](planets.md)
 - [quaternion](quaternion.md)
 - [random](random.md)
 - [si](si.md)
