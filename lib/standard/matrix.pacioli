@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+include array;
+
 export
     inner,
     outer,
@@ -50,7 +52,9 @@ export
     positives,
     negatives,
     precision,
-    set_precision;
+    set_precision,
+    row_coordinates,
+    column_coordinates;
 
 # ----------------------------------------------------------------------------
 # Precision
@@ -490,4 +494,68 @@ define compare_index(x, y) =
         1
     else
         0
+    end;
+    
+# ------------------------------------------------------------------------------
+# Coordinates
+# ------------------------------------------------------------------------------
+
+doc row_coordinates
+    "Mapping from the integers to a matrix's row indices.
+
+    Satisfies
+
+        row_coordinates(A)(i) = nth(mod(i, n), row_domain(A))
+    
+    Using integers allows index arithmetic. For example
+
+        let
+            v = vector3d(11, 12, 13),
+            row = row_coordinates(v)
+        in 
+            get(v, row(1 + 1), _)
+        end
+    
+    yiels 13, the value at position 2.";
+
+declare row_coordinates ::
+    for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> (1) -> P;
+
+define row_coordinates(matrix) =
+    coord_map(row_domain(matrix));
+
+# ------------------------------------------------------------------------------
+
+doc column_coordinates
+    "Mapping from the integers to a matrix's column indices.
+
+    Satisfies
+
+        column_coordinates(A)(i) = nth(mod(i, n), column_domain(A))
+    
+    Using integers allows index arithmetic. For example
+
+        let
+            v = vector3d(11, 12, 13)^T,
+            col = column_coordinates(v)
+        in 
+            get(v, _, col(1 + 1))
+        end
+    
+    yiels 13, the value at position 2.";
+
+declare column_coordinates ::
+    for_index P, Q: for_unit a, P!u, Q!v: (a*P!u per Q!v) -> (1) -> Q;
+
+define column_coordinates(matrix) =
+    coord_map(column_domain(matrix));
+
+# ------------------------------------------------------------------------------
+
+define coord_map(keys) =
+    let
+        map = array_from_list(keys),
+        n = list_size(keys)
+    in
+        (i) -> array_get(map, mod(i, n))
     end;

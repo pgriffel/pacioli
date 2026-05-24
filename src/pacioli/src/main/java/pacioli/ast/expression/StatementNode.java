@@ -34,7 +34,7 @@ public class StatementNode extends AbstractNode implements ExpressionNode {
     public final SequenceNode body;
 
     // Filled during resolve
-    public SymbolTable<ValueInfo> table;
+    public SymbolTable<ValueInfo> table; // TODO: contains globals. Why? Should they be filtered?!
     public SymbolTable<ValueInfo> shadowed;
     public boolean isVoid;
 

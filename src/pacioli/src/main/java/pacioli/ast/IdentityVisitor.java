@@ -185,6 +185,7 @@ public class IdentityVisitor implements Visitor {
     public void visit(UnitVectorDefinition node) {
         // Pacioli.log("Unitfecog");
         node.indexSetNode.accept(this);
+        node.unitNode.accept(this);
         for (UnitDecl decl : node.items) {
             decl.value.accept(this);
         }
@@ -192,6 +193,7 @@ public class IdentityVisitor implements Visitor {
 
     @Override
     public void visit(ValueDefinition node) {
+        node.id.accept(this);
         node.body.accept(this);
     }
 

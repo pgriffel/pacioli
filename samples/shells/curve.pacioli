@@ -167,7 +167,7 @@ define compute_rotation(left, top, right, bottom) =
     in
         magnitude(
             normalized(width) '*' ex^T +
-            normalized(cross_sqrt(width, height)) '*' ey^T +
+            normalized(perpendicular(width, height)) '*' ey^T +
             normalized(height) '*' ez^T )
     end;
 

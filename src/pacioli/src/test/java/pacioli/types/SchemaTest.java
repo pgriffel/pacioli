@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -47,7 +48,7 @@ public class SchemaTest {
         // Optional.empty(), new OperatorVar("var"), List.of());
         // TypeDefinition def = new TypeDefinition(null, null, null, null)
 
-        ParametricType parametric = new ParametricType(new Location(),
+        ParametricType parametric = new ParametricType(new Location(new File("dummy")),
                 // new ParametricInfo("Bar", null, true, new Location()), Optional.empty(),
                 new OperatorVar("dummy"), List.of());
         Schema schema = new Schema(Set.of(new OperatorVar("dummy")), parametric, List.of());

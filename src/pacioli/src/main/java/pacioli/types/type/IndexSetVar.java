@@ -36,26 +36,31 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
 
     private final String name;
     private final IndexSetInfo info;
+    private final boolean ground;
 
     // Constructors
 
     public IndexSetVar(IndexSetInfo info) {
-        name = info.name();
-        this.info = info;
+        this(info.name(), info, false);
     }
 
     public IndexSetVar(String name) {
+        this(name, null, false);
+    }
+
+    public IndexSetVar(String name, IndexSetInfo info, boolean ground) {
         this.name = name;
-        this.info = null;
+        this.info = info;
+        this.ground = ground;
     }
 
     @Override
     public TypeObject fresh() {
-        return new IndexSetVar(SymbolTable.freshVarName());
+        return new IndexSetVar(SymbolTable.freshVarName(), null, false);
     }
 
     public TypeObject rename(String name) {
-        return new IndexSetVar(name);
+        return new IndexSetVar(name, this.info, this.ground);
     }
 
     // Equality
@@ -128,6 +133,16 @@ public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
     public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
         // see unification on ConstraintSet
         throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean isGround() {
+        return ground;
+    }
+
+    @Override
+    public Var setGround(boolean ground) {
+        return new IndexSetVar(this.name, this.info, ground);
     }
 
 }

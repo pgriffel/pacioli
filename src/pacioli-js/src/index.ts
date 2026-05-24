@@ -82,7 +82,7 @@ export { PacioliBoole } from "./values/boole";
 
 export { PacioliCoordinates } from "./values/coordinates";
 
-export { RawValue } from "./raw-values/raw-value";
+export { RawValue, tagList } from "./raw-values/raw-value";
 
 export { MatrixShape as Shape } from "./values/matrix-shape";
 

@@ -29,14 +29,18 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
 import pacioli.Pacioli.Options;
+import pacioli.ast.Node;
+import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
@@ -182,7 +186,7 @@ public class Bundle {
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
-            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location()));
+            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location(file.fsFile())));
         }
         // Makes generating docs crash. Uncomment when nmode experiment continues.
         // ValueInfo nmodeInfo = ValueInfo.builder()
@@ -824,5 +828,117 @@ public class Bundle {
                 finished.add(info);
             }
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Reference table
+    // -------------------------------------------------------------------------
+
+    /**
+     * A mapping from a value or type name to a list with all references to the
+     * value or type.
+     */
+    public record ReferencesTable(Map<String, List<Node>> values, Map<String, List<Node>> types) {
+
+        /**
+         * All nodes (typically identifier nodes) that refer to the value with the given
+         * name. Includes the definition of the value itself.
+         * 
+         * @param name Name of some value
+         * @return All references to the value
+         */
+        public List<Node> getValueReferences(String name) {
+            return this.values.get(name);
+        }
+
+        /**
+         * All nodes (typically identifier nodes) that refer to the type with the given
+         * name. Includes the definition of the type itself.
+         * 
+         * @param name Name of some type
+         * @return All references to the type
+         */
+        public List<Node> getTypeReferences(String name) {
+            return this.types.get(name);
+        }
+    }
+
+    static List<Node> refTableEntry(Map<String, List<Node>> table, String name) {
+        if (!table.containsKey(name)) {
+            table.put(name, new ArrayList<>());
+        }
+
+        return table.get(name);
+    }
+
+    static void addRef(Map<String, List<Node>> table, String name, Node ref) {
+        var r = refTableEntry(table, name);
+        if (!r.stream().anyMatch(x -> x.location().equals(ref.location()))) {
+            r.add(ref);
+        }
+    }
+
+    /**
+     * Builds a ReferencesTable for the bundle.
+     */
+    public ReferencesTable buildReferencesTable() {
+
+        // A node may be duplicated during desugaring (records)
+        // A node can be hidden during desugaring (records)
+        // A node can be skipped by the ReferencesVisitor
+        // A node may not have a location (primitive types like List)
+
+        Map<String, List<Node>> valuesTable = new HashMap<>();
+        Map<String, List<Node>> typeTable = new HashMap<>();
+
+        for (ValueInfo info : allValueInfos()) {
+
+            if (info.definition().isPresent()) {
+                Definition definition = info.definition().get();
+
+                // Add all references in the definition's body
+                for (Node ref : definition.references()) {
+                    Info refInfo = ref.getInfo().orElseThrow();
+
+                    addRef(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name(), ref);
+                }
+            }
+
+            if (info.declaration().isPresent()) {
+                Declaration declaration = info.declaration().get();
+
+                // Add all references in the declaration's body
+                for (Node ref : declaration.references()) {
+                    Info refInfo = ref.getInfo().orElseThrow();
+
+                    addRef(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name(), ref);
+                }
+            }
+        }
+
+        for (TypeInfo info : environment.types().allInfos()) {
+
+            if (info.definition().isPresent()) {
+                Definition definition = info.definition().get();
+
+                // Add all references in the definition's body
+                for (Node ref : definition.references()) {
+                    Info refInfo = ref.getInfo().orElseThrow();
+
+                    addRef(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name(), ref);
+                }
+            }
+        }
+
+        for (Toplevel info : environment.toplevels()) {
+
+            // Add all references in the toplevel's body
+            for (Node ref : info.body.references()) {
+                Info refInfo = ref.getInfo().orElseThrow();
+                refTableEntry(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name()).add(ref);
+            }
+        }
+
+        return new ReferencesTable(valuesTable, typeTable);
     }
 }

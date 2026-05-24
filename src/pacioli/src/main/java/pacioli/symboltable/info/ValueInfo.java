@@ -35,6 +35,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypeVar;
 
 public class ValueInfo extends AbstractInfo {
 
@@ -152,12 +153,21 @@ public class ValueInfo extends AbstractInfo {
     }
 
     public Boolean isFunction() {
-        Schema schema = (Schema) publicType();
-        return schema.type() instanceof FunctionType;
+        TypeObject type = publicType();
+
+        if (type instanceof Schema schema) {
+            return schema.type() instanceof FunctionType;
+        } else {
+            return type instanceof FunctionType;
+        }
     }
 
     public void setinferredType(TypeObject type) {
         assert (this.inferredType == null);
+        this.inferredType = type;
+    }
+
+    public void replaceInferredType(TypeObject type) {
         this.inferredType = type;
     }
 

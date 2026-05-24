@@ -25,7 +25,6 @@ package pacioli.types;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -93,6 +92,9 @@ public class Substitution implements Printable {
         if (type instanceof Var) {
             if (map.containsKey((Var) type)) {
                 Object obj = map.get((Var) type);
+                if (obj instanceof Unit) {
+                    obj = PowerProduct.normal((Unit) obj);
+                }
                 assert (obj instanceof TypeObject);
                 return (TypeObject) obj;
             } else {
@@ -103,10 +105,16 @@ public class Substitution implements Printable {
         }
     }
 
-    public void removeAll(Set<Var> vars) {
-        for (Var var : vars) {
-            map.remove(var);
+    public Substitution removeAll(Set<Var> vars) {
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
+
+        for (Var var : map.keySet()) {
+            if (!vars.contains(var)) {
+                tmp.put(var, map.get(var));
+            }
         }
+
+        return new Substitution(tmp);
     }
 
     public Substitution compose(Substitution other) {
@@ -127,29 +135,6 @@ public class Substitution implements Printable {
             }
         }
         return new Substitution(tmp);
-    }
-
-    public boolean isInjective() {
-
-        Set<Var> check = new HashSet<Var>();
-
-        for (Var var : map.keySet()) {
-            Object obj = map.get(var);
-            if (obj instanceof Unit) {
-                obj = PowerProduct.normal((Unit) obj);
-            }
-            if (!(obj instanceof Var)) {
-                return false;
-            } else {
-                Var objVar = (Var) obj;
-                if (check.contains(objVar)) {
-                    return false;
-                } else {
-                    check.add(objVar);
-                }
-            }
-        }
-        return true;
     }
 
     @Override

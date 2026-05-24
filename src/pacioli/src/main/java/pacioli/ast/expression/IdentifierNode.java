@@ -28,6 +28,7 @@ import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 
 public class IdentifierNode extends AbstractNode implements ExpressionNode {
@@ -52,6 +53,12 @@ public class IdentifierNode extends AbstractNode implements ExpressionNode {
         super(location);
         this.name = name;
         this.kind = null;
+    }
+
+    public IdentifierNode collapseLocation() {
+        var copy = new IdentifierNode(this.name, this.kind, this.location().collapse());
+        copy.info = this.info;
+        return copy;
     }
 
     public IdentifierNode withKind(IdentifierNode id) {
@@ -85,6 +92,20 @@ public class IdentifierNode extends AbstractNode implements ExpressionNode {
         return this.info != null;
     }
 
+    @Override
+    public Optional<Info> getInfo() {
+        // This node should have been resolved and have an info.
+        if (this.info == null) {
+            throw new RuntimeException(
+                    new PacioliException(location(), "Cannot get info, identifier '%s' has not been resolved.",
+                            name));
+        }
+
+        // Never empty, an identifier always refers to something
+        return Optional.of(this.info);
+    }
+
+    // TODO: remove. Use getInfo instead
     public ValueInfo info() {
         if (this.info != null) {
             return this.info;

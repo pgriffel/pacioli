@@ -48,6 +48,7 @@ import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
 import pacioli.types.visitors.UsesVars;
+import pacioli.types.visitors.GroundVarsVisitor;
 import uom.Unit;
 
 /**
@@ -100,19 +101,19 @@ public interface TypeObject extends Printable {
         // Do the TypeVars first. A TypeVar could for example refer to an index set. In
         // that case the more specific IndexSetVar is prefered. Always substituting
         // typevars first is an attempt to force this. Is this sufficient?
-        if (x instanceof TypeVar) {
+        if (x instanceof TypeVar v && !v.isGround()) {
             return new Substitution((Var) x, y);
         }
 
-        if (y instanceof TypeVar) {
+        if (y instanceof TypeVar v && !v.isGround()) {
             return new Substitution((Var) y, x);
         }
 
-        if (x instanceof Var) {
+        if (x instanceof Var v && !v.isGround()) {
             return new Substitution((Var) x, y);
         }
 
-        if (y instanceof Var) {
+        if (y instanceof Var v && !v.isGround()) {
             return new Substitution((Var) y, x);
         }
 
@@ -125,6 +126,19 @@ public interface TypeObject extends Printable {
 
     public static TypeObject unified(TypeObject x, TypeObject y) throws PacioliException {
         return x.applySubstitution(x.unify(y));
+    }
+
+    public default Substitution match(TypeObject other) throws PacioliException {
+        return unify(this, other.groundAll(), false);
+    }
+
+    public default boolean matches(TypeObject other) {
+        try {
+            unify(this, other.groundAll(), false);
+            return true;
+        } catch (PacioliException ex) {
+            return false;
+        }
     }
 
     public default TypeObject instantiate() {
@@ -165,23 +179,15 @@ public interface TypeObject extends Printable {
         return result;
     }
 
+    /**
+     * Return a copy of this type with all variable occurrences marked as grounded.
+     */
+    public default TypeObject groundAll() {
+        return new GroundVarsVisitor().typeNodeAccept(this);
+    }
+
     public default boolean isInstanceOf(TypeObject other) {
-        return isInstanceOf(this, other);
-    }
-
-    public static boolean isInstanceOf(TypeObject x, TypeObject y) {
-        try {
-            TypeObject sub = x.fresh();
-            TypeObject sup = y.fresh();
-            TypeObject unified = unified(sub, sup);
-            return alphaEqual(sub, unified);
-        } catch (PacioliException ex) {
-            return false;
-        }
-    }
-
-    public static boolean alphaEqual(TypeObject x, TypeObject y) throws PacioliException {
-        return x.fresh().simplify().unify(y.simplify()).isInjective();
+        return other.matches(this.fresh());
     }
 
     public default Schema generalize(Set<Var> context) {
@@ -200,6 +206,10 @@ public interface TypeObject extends Printable {
     }
 
     public default TypeObject unfresh() {
+        return applySubstitution(unfreshSubstitution());
+    }
+
+    public default Substitution unfreshSubstitution() {
 
         // Replace all type variables by type variables named a, b, c, d, ...
         Substitution map = new Substitution();
@@ -222,7 +232,7 @@ public interface TypeObject extends Printable {
         TypeObject unfreshType = applySubstitution(map);
 
         // Replace all unit vector variables by its name prefixed by the index set name.
-        map = new Substitution();
+        Substitution map2 = new Substitution();
         Set<String> names = new VectorVarNames().acceptTypeObject(unfreshType);
         // Set<String> names = unfreshType.unitVecVarCompoundNames();
         for (String name : names) {
@@ -231,10 +241,10 @@ public interface TypeObject extends Printable {
             if (parts.length == 2) {
                 Var var1 = new VectorUnitVar(parts[0] + "!" + parts[1]);
                 Var var2 = new VectorUnitVar(name);
-                map = map.compose(new Substitution(var1, var2));
+                map2 = map2.compose(new Substitution(var1, var2));
             }
         }
-        return unfreshType.applySubstitution(map);
+        return map.compose(map2);
 
     }
 
