@@ -675,6 +675,10 @@ public class Program {
     // Type inference
     // -------------------------------------------------------------------------
 
+    /**
+     * Infers the type for all infos in the given PacioliTable and updates the
+     * infos with it. Also updates the types of the local variables.
+     */
     private void inferTypes(PacioliTable prog, PacioliTable env) {
 
         Pacioli.trace("Inferring types in module '%s'", this.file.module());
@@ -699,12 +703,32 @@ public class Program {
                 Pacioli.log("\nInferring typing of toplevel %s", i++);
             }
 
-            Typing typing = toplevel.body.inferTyping(prog, this.file);
-            toplevel.type = typing.solve(false).simplify();
+            toplevel.type = inferExpressionTypeAndCommit(prog, toplevel.body);
         }
 
     }
 
+    /**
+     * Helper for inferTypes.
+     */
+    private void inferValueDefinitionTypeRec(ValueInfo info, Set<Info> discovered, Set<Info> finished,
+            PacioliTable env) {
+
+        if (!finished.contains(info)) {
+            if (discovered.contains(info)) {
+                // Pacioli.warn("Cycle in definition of %s", info.name());
+            } else {
+                discovered.add(info);
+                inferUsedTypes(info.definition().get(), discovered, finished, env);
+                inferValueDefinitionTypeAndCommit(info, env);
+                finished.add(info);
+            }
+        }
+    }
+
+    /**
+     * Helper for inferTypes.
+     */
     private void inferUsedTypes(Definition definition, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
         for (Info pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
@@ -721,32 +745,39 @@ public class Program {
         }
     }
 
-    private void inferValueDefinitionTypeRec(ValueInfo info, Set<Info> discovered, Set<Info> finished,
-            PacioliTable env) {
+    /**
+     * Helper for inferTypes.
+     * 
+     * Infers the expression's type and updates the types for local variables in
+     * the definition's body.
+     * 
+     * Returns the inferred type.
+     */
+    private TypeObject inferExpressionTypeAndCommit(PacioliTable prog, ExpressionNode expression) {
+        Typing typing = expression.inferTyping(prog, this.file);
 
-        if (!finished.contains(info)) {
-            if (discovered.contains(info)) {
-                // Pacioli.warn("Cycle in definition of %s", info.name());
-            } else {
-                discovered.add(info);
-                inferUsedTypes(info.definition().get(), discovered, finished, env);
-                inferValueDefinitionType(info, discovered, finished, env);
-                finished.add(info);
-            }
-        }
+        Substitution inferenceSolution = typing.solveSubstitution(false);
+        TypeObject solvedType = inferenceSolution.apply(typing.type());
+
+        Substitution unfreshSubst = solvedType.unfreshSubstitution();
+        Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
+
+        TypeObject solved = unfreshSubst.apply(solvedType);
+
+        expression.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
+
+        return solved.simplify().normalizeMatrixTypes();
     }
 
     /**
-     * @param info
-     * @param discovered
-     * @param finished
-     * @param verbose
-     *                   Determines whether log calls are made or not, independently
-     *                   from any global log setting. Allows the caller to filter
-     *                   logging per definition.
-     * @param env
+     * Helper for inferTypes.
+     * 
+     * Infers the info's definition type, stores it in the the info, and updates the
+     * types for local variables in the definition's body.
+     * 
+     * Uses the declared type if it exists.
      */
-    private void inferValueDefinitionType(ValueInfo info, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
+    private void inferValueDefinitionTypeAndCommit(ValueInfo info, PacioliTable env) {
 
         ValueDefinition def = info.definition().get();
 
