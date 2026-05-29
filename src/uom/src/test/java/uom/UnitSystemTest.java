@@ -62,6 +62,18 @@ class UnitSystemTest {
     }
 
     @Test
+    void testContainsPrefixedUnitName() {
+        UnitSystem<TestBase> system = new UnitSystem<>();
+        TestBase meter = new TestBase("meter");
+        Prefix deci = new Prefix("d", BigDecimal.valueOf(0.1));
+
+        system.addUnit("m", meter);
+        system.addPrefix("d", deci);
+
+        assertTrue(system.congtainsUnit("d:m"));
+    }
+
+    @Test
     void testLookupPrefixMissingThrows() {
         UnitSystem<TestBase> system = new UnitSystem<>();
         assertThrows(RuntimeException.class, () -> system.lookupPrefix("x"));
