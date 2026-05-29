@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 //public class PowerProduct<B extends Base<B>> implements Unit<B> {
-public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
+public class PowerProduct<B extends Base> implements Unit<B> {
 
     private final HashMap<B, Fraction> powers;
 
@@ -79,19 +79,26 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
         return (value == null ? Fraction.ZERO : value);
     }
 
-    // public static <B extends Base<B>> Unit<B> normal(Unit<B> unit) {
-    public static <B> Unit<B> normal(Unit<B> unit) {
-        Set<B> bases = unit.bases();
-        if (bases.size() == 1) {
-            B base = (B) bases.toArray()[0];
-            if (unit.power(base).compareTo(Fraction.ONE) == 0) {
-                return (Unit<B>) base;
-            } else {
-                return unit;
-            }
-        } else {
-            return unit;
-        }
+    /**
+     * @deprecated No longer relevant
+     * 
+     * @param <B>
+     * @param unit
+     * @return
+     */
+    public static <B extends Base> Unit<B> normal(Unit<B> unit) {
+        // Set<B> bases = unit.bases();
+        // if (bases.size() == 1) {
+        // B base = bases.iterator().next();
+        // if (unit.power(base).compareTo(Fraction.ONE) == 0) {
+        // return (Unit<B>) base;
+        // } else {
+        // return unit;
+        // }
+        // } else {
+        // return unit;
+        // }
+        return unit;
     }
 
     @Override
@@ -157,6 +164,49 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
          * return output;
          */
     }
+
+    @Override
+    public Unit<B> multiply(Unit<B> other) {
+        return new PowerProduct<B>(this, other);
+    }
+
+    @Override
+    public <T> T fold(UnitFold<B, T> fold) {
+        T result = null;
+        for (B base : bases()) {
+            Fraction power = power(base);
+            T mapped;
+            if (power.equals(Fraction.ONE)) {
+                mapped = fold.map(base);
+            } else {
+                mapped = fold.expt(fold.map(base), power);
+            }
+            if (result == null) {
+                result = mapped;
+            } else {
+                result = fold.mult(result, mapped);
+            }
+        }
+        return (result == null) ? fold.one() : result;
+        /*
+         * T result = fold.one();
+         * for (B base : bases()) {
+         * T mapped = fold.expt(fold.map(base), power(base));
+         * result = fold.mult(result, mapped);
+         * }
+         * return result;
+         */
+    }
+
+    // @Override
+    // public Unit<B> map(UnitMap<B> map) {
+    // Unit<B> newUnit = new PowerProduct<B>();
+    // for (B base : bases()) {
+    // Unit<B> mapped = map.map(base).raise(power(base));
+    // newUnit = newUnit.multiply(mapped);
+    // }
+    // return newUnit;
+    // }
 
     @Override
     public DimensionedNumber<B> multiply(BigDecimal factor) {
@@ -269,12 +319,12 @@ public class PowerProduct<B> extends AbstractUnit<B> implements Unit<B> {
         return symbolic;
     }
 
-    public class BaseComparator<B> implements Comparator<B> {
+    public class BaseComparator<B extends Base> implements Comparator<B> {
 
         @Override
         public int compare(B o1, B o2) {
-            String text1 = ((Unit<B>) o1).pretty();
-            String text2 = ((Unit<B>) o2).pretty();
+            String text1 = o1.pretty();
+            String text2 = o2.pretty();
             if (text1.length() > 0 && text2.length() > 0) {
                 boolean char1Upper = Character.isUpperCase(text1.charAt(0));
                 boolean char2Upper = Character.isUpperCase(text2.charAt(0));

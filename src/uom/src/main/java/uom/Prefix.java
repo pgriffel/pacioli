@@ -29,6 +29,8 @@ public class Prefix {
     private final String symbols;
     private final BigDecimal factor;
 
+    static final Prefix ONE = new Prefix("", BigDecimal.ONE);
+
     public Prefix(String symbols, BigDecimal factor) {
         this.symbols = symbols;
         this.factor = factor;

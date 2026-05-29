@@ -26,25 +26,23 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
-public class DimensionedNumber<B> {
+public class DimensionedNumber<B extends Base> {
 
     private final Unit<B> unit;
     private final BigDecimal factor;
 
     public DimensionedNumber() {
-        // unit = Unit.ONE;
-        unit = new PowerProduct<B>();
-        factor = BigDecimal.ONE;
+        this.unit = new PowerProduct<B>();
+        this.factor = BigDecimal.ONE;
     }
 
     public DimensionedNumber(Unit<B> unit) {
         this.unit = unit;
-        factor = BigDecimal.ONE;
+        this.factor = BigDecimal.ONE;
     }
 
     public DimensionedNumber(BigDecimal factor) {
-        // unit = Unit.ONE;
-        unit = new PowerProduct<B>();
+        this.unit = new PowerProduct<B>();
         this.factor = factor;
     }
 

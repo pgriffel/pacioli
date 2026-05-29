@@ -25,7 +25,7 @@ package uom;
 import java.math.BigDecimal;
 import java.util.Set;
 
-public interface Unit<B> {
+public interface Unit<B extends Base> {
 
     public Set<B> bases();
 
