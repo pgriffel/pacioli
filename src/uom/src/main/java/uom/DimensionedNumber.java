@@ -41,6 +41,11 @@ public class DimensionedNumber<B extends Base> {
         this.factor = BigDecimal.ONE;
     }
 
+    public DimensionedNumber(B base) {
+        this.unit = new PowerProduct<B>(base);
+        this.factor = BigDecimal.ONE;
+    }
+
     public DimensionedNumber(BigDecimal factor) {
         this.unit = new PowerProduct<B>();
         this.factor = factor;

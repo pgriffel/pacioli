@@ -63,7 +63,7 @@ public interface TypeBase extends Base {
     }
 
     default DimensionedNumber<TypeBase> flat() {
-        return new DimensionedNumber<TypeBase>(new PowerProduct<TypeBase>(this));
+        return new DimensionedNumber<TypeBase>(this);
     }
 
     // UNITTODO

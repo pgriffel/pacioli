@@ -117,7 +117,7 @@ class PowerProductTest {
         }
 
         DimensionedNumber<UnitBase> flat() {
-            return new DimensionedNumber<>(new PowerProduct<>(this));
+            return new DimensionedNumber<>(this);
         }
     }
 
