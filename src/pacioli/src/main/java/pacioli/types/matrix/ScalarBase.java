@@ -122,7 +122,7 @@ public class ScalarBase implements TypeBase {
         if (def.isPresent()) {
             DimensionedNumber<TypeBase> dimNum = def.get().evalBody();
             if (dimNum != null) {
-                return def.get().evalBody().flat(TypeBase::flat).multiply(fac);
+                return def.get().evalBody().reduce(TypeBase::flat).multiply(fac);
             }
         }
         return Unit.<TypeBase>from(new ScalarBase(info)).multiply(fac);

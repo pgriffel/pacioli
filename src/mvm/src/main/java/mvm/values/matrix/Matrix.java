@@ -513,7 +513,7 @@ public class Matrix implements PacioliValue {
 
                     srcUnit = getUnit(rowDimension(), shape.rowUnit, i);
                     dstUnit = getUnit(columnDimension(), shape.columnUnit, j);
-                    number = (dstUnit.multiply(srcUnit.reciprocal())).flat(ScalarBase::flat);
+                    number = (dstUnit.multiply(srcUnit.reciprocal())).reduce(ScalarBase::flat);
 
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot project '%s' to '%s'", srcUnit.pretty(), dstUnit.pretty());
@@ -539,14 +539,14 @@ public class Matrix implements PacioliValue {
         }
 
         for (int i = 0; i < nrRows; i++) {
-            DimensionedNumber<ScalarBase> number = unitAt(i, i).reciprocal().flat(ScalarBase::flat);
+            DimensionedNumber<ScalarBase> number = unitAt(i, i).reciprocal().reduce(ScalarBase::flat);
             if (!number.unit().bases().isEmpty()) {
                 throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
             } else {
                 Double num = number.factor().doubleValue();
                 if (num == 0) {
                     throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
-                            unitAt(i, i).flat(ScalarBase::flat).reciprocal().toText(), number.toText(),
+                            unitAt(i, i).reduce(ScalarBase::flat).reciprocal().toText(), number.toText(),
                             number.unit().bases());
                 }
                 numbers.setEntry(i, i, num);
@@ -576,7 +576,7 @@ public class Matrix implements PacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().flat(ScalarBase::flat);
+                    DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().reduce(ScalarBase::flat);
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {
@@ -620,7 +620,7 @@ public class Matrix implements PacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().flat(ScalarBase::flat);
+                    DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().reduce(ScalarBase::flat);
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {

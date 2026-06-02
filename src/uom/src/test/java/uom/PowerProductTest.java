@@ -139,7 +139,7 @@ class UnitTest {
         UnitBase meter = new UnitBase("m");
         Unit<UnitBase> length = new Unit<>(meter);
 
-        DimensionedNumber<UnitBase> flat = length.flat(UnitBase::flat);
+        DimensionedNumber<UnitBase> flat = length.reduce(UnitBase::flat);
 
         assertEquals(0, flat.factor().compareTo(java.math.BigDecimal.ONE));
         assertEquals(length, flat.unit());

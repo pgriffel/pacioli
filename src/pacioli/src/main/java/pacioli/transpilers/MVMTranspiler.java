@@ -123,7 +123,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
                 out.format("baseunit \"%s\" \"%s\";\n", info.name(), MVMGenerator.escapeString(info.symbol()));
             } else {
                 DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
-                number = number.flat(TypeBase::flat);
+                number = number.reduce(TypeBase::flat);
                 out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), MVMGenerator.escapeString(info.symbol()),
                         number.factor(),
                         MVMGenerator.compileUnitToMVM(number.unit()));

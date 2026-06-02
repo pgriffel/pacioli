@@ -58,7 +58,7 @@ public class TransformConversions extends IdentityTransformation {
 
         MatrixType type = (MatrixType) node.typeNode.evalType();
 
-        DimensionedNumber<TypeBase> typeFactor = type.factor().flat(TypeBase::flat);
+        DimensionedNumber<TypeBase> typeFactor = type.factor().reduce(TypeBase::flat);
 
         if (!type.rowDimension().equals(type.columnDimension())) {
             throw new RuntimeException("Invalid conversion",
@@ -110,7 +110,7 @@ public class TransformConversions extends IdentityTransformation {
                 DimensionedNumber<TypeBase> columnsUnit = type.columnUnit().fold(folder);
 
                 DimensionedNumber<TypeBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
-                DimensionedNumber<TypeBase> flat = div.flat(TypeBase::flat);
+                DimensionedNumber<TypeBase> flat = div.reduce(TypeBase::flat);
 
                 if (!flat.unit().equals(VectorBase.ONE)) {
                     var pos = flat.unit()

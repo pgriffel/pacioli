@@ -66,7 +66,11 @@ public class DimensionedNumber<B extends Base> {
 
     @Override
     public int hashCode() {
-        return unit.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((unit == null) ? 0 : unit.hashCode());
+        result = prime * result + ((factor == null) ? 0 : factor.hashCode());
+        return result;
     }
 
     @Override
@@ -77,7 +81,7 @@ public class DimensionedNumber<B extends Base> {
         if (!(other instanceof DimensionedNumber)) {
             return false;
         }
-        DimensionedNumber<B> otherNumber = (DimensionedNumber<B>) other;
+        DimensionedNumber<?> otherNumber = (DimensionedNumber<?>) other;
         if (factor.compareTo(otherNumber.factor()) != 0) {
             return false;
         }
@@ -124,8 +128,8 @@ public class DimensionedNumber<B extends Base> {
         return raise(new Fraction(-1));
     }
 
-    public DimensionedNumber<B> flat(BaseFlatten<B> flattener) {
-        return unit.flat(flattener).multiply(factor);
+    public DimensionedNumber<B> reduce(UnitReduce<B> reducer) {
+        return unit.reduce(reducer).multiply(factor);
     }
 
     public String toText() {

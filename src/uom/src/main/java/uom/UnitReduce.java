@@ -22,7 +22,14 @@
 
 package uom;
 
-public interface BaseFlatten<B extends Base> {
+/**
+ * Reduce a unit's bases to dimensioned numbers with coherent units.
+ * 
+ * Used by the Unit.reduce method to reduce a unit to a coherent one. This
+ * method replaces (recursively) the bases in a unit by the base's definition
+ * if it exists.
+ */
+public interface UnitReduce<B extends Base> {
 
-    public DimensionedNumber<B> flatten(B base);
+    public DimensionedNumber<B> apply(B base);
 }

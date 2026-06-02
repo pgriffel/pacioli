@@ -31,16 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//public class Unit<B extends Base<B>> implements Unit<B> {
 public class Unit<B extends Base> {
-
-    public static <B extends Base> Unit<B> from(B base) {
-        return new Unit<B>(base);
-    }
-
-    public static <B extends Base> Unit<B> one() {
-        return new Unit<B>();
-    }
 
     private final HashMap<B, Fraction> powers;
 
@@ -49,17 +40,17 @@ public class Unit<B extends Base> {
     }
 
     public Unit(Unit<B> x, Unit<B> y) {
-        // Unit<B> powers = new HashMap<B, Fraction>();
-
         HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
+
         for (B base : x.bases()) {
             hash.put(base, x.power(base));
         }
+
         for (B base : y.bases()) {
             hash.put(base, y.power(base).add(x.power(base)));
         }
+
         powers = hash;
-        // return new Unit<B>(hash);
     }
 
     public Unit(B base) {
@@ -84,17 +75,6 @@ public class Unit<B extends Base> {
     public Fraction power(B base) {
         Fraction value = powers.get(base);
         return (value == null ? Fraction.ZERO : value);
-    }
-
-    /**
-     * @deprecated No longer relevant
-     * 
-     * @param <B>
-     * @param unit
-     * @return
-     */
-    public static <B extends Base> Unit<B> normal(Unit<B> unit) {
-        return unit;
     }
 
     @Override
@@ -152,13 +132,6 @@ public class Unit<B extends Base> {
                 return "1";
             }
         });
-        /*
-         * String output = "";
-         * for (B base : bases()) {
-         * output += String.format("*%s^%s", base, power(base));
-         * }
-         * return output;
-         */
     }
 
     public Unit<B> multiply(Unit<B> other) {
@@ -182,25 +155,7 @@ public class Unit<B extends Base> {
             }
         }
         return (result == null) ? fold.one() : result;
-        /*
-         * T result = fold.one();
-         * for (B base : bases()) {
-         * T mapped = fold.expt(fold.map(base), power(base));
-         * result = fold.mult(result, mapped);
-         * }
-         * return result;
-         */
     }
-
-    // @Override
-    // public Unit<B> map(UnitMap<B> map) {
-    // Unit<B> newUnit = new Unit<B>();
-    // for (B base : bases()) {
-    // Unit<B> mapped = map.map(base).raise(power(base));
-    // newUnit = newUnit.multiply(mapped);
-    // }
-    // return newUnit;
-    // }
 
     public DimensionedNumber<B> multiply(BigDecimal factor) {
         return new DimensionedNumber<B>(factor, this);
@@ -218,27 +173,15 @@ public class Unit<B extends Base> {
         return raise(new Fraction(-1));
     }
 
-    public DimensionedNumber<B> flat(BaseFlatten<B> flattener) {
+    public DimensionedNumber<B> reduce(UnitReduce<B> reducer) {
         DimensionedNumber<B> number = new DimensionedNumber<B>();
         for (B base : bases()) {
-            DimensionedNumber<B> flattened = flattener.flatten(base).raise(power(base));
-            number = number.multiply(flattened);
+            DimensionedNumber<B> coherent = reducer.apply(base).raise(power(base));
+            number = number.multiply(coherent);
         }
         return number;
     }
 
-    /*
-     * @Override
-     * public <T> T fold(UnitFold<B, T> fold) {
-     * //T newUnit = new Unit();
-     * T result = fold.one();
-     * for (B base : bases()) {
-     * T mapped = fold.expt(fold.map(base), power(base));
-     * result = fold.mult(result, mapped);
-     * }
-     * return result;
-     * }
-     */
     public <T extends Base> Unit<T> map(UnitMap<B, T> map) {
         Unit<T> newUnit = new Unit<T>();
         for (B base : bases()) {
@@ -352,73 +295,13 @@ public class Unit<B extends Base> {
             return text1.compareTo(text2);
         }
     }
+
+    public static <B extends Base> Unit<B> from(B base) {
+        return new Unit<B>(base);
+    }
+
+    public static <B extends Base> Unit<B> one() {
+        return new Unit<B>();
+    }
+
 }
-
-// /*
-// * Copyright 2026 Paul Griffioen
-// *
-// * Permission is hereby granted, free of charge, to any person obtaining a
-// copy
-// * of this software and associated documentation files (the "Software"), to
-// deal
-// * in the Software without restriction, including without limitation the
-// rights
-// * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// * copies of the Software, and to permit persons to whom the Software is
-// * furnished to do so, subject to the following conditions:
-// *
-// * The above copyright notice and this permission notice shall be included in
-// * all copies or substantial portions of the Software.
-// *
-// * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM,
-// * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE
-// * SOFTWARE.
-// */
-
-// package uom;
-
-// import java.math.BigDecimal;
-// import java.util.Set;
-
-// public interface Unit<B extends Base> {
-
-// public static <B extends Base> Unit<B> from(B base) {
-// return new Unit<B>(base);
-// }
-
-// public static <B extends Base> Unit<B> one() {
-// return new Unit<B>();
-// }
-
-// public Set<B> bases();
-
-// public Fraction power(B base);
-
-// public Unit<B> multiply(Unit<B> other);
-
-// public DimensionedNumber<B> multiply(BigDecimal factor);
-
-// public Unit<B> raise(Fraction power);
-
-// public Unit<B> reciprocal();
-
-// public DimensionedNumber<B> flat(BaseFlatten<B> flatten);
-
-// public String pretty();
-
-// public <A extends Base> Unit<A> map(UnitMap<B, A> map);
-
-// public <A extends Base> Unit<A> flatMap(UnitFlatMap<B, A> map);
-
-// public <T> T fold(UnitFold<B, T> fold);
-
-// boolean isElementary();
-
-// B singleElement();
-// }
