@@ -26,13 +26,12 @@ import pacioli.compiler.CompilationSettings;
 import uom.Base;
 import uom.DimensionedNumber;
 import uom.Fraction;
-import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitFold;
 
 public interface TypeBase extends Base {
 
-    public final static Unit<TypeBase> ONE = new PowerProduct<TypeBase>();
+    public final static Unit<TypeBase> ONE = Unit.one();
 
     public static boolean unitIsVar(Unit<TypeBase> unit) {
         return unit.isElementary();

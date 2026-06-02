@@ -31,7 +31,6 @@ import pacioli.types.type.TypeBase;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
 import uom.Fraction;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class UnitUnification {
@@ -84,7 +83,7 @@ public class UnitUnification {
                 if (fixedPower % power != 0) {
                     throw new PacioliException("Cannot unify unit 2 %s", unit.pretty());
                 }
-                residu = residu.multiply(new PowerProduct<TypeBase>(fixed).raise(new Fraction(-fixedPower / power)));
+                residu = residu.multiply(Unit.from(fixed).raise(new Fraction(-fixedPower / power)));
             }
 
             return new Substitution(var, residu);
@@ -104,11 +103,11 @@ public class UnitUnification {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
                 rest = rest.multiply(
-                        new PowerProduct<TypeBase>(var).raise(unit.power(var).div(minPower).floor().negate()));
+                        Unit.from(var).raise(unit.power(var).div(minPower).floor().negate()));
             }
         }
 
-        Substitution tmp = new Substitution(minVar, new PowerProduct<TypeBase>(minVar).multiply(rest));
+        Substitution tmp = new Substitution(minVar, Unit.<TypeBase>from(minVar).multiply(rest));
         return unitUnify(tmp.apply(unit)).compose(tmp);
     }
 
@@ -141,7 +140,7 @@ public class UnitUnification {
         Fraction minPower = unit.power(minVar);
 
         if (minPower.signum() < 0) {
-            Substitution tmp = new Substitution(minVar, new PowerProduct<TypeBase>(minVar).reciprocal());
+            Substitution tmp = new Substitution(minVar, Unit.<TypeBase>from(minVar).reciprocal());
             return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
         }
 
@@ -156,10 +155,10 @@ public class UnitUnification {
             for (TypeBase fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
-                residu = residu.multiply(new PowerProduct<TypeBase>(fixed).raise(new Fraction(-fixedPower / power)));
+                residu = residu.multiply(Unit.from(fixed).raise(new Fraction(-fixedPower / power)));
             }
 
-            return new Substitution(var, new PowerProduct<TypeBase>(var).multiply(residu));
+            return new Substitution(var, Unit.<TypeBase>from(var).multiply(residu));
         }
 
         Unit<TypeBase> rest = (Unit<TypeBase>) TypeBase.ONE;
@@ -167,11 +166,11 @@ public class UnitUnification {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
                 rest = rest.multiply(
-                        new PowerProduct<TypeBase>(var).raise(unit.power(var).div(minPower).floor().negate()));
+                        Unit.<TypeBase>from(var).raise(unit.power(var).div(minPower).floor().negate()));
             }
         }
 
-        Substitution tmp = new Substitution(minVar, new PowerProduct<TypeBase>(minVar).multiply(rest));
+        Substitution tmp = new Substitution(minVar, Unit.<TypeBase>from(minVar).multiply(rest));
         return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
 }

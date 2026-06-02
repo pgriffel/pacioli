@@ -14,7 +14,6 @@ import pacioli.types.type.VectorUnitVar;
 import pacioli.types.type.Var;
 import pacioli.types.type.TypeBase;
 import uom.Unit;
-import uom.PowerProduct;
 
 /**
  * Visitor that returns a copy of a TypeObject with all variables marked as
@@ -58,31 +57,31 @@ public class GroundVarsVisitor extends TransformType {
         Unit<TypeBase> factor = type.factor();
         Unit<TypeBase> newFactor = factor.flatMap(base -> {
             if (base instanceof Var var) {
-                return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
+                return Unit.from((TypeBase) var.setGround(true));
             } else if (base instanceof Unit) {
                 return (Unit<TypeBase>) base;
             } else {
-                return new PowerProduct<TypeBase>((TypeBase) base);
+                return Unit.from((TypeBase) base);
             }
         });
 
         Unit<TypeBase> rowUnit = type.rowUnit().flatMap(base -> {
             if (base instanceof Var var) {
-                return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
+                return Unit.from((TypeBase) var.setGround(true));
             } else if (base instanceof Unit) {
                 return (Unit<TypeBase>) base;
             } else {
-                return new PowerProduct<TypeBase>((TypeBase) base);
+                return Unit.from((TypeBase) base);
             }
         });
 
         Unit<TypeBase> columnUnit = type.columnUnit().flatMap(base -> {
             if (base instanceof Var var) {
-                return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
+                return Unit.from((TypeBase) var.setGround(true));
             } else if (base instanceof Unit) {
                 return (Unit<TypeBase>) base;
             } else {
-                return new PowerProduct<TypeBase>((TypeBase) base);
+                return Unit.from((TypeBase) base);
             }
         });
 

@@ -74,7 +74,7 @@ class DimensionedNumberTest {
     @Test
     void testMultiplyNumbersAndUnits() {
         SimpleBase meter = new SimpleBase("m");
-        PowerProduct<SimpleBase> length = new PowerProduct<>(meter);
+        Unit<SimpleBase> length = new Unit<>(meter);
         DimensionedNumber<SimpleBase> twoMeters = new DimensionedNumber<>(BigDecimal.valueOf(2), length);
         DimensionedNumber<SimpleBase> threeMeters = new DimensionedNumber<>(BigDecimal.valueOf(3), length);
 
@@ -91,9 +91,9 @@ class DimensionedNumberTest {
         SimpleBase second = new SimpleBase("s");
 
         DimensionedNumber<SimpleBase> velocity = new DimensionedNumber<>(BigDecimal.valueOf(6),
-                new PowerProduct<SimpleBase>(meter).multiply(new PowerProduct<>(second).reciprocal()));
+                new Unit<SimpleBase>(meter).multiply(new Unit<>(second).reciprocal()));
 
-        DimensionedNumber<SimpleBase> time = new DimensionedNumber<>(BigDecimal.valueOf(2), new PowerProduct<>(second));
+        DimensionedNumber<SimpleBase> time = new DimensionedNumber<>(BigDecimal.valueOf(2), new Unit<>(second));
 
         DimensionedNumber<SimpleBase> result = velocity.divide(time);
 
@@ -105,7 +105,7 @@ class DimensionedNumberTest {
     @Test
     void testRaiseIntegerPower() {
         SimpleBase meter = new SimpleBase("m");
-        PowerProduct<SimpleBase> length = new PowerProduct<>(meter);
+        Unit<SimpleBase> length = new Unit<>(meter);
         DimensionedNumber<SimpleBase> oneMeter = new DimensionedNumber<>(BigDecimal.valueOf(4), length);
 
         DimensionedNumber<SimpleBase> area = oneMeter.raise(new Fraction(2));
@@ -119,7 +119,7 @@ class DimensionedNumberTest {
     void testReciprocal() {
         SimpleBase meter = new SimpleBase("m");
         DimensionedNumber<SimpleBase> number = new DimensionedNumber<>(BigDecimal.valueOf(5),
-                new PowerProduct<>(meter));
+                new Unit<>(meter));
 
         DimensionedNumber<SimpleBase> reciprocal = number.reciprocal();
 
@@ -130,7 +130,7 @@ class DimensionedNumberTest {
     @Test
     void testToTextUsesPrettyUnit() {
         UnitBase meter = new UnitBase("m");
-        DimensionedNumber<UnitBase> number = new DimensionedNumber<>(BigDecimal.valueOf(2), new PowerProduct<>(meter));
+        DimensionedNumber<UnitBase> number = new DimensionedNumber<>(BigDecimal.valueOf(2), new Unit<>(meter));
 
         assertEquals("2 m", number.toText());
     }

@@ -37,7 +37,7 @@ import pacioli.types.matrix.VectorBase;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
-import uom.PowerProduct;
+import uom.Unit;
 import uom.UnitFold;
 
 /**
@@ -114,9 +114,10 @@ public class TransformConversions extends IdentityTransformation {
 
                 if (!flat.unit().equals(VectorBase.ONE)) {
                     var pos = flat.unit()
-                            .flatMap(x -> flat.unit().power(x).signum() > 0 ? new PowerProduct<>(x) : TypeBase.ONE);
+                            .flatMap(
+                                    x -> flat.unit().power(x).signum() > 0 ? Unit.from(x) : TypeBase.ONE);
                     var neg = flat.unit()
-                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? new PowerProduct<>(x) : TypeBase.ONE);
+                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? Unit.from(x) : TypeBase.ONE);
 
                     throw new PacioliException(node.location(),
                             String.format(

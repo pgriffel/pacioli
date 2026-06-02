@@ -30,7 +30,6 @@ import mvm.Machine;
 import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.ScalarBase;
 import uom.DimensionedNumber;
-import uom.PowerProduct;
 
 public class StoreUnit implements Instruction {
 

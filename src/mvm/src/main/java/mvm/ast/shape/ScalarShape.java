@@ -29,7 +29,6 @@ import mvm.Machine;
 import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.ScalarBase;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class ScalarShape implements ShapeNode {

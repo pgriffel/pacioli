@@ -32,7 +32,6 @@ import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.ScalarBase;
 import mvm.values.matrix.UnitVector;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class StoreUnitVector implements Instruction {

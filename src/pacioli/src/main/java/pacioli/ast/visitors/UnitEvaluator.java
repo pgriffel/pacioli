@@ -38,7 +38,6 @@ import pacioli.types.matrix.ScalarBase;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
-import uom.PowerProduct;
 
 public class UnitEvaluator extends IdentityVisitor {
 

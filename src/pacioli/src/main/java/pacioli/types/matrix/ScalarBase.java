@@ -31,12 +31,11 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class ScalarBase implements TypeBase {
 
-    public final static Unit<ScalarBase> ONE = new PowerProduct<ScalarBase>();
+    public final static Unit<ScalarBase> ONE = Unit.one();
 
     static final Map<String, BigDecimal> PREFIXES = Map.ofEntries(
             Map.entry("yocto", new BigDecimal(1).movePointRight(-24)),
@@ -126,7 +125,7 @@ public class ScalarBase implements TypeBase {
                 return def.get().evalBody().flat(TypeBase::flat).multiply(fac);
             }
         }
-        return new PowerProduct<TypeBase>(new ScalarBase(info)).multiply(fac);
+        return Unit.<TypeBase>from(new ScalarBase(info)).multiply(fac);
     }
 
     private String prefixText() {

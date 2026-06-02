@@ -34,7 +34,6 @@ import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class MatrixType implements TypeObject {
@@ -243,7 +242,7 @@ public class MatrixType implements TypeObject {
                     assert (base instanceof VectorBase);
                     VectorBase bangBase = (VectorBase) base;
                     return ((bangBase.position() == columns.get(tmp))
-                            ? new PowerProduct<TypeBase>(bangBase.move(tmp))
+                            ? Unit.from(bangBase.move(tmp))
                             : TypeBase.ONE);
                 });
             }

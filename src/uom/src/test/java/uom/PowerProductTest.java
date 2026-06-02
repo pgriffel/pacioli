@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
-class PowerProductTest {
+class UnitTest {
 
     private static final class SimpleBase implements Base {
         private final String name;
@@ -45,8 +45,8 @@ class PowerProductTest {
         SimpleBase meter = new SimpleBase("m");
         SimpleBase second = new SimpleBase("s");
 
-        PowerProduct<SimpleBase> length = new PowerProduct<>(meter);
-        PowerProduct<SimpleBase> time = new PowerProduct<>(second);
+        Unit<SimpleBase> length = new Unit<>(meter);
+        Unit<SimpleBase> time = new Unit<>(second);
         Unit<SimpleBase> velocity = length.multiply(time.reciprocal());
 
         assertTrue(velocity.bases().contains(meter));
@@ -58,7 +58,7 @@ class PowerProductTest {
     @Test
     void testRaiseAndReciprocal() {
         SimpleBase meter = new SimpleBase("m");
-        PowerProduct<SimpleBase> length = new PowerProduct<>(meter);
+        Unit<SimpleBase> length = new Unit<>(meter);
 
         Unit<SimpleBase> area = length.raise(new Fraction(2));
         assertEquals(new Fraction(2), area.power(meter));
@@ -72,8 +72,8 @@ class PowerProductTest {
         SimpleBase meter = new SimpleBase("m");
         SimpleBase second = new SimpleBase("s");
 
-        Unit<SimpleBase> unitA = new PowerProduct<>(meter).multiply(new PowerProduct<>(second));
-        Unit<SimpleBase> unitB = new PowerProduct<>(second).multiply(new PowerProduct<>(meter));
+        Unit<SimpleBase> unitA = new Unit<>(meter).multiply(new Unit<>(second));
+        Unit<SimpleBase> unitB = new Unit<>(second).multiply(new Unit<>(meter));
 
         assertEquals(unitA, unitB);
     }
@@ -81,7 +81,7 @@ class PowerProductTest {
     @Test
     void testToStringOmitsExponentOne() {
         SimpleBase meter = new SimpleBase("m");
-        Unit<SimpleBase> length = new PowerProduct<>(meter);
+        Unit<SimpleBase> length = new Unit<>(meter);
         assertEquals("m", length.pretty());
 
         Unit<SimpleBase> area = length.raise(new Fraction(2));
@@ -126,9 +126,9 @@ class PowerProductTest {
         SimpleBase meter = new SimpleBase("m");
         SimpleBase second = new SimpleBase("s");
 
-        Unit<SimpleBase> velocity = new PowerProduct<>(meter)
-                .multiply(new PowerProduct<>(second).raise(new Fraction(2)));
-        Unit<SimpleBase> mapped = velocity.flatMap(base -> new PowerProduct<>(base).raise(new Fraction(2)));
+        Unit<SimpleBase> velocity = new Unit<>(meter)
+                .multiply(new Unit<>(second).raise(new Fraction(2)));
+        Unit<SimpleBase> mapped = velocity.flatMap(base -> new Unit<>(base).raise(new Fraction(2)));
 
         assertEquals(new Fraction(2), mapped.power(meter));
         assertEquals(new Fraction(4), mapped.power(second));
@@ -137,7 +137,7 @@ class PowerProductTest {
     @Test
     void testFlatUsesBaseFlat() {
         UnitBase meter = new UnitBase("m");
-        Unit<UnitBase> length = new PowerProduct<>(meter);
+        Unit<UnitBase> length = new Unit<>(meter);
 
         DimensionedNumber<UnitBase> flat = length.flat(UnitBase::flat);
 

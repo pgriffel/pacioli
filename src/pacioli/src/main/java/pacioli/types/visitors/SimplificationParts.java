@@ -45,7 +45,6 @@ import pacioli.types.type.TypeVar;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
 import pacioli.types.type.VectorUnitVar;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class SimplificationParts implements TypeVisitor {
@@ -78,7 +77,7 @@ public class SimplificationParts implements TypeVisitor {
         for (Var var : type.type().typeVars()) {
             UnitVar unitVar = (UnitVar) var;
             if (!type.variables().contains(unitVar)) {
-                freeVars2.add(new PowerProduct<>(unitVar));
+                freeVars2.add(Unit.from(unitVar));
             }
         }
         // freeVars.removeAll(type.variables);
@@ -112,7 +111,7 @@ public class SimplificationParts implements TypeVisitor {
         List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
         for (TypeBase base : unit.bases()) {
             if (base instanceof UnitVar var) {
-                all.add(new PowerProduct<>(var));
+                all.add(Unit.from(var));
             }
         }
         return all;

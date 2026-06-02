@@ -26,7 +26,6 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
-import uom.PowerProduct;
 import uom.Unit;
 
 public class VectorBase implements TypeBase {
@@ -121,14 +120,14 @@ public class VectorBase implements TypeBase {
         return unit.flatMap(base -> {
             if (base instanceof VectorBase vBase) {
                 if (vBase.position == index) {
-                    return new PowerProduct<>(base);
+                    return Unit.from(base);
                 } else {
                     return TypeBase.ONE;
                 }
             } else {
                 // We must be called with a unit variable. Ignore that to get pretty printing
                 // working.
-                return new PowerProduct<>(base);
+                return Unit.from(base);
                 // throw new RuntimeException("kroneckerNth is for row and column units only");
             }
         });

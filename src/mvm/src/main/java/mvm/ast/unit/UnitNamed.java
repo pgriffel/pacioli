@@ -28,7 +28,6 @@ import mvm.MVMException;
 import mvm.Machine;
 import mvm.values.matrix.MVMBase;
 import mvm.values.matrix.ScalarBase;
-import uom.PowerProduct;
 import uom.Prefix;
 import uom.Unit;
 
@@ -53,12 +52,12 @@ public class UnitNamed implements UnitNode {
         } else if (machine.unitSystem.containsUnit(name)) {
             var parts = name.split(":");
             if (parts.length == 1) {
-                return new PowerProduct<MVMBase>(machine.unitSystem.lookupBase(name));
+                return Unit.from(machine.unitSystem.lookupBase(name));
             } else if (parts.length == 2) {
                 MVMBase base = machine.unitSystem.lookupBase(parts[1]);
                 Prefix prefix = machine.unitSystem.lookupPrefix(parts[0]);
                 if (base instanceof ScalarBase s) {
-                    return new PowerProduct<MVMBase>(new ScalarBase(s.name(), s.symbol(), prefix));
+                    return Unit.from(new ScalarBase(s.name(), s.symbol(), prefix));
                 } else {
                     throw new MVMException("expected scalar base, but got '%s'", base);
                 }

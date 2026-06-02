@@ -31,7 +31,7 @@ import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
 import mvm.values.matrix.ScalarBase;
 import mvm.values.matrix.UnitVector;
-import uom.PowerProduct;
+import uom.Unit;
 
 public class BangShape implements ShapeNode {
 
@@ -70,7 +70,7 @@ public class BangShape implements ShapeNode {
             shape = new MatrixShape(
                     ScalarBase.ONE,
                     new MatrixDimension(vector.indexSet),
-                    new PowerProduct<>(new VectorBase(vector, 0)),
+                    Unit.from(new VectorBase(vector, 0)),
                     new MatrixDimension(), VectorBase.ONE);
         }
         return shape;

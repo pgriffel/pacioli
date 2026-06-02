@@ -22,13 +22,11 @@
 
 package mvm.values.matrix;
 
-import uom.PowerProduct;
 import uom.Unit;
-import uom.UnitMap;
 
 public final class VectorBase implements MVMBase {
 
-    public final static Unit<VectorBase> ONE = new PowerProduct<VectorBase>();
+    public final static Unit<VectorBase> ONE = Unit.one();
 
     private final UnitVector vector;
     public final int position;
@@ -80,7 +78,7 @@ public final class VectorBase implements MVMBase {
     }
 
     public static Unit<VectorBase> kroneckerNth(Unit<VectorBase> unit, final int index) {
-        return unit.flatMap(base -> base.position == index ? new PowerProduct<>(base) : VectorBase.ONE);
+        return unit.flatMap(base -> base.position == index ? Unit.from(base) : VectorBase.ONE);
     }
 
     public static Unit<VectorBase> shiftUnit(Unit<VectorBase> unit, final int offset) {

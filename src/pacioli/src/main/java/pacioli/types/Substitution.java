@@ -34,10 +34,8 @@ import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import uom.Base;
-import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitFlatMap;
-import uom.UnitMap;
 
 public class Substitution implements Printable {
 
@@ -84,10 +82,10 @@ public class Substitution implements Printable {
                     if (obj instanceof Unit un) {
                         return un;
                     } else {
-                        return new PowerProduct<B>((B) obj);
+                        return Unit.from((B) obj);
                     }
                 } else {
-                    return new PowerProduct<B>(base);
+                    return Unit.from(base);
                 }
             }
         });
