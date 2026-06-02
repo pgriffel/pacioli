@@ -115,13 +115,13 @@ public final class VectorBaseUnit implements VectorBase {
     }
 
     // UNITTODO
-    public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
+    public static Unit<MatrixBase> kroneckerNth(Unit<MatrixBase> unit, final int index) {
         return unit.flatMap(base -> {
             if (base instanceof VectorBaseUnit vBase) {
                 if (vBase.position == index) {
                     return Unit.from(base);
                 } else {
-                    return TypeBase.ONE;
+                    return MatrixBase.ONE;
                 }
             } else {
                 // We must be called with a unit variable. Ignore that to get pretty printing
@@ -133,7 +133,7 @@ public final class VectorBaseUnit implements VectorBase {
     }
 
     // UNITTODO
-    public static Unit<TypeBase> shiftUnit(Unit<TypeBase> unit, final int offset) {
+    public static Unit<MatrixBase> shiftUnit(Unit<MatrixBase> unit, final int offset) {
         return unit.map(base -> base instanceof VectorBaseUnit vectorBase ? vectorBase.shift(offset) : base);
     }
 

@@ -36,14 +36,15 @@ import uom.Unit;
 
 public class MatrixType implements TypeObject {
 
-    private final Unit<TypeBase> factor;
+    private final Unit<MatrixBase> factor;
     private final IndexType rowDimension;
     private final IndexType columnDimension;
-    private final Unit<TypeBase> rowUnit;
-    private final Unit<TypeBase> columnUnit;
+    private final Unit<MatrixBase> rowUnit;
+    private final Unit<MatrixBase> columnUnit;
 
-    public MatrixType(Unit<TypeBase> factor, IndexType rowDimension, Unit<TypeBase> rowUnit, IndexType columnDimension,
-            Unit<TypeBase> columnUnit) {
+    public MatrixType(Unit<MatrixBase> factor, IndexType rowDimension, Unit<MatrixBase> rowUnit,
+            IndexType columnDimension,
+            Unit<MatrixBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -51,33 +52,33 @@ public class MatrixType implements TypeObject {
         this.columnUnit = columnUnit;
     }
 
-    public MatrixType(Unit<TypeBase> factor) {
+    public MatrixType(Unit<MatrixBase> factor) {
         this.factor = factor;
         this.rowDimension = new IndexType();
-        this.rowUnit = TypeBase.ONE;
+        this.rowUnit = MatrixBase.ONE;
         this.columnDimension = new IndexType();
-        this.columnUnit = TypeBase.ONE;
+        this.columnUnit = MatrixBase.ONE;
     }
 
     public MatrixType() {
-        this.factor = TypeBase.ONE;
+        this.factor = MatrixBase.ONE;
         this.rowDimension = new IndexType();
-        this.rowUnit = TypeBase.ONE;
+        this.rowUnit = MatrixBase.ONE;
         this.columnDimension = new IndexType();
-        this.columnUnit = TypeBase.ONE;
+        this.columnUnit = MatrixBase.ONE;
     }
 
-    public MatrixType(IndexType rowDimension, Unit<TypeBase> rowUnit) {
-        this.factor = TypeBase.ONE;
+    public MatrixType(IndexType rowDimension, Unit<MatrixBase> rowUnit) {
+        this.factor = MatrixBase.ONE;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
         this.columnDimension = new IndexType();
-        this.columnUnit = TypeBase.ONE;
+        this.columnUnit = MatrixBase.ONE;
     }
 
     public MatrixType properIndexSets() {
-        Unit<TypeBase> rowUnit = this.rowUnit;
-        Unit<TypeBase> columnUnit = this.columnUnit;
+        Unit<MatrixBase> rowUnit = this.rowUnit;
+        Unit<MatrixBase> columnUnit = this.columnUnit;
 
         if (this.rowDimension.isVar() || this.rowDimension.width() > 0) {
 
@@ -140,7 +141,7 @@ public class MatrixType implements TypeObject {
         visitor.visit(this);
     }
 
-    public Unit<TypeBase> factor() {
+    public Unit<MatrixBase> factor() {
         return factor;
     }
 
@@ -152,11 +153,11 @@ public class MatrixType implements TypeObject {
         return columnDimension;
     }
 
-    public Unit<TypeBase> rowUnit() {
+    public Unit<MatrixBase> rowUnit() {
         return rowUnit;
     }
 
-    public Unit<TypeBase> columnUnit() {
+    public Unit<MatrixBase> columnUnit() {
         return columnUnit;
     }
 
@@ -165,11 +166,11 @@ public class MatrixType implements TypeObject {
     }
 
     public MatrixType dimensionless() {
-        return new MatrixType(TypeBase.ONE, rowDimension, TypeBase.ONE, columnDimension, TypeBase.ONE);
+        return new MatrixType(MatrixBase.ONE, rowDimension, MatrixBase.ONE, columnDimension, MatrixBase.ONE);
     }
 
     public MatrixType factorless() {
-        return new MatrixType(TypeBase.ONE, rowDimension, rowUnit, columnDimension, columnUnit);
+        return new MatrixType(MatrixBase.ONE, rowDimension, rowUnit, columnDimension, columnUnit);
     }
 
     public MatrixType transpose() {
@@ -217,7 +218,7 @@ public class MatrixType implements TypeObject {
             int offset = rowType.width();
 
             return new MatrixType(factor.multiply(other.factor), rowType.kronecker(other.rowDimension),
-                    rowUnit.multiply(VectorBaseUnit.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
+                    rowUnit.multiply(VectorBaseUnit.shiftUnit(other.rowUnit, offset)), new IndexType(), MatrixBase.ONE);
         } else {
             throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", pretty(),
                     other.pretty(), rowDimension.getClass());
@@ -233,7 +234,7 @@ public class MatrixType implements TypeObject {
 
             // UNITTODO
             // Can kroneckerNth from MatrixBase or VectorBase be used here?
-            Unit<TypeBase> unit = TypeBase.ONE;
+            Unit<MatrixBase> unit = MatrixBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
                 unit = rowUnit.flatMap(base -> {
@@ -241,14 +242,14 @@ public class MatrixType implements TypeObject {
                     VectorBaseUnit bangBase = (VectorBaseUnit) base;
                     return ((bangBase.position() == columns.get(tmp))
                             ? Unit.from(bangBase.move(tmp))
-                            : TypeBase.ONE);
+                            : MatrixBase.ONE);
                 });
             }
 
             // THE REMAINING UNITS MUST MULTIPLY TO 1 because they are summed at
             // runtime!!!!!
 
-            return new MatrixType(factor, rowType.project(columns), unit, new IndexType(), TypeBase.ONE);
+            return new MatrixType(factor, rowType.project(columns), unit, new IndexType(), MatrixBase.ONE);
 
         } else {
             throw new PacioliException("Projection is not allowed for open type: %s", pretty());
@@ -299,19 +300,19 @@ public class MatrixType implements TypeObject {
     }
 
     public MatrixType extractColumn() {
-        return new MatrixType(factor, rowDimension, rowUnit, new IndexType(), TypeBase.ONE);
+        return new MatrixType(factor, rowDimension, rowUnit, new IndexType(), MatrixBase.ONE);
     }
 
     public MatrixType extractRow() {
-        return new MatrixType(factor, new IndexType(), TypeBase.ONE, columnDimension, columnUnit);
+        return new MatrixType(factor, new IndexType(), MatrixBase.ONE, columnDimension, columnUnit);
     }
 
     public MatrixType leftIdentity() {
-        return new MatrixType(TypeBase.ONE, rowDimension, rowUnit, rowDimension, rowUnit);
+        return new MatrixType(MatrixBase.ONE, rowDimension, rowUnit, rowDimension, rowUnit);
     }
 
     public MatrixType rightIdentity() {
-        return new MatrixType(TypeBase.ONE, columnDimension, columnUnit, columnDimension, columnUnit);
+        return new MatrixType(MatrixBase.ONE, columnDimension, columnUnit, columnDimension, columnUnit);
     }
 
     public MatrixType raise(Fraction power) {
@@ -332,7 +333,7 @@ public class MatrixType implements TypeObject {
     }
 
     // UNITTODO
-    public String prettyDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit) {
+    public String prettyDimensionUnitPair(final IndexType dimension, Unit<MatrixBase> unit) {
         if (dimension.isVar()) {
             String devaluated = unit.pretty();
             devaluated = devaluated.equals("1") ? dimension.getVar().pretty() + "!" : devaluated;
@@ -343,7 +344,7 @@ public class MatrixType implements TypeObject {
             String node = "";
             for (int i = 0; i < dimType.width(); i++) {
 
-                Unit<TypeBase> filtered = VectorBaseUnit.kroneckerNth((Unit<TypeBase>) unit, i);
+                Unit<MatrixBase> filtered = VectorBaseUnit.kroneckerNth((Unit<MatrixBase>) unit, i);
 
                 String idx = dimType.nthIndexSet(i).name();
                 String pretty = filtered.pretty();
@@ -359,7 +360,8 @@ public class MatrixType implements TypeObject {
     }
 
     // UNITTODO
-    public String asMVMDimensionUnitPair(final IndexType dimension, Unit<TypeBase> unit, CompilationSettings settings) {
+    public String asMVMDimensionUnitPair(final IndexType dimension, Unit<MatrixBase> unit,
+            CompilationSettings settings) {
         if (dimension.isVar()) {
             throw new UnsupportedOperationException("Is this used?");
             // String devaluated = TypeBase.compileUnitToMVM(unit, settings); //
@@ -374,11 +376,11 @@ public class MatrixType implements TypeObject {
             for (int i = 0; i < dimType.width(); i++) {
                 // IndexType ty = dimType.project(Arrays.asList(i));
                 // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = VectorBaseUnit.kroneckerNth((Unit<TypeBase>) unit, i);
+                Unit<MatrixBase> filtered = VectorBaseUnit.kroneckerNth((Unit<MatrixBase>) unit, i);
 
                 TypeIdentifier idx = dimType.nthIndexSet(i);
 
-                String devaluated = TypeBase.compileUnitToMVM(filtered, settings);
+                String devaluated = MatrixBase.compileUnitToMVM(filtered, settings);
                 devaluated = filtered.pretty().equals("1")
                         ? String.format("bang_shape(\"index_%s_%s\", \"\")", idx.home(), idx.name())
                         : devaluated;

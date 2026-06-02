@@ -36,7 +36,7 @@ import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import uom.Unit;
@@ -116,12 +116,12 @@ public class ConstraintSet implements Printable {
 
     class UnitConstraint {
 
-        public final Unit<TypeBase> lhs;
-        public final Unit<TypeBase> rhs;
+        public final Unit<MatrixBase> lhs;
+        public final Unit<MatrixBase> rhs;
         public String reason;
         public Location location;
 
-        public UnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String reason, Location location) {
+        public UnitConstraint(Unit<MatrixBase> lhs, Unit<MatrixBase> rhs, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
@@ -189,11 +189,11 @@ public class ConstraintSet implements Printable {
         this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason, location));
     }
 
-    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text, Location location) {
+    public void addUnitConstraint(Unit<MatrixBase> lhs, Unit<MatrixBase> rhs, String text, Location location) {
         this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, location));
     }
 
-    public void addUnitConstraint(Unit<TypeBase> lhs, Unit<TypeBase> rhs, String text) {
+    public void addUnitConstraint(Unit<MatrixBase> lhs, Unit<MatrixBase> rhs, String text) {
         this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, null));
     }
 
@@ -298,8 +298,8 @@ public class ConstraintSet implements Printable {
                 todoUnits.remove(0);
 
                 try {
-                    Unit<TypeBase> left = mgu.apply(constraint.lhs);
-                    Unit<TypeBase> right = mgu.apply(constraint.rhs);
+                    Unit<MatrixBase> left = mgu.apply(constraint.lhs);
+                    Unit<MatrixBase> right = mgu.apply(constraint.rhs);
 
                     if (verbose) {
                         Pacioli.log("\nUnifying units %s and %s\n%s",

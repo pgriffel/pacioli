@@ -29,7 +29,7 @@ import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
@@ -204,10 +204,10 @@ public class PrettyPrinter implements TypeVisitor {
     }
 
     // UNITTODO Not used. Replace pretty printing in UoM with this?
-    static public class UnitPrinter implements UnitFold<TypeBase, String> {
+    static public class UnitPrinter implements UnitFold<MatrixBase, String> {
 
         @Override
-        public String map(TypeBase base) {
+        public String map(MatrixBase base) {
             return base.pretty();
         }
 

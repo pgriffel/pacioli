@@ -6,7 +6,7 @@ package pacioli.types.visitors;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
@@ -54,34 +54,34 @@ public class GroundVarsVisitor extends TransformType {
     @Override
     public void visit(MatrixType type) {
         // Map units so that any unit base Var becomes grounded
-        Unit<TypeBase> factor = type.factor();
-        Unit<TypeBase> newFactor = factor.flatMap(base -> {
+        Unit<MatrixBase> factor = type.factor();
+        Unit<MatrixBase> newFactor = factor.flatMap(base -> {
             if (base instanceof Var var) {
-                return Unit.from((TypeBase) var.setGround(true));
+                return Unit.from((MatrixBase) var.setGround(true));
             } else if (base instanceof Unit) {
-                return (Unit<TypeBase>) base;
+                return (Unit<MatrixBase>) base;
             } else {
-                return Unit.from((TypeBase) base);
+                return Unit.from((MatrixBase) base);
             }
         });
 
-        Unit<TypeBase> rowUnit = type.rowUnit().flatMap(base -> {
+        Unit<MatrixBase> rowUnit = type.rowUnit().flatMap(base -> {
             if (base instanceof Var var) {
-                return Unit.from((TypeBase) var.setGround(true));
+                return Unit.from((MatrixBase) var.setGround(true));
             } else if (base instanceof Unit) {
-                return (Unit<TypeBase>) base;
+                return (Unit<MatrixBase>) base;
             } else {
-                return Unit.from((TypeBase) base);
+                return Unit.from((MatrixBase) base);
             }
         });
 
-        Unit<TypeBase> columnUnit = type.columnUnit().flatMap(base -> {
+        Unit<MatrixBase> columnUnit = type.columnUnit().flatMap(base -> {
             if (base instanceof Var var) {
-                return Unit.from((TypeBase) var.setGround(true));
+                return Unit.from((MatrixBase) var.setGround(true));
             } else if (base instanceof Unit) {
-                return (Unit<TypeBase>) base;
+                return (Unit<MatrixBase>) base;
             } else {
-                return Unit.from((TypeBase) base);
+                return Unit.from((MatrixBase) base);
             }
         });
 

@@ -31,7 +31,7 @@ import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
@@ -105,9 +105,9 @@ public class UsesVars implements TypeVisitor {
         returnTypeNode(all);
     }
 
-    public static Set<Var> unitVars(Unit<TypeBase> unit) {
+    public static Set<Var> unitVars(Unit<MatrixBase> unit) {
         Set<Var> all = new LinkedHashSet<Var>();
-        for (TypeBase base : unit.bases()) {
+        for (MatrixBase base : unit.bases()) {
             if (base instanceof Var) {
                 all.add((Var) base);
             }

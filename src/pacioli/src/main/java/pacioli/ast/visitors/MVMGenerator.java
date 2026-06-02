@@ -78,7 +78,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitFold;
@@ -96,15 +96,15 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     }
 
     // Unit compilation
-    public static String compileUnitToMVM(Unit<TypeBase> unit) {
+    public static String compileUnitToMVM(Unit<MatrixBase> unit) {
         return unit.fold(new UnitMVMCompiler());
     }
 
     // UNITTODO
-    static class UnitMVMCompiler implements UnitFold<TypeBase, String> {
+    static class UnitMVMCompiler implements UnitFold<MatrixBase, String> {
 
         @Override
-        public String map(TypeBase base) {
+        public String map(MatrixBase base) {
             return base.asMVMUnit(null);
         }
 

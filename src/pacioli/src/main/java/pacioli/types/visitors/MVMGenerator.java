@@ -29,7 +29,7 @@ import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
@@ -76,7 +76,7 @@ public class MVMGenerator implements TypeVisitor {
 
         // UNITTODO
 
-        String factorString = TypeBase.compileUnitToMVM(type.factor(), settings);
+        String factorString = MatrixBase.compileUnitToMVM(type.factor(), settings);
         String left = type.asMVMDimensionUnitPair(type.rowDimension(), type.rowUnit(), settings);
         String right = type.asMVMDimensionUnitPair(type.columnDimension(), type.columnUnit(), settings);
 

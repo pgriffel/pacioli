@@ -39,7 +39,7 @@ import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
 import pacioli.types.UnitUnification;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
@@ -159,18 +159,18 @@ public interface TypeObject extends Printable {
         return new ReduceTypes(reduceCallback).typeNodeAccept(this);
     };
 
-    public default List<Unit<TypeBase>> simplificationParts() {
+    public default List<Unit<MatrixBase>> simplificationParts() {
         return new SimplificationParts().partsAccept(this);
     };
 
     public default TypeObject simplify() {
         Substitution mgu = new Substitution();
-        List<Unit<TypeBase>> parts = simplificationParts();
+        List<Unit<MatrixBase>> parts = simplificationParts();
         Set<UnitVar> ignore = new HashSet<>();
         for (int i = 0; i < parts.size(); i++) {
-            Unit<TypeBase> part = mgu.apply(parts.get(i));
+            Unit<MatrixBase> part = mgu.apply(parts.get(i));
             Substitution simplified = UnitUnification.unitSimplify(part, ignore);
-            for (TypeBase base : simplified.apply(part).bases()) {
+            for (MatrixBase base : simplified.apply(part).bases()) {
                 if (base instanceof Var) {
                     ignore.add((UnitVar) base);
                 }

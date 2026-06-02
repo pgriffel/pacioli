@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.compiler.Printable;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import uom.Base;
@@ -52,7 +52,7 @@ public class Substitution implements Printable {
         this.map.put(var, type);
     }
 
-    public Substitution(Var var, Unit<TypeBase> unit) {
+    public Substitution(Var var, Unit<MatrixBase> unit) {
         map = new HashMap<Var, Object>();
         this.map.put(var, unit);
     }

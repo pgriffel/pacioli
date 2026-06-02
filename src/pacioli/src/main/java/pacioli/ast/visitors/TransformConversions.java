@@ -33,7 +33,7 @@ import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorBaseUnit;
 import uom.DimensionedNumber;
 import uom.Fraction;
@@ -58,7 +58,7 @@ public class TransformConversions extends IdentityTransformation {
 
         MatrixType type = (MatrixType) node.typeNode.evalType();
 
-        DimensionedNumber<TypeBase> typeFactor = type.factor().reduce(TypeBase::flat);
+        DimensionedNumber<MatrixBase> typeFactor = type.factor().reduce(MatrixBase::flat);
 
         if (!type.rowDimension().equals(type.columnDimension())) {
             throw new RuntimeException("Invalid conversion",
@@ -78,46 +78,46 @@ public class TransformConversions extends IdentityTransformation {
             for (int i = 0; i < nrItems; i++) {
                 final List<String> items = node.rowDim.ElementAt(i);
                 assert (items.size() == width);
-                UnitFold<TypeBase, DimensionedNumber<TypeBase>> folder = new UnitFold<TypeBase, DimensionedNumber<TypeBase>>() {
+                UnitFold<MatrixBase, DimensionedNumber<MatrixBase>> folder = new UnitFold<MatrixBase, DimensionedNumber<MatrixBase>>() {
 
                     @Override
-                    public DimensionedNumber<TypeBase> map(TypeBase base) {
+                    public DimensionedNumber<MatrixBase> map(MatrixBase base) {
                         VectorBaseUnit vbase = (VectorBaseUnit) base;
                         String itemName = items.get(vbase.position());
-                        DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo().lookupUnit(itemName);
+                        DimensionedNumber<MatrixBase> unit = vbase.vectorUnitInfo().lookupUnit(itemName);
                         return unit;
                     }
 
                     @Override
-                    public DimensionedNumber<TypeBase> mult(DimensionedNumber<TypeBase> x,
-                            DimensionedNumber<TypeBase> y) {
+                    public DimensionedNumber<MatrixBase> mult(DimensionedNumber<MatrixBase> x,
+                            DimensionedNumber<MatrixBase> y) {
                         return x.multiply(y);
                     }
 
                     @Override
-                    public DimensionedNumber<TypeBase> expt(DimensionedNumber<TypeBase> x, Fraction n) {
+                    public DimensionedNumber<MatrixBase> expt(DimensionedNumber<MatrixBase> x, Fraction n) {
                         return x.raise(n);
                     }
 
                     @Override
-                    public DimensionedNumber<TypeBase> one() {
-                        return new DimensionedNumber<TypeBase>();
+                    public DimensionedNumber<MatrixBase> one() {
+                        return new DimensionedNumber<MatrixBase>();
                     }
 
                 };
 
-                DimensionedNumber<TypeBase> rowUnit = type.rowUnit().fold(folder);
-                DimensionedNumber<TypeBase> columnsUnit = type.columnUnit().fold(folder);
+                DimensionedNumber<MatrixBase> rowUnit = type.rowUnit().fold(folder);
+                DimensionedNumber<MatrixBase> columnsUnit = type.columnUnit().fold(folder);
 
-                DimensionedNumber<TypeBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
-                DimensionedNumber<TypeBase> flat = div.reduce(TypeBase::flat);
+                DimensionedNumber<MatrixBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
+                DimensionedNumber<MatrixBase> flat = div.reduce(MatrixBase::flat);
 
                 if (!flat.unit().equals(VectorBaseUnit.ONE)) {
                     var pos = flat.unit()
                             .flatMap(
-                                    x -> flat.unit().power(x).signum() > 0 ? Unit.from(x) : TypeBase.ONE);
+                                    x -> flat.unit().power(x).signum() > 0 ? Unit.from(x) : MatrixBase.ONE);
                     var neg = flat.unit()
-                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? Unit.from(x) : TypeBase.ONE);
+                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? Unit.from(x) : MatrixBase.ONE);
 
                     throw new PacioliException(node.location(),
                             String.format(

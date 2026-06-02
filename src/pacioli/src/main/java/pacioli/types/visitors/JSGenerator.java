@@ -29,7 +29,7 @@ import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
 import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.MatrixBase;
 import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
@@ -93,7 +93,7 @@ public class JSGenerator implements TypeVisitor {
         out.write("Pacioli.createMatrixType(");
 
         // Scalar factor
-        out.write(TypeBase.compileUnitToJSType(type.factor()));
+        out.write(MatrixBase.compileUnitToJSType(type.factor()));
         out.write(", ");
 
         // Row dimension
@@ -102,7 +102,7 @@ public class JSGenerator implements TypeVisitor {
 
         // Row unit
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJSType(type.rowUnit()));
+            out.write(MatrixBase.compileUnitToJSType(type.rowUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
@@ -114,7 +114,7 @@ public class JSGenerator implements TypeVisitor {
 
         // Column unit
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJSType(type.columnUnit()));
+            out.write(MatrixBase.compileUnitToJSType(type.columnUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
