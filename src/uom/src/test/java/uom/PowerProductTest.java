@@ -128,7 +128,7 @@ class PowerProductTest {
 
         Unit<SimpleBase> velocity = new PowerProduct<>(meter)
                 .multiply(new PowerProduct<>(second).raise(new Fraction(2)));
-        Unit<SimpleBase> mapped = velocity.map(base -> new PowerProduct<>(base).raise(new Fraction(2)));
+        Unit<SimpleBase> mapped = velocity.flatMap(base -> new PowerProduct<>(base).raise(new Fraction(2)));
 
         assertEquals(new Fraction(2), mapped.power(meter));
         assertEquals(new Fraction(4), mapped.power(second));

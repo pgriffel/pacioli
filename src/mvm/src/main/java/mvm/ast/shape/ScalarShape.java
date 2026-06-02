@@ -51,7 +51,7 @@ public class ScalarShape implements ShapeNode {
     public MatrixShape eval(Machine machine) throws MVMException {
         Unit<ScalarBase> unit = this.unit
                 .eval(machine)
-                .map(x -> new PowerProduct<ScalarBase>((ScalarBase) x));
+                .map(x -> (ScalarBase) x);
         return new MatrixShape(unit);
     }
 }

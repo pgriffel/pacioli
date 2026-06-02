@@ -242,7 +242,17 @@ public class PowerProduct<B extends Base> implements Unit<B> {
     public <T extends Base> Unit<T> map(UnitMap<B, T> map) {
         Unit<T> newUnit = new PowerProduct<T>();
         for (B base : bases()) {
-            Unit<T> mapped = map.map(base).raise(power(base));
+            Unit<T> mapped = new PowerProduct<T>(map.apply(base)).raise(power(base));
+            newUnit = newUnit.multiply(mapped);
+        }
+        return newUnit;
+    }
+
+    @Override
+    public <T extends Base> Unit<T> flatMap(UnitFlatMap<B, T> map) {
+        Unit<T> newUnit = new PowerProduct<T>();
+        for (B base : bases()) {
+            Unit<T> mapped = map.apply(base).raise(power(base));
             newUnit = newUnit.multiply(mapped);
         }
         return newUnit;

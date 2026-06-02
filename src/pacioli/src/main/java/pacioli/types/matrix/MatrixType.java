@@ -88,8 +88,7 @@ public class MatrixType implements TypeObject {
             String idx = this.rowDimension.isVar() ? this.rowDimension.varName()
                     : this.rowDimension.nthIndexSet(0).name();
 
-            rowUnit = this.rowUnit.map(base -> new PowerProduct<TypeBase>(
-                    base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base));
+            rowUnit = this.rowUnit.map(base -> base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base);
         }
 
         if (this.columnDimension.isVar() || this.columnDimension.width() > 0) {
@@ -98,8 +97,7 @@ public class MatrixType implements TypeObject {
             String idx = this.columnDimension.isVar() ? this.columnDimension.varName()
                     : this.columnDimension.nthIndexSet(0).name();
 
-            columnUnit = this.columnUnit.map(base -> new PowerProduct<TypeBase>(
-                    base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base));
+            columnUnit = this.columnUnit.map(base -> base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base);
         }
 
         return new MatrixType(
@@ -241,7 +239,7 @@ public class MatrixType implements TypeObject {
             Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
-                unit = rowUnit.map(base -> {
+                unit = rowUnit.flatMap(base -> {
                     assert (base instanceof VectorBase);
                     VectorBase bangBase = (VectorBase) base;
                     return ((bangBase.position() == columns.get(tmp))

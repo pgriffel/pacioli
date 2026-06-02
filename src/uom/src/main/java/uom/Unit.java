@@ -45,6 +45,8 @@ public interface Unit<B extends Base> {
 
     public <A extends Base> Unit<A> map(UnitMap<B, A> map);
 
+    public <A extends Base> Unit<A> flatMap(UnitFlatMap<B, A> map);
+
     public <T> T fold(UnitFold<B, T> fold);
 
     boolean isElementary();

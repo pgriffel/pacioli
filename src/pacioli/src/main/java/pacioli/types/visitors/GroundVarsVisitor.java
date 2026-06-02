@@ -56,7 +56,7 @@ public class GroundVarsVisitor extends TransformType {
     public void visit(MatrixType type) {
         // Map units so that any unit base Var becomes grounded
         Unit<TypeBase> factor = type.factor();
-        Unit<TypeBase> newFactor = factor.map(base -> {
+        Unit<TypeBase> newFactor = factor.flatMap(base -> {
             if (base instanceof Var var) {
                 return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
             } else if (base instanceof Unit) {
@@ -66,7 +66,7 @@ public class GroundVarsVisitor extends TransformType {
             }
         });
 
-        Unit<TypeBase> rowUnit = type.rowUnit().map(base -> {
+        Unit<TypeBase> rowUnit = type.rowUnit().flatMap(base -> {
             if (base instanceof Var var) {
                 return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
             } else if (base instanceof Unit) {
@@ -76,7 +76,7 @@ public class GroundVarsVisitor extends TransformType {
             }
         });
 
-        Unit<TypeBase> columnUnit = type.columnUnit().map(base -> {
+        Unit<TypeBase> columnUnit = type.columnUnit().flatMap(base -> {
             if (base instanceof Var var) {
                 return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
             } else if (base instanceof Unit) {

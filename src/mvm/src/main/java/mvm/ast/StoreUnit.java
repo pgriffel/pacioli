@@ -63,7 +63,7 @@ public class StoreUnit implements Instruction {
         } else {
             var definition = new DimensionedNumber<ScalarBase>(
                     new BigDecimal(definitionNumber),
-                    definitionUnit.eval(machine).map(x -> new PowerProduct<ScalarBase>((ScalarBase) x)));
+                    definitionUnit.eval(machine).map(x -> (ScalarBase) x));
 
             machine.storeBase(name, new ScalarBase(this.name, this.symbol, definition));
         }

@@ -82,7 +82,7 @@ public class StoreUnitVector implements Instruction {
             Unit<ScalarBase> unit = this.units
                     .get(i)
                     .eval(machine)
-                    .map(x -> new PowerProduct<ScalarBase>((ScalarBase) x));
+                    .map(x -> (ScalarBase) x);
 
             unitArray.set(row, unit);
         }

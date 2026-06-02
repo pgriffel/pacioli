@@ -36,6 +36,7 @@ import pacioli.types.type.Var;
 import uom.Base;
 import uom.PowerProduct;
 import uom.Unit;
+import uom.UnitFlatMap;
 import uom.UnitMap;
 
 public class Substitution implements Printable {
@@ -76,8 +77,8 @@ public class Substitution implements Printable {
     }
 
     public <B extends Base> Unit<B> apply(Unit<B> unit) {
-        return unit.map(new UnitMap<B, B>() {
-            public Unit<B> map(B base) {
+        return unit.flatMap(new UnitFlatMap<B, B>() {
+            public Unit<B> apply(B base) {
                 if (base instanceof Var var && map.containsKey(var)) {
                     Object obj = map.get(var);
                     if (obj instanceof Unit un) {

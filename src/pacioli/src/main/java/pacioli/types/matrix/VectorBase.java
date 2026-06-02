@@ -118,7 +118,7 @@ public class VectorBase implements TypeBase {
 
     // UNITTODO
     public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
-        return unit.map(base -> {
+        return unit.flatMap(base -> {
             if (base instanceof VectorBase vBase) {
                 if (vBase.position == index) {
                     return new PowerProduct<>(base);
@@ -136,8 +136,7 @@ public class VectorBase implements TypeBase {
 
     // UNITTODO
     public static Unit<TypeBase> shiftUnit(Unit<TypeBase> unit, final int offset) {
-        return unit.map(base -> new PowerProduct<TypeBase>(
-                base instanceof VectorBase vectorBase ? vectorBase.shift(offset) : base));
+        return unit.map(base -> base instanceof VectorBase vectorBase ? vectorBase.shift(offset) : base);
     }
 
     @Override

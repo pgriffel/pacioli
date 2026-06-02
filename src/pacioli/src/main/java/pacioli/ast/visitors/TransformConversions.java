@@ -114,9 +114,9 @@ public class TransformConversions extends IdentityTransformation {
 
                 if (!flat.unit().equals(VectorBase.ONE)) {
                     var pos = flat.unit()
-                            .map(x -> flat.unit().power(x).signum() > 0 ? new PowerProduct<>(x) : TypeBase.ONE);
+                            .flatMap(x -> flat.unit().power(x).signum() > 0 ? new PowerProduct<>(x) : TypeBase.ONE);
                     var neg = flat.unit()
-                            .map(x -> flat.unit().power(x).signum() < 0 ? new PowerProduct<>(x) : TypeBase.ONE);
+                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? new PowerProduct<>(x) : TypeBase.ONE);
 
                     throw new PacioliException(node.location(),
                             String.format(

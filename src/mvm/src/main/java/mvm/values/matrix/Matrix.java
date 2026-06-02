@@ -236,11 +236,7 @@ public class Matrix implements PacioliValue {
     private static Unit<ScalarBase> getUnit(MatrixDimension dimension, final Unit<VectorBase> matrixUnit,
             int position) {
         final int[] positions = dimension.individualPositions(position);
-        return matrixUnit.map(new UnitMap<VectorBase, ScalarBase>() {
-            public Unit<ScalarBase> map(VectorBase base) {
-                return base.get(positions[base.position]);
-            }
-        });
+        return matrixUnit.flatMap(base -> base.get(positions[base.position]));
     }
 
     public boolean isZero() {

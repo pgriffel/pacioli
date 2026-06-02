@@ -80,24 +80,10 @@ public final class VectorBase implements MVMBase {
     }
 
     public static Unit<VectorBase> kroneckerNth(Unit<VectorBase> unit, final int index) {
-        return unit.map(new UnitMap<VectorBase, VectorBase>() {
-            public Unit<VectorBase> map(VectorBase base) {
-                assert (base instanceof VectorBase);
-                if (base.position == index) {
-                    return new PowerProduct<>(base);
-                } else {
-                    return VectorBase.ONE;
-                }
-            }
-        });
+        return unit.flatMap(base -> base.position == index ? new PowerProduct<>(base) : VectorBase.ONE);
     }
 
     public static Unit<VectorBase> shiftUnit(Unit<VectorBase> unit, final int offset) {
-        return unit.map(new UnitMap<VectorBase, VectorBase>() {
-            public Unit<VectorBase> map(VectorBase base) {
-                assert (base instanceof VectorBase);
-                return new PowerProduct<VectorBase>(base.shift(offset));
-            }
-        });
+        return unit.map(base -> base.shift(offset));
     }
 }
