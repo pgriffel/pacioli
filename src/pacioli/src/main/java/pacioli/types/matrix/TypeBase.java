@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
-package pacioli.types.type;
+package pacioli.types.matrix;
 
 import pacioli.compiler.CompilationSettings;
+import pacioli.types.type.Var;
 import uom.Base;
 import uom.DimensionedNumber;
 import uom.Fraction;

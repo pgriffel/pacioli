@@ -33,8 +33,8 @@ import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.VectorBase;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.VectorBaseUnit;
 import uom.DimensionedNumber;
 import uom.Fraction;
 import uom.Unit;
@@ -82,7 +82,7 @@ public class TransformConversions extends IdentityTransformation {
 
                     @Override
                     public DimensionedNumber<TypeBase> map(TypeBase base) {
-                        VectorBase vbase = (VectorBase) base;
+                        VectorBaseUnit vbase = (VectorBaseUnit) base;
                         String itemName = items.get(vbase.position());
                         DimensionedNumber<TypeBase> unit = vbase.vectorUnitInfo().lookupUnit(itemName);
                         return unit;
@@ -112,7 +112,7 @@ public class TransformConversions extends IdentityTransformation {
                 DimensionedNumber<TypeBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
                 DimensionedNumber<TypeBase> flat = div.reduce(TypeBase::flat);
 
-                if (!flat.unit().equals(VectorBase.ONE)) {
+                if (!flat.unit().equals(VectorBaseUnit.ONE)) {
                     var pos = flat.unit()
                             .flatMap(
                                     x -> flat.unit().power(x).signum() > 0 ? Unit.from(x) : TypeBase.ONE);

@@ -27,9 +27,9 @@ import java.util.Set;
 
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.TypeObject;
-import pacioli.types.type.VectorUnitVar;
 import uom.Unit;
 
 public class VectorVarNames extends Collector<String> {

@@ -34,8 +34,8 @@ import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.types.matrix.ScalarBase;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.ScalarBaseUnit;
+import pacioli.types.matrix.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
 
@@ -75,9 +75,9 @@ public class UnitEvaluator extends IdentityVisitor {
         } else {
             ScalarBaseInfo sinfo = (ScalarBaseInfo) node.info;
             if (!node.prefix().isPresent()) {
-                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(sinfo)));
+                returnNode(new DimensionedNumber<TypeBase>(new ScalarBaseUnit(sinfo)));
             } else {
-                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.prefix().get(), sinfo)));
+                returnNode(new DimensionedNumber<TypeBase>(new ScalarBaseUnit(node.prefix().get(), sinfo)));
             }
         }
     }

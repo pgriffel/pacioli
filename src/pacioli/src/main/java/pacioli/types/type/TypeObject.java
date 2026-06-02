@@ -39,6 +39,8 @@ import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
 import pacioli.types.UnitUnification;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.MVMGenerator;

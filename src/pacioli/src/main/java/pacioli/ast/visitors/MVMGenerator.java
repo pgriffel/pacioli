@@ -78,7 +78,7 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
 import uom.Fraction;
 import uom.Unit;
 import uom.UnitFold;

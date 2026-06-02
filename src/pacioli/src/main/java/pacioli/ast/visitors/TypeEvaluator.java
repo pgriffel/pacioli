@@ -59,22 +59,22 @@ import pacioli.types.ast.TypePredicateNode;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.ScalarBase;
-import pacioli.types.matrix.VectorBase;
+import pacioli.types.matrix.ScalarBaseUnit;
+import pacioli.types.matrix.ScalarUnitVar;
+import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.VectorBaseUnit;
+import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.Operator;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
 import uom.Unit;
 
@@ -153,7 +153,7 @@ public class TypeEvaluator extends IdentityVisitor {
             } else {
                 String unitName = node.unitVecName();
                 rowUnit = Unit.from(
-                        new VectorBase(
+                        new VectorBaseUnit(
                                 new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName),
                                 new TypeIdentifier(unitInfo.generalInfo().module(), unitName),
                                 0,
@@ -289,7 +289,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
             // A scalar unit reference, e.g. metre
 
-            returnType(new MatrixType(Unit.from(new ScalarBase(scalarBaseInfo))));
+            returnType(new MatrixType(Unit.from(new ScalarBaseUnit(scalarBaseInfo))));
 
         } else {
             throw new RuntimeException("Unexpected Info type");
@@ -299,7 +299,7 @@ public class TypeEvaluator extends IdentityVisitor {
     @Override
     public void visit(PrefixUnitTypeNode node) {
         if (node.unit.info instanceof ScalarBaseInfo scalarBaseInfo) {
-            returnType(new MatrixType(Unit.from(new ScalarBase(node.prefix.name(), scalarBaseInfo))));
+            returnType(new MatrixType(Unit.from(new ScalarBaseUnit(node.prefix.name(), scalarBaseInfo))));
         } else {
             throw new PacioliException(node.unit.location(), "Expected a unit");
         }

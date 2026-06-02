@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.compiler.Printable;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import uom.Base;

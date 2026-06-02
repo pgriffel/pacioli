@@ -29,10 +29,8 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
-import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
 import uom.Unit;
 
@@ -219,7 +217,7 @@ public class MatrixType implements TypeObject {
             int offset = rowType.width();
 
             return new MatrixType(factor.multiply(other.factor), rowType.kronecker(other.rowDimension),
-                    rowUnit.multiply(VectorBase.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
+                    rowUnit.multiply(VectorBaseUnit.shiftUnit(other.rowUnit, offset)), new IndexType(), TypeBase.ONE);
         } else {
             throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", pretty(),
                     other.pretty(), rowDimension.getClass());
@@ -239,8 +237,8 @@ public class MatrixType implements TypeObject {
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
                 unit = rowUnit.flatMap(base -> {
-                    assert (base instanceof VectorBase);
-                    VectorBase bangBase = (VectorBase) base;
+                    assert (base instanceof VectorBaseUnit);
+                    VectorBaseUnit bangBase = (VectorBaseUnit) base;
                     return ((bangBase.position() == columns.get(tmp))
                             ? Unit.from(bangBase.move(tmp))
                             : TypeBase.ONE);
@@ -345,7 +343,7 @@ public class MatrixType implements TypeObject {
             String node = "";
             for (int i = 0; i < dimType.width(); i++) {
 
-                Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+                Unit<TypeBase> filtered = VectorBaseUnit.kroneckerNth((Unit<TypeBase>) unit, i);
 
                 String idx = dimType.nthIndexSet(i).name();
                 String pretty = filtered.pretty();
@@ -376,7 +374,7 @@ public class MatrixType implements TypeObject {
             for (int i = 0; i < dimType.width(); i++) {
                 // IndexType ty = dimType.project(Arrays.asList(i));
                 // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
-                Unit<TypeBase> filtered = VectorBase.kroneckerNth((Unit<TypeBase>) unit, i);
+                Unit<TypeBase> filtered = VectorBaseUnit.kroneckerNth((Unit<TypeBase>) unit, i);
 
                 TypeIdentifier idx = dimType.nthIndexSet(i);
 

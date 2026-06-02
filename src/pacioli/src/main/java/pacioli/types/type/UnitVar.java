@@ -25,9 +25,11 @@ package pacioli.types.type;
 import java.util.Optional;
 
 import pacioli.symboltable.info.Info;
+import pacioli.types.matrix.TypeBase;
 
-public interface UnitVar extends Var, TypeBase {
+public interface UnitVar extends TypeBase, Var {
 
+    @Override
     public String pretty();
 
     TypeObject fresh();

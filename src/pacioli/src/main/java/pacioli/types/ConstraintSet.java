@@ -36,7 +36,7 @@ import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
 import pacioli.types.matrix.MatrixType;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import uom.Unit;

@@ -33,13 +33,13 @@ import pacioli.compiler.Printable;
 import pacioli.types.Substitution;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.matrix.TypeBase;
+import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
-import pacioli.types.type.VectorUnitVar;
 
 public class TypeConstraint implements Printable {
 

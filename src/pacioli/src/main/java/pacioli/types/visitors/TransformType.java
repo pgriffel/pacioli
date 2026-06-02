@@ -30,6 +30,8 @@ import pacioli.types.TypeVisitor;
 import pacioli.types.matrix.IndexList;
 import pacioli.types.matrix.IndexType;
 import pacioli.types.matrix.MatrixType;
+import pacioli.types.matrix.ScalarUnitVar;
+import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.Operator;
@@ -37,12 +39,10 @@ import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Quant;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
 
 public class TransformType implements TypeVisitor {
 

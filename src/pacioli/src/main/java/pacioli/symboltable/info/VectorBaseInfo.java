@@ -32,7 +32,7 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
 import uom.DimensionedNumber;
 
 public final class VectorBaseInfo extends UnitInfo {

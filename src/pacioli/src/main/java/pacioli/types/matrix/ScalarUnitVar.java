@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.types.type;
+package pacioli.types.matrix;
 
 import java.io.PrintWriter;
 import java.util.Optional;
@@ -31,8 +31,11 @@ import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.UnitVar;
+import pacioli.types.type.Var;
 
-public class ScalarUnitVar implements TypeObject, UnitVar {
+public final class ScalarUnitVar implements ScalarBase, UnitVar, TypeObject {
 
     private final String name;
     private final ScalarBaseInfo info;

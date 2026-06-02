@@ -29,7 +29,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.type.TypeBase;
+import pacioli.types.matrix.TypeBase;
 import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractNode implements Definition {
