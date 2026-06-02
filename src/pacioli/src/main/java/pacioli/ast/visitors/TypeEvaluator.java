@@ -76,6 +76,7 @@ import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
+import uom.PowerProduct;
 import uom.Unit;
 
 public class TypeEvaluator extends IdentityVisitor {
@@ -149,11 +150,15 @@ public class TypeEvaluator extends IdentityVisitor {
 
             // Create the unit. If it is a local then it is a variable.
             if (!unitInfo.isGlobal()) {
-                rowUnit = new VectorUnitVar(unitInfo);
+                rowUnit = new PowerProduct<TypeBase>(new VectorUnitVar(unitInfo));
             } else {
                 String unitName = node.unitVecName();
-                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName),
-                        new TypeIdentifier(unitInfo.generalInfo().module(), unitName), 0, unitInfo);
+                rowUnit = new PowerProduct<TypeBase>(
+                        new VectorBase(
+                                new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName),
+                                new TypeIdentifier(unitInfo.generalInfo().module(), unitName),
+                                0,
+                                unitInfo));
             }
         }
 
@@ -233,8 +238,8 @@ public class TypeEvaluator extends IdentityVisitor {
             if (info instanceof TypeVarInfo) {
                 returnType(new TypeVar((TypeVarInfo) info));
 
-            } else if (info instanceof ScalarBaseInfo) {
-                returnType(new MatrixType(new ScalarUnitVar((ScalarBaseInfo) info)));
+            } else if (info instanceof ScalarBaseInfo sInfo) {
+                returnType(new MatrixType(new PowerProduct<>(new ScalarUnitVar(sInfo))));
 
             } else if (info instanceof IndexSetInfo) {
                 returnType(new IndexSetVar((IndexSetInfo) info));
@@ -285,7 +290,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
             // A scalar unit reference, e.g. metre
 
-            returnType(new MatrixType(new ScalarBase(scalarBaseInfo)));
+            returnType(new MatrixType(new PowerProduct<>(new ScalarBase(scalarBaseInfo))));
 
         } else {
             throw new RuntimeException("Unexpected Info type");
@@ -295,7 +300,7 @@ public class TypeEvaluator extends IdentityVisitor {
     @Override
     public void visit(PrefixUnitTypeNode node) {
         if (node.unit.info instanceof ScalarBaseInfo scalarBaseInfo) {
-            returnType(new MatrixType(new ScalarBase(node.prefix.name(), scalarBaseInfo)));
+            returnType(new MatrixType(new PowerProduct<>(new ScalarBase(node.prefix.name(), scalarBaseInfo))));
         } else {
             throw new PacioliException(node.unit.location(), "Expected a unit");
         }

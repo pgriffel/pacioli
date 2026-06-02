@@ -38,6 +38,7 @@ import pacioli.types.matrix.ScalarBase;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
+import uom.PowerProduct;
 
 public class UnitEvaluator extends IdentityVisitor {
 
@@ -75,9 +76,10 @@ public class UnitEvaluator extends IdentityVisitor {
         } else {
             ScalarBaseInfo sinfo = (ScalarBaseInfo) node.info;
             if (!node.prefix().isPresent()) {
-                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(sinfo)));
+                returnNode(new DimensionedNumber<TypeBase>(new PowerProduct<>(new ScalarBase(sinfo))));
             } else {
-                returnNode(new DimensionedNumber<TypeBase>(new ScalarBase(node.prefix().get(), sinfo)));
+                returnNode(new DimensionedNumber<TypeBase>(
+                        new PowerProduct<>(new ScalarBase(node.prefix().get(), sinfo))));
             }
         }
     }

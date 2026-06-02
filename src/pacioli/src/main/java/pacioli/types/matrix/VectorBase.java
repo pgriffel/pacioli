@@ -26,12 +26,10 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
-import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
-import uom.UnitMap;
 
-public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
+public class VectorBase implements TypeBase {
 
     private final VectorBaseInfo vectorUnitInfo;
     private final TypeIdentifier indexSetName;
@@ -67,27 +65,36 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public int hashCode() {
-        return unitName.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((indexSetName == null) ? 0 : indexSetName.hashCode());
+        result = prime * result + ((unitName == null) ? 0 : unitName.hashCode());
+        result = prime * result + position;
+        return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == this) {
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(other instanceof Unit)) {
+        if (obj == null)
             return false;
-        }
-        Object real = PowerProduct.normal((Unit) other);
-        if (real == this) {
-            return true;
-        }
-        if (!(real instanceof VectorBase)) {
+        if (getClass() != obj.getClass())
             return false;
-        }
-        VectorBase otherBase = (VectorBase) real;
-        return indexSetName.equals(otherBase.indexSetName) && unitName.equals(otherBase.unitName)
-                && position == otherBase.position;
+        VectorBase other = (VectorBase) obj;
+        if (indexSetName == null) {
+            if (other.indexSetName != null)
+                return false;
+        } else if (!indexSetName.equals(other.indexSetName))
+            return false;
+        if (unitName == null) {
+            if (other.unitName != null)
+                return false;
+        } else if (!unitName.equals(other.unitName))
+            return false;
+        if (position != other.position)
+            return false;
+        return true;
     }
 
     @Override
@@ -111,35 +118,26 @@ public class VectorBase extends BaseUnit<TypeBase> implements TypeBase {
 
     // UNITTODO
     public static Unit<TypeBase> kroneckerNth(Unit<TypeBase> unit, final int index) {
-        return unit.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof VectorBase) {
-                    if (((VectorBase) base).position == index) {
-                        return base;
-                    } else {
-                        return TypeBase.ONE;
-                    }
+        return unit.map(base -> {
+            if (base instanceof VectorBase vBase) {
+                if (vBase.position == index) {
+                    return new PowerProduct<>(base);
                 } else {
-                    // We must be called with a unit variable. Ignore that to get pretty printing
-                    // working.
-                    return base;
-                    // throw new RuntimeException("kroneckerNth is for row and column units only");
+                    return TypeBase.ONE;
                 }
+            } else {
+                // We must be called with a unit variable. Ignore that to get pretty printing
+                // working.
+                return new PowerProduct<>(base);
+                // throw new RuntimeException("kroneckerNth is for row and column units only");
             }
         });
     }
 
     // UNITTODO
     public static Unit<TypeBase> shiftUnit(Unit<TypeBase> unit, final int offset) {
-        return unit.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof VectorBase) {
-                    return ((VectorBase) base).shift(offset);
-                } else {
-                    return base;
-                }
-            }
-        });
+        return unit.map(base -> new PowerProduct<TypeBase>(
+                base instanceof VectorBase vectorBase ? vectorBase.shift(offset) : base));
     }
 
     @Override

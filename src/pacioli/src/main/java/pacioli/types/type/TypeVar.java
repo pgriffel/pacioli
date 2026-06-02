@@ -30,9 +30,8 @@ import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import uom.BaseUnit;
 
-public class TypeVar extends BaseUnit<TypeBase> implements TypeObject, Var {
+public class TypeVar implements TypeObject, Var {
 
     private final String name;
     private final TypeVarInfo info;

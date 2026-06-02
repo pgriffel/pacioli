@@ -44,7 +44,7 @@ class UnitSystemTest {
 
         system.addUnit("m", meter);
 
-        assertTrue(system.congtainsUnit("m"));
+        assertTrue(system.containsUnit("m"));
         assertEquals(meter, system.lookupBase("m"));
         assertEquals("meter", system.lookupBase("m").pretty());
     }
@@ -70,7 +70,7 @@ class UnitSystemTest {
         system.addUnit("m", meter);
         system.addPrefix("d", deci);
 
-        assertTrue(system.congtainsUnit("d:m"));
+        assertTrue(system.containsUnit("d:m"));
     }
 
     @Test

@@ -30,9 +30,8 @@ import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import uom.BaseUnit;
 
-public class IndexSetVar extends BaseUnit<TypeBase> implements TypeObject, Var {
+public class IndexSetVar implements TypeObject, Var {
 
     private final String name;
     private final IndexSetInfo info;

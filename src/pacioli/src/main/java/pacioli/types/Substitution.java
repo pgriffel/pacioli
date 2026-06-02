@@ -33,6 +33,7 @@ import pacioli.compiler.Printable;
 import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
+import uom.Base;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
@@ -74,15 +75,18 @@ public class Substitution implements Printable {
         return map.containsKey(var);
     }
 
-    public <B> Unit<B> apply(Unit<B> unit) {
-        return unit.map(new UnitMap<B>() {
+    public <B extends Base> Unit<B> apply(Unit<B> unit) {
+        return unit.map(new UnitMap<B, B>() {
             public Unit<B> map(B base) {
-                if (base instanceof Var && map.containsKey((Var) base)) {
-                    Object obj = map.get((Var) base);
-                    assert (obj instanceof Unit);
-                    return (Unit<B>) obj;
+                if (base instanceof Var var && map.containsKey(var)) {
+                    Object obj = map.get(var);
+                    if (obj instanceof Unit un) {
+                        return un;
+                    } else {
+                        return new PowerProduct<B>((B) obj);
+                    }
                 } else {
-                    return ((Unit<B>) base);
+                    return new PowerProduct<B>(base);
                 }
             }
         });
@@ -92,9 +96,6 @@ public class Substitution implements Printable {
         if (type instanceof Var) {
             if (map.containsKey((Var) type)) {
                 Object obj = map.get((Var) type);
-                if (obj instanceof Unit) {
-                    obj = PowerProduct.normal((Unit) obj);
-                }
                 assert (obj instanceof TypeObject);
                 return (TypeObject) obj;
             } else {

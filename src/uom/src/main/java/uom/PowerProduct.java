@@ -87,17 +87,6 @@ public class PowerProduct<B extends Base> implements Unit<B> {
      * @return
      */
     public static <B extends Base> Unit<B> normal(Unit<B> unit) {
-        // Set<B> bases = unit.bases();
-        // if (bases.size() == 1) {
-        // B base = bases.iterator().next();
-        // if (unit.power(base).compareTo(Fraction.ONE) == 0) {
-        // return (Unit<B>) base;
-        // } else {
-        // return unit;
-        // }
-        // } else {
-        // return unit;
-        // }
         return unit;
     }
 
@@ -228,10 +217,10 @@ public class PowerProduct<B extends Base> implements Unit<B> {
     }
 
     @Override
-    public DimensionedNumber<B> flat() {
+    public DimensionedNumber<B> flat(BaseFlatten<B> flattener) {
         DimensionedNumber<B> number = new DimensionedNumber<B>();
         for (B base : bases()) {
-            DimensionedNumber<B> flattened = ((Unit<B>) base).flat().raise(power(base));
+            DimensionedNumber<B> flattened = flattener.flatten(base).raise(power(base));
             number = number.multiply(flattened);
         }
         return number;
@@ -250,10 +239,10 @@ public class PowerProduct<B extends Base> implements Unit<B> {
      * }
      */
     @Override
-    public Unit<B> map(UnitMap<B> map) {
-        Unit<B> newUnit = new PowerProduct<B>();
+    public <T extends Base> Unit<T> map(UnitMap<B, T> map) {
+        Unit<T> newUnit = new PowerProduct<T>();
         for (B base : bases()) {
-            Unit<B> mapped = map.map(base).raise(power(base));
+            Unit<T> mapped = map.map(base).raise(power(base));
             newUnit = newUnit.multiply(mapped);
         }
         return newUnit;
@@ -273,7 +262,7 @@ public class PowerProduct<B extends Base> implements Unit<B> {
                 symbolic = symbolic.concat(sep);
                 // sep = "ï¿½";
                 sep = "*";
-                symbolic = symbolic.concat(((Unit<B>) base).pretty());
+                symbolic = symbolic.concat(base.pretty());
 
                 // if (power.compareTo(Fraction.MINTHREE) == 0) {
                 // symbolic = symbolic.concat("ï¿½");
@@ -307,7 +296,7 @@ public class PowerProduct<B extends Base> implements Unit<B> {
                 symbolic = symbolic.concat(sep);
                 // sep = "ï¿½";
                 sep = "/";
-                symbolic = symbolic.concat(((Unit<B>) base).pretty());
+                symbolic = symbolic.concat(base.pretty());
 
                 if (power.compareTo(Fraction.MINONE) != 0) {
                     symbolic = symbolic.concat("^");
@@ -319,10 +308,29 @@ public class PowerProduct<B extends Base> implements Unit<B> {
         return symbolic;
     }
 
-    public class BaseComparator<B extends Base> implements Comparator<B> {
+    @Override
+    public boolean isElementary() {
+        if (this.powers.size() == 1) {
+            return this.powers.entrySet().iterator().next().getValue().equals(Fraction.ONE);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public B singleElement() {
+        if (this.powers.size() == 1) {
+            return this.powers.keySet().iterator().next();
+        } else {
+            throw new RuntimeException(
+                    String.format("Cannot get single element of %s, unit is not elementary.", this.pretty()));
+        }
+    }
+
+    public class BaseComparator<X extends Base> implements Comparator<X> {
 
         @Override
-        public int compare(B o1, B o2) {
+        public int compare(X o1, X o2) {
             String text1 = o1.pretty();
             String text2 = o2.pretty();
             if (text1.length() > 0 && text2.length() > 0) {

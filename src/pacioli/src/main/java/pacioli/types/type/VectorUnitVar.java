@@ -31,9 +31,8 @@ import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.TypeVisitor;
-import uom.BaseUnit;
 
-public class VectorUnitVar extends BaseUnit<TypeBase> implements TypeObject, UnitVar {
+public class VectorUnitVar implements TypeObject, UnitVar {
 
     private final String name;
     public VectorBaseInfo info;

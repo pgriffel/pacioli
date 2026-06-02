@@ -26,10 +26,12 @@ import java.io.PrintWriter;
 
 import mvm.MVMException;
 import mvm.Machine;
-import mvm.values.matrix.MatrixBase;
+import mvm.values.matrix.VectorBase;
 import mvm.values.matrix.MatrixDimension;
 import mvm.values.matrix.MatrixShape;
+import mvm.values.matrix.ScalarBase;
 import mvm.values.matrix.UnitVector;
+import uom.PowerProduct;
 
 public class BangShape implements ShapeNode {
 
@@ -53,16 +55,23 @@ public class BangShape implements ShapeNode {
             if (!machine.indexSets.containsKey(entity)) {
                 throw new MVMException("Index set '%s' unnown", entity);
             }
-            shape = new MatrixShape(MatrixBase.ONE, new MatrixDimension(machine.indexSets.get(entity)), MatrixBase.ONE,
-                    new MatrixDimension(), MatrixBase.ONE);
+            shape = new MatrixShape(
+                    ScalarBase.ONE,
+                    new MatrixDimension(machine.indexSets.get(entity)),
+                    VectorBase.ONE,
+                    new MatrixDimension(),
+                    VectorBase.ONE);
         } else {
             String name = unit;
             if (!machine.unitVectors.containsKey(name)) {
                 throw new MVMException("Unit vector '%s' unnown", name);
             }
             UnitVector vector = machine.unitVectors.get(name);
-            shape = new MatrixShape(MatrixBase.ONE, new MatrixDimension(vector.indexSet), new MatrixBase(vector, 0),
-                    new MatrixDimension(), MatrixBase.ONE);
+            shape = new MatrixShape(
+                    ScalarBase.ONE,
+                    new MatrixDimension(vector.indexSet),
+                    new PowerProduct<>(new VectorBase(vector, 0)),
+                    new MatrixDimension(), VectorBase.ONE);
         }
         return shape;
     }

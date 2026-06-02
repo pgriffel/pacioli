@@ -119,8 +119,8 @@ public class DimensionedNumber<B extends Base> {
         return raise(new Fraction(-1));
     }
 
-    public DimensionedNumber<B> flat() {
-        return unit.flat().multiply(factor);
+    public DimensionedNumber<B> flat(BaseFlatten<B> flattener) {
+        return unit.flat(flattener).multiply(factor);
     }
 
     public String toText() {

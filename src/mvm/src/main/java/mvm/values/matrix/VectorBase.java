@@ -22,49 +22,52 @@
 
 package mvm.values.matrix;
 
-import uom.BaseUnit;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitMap;
 
-public class MatrixBase extends BaseUnit<MatrixBase> {
+public final class VectorBase implements MVMBase {
 
-    public final static Unit<MatrixBase> ONE = new PowerProduct<MatrixBase>();
+    public final static Unit<VectorBase> ONE = new PowerProduct<VectorBase>();
 
     private final UnitVector vector;
     public final int position;
 
-    public MatrixBase(UnitVector index, int position) {
+    public VectorBase(UnitVector index, int position) {
         this.vector = index;
         this.position = position;
     }
 
-    public Unit<MatrixBase> get(int position) {
+    public Unit<ScalarBase> get(int position) {
         return vector.get(position);
     }
 
     @Override
     public int hashCode() {
-        return vector.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((vector == null) ? 0 : vector.hashCode());
+        result = prime * result + position;
+        return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == this) {
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(other instanceof Unit)) {
+        if (obj == null)
             return false;
-        }
-        Object real = PowerProduct.normal((Unit<MatrixBase>) other);
-        if (real == this) {
-            return true;
-        }
-        if (!(real instanceof MatrixBase)) {
+        if (getClass() != obj.getClass())
             return false;
-        }
-        MatrixBase otherUnit = (MatrixBase) real;
-        return vector.equals(otherUnit.vector) && position == otherUnit.position;
+        VectorBase other = (VectorBase) obj;
+        if (vector == null) {
+            if (other.vector != null)
+                return false;
+        } else if (!vector.equals(other.vector))
+            return false;
+        if (position != other.position)
+            return false;
+        return true;
     }
 
     @Override
@@ -72,34 +75,28 @@ public class MatrixBase extends BaseUnit<MatrixBase> {
         return "Index(" + vector.toText() + ", " + Integer.toString(position) + ")";
     }
 
-    public MatrixBase shift(int offset) {
-        return new MatrixBase(vector, position + offset);
+    public VectorBase shift(int offset) {
+        return new VectorBase(vector, position + offset);
     }
 
-    public static Unit<MatrixBase> kroneckerNth(Unit<MatrixBase> unit, final int index) {
-        return unit.map(new UnitMap<MatrixBase>() {
-            public Unit<MatrixBase> map(MatrixBase base) {
-                if (base instanceof MatrixBase) {
-                    if (((MatrixBase) base).position == index) {
-                        return base;
-                    } else {
-                        return MatrixBase.ONE;
-                    }
+    public static Unit<VectorBase> kroneckerNth(Unit<VectorBase> unit, final int index) {
+        return unit.map(new UnitMap<VectorBase, VectorBase>() {
+            public Unit<VectorBase> map(VectorBase base) {
+                assert (base instanceof VectorBase);
+                if (base.position == index) {
+                    return new PowerProduct<>(base);
                 } else {
-                    throw new RuntimeException("kroneckerNth is for row and column units only");
+                    return VectorBase.ONE;
                 }
             }
         });
     }
 
-    public static Unit<MatrixBase> shiftUnit(Unit<MatrixBase> unit, final int offset) {
-        return unit.map(new UnitMap<MatrixBase>() {
-            public Unit<MatrixBase> map(MatrixBase base) {
-                if (base instanceof MatrixBase) {
-                    return ((MatrixBase) base).shift(offset);
-                } else {
-                    return base;
-                }
+    public static Unit<VectorBase> shiftUnit(Unit<VectorBase> unit, final int offset) {
+        return unit.map(new UnitMap<VectorBase, VectorBase>() {
+            public Unit<VectorBase> map(VectorBase base) {
+                assert (base instanceof VectorBase);
+                return new PowerProduct<VectorBase>(base.shift(offset));
             }
         });
     }

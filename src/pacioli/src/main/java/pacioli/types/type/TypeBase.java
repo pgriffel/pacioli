@@ -24,14 +24,27 @@ package pacioli.types.type;
 
 import pacioli.compiler.CompilationSettings;
 import uom.Base;
+import uom.DimensionedNumber;
 import uom.Fraction;
 import uom.PowerProduct;
 import uom.Unit;
 import uom.UnitFold;
 
-public interface TypeBase extends Base<TypeBase> {
+public interface TypeBase extends Base {
 
     public final static Unit<TypeBase> ONE = new PowerProduct<TypeBase>();
+
+    public static boolean unitIsVar(Unit<TypeBase> unit) {
+        return unit.isElementary();
+    }
+
+    public static Var unitAsVar(Unit<TypeBase> unit) {
+        if (unit.singleElement() instanceof Var var) {
+            return var;
+        } else {
+            throw new RuntimeException(String.format("Cannot cast unit %s to var", unit.pretty()));
+        }
+    }
 
     /**
      * The compiler use ScalarBase in unit expressions (defunit) and in type
@@ -47,6 +60,10 @@ public interface TypeBase extends Base<TypeBase> {
 
     public static String compileUnitToMVM(Unit<TypeBase> unit, CompilationSettings settings) {
         return unit.fold(new UnitMVMGenerator(settings));
+    }
+
+    default DimensionedNumber<TypeBase> flat() {
+        return new DimensionedNumber<TypeBase>(new PowerProduct<TypeBase>(this));
     }
 
     // UNITTODO

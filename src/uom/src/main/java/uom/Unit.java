@@ -39,11 +39,15 @@ public interface Unit<B extends Base> {
 
     public Unit<B> reciprocal();
 
-    public DimensionedNumber<B> flat();
+    public DimensionedNumber<B> flat(BaseFlatten<B> flatten);
 
     public String pretty();
 
-    public Unit<B> map(UnitMap<B> map);
+    public <A extends Base> Unit<A> map(UnitMap<B, A> map);
 
     public <T> T fold(UnitFold<B, T> fold);
+
+    boolean isElementary();
+
+    B singleElement();
 }

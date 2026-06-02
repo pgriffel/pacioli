@@ -25,7 +25,6 @@ package pacioli.ast.visitors;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.values.matrix.MatrixBase;
 import pacioli.ast.IdentityTransformation;
 import pacioli.ast.expression.ConversionNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -38,6 +37,7 @@ import pacioli.types.matrix.VectorBase;
 import pacioli.types.type.TypeBase;
 import uom.DimensionedNumber;
 import uom.Fraction;
+import uom.PowerProduct;
 import uom.UnitFold;
 
 /**
@@ -58,7 +58,7 @@ public class TransformConversions extends IdentityTransformation {
 
         MatrixType type = (MatrixType) node.typeNode.evalType();
 
-        DimensionedNumber<TypeBase> typeFactor = type.factor().flat();
+        DimensionedNumber<TypeBase> typeFactor = type.factor().flat(TypeBase::flat);
 
         if (!type.rowDimension().equals(type.columnDimension())) {
             throw new RuntimeException("Invalid conversion",
@@ -110,11 +110,13 @@ public class TransformConversions extends IdentityTransformation {
                 DimensionedNumber<TypeBase> columnsUnit = type.columnUnit().fold(folder);
 
                 DimensionedNumber<TypeBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
-                DimensionedNumber<TypeBase> flat = div.flat();
+                DimensionedNumber<TypeBase> flat = div.flat(TypeBase::flat);
 
-                if (!flat.unit().equals(MatrixBase.ONE)) {
-                    var pos = flat.unit().map(x -> flat.unit().power(x).signum() > 0 ? x : TypeBase.ONE);
-                    var neg = flat.unit().map(x -> flat.unit().power(x).signum() < 0 ? x : TypeBase.ONE);
+                if (!flat.unit().equals(VectorBase.ONE)) {
+                    var pos = flat.unit()
+                            .map(x -> flat.unit().power(x).signum() > 0 ? new PowerProduct<>(x) : TypeBase.ONE);
+                    var neg = flat.unit()
+                            .map(x -> flat.unit().power(x).signum() < 0 ? new PowerProduct<>(x) : TypeBase.ONE);
 
                     throw new PacioliException(node.location(),
                             String.format(

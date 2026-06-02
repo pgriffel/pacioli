@@ -77,7 +77,7 @@ public class Matrix implements PacioliValue {
         numbers.setEntry(0, 0, num);
     }
 
-    public Matrix(Unit<MatrixBase> unit) {
+    public Matrix(Unit<ScalarBase> unit) {
         shape = new MatrixShape(unit);
         numbers = new Array2DRowRealMatrix(rowDimension().size(), columnDimension().size());
         numbers.setEntry(0, 0, 1);
@@ -109,7 +109,7 @@ public class Matrix implements PacioliValue {
         if (rowDimension().width() == 0 && columnDimension().width() == 0) {
             String decString = format.format(numbers.getEntry(0, 0));
 
-            if (unitAt(0, 0).equals(MatrixBase.ONE)) {
+            if (unitAt(0, 0).equals(VectorBase.ONE)) {
                 out.format("%s", decString);
             } else {
                 out.format("%s %s", decString, unitAt(0, 0).pretty());
@@ -152,8 +152,8 @@ public class Matrix implements PacioliValue {
                     String numString = num == 0 ? "-" : format.format(num);
 
                     // The unit string
-                    Unit<MatrixBase> unit = unitAt(i, j);
-                    String unitString = unit.equals(MatrixBase.ONE) ? "" : unit.pretty();
+                    Unit<ScalarBase> unit = unitAt(i, j);
+                    String unitString = unit.equals(VectorBase.ONE) ? "" : unit.pretty();
 
                     // Add the string to the lists we are building
                     idxList.add(idxString);
@@ -228,18 +228,17 @@ public class Matrix implements PacioliValue {
         return keys;
     }
 
-    public Unit<MatrixBase> unitAt(int i, int j) {
+    public Unit<ScalarBase> unitAt(int i, int j) {
         return shape.factor().multiply(getUnit(rowDimension(), shape.rowUnit, i)
                 .multiply(getUnit(columnDimension(), shape.columnUnit, j).reciprocal()));
     }
 
-    private static Unit<MatrixBase> getUnit(MatrixDimension dimension, final Unit<MatrixBase> matrixUnit,
+    private static Unit<ScalarBase> getUnit(MatrixDimension dimension, final Unit<VectorBase> matrixUnit,
             int position) {
         final int[] positions = dimension.individualPositions(position);
-        return matrixUnit.map(new UnitMap<MatrixBase>() {
-            public Unit<MatrixBase> map(MatrixBase base) {
-                MatrixBase indexBase = (MatrixBase) base;
-                return indexBase.get(positions[indexBase.position]);
+        return matrixUnit.map(new UnitMap<VectorBase, ScalarBase>() {
+            public Unit<ScalarBase> map(VectorBase base) {
+                return base.get(positions[base.position]);
             }
         });
     }
@@ -330,7 +329,7 @@ public class Matrix implements PacioliValue {
         return matrix;
     }
 
-    public Unit<MatrixBase> get_unit(Key row, Key column) {
+    public Unit<ScalarBase> get_unit(Key row, Key column) {
         return unitAt(row.position(), column.position());
     }
 
@@ -503,9 +502,9 @@ public class Matrix implements PacioliValue {
         int nrColumns = columnDimension().size();
 
         List<String> dst;
-        Unit<MatrixBase> srcUnit;
-        Unit<MatrixBase> dstUnit;
-        DimensionedNumber<MatrixBase> number;
+        Unit<ScalarBase> srcUnit;
+        Unit<ScalarBase> dstUnit;
+        DimensionedNumber<ScalarBase> number;
 
         for (int i = 0; i < nrRows; i++) {
 
@@ -518,7 +517,7 @@ public class Matrix implements PacioliValue {
 
                     srcUnit = getUnit(rowDimension(), shape.rowUnit, i);
                     dstUnit = getUnit(columnDimension(), shape.columnUnit, j);
-                    number = (dstUnit.multiply(srcUnit.reciprocal())).flat();
+                    number = (dstUnit.multiply(srcUnit.reciprocal())).flat(ScalarBase::flat);
 
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot project '%s' to '%s'", srcUnit.pretty(), dstUnit.pretty());
@@ -544,14 +543,15 @@ public class Matrix implements PacioliValue {
         }
 
         for (int i = 0; i < nrRows; i++) {
-            DimensionedNumber<MatrixBase> number = unitAt(i, i).reciprocal().flat();
+            DimensionedNumber<ScalarBase> number = unitAt(i, i).reciprocal().flat(ScalarBase::flat);
             if (!number.unit().bases().isEmpty()) {
                 throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
             } else {
                 Double num = number.factor().doubleValue();
                 if (num == 0) {
                     throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
-                            unitAt(i, i).flat().reciprocal().toText(), number.toText(), number.unit().bases());
+                            unitAt(i, i).flat(ScalarBase::flat).reciprocal().toText(), number.toText(),
+                            number.unit().bases());
                 }
                 numbers.setEntry(i, i, num);
             }
@@ -580,7 +580,7 @@ public class Matrix implements PacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    DimensionedNumber<MatrixBase> number = unitAt(i, j).reciprocal().flat();
+                    DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().flat(ScalarBase::flat);
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {
@@ -624,7 +624,7 @@ public class Matrix implements PacioliValue {
                 String num = "0";
 
                 if (i == j) {
-                    DimensionedNumber<MatrixBase> number = unitAt(i, j).reciprocal().flat();
+                    DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().flat(ScalarBase::flat);
                     if (!number.unit().bases().isEmpty()) {
                         throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
                     } else {
@@ -1329,7 +1329,7 @@ public class Matrix implements PacioliValue {
                 rowDimension(),
                 shape.rowUnit,
                 columnDimension(),
-                MatrixBase.ONE);
+                VectorBase.ONE);
         Matrix matrix = new Matrix(resultShape);
 
         try {

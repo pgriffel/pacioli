@@ -2,8 +2,6 @@ package uom;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 
 class PowerProductTest {
@@ -84,13 +82,13 @@ class PowerProductTest {
     void testToStringOmitsExponentOne() {
         SimpleBase meter = new SimpleBase("m");
         Unit<SimpleBase> length = new PowerProduct<>(meter);
-        assertEquals("m", length.toString());
+        assertEquals("m", length.pretty());
 
         Unit<SimpleBase> area = length.raise(new Fraction(2));
-        assertEquals("m^2", area.toString());
+        assertEquals("m^2", area.pretty());
     }
 
-    private static final class UnitBase implements Base, Unit<UnitBase> {
+    private static final class UnitBase implements Base {
         private final String name;
 
         private UnitBase(String name) {
@@ -98,57 +96,7 @@ class PowerProductTest {
         }
 
         @Override
-        public Set<UnitBase> bases() {
-            return Set.of(this);
-        }
-
-        @Override
-        public Fraction power(UnitBase base) {
-            return equals(base) ? Fraction.ONE : Fraction.ZERO;
-        }
-
-        @Override
-        public Unit<UnitBase> multiply(Unit<UnitBase> other) {
-            return new PowerProduct<>(this).multiply(other);
-        }
-
-        @Override
-        public DimensionedNumber<UnitBase> multiply(java.math.BigDecimal factor) {
-            return new DimensionedNumber<>(factor, this);
-        }
-
-        @Override
-        public Unit<UnitBase> raise(Fraction power) {
-            return new PowerProduct<>(this).raise(power);
-        }
-
-        @Override
-        public Unit<UnitBase> reciprocal() {
-            return new PowerProduct<>(this).reciprocal();
-        }
-
-        @Override
-        public DimensionedNumber<UnitBase> flat() {
-            return new DimensionedNumber<>(java.math.BigDecimal.ONE, this);
-        }
-
-        @Override
         public String pretty() {
-            return name;
-        }
-
-        @Override
-        public Unit<UnitBase> map(UnitMap<UnitBase> map) {
-            return map.map(this);
-        }
-
-        @Override
-        public <T> T fold(UnitFold<UnitBase, T> fold) {
-            return fold.expt(fold.map(this), Fraction.ONE);
-        }
-
-        @Override
-        public String toString() {
             return name;
         }
 
@@ -166,6 +114,10 @@ class PowerProductTest {
         @Override
         public int hashCode() {
             return name.hashCode();
+        }
+
+        DimensionedNumber<UnitBase> flat() {
+            return new DimensionedNumber<>(new PowerProduct<>(this));
         }
     }
 
@@ -187,7 +139,7 @@ class PowerProductTest {
         UnitBase meter = new UnitBase("m");
         Unit<UnitBase> length = new PowerProduct<>(meter);
 
-        DimensionedNumber<UnitBase> flat = length.flat();
+        DimensionedNumber<UnitBase> flat = length.flat(UnitBase::flat);
 
         assertEquals(0, flat.factor().compareTo(java.math.BigDecimal.ONE));
         assertEquals(length, flat.unit());

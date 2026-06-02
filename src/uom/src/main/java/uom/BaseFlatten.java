@@ -20,37 +20,9 @@
  * SOFTWARE.
  */
 
-package mvm.values.matrix;
+package uom;
 
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
+public interface BaseFlatten<B extends Base> {
 
-import mvm.Printable;
-import uom.Unit;
-
-public class UnitVector implements Printable {
-
-    public final String name;
-    public final IndexSet indexSet;
-    private final List<Unit<ScalarBase>> elements;
-
-    public UnitVector(IndexSet set, String name, ArrayList<Unit<ScalarBase>> units) {
-        this.indexSet = set;
-        this.name = name;
-        elements = units;
-    }
-
-    public int size() {
-        return elements.size();
-    }
-
-    public Unit<ScalarBase> get(int position) {
-        return elements.get(position);
-    }
-
-    @Override
-    public void printText(PrintWriter out) {
-        out.print(name);
-    }
+    public DimensionedNumber<B> flatten(B base);
 }

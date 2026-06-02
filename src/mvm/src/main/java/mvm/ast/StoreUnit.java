@@ -28,9 +28,9 @@ import java.math.BigDecimal;
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
-import mvm.values.matrix.MatrixBase;
+import mvm.values.matrix.ScalarBase;
 import uom.DimensionedNumber;
-import uom.NamedUnit;
+import uom.PowerProduct;
 
 public class StoreUnit implements Instruction {
 
@@ -59,10 +59,13 @@ public class StoreUnit implements Instruction {
     @Override
     public void eval(Machine machine) throws MVMException {
         if (definitionUnit == null) {
-            machine.storeUnit(name, new NamedUnit<MatrixBase>(symbol));
+            machine.storeBase(name, new ScalarBase(this.name, this.symbol));
         } else {
-            machine.storeUnit(name, new NamedUnit<MatrixBase>(symbol,
-                    new DimensionedNumber<MatrixBase>(new BigDecimal(definitionNumber), definitionUnit.eval(machine))));
+            var definition = new DimensionedNumber<ScalarBase>(
+                    new BigDecimal(definitionNumber),
+                    definitionUnit.eval(machine).map(x -> new PowerProduct<ScalarBase>((ScalarBase) x)));
+
+            machine.storeBase(name, new ScalarBase(this.name, this.symbol, definition));
         }
     }
 

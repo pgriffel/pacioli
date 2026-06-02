@@ -28,6 +28,9 @@ import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.MatrixShape;
+import mvm.values.matrix.ScalarBase;
+import uom.PowerProduct;
+import uom.Unit;
 
 public class ScalarShape implements ShapeNode {
 
@@ -46,6 +49,9 @@ public class ScalarShape implements ShapeNode {
 
     @Override
     public MatrixShape eval(Machine machine) throws MVMException {
-        return new MatrixShape(unit.eval(machine));
+        Unit<ScalarBase> unit = this.unit
+                .eval(machine)
+                .map(x -> new PowerProduct<ScalarBase>((ScalarBase) x));
+        return new MatrixShape(unit);
     }
 }

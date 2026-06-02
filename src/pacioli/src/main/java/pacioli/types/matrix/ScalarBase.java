@@ -30,12 +30,13 @@ import pacioli.ast.definition.UnitDefinition;
 import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.types.type.TypeBase;
-import uom.BaseUnit;
 import uom.DimensionedNumber;
 import uom.PowerProduct;
 import uom.Unit;
 
-public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
+public class ScalarBase implements TypeBase {
+
+    public final static Unit<ScalarBase> ONE = new PowerProduct<ScalarBase>();
 
     static final Map<String, BigDecimal> PREFIXES = Map.ofEntries(
             Map.entry("yocto", new BigDecimal(1).movePointRight(-24)),
@@ -78,26 +79,33 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
 
     @Override
     public int hashCode() {
-        return text.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((prefix == null) ? 0 : prefix.hashCode());
+        result = prime * result + ((text == null) ? 0 : text.hashCode());
+        return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == this) {
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(other instanceof Unit)) {
+        if (obj == null)
             return false;
-        }
-        Object real = PowerProduct.normal((Unit) other);
-        if (real == this) {
-            return true;
-        }
-        if (!(real instanceof ScalarBase)) {
+        if (getClass() != obj.getClass())
             return false;
-        }
-        ScalarBase otherUnit = (ScalarBase) real;
-        return text.equals(otherUnit.text) && prefix.equals(otherUnit.prefix);
+        ScalarBase other = (ScalarBase) obj;
+        if (prefix == null) {
+            if (other.prefix != null)
+                return false;
+        } else if (!prefix.equals(other.prefix))
+            return false;
+        if (text == null) {
+            if (other.text != null)
+                return false;
+        } else if (!text.equals(other.text))
+            return false;
+        return true;
     }
 
     @Override
@@ -115,10 +123,10 @@ public class ScalarBase extends BaseUnit<TypeBase> implements TypeBase {
         if (def.isPresent()) {
             DimensionedNumber<TypeBase> dimNum = def.get().evalBody();
             if (dimNum != null) {
-                return def.get().evalBody().flat().multiply(fac);
+                return def.get().evalBody().flat(TypeBase::flat).multiply(fac);
             }
         }
-        return new ScalarBase(info).multiply(fac);
+        return new PowerProduct<TypeBase>(new ScalarBase(info)).multiply(fac);
     }
 
     private String prefixText() {

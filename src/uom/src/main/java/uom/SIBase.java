@@ -40,12 +40,16 @@ public class SIBase implements Base {
         this.prefix = prefix;
     }
 
-    public SIBase withPrefix(Prefix prefix) {
-        if (this.prefix.equals(Prefix.ONE)) {
-            return new SIBase(this.name, this.symbol, prefix);
-        } else {
-            throw new RuntimeException(String.format("Cannot scale already scaled unit '%s'", this.pretty()));
-        }
+    public String name() {
+        return name;
+    }
+
+    public String symbol() {
+        return symbol;
+    }
+
+    public Prefix prefix() {
+        return prefix;
     }
 
     @Override

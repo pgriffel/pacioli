@@ -22,7 +22,7 @@
 
 package uom;
 
-public interface UnitFold<B, T> {
+public interface UnitFold<B extends Base, T> {
 
     public T map(B base);
 

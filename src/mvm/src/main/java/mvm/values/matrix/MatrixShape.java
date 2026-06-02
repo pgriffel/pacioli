@@ -31,15 +31,15 @@ import uom.Unit;
 
 public class MatrixShape implements Printable {
 
-    private final Unit<MatrixBase> factor;
+    private final Unit<ScalarBase> factor;
     private final MatrixDimension rowDimension;
     private final MatrixDimension columnDimension;
-    public final Unit<MatrixBase> rowUnit;
-    public final Unit<MatrixBase> columnUnit;
+    public final Unit<VectorBase> rowUnit;
+    public final Unit<VectorBase> columnUnit;
 
-    public MatrixShape(Unit<MatrixBase> factor, MatrixDimension rowDimension, Unit<MatrixBase> rowUnit,
+    public MatrixShape(Unit<ScalarBase> factor, MatrixDimension rowDimension, Unit<VectorBase> rowUnit,
             MatrixDimension columnDimension,
-            Unit<MatrixBase> columnUnit) {
+            Unit<VectorBase> columnUnit) {
         this.factor = factor;
         this.rowDimension = rowDimension;
         this.rowUnit = rowUnit;
@@ -47,31 +47,31 @@ public class MatrixShape implements Printable {
         this.columnUnit = columnUnit;
     }
 
-    public MatrixShape(Unit<MatrixBase> factor, MatrixDimension rowDimension, MatrixDimension columnDimension) {
+    public MatrixShape(Unit<ScalarBase> factor, MatrixDimension rowDimension, MatrixDimension columnDimension) {
         this.factor = factor;
         this.rowDimension = rowDimension;
-        this.rowUnit = MatrixBase.ONE;
+        this.rowUnit = VectorBase.ONE;
         this.columnDimension = columnDimension;
-        this.columnUnit = MatrixBase.ONE;
+        this.columnUnit = VectorBase.ONE;
     }
 
-    public MatrixShape(Unit<MatrixBase> factor) {
+    public MatrixShape(Unit<ScalarBase> factor) {
         this.factor = factor;
         this.rowDimension = new MatrixDimension();
-        this.rowUnit = MatrixBase.ONE;
+        this.rowUnit = VectorBase.ONE;
         this.columnDimension = new MatrixDimension();
-        this.columnUnit = MatrixBase.ONE;
+        this.columnUnit = VectorBase.ONE;
     }
 
     public MatrixShape() {
-        this.factor = MatrixBase.ONE;
+        this.factor = ScalarBase.ONE;
         this.rowDimension = new MatrixDimension();
-        this.rowUnit = MatrixBase.ONE;
+        this.rowUnit = VectorBase.ONE;
         this.columnDimension = new MatrixDimension();
-        this.columnUnit = MatrixBase.ONE;
+        this.columnUnit = VectorBase.ONE;
     }
 
-    public Unit<MatrixBase> factor() {
+    public Unit<ScalarBase> factor() {
         return factor;
     }
 
@@ -111,11 +111,11 @@ public class MatrixShape implements Printable {
     }
 
     public MatrixShape rowUnits() {
-        return new MatrixShape(MatrixBase.ONE, rowDimension(), rowUnit, new MatrixDimension(), MatrixBase.ONE);
+        return new MatrixShape(ScalarBase.ONE, rowDimension(), rowUnit, new MatrixDimension(), VectorBase.ONE);
     }
 
     public MatrixShape columnUnits() {
-        return new MatrixShape(MatrixBase.ONE, columnDimension(), columnUnit, new MatrixDimension(), MatrixBase.ONE);
+        return new MatrixShape(ScalarBase.ONE, columnDimension(), columnUnit, new MatrixDimension(), VectorBase.ONE);
     }
 
     public IndexSet nthRowIndexSet(int n) {
@@ -126,14 +126,14 @@ public class MatrixShape implements Printable {
         return columnDimension().nthIndexSet(n);
     }
 
-    public Unit<MatrixBase> nthRowUnit(int n) {
+    public Unit<VectorBase> nthRowUnit(int n) {
         assert (n < rowOrder());
-        return MatrixBase.kroneckerNth(rowUnit, n);
+        return VectorBase.kroneckerNth(rowUnit, n);
     }
 
-    public Unit<MatrixBase> nthColumnUnit(int n) {
+    public Unit<VectorBase> nthColumnUnit(int n) {
         assert (n < columnOrder());
-        return MatrixBase.kroneckerNth(columnUnit, n);
+        return VectorBase.kroneckerNth(columnUnit, n);
     }
 
     public boolean unitSquare() {
@@ -141,7 +141,7 @@ public class MatrixShape implements Printable {
     }
 
     public MatrixShape dimensionless() {
-        return new MatrixShape(MatrixBase.ONE, rowDimension(), MatrixBase.ONE, columnDimension(), MatrixBase.ONE);
+        return new MatrixShape(ScalarBase.ONE, rowDimension(), VectorBase.ONE, columnDimension(), VectorBase.ONE);
     }
 
     public MatrixShape transpose() {
@@ -180,16 +180,16 @@ public class MatrixShape implements Printable {
 
     public MatrixShape kronecker(MatrixShape other) {
         return new MatrixShape(factor.multiply(other.factor), rowDimension.kronecker(other.rowDimension),
-                rowUnit.multiply(MatrixBase.shiftUnit(other.rowUnit, rowDimension.width())),
+                rowUnit.multiply(VectorBase.shiftUnit(other.rowUnit, rowDimension.width())),
                 columnDimension.kronecker(other.columnDimension),
-                columnUnit.multiply(MatrixBase.shiftUnit(other.columnUnit, columnDimension.width())));
+                columnUnit.multiply(VectorBase.shiftUnit(other.columnUnit, columnDimension.width())));
     }
 
     public MatrixShape project(List<Integer> cols) {
-        Unit<MatrixBase> projectedUnit = MatrixBase.ONE;
+        Unit<VectorBase> projectedUnit = VectorBase.ONE;
         for (int i = 0; i < cols.size(); i++) {
             projectedUnit = projectedUnit
-                    .multiply(MatrixBase.shiftUnit(MatrixBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
+                    .multiply(VectorBase.shiftUnit(VectorBase.kroneckerNth(rowUnit, cols.get(i)), i - cols.get(i)));
         }
         return new MatrixShape(factor, rowDimension.project(cols), projectedUnit, columnDimension, columnUnit);
     }
@@ -204,19 +204,19 @@ public class MatrixShape implements Printable {
     }
 
     public MatrixShape extractColumn() {
-        return new MatrixShape(factor, rowDimension(), rowUnit, new MatrixDimension(), MatrixBase.ONE);
+        return new MatrixShape(factor, rowDimension(), rowUnit, new MatrixDimension(), VectorBase.ONE);
     }
 
     public MatrixShape extractRow() {
-        return new MatrixShape(factor, new MatrixDimension(), MatrixBase.ONE, columnDimension(), columnUnit);
+        return new MatrixShape(factor, new MatrixDimension(), VectorBase.ONE, columnDimension(), columnUnit);
     }
 
     public MatrixShape leftIdentity() {
-        return new MatrixShape(MatrixBase.ONE, rowDimension(), rowUnit, rowDimension(), rowUnit);
+        return new MatrixShape(ScalarBase.ONE, rowDimension(), rowUnit, rowDimension(), rowUnit);
     }
 
     public MatrixShape rightIdentity() {
-        return new MatrixShape(MatrixBase.ONE, columnDimension(), columnUnit, columnDimension(), columnUnit);
+        return new MatrixShape(ScalarBase.ONE, columnDimension(), columnUnit, columnDimension(), columnUnit);
     }
 
     public MatrixShape raise(Fraction power) {

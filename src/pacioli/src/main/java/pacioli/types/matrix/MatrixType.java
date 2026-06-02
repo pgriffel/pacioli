@@ -34,8 +34,8 @@ import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.VectorUnitVar;
 import uom.Fraction;
+import uom.PowerProduct;
 import uom.Unit;
-import uom.UnitMap;
 
 public class MatrixType implements TypeObject {
 
@@ -88,16 +88,8 @@ public class MatrixType implements TypeObject {
             String idx = this.rowDimension.isVar() ? this.rowDimension.varName()
                     : this.rowDimension.nthIndexSet(0).name();
 
-            rowUnit = this.rowUnit.map(new UnitMap<TypeBase>() {
-                public Unit<TypeBase> map(TypeBase base) {
-                    if (base instanceof VectorUnitVar b) {
-                        return b.withIndexSetName(idx);
-                    } else {
-                        return base;
-                    }
-                }
-            });
-
+            rowUnit = this.rowUnit.map(base -> new PowerProduct<TypeBase>(
+                    base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base));
         }
 
         if (this.columnDimension.isVar() || this.columnDimension.width() > 0) {
@@ -106,18 +98,16 @@ public class MatrixType implements TypeObject {
             String idx = this.columnDimension.isVar() ? this.columnDimension.varName()
                     : this.columnDimension.nthIndexSet(0).name();
 
-            columnUnit = this.columnUnit.map(new UnitMap<TypeBase>() {
-                public Unit<TypeBase> map(TypeBase base) {
-                    if (base instanceof VectorUnitVar b) {
-                        return b.withIndexSetName(idx);
-                    } else {
-                        return base;
-                    }
-                }
-            });
-
+            columnUnit = this.columnUnit.map(base -> new PowerProduct<TypeBase>(
+                    base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base));
         }
-        return new MatrixType(this.factor, this.rowDimension, rowUnit, this.columnDimension, columnUnit);
+
+        return new MatrixType(
+                this.factor,
+                this.rowDimension,
+                rowUnit,
+                this.columnDimension,
+                columnUnit);
     }
 
     @Override
@@ -251,13 +241,12 @@ public class MatrixType implements TypeObject {
             Unit<TypeBase> unit = TypeBase.ONE;
             for (int i = 0; i < columns.size(); i++) {
                 final int tmp = i;
-                unit = rowUnit.map(new UnitMap<TypeBase>() {
-                    public Unit<TypeBase> map(TypeBase base) {
-                        assert (base instanceof VectorBase);
-                        VectorBase bangBase = (VectorBase) base;
-                        return (Unit<TypeBase>) ((bangBase.position() == columns.get(tmp)) ? bangBase.move(tmp)
-                                : TypeBase.ONE);
-                    }
+                unit = rowUnit.map(base -> {
+                    assert (base instanceof VectorBase);
+                    VectorBase bangBase = (VectorBase) base;
+                    return ((bangBase.position() == columns.get(tmp))
+                            ? new PowerProduct<TypeBase>(bangBase.move(tmp))
+                            : TypeBase.ONE);
                 });
             }
 

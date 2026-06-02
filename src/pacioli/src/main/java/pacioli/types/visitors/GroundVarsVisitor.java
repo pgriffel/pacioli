@@ -14,7 +14,6 @@ import pacioli.types.type.VectorUnitVar;
 import pacioli.types.type.Var;
 import pacioli.types.type.TypeBase;
 import uom.Unit;
-import uom.UnitMap;
 import uom.PowerProduct;
 
 /**
@@ -57,42 +56,33 @@ public class GroundVarsVisitor extends TransformType {
     public void visit(MatrixType type) {
         // Map units so that any unit base Var becomes grounded
         Unit<TypeBase> factor = type.factor();
-        Unit<TypeBase> newFactor = factor.map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof Var) {
-                    Var nv = ((Var) base).setGround(true);
-                    return new PowerProduct<TypeBase>((TypeBase) nv);
-                } else if (base instanceof Unit) {
-                    return (Unit<TypeBase>) base;
-                } else {
-                    return new PowerProduct<TypeBase>((TypeBase) base);
-                }
+        Unit<TypeBase> newFactor = factor.map(base -> {
+            if (base instanceof Var var) {
+                return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
+            } else if (base instanceof Unit) {
+                return (Unit<TypeBase>) base;
+            } else {
+                return new PowerProduct<TypeBase>((TypeBase) base);
             }
         });
 
-        Unit<TypeBase> rowUnit = type.rowUnit().map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof Var) {
-                    Var nv = ((Var) base).setGround(true);
-                    return new PowerProduct<TypeBase>((TypeBase) nv);
-                } else if (base instanceof Unit) {
-                    return (Unit<TypeBase>) base;
-                } else {
-                    return new PowerProduct<TypeBase>((TypeBase) base);
-                }
+        Unit<TypeBase> rowUnit = type.rowUnit().map(base -> {
+            if (base instanceof Var var) {
+                return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
+            } else if (base instanceof Unit) {
+                return (Unit<TypeBase>) base;
+            } else {
+                return new PowerProduct<TypeBase>((TypeBase) base);
             }
         });
 
-        Unit<TypeBase> columnUnit = type.columnUnit().map(new UnitMap<TypeBase>() {
-            public Unit<TypeBase> map(TypeBase base) {
-                if (base instanceof Var) {
-                    Var nv = ((Var) base).setGround(true);
-                    return new PowerProduct<TypeBase>((TypeBase) nv);
-                } else if (base instanceof Unit) {
-                    return (Unit<TypeBase>) base;
-                } else {
-                    return new PowerProduct<TypeBase>((TypeBase) base);
-                }
+        Unit<TypeBase> columnUnit = type.columnUnit().map(base -> {
+            if (base instanceof Var var) {
+                return new PowerProduct<TypeBase>((TypeBase) var.setGround(true));
+            } else if (base instanceof Unit) {
+                return (Unit<TypeBase>) base;
+            } else {
+                return new PowerProduct<TypeBase>((TypeBase) base);
             }
         });
 

@@ -36,6 +36,7 @@ import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
+import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import pacioli.types.type.VectorUnitVar;
@@ -84,9 +85,9 @@ public class TypeConstraint implements Printable {
                         throw new PacioliException(var.location(),
                                 "Type definitions's parameter is quantified as index, but is given '%s'", arg.pretty());
                     }
-                } else if (varType instanceof MatrixType) {
-                    if (arg instanceof MatrixType) {
-                        map.put((Var) ((MatrixType) varType).factor(), ((MatrixType) arg).factor());
+                } else if (varType instanceof MatrixType matrixVar) {
+                    if (arg instanceof MatrixType matrixArg) {
+                        map.put(TypeBase.unitAsVar(matrixVar.factor()), matrixArg.factor());
                     } else {
                         throw new PacioliException(var.location(),
                                 "Type definitions's parameter is quantified as unit, but is given '%s'", arg.pretty());

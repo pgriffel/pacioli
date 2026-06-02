@@ -26,7 +26,10 @@ import java.io.PrintWriter;
 
 import mvm.MVMException;
 import mvm.Machine;
-import mvm.values.matrix.MatrixBase;
+import mvm.values.matrix.MVMBase;
+import mvm.values.matrix.ScalarBase;
+import uom.PowerProduct;
+import uom.Prefix;
 import uom.Unit;
 
 public class UnitNamed implements UnitNode {
@@ -44,11 +47,24 @@ public class UnitNamed implements UnitNode {
     }
 
     @Override
-    public Unit<MatrixBase> eval(Machine machine) throws MVMException {
+    public Unit<MVMBase> eval(Machine machine) throws MVMException {
         if (name.isEmpty()) {
-            return MatrixBase.ONE;
-        } else if (machine.unitSystem.congtainsUnit(name)) {
-            return machine.unitSystem.lookupUnit(name);
+            return MVMBase.ONE;
+        } else if (machine.unitSystem.containsUnit(name)) {
+            var parts = name.split(":");
+            if (parts.length == 1) {
+                return new PowerProduct<MVMBase>(machine.unitSystem.lookupBase(name));
+            } else if (parts.length == 2) {
+                MVMBase base = machine.unitSystem.lookupBase(parts[1]);
+                Prefix prefix = machine.unitSystem.lookupPrefix(parts[0]);
+                if (base instanceof ScalarBase s) {
+                    return new PowerProduct<MVMBase>(new ScalarBase(s.name(), s.symbol(), prefix));
+                } else {
+                    throw new MVMException("expected scalar base, but got '%s'", base);
+                }
+            } else {
+                throw new MVMException("invalid unit name '%s'", name);
+            }
         } else {
             throw new MVMException("unit '%s' unknown", name);
         }
