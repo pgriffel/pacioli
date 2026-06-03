@@ -30,9 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 import pacioli.compiler.Printable;
-import pacioli.types.matrix.MatrixBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.MatrixBase;
 import uom.Base;
 import uom.Unit;
 import uom.UnitFlatMap;

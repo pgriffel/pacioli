@@ -30,7 +30,7 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixBase;
 import uom.DimensionedNumber;
 import uom.Unit;
 

@@ -43,7 +43,7 @@ import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.types.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixBase;
 import uom.DimensionedNumber;
 
 public class MVMTranspiler implements SymbolTableVisitor {

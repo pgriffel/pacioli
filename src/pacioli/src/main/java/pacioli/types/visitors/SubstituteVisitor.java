@@ -23,16 +23,16 @@
 package pacioli.types.visitors;
 
 import pacioli.types.Substitution;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class SubstituteVisitor extends TransformType {
 

@@ -66,8 +66,6 @@ import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.Typing;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.ParametricType;
@@ -75,6 +73,8 @@ import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.MatrixType;
 
 public class TypeInference extends IdentityVisitor {
 

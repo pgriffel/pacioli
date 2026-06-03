@@ -56,7 +56,7 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ValueInfo;
-import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.matrix.MatrixType;
 
 public class JSGenerator extends PrintVisitor implements CodeGenerator {
 

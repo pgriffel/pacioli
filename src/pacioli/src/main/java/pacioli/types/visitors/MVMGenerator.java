@@ -25,12 +25,6 @@ package pacioli.types.visitors;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.MatrixBase;
-import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
@@ -40,6 +34,12 @@ import pacioli.types.type.Quant;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class MVMGenerator implements TypeVisitor {
 

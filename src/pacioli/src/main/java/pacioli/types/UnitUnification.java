@@ -27,9 +27,9 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.compiler.PacioliException;
-import pacioli.types.matrix.MatrixBase;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.MatrixBase;
 import uom.Fraction;
 import uom.Unit;
 

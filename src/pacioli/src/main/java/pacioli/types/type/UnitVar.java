@@ -25,7 +25,7 @@ package pacioli.types.type;
 import java.util.Optional;
 
 import pacioli.symboltable.info.Info;
-import pacioli.types.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixBase;
 
 public interface UnitVar extends MatrixBase, Var {
 

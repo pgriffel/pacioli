@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.types.matrix;
+package pacioli.types.type.matrix;
 
 import java.math.BigDecimal;
 import java.util.Map;

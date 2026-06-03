@@ -31,15 +31,15 @@ import pacioli.Pacioli;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
 import pacioli.types.Substitution;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.MatrixBase;
-import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class TypeConstraint implements Printable {
 

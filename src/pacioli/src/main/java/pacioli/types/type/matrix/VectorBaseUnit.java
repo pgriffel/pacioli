@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.types.matrix;
+package pacioli.types.type.matrix;
 
 import pacioli.compiler.CompilationSettings;
 import pacioli.symboltable.info.VectorBaseInfo;

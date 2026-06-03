@@ -87,9 +87,9 @@ import pacioli.types.ast.SchemaNode;
 import pacioli.types.ast.TypeApplicationNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixType;
 
 public class ResolveVisitor extends IdentityVisitor {
 

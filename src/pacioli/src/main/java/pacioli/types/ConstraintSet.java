@@ -35,10 +35,10 @@ import pacioli.ast.expression.ApplicationNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.MatrixBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
 import uom.Unit;
 
 /**

@@ -32,12 +32,12 @@ import pacioli.Pacioli;
 import pacioli.compiler.Printable;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class TypeContext implements Printable {
 

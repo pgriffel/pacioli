@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package pacioli.types.matrix;
+package pacioli.types.type.matrix;
 
 import java.io.PrintWriter;
 import java.util.Optional;

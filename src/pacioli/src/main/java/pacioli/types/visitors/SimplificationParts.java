@@ -27,12 +27,6 @@ import java.util.List;
 import java.util.Stack;
 
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.ScalarUnitVar;
-import pacioli.types.matrix.MatrixBase;
-import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
@@ -45,6 +39,12 @@ import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
 public class SimplificationParts implements TypeVisitor {

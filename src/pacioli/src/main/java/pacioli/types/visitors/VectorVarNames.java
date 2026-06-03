@@ -25,11 +25,11 @@ package pacioli.types.visitors;
 import java.util.HashSet;
 import java.util.Set;
 
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.MatrixBase;
-import pacioli.types.matrix.VectorUnitVar;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
 public class VectorVarNames extends Collector<String> {
