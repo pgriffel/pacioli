@@ -25,6 +25,9 @@ package uom;
 import java.util.HashMap;
 import java.util.Set;
 
+/**
+ * A store for unit bases and prefixes.
+ */
 public class UnitSystem<B extends Base> {
 
     record Equation<X extends Base>(Unit<X> lhs, Unit<X> rhs) {

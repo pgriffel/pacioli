@@ -31,29 +31,62 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Unit of measurement.
+ * 
+ * A unit type Unit<B> is parameterized with base type B. The bases in the unit
+ * are of type B.
+ * 
+ * The unit is stored as a sparse map from bases to fractional numbers. The
+ * fractional numbers avoid rounding errors.
+ * 
+ * A base is not a unit. Use Unit.from(base) to create a base unit from a base.
+ */
 public class Unit<B extends Base> {
+
+    /**
+     * Interface for the fold method
+     */
+    public interface Fold<X extends Base, Y> {
+
+        public Y map(X base);
+
+        public Y mult(Y x, Y y);
+
+        public Y expt(Y x, Fraction n);
+
+        public Y one();
+    }
+
+    /**
+     * Interface for the map method
+     */
+    public interface Map<X extends Base, Y extends Base> {
+        public Y apply(X base);
+    }
+
+    /**
+     * Interface for the flatMap method
+     */
+    public interface FlatMap<X extends Base, Y extends Base> {
+        public Unit<Y> apply(X base);
+    }
+
+    /**
+     * Interface for the reduce method
+     */
+    public interface Reduce<X extends Base> {
+
+        public DimensionedNumber<X> apply(X base);
+    }
 
     private final HashMap<B, Fraction> powers;
 
-    public Unit() {
+    private Unit() {
         powers = new HashMap<B, Fraction>();
     }
 
-    public Unit(Unit<B> x, Unit<B> y) {
-        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
-
-        for (B base : x.bases()) {
-            hash.put(base, x.power(base));
-        }
-
-        for (B base : y.bases()) {
-            hash.put(base, y.power(base).add(x.power(base)));
-        }
-
-        powers = hash;
-    }
-
-    public Unit(B base) {
+    private Unit(B base) {
         powers = new HashMap<B, Fraction>();
         powers.put(base, Fraction.ONE);
     }
@@ -104,9 +137,197 @@ public class Unit<B extends Base> {
         return true;
     }
 
+    public Unit<B> multiply(Unit<B> other) {
+        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
+
+        for (B base : this.bases()) {
+            hash.put(base, this.power(base));
+        }
+
+        for (B base : other.bases()) {
+            hash.put(base, other.power(base).add(this.power(base)));
+        }
+
+        return new Unit<>(hash);
+    }
+
+    public DimensionedNumber<B> multiply(BigDecimal factor) {
+        return new DimensionedNumber<B>(factor, this);
+    }
+
+    public Unit<B> raise(Fraction power) {
+        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
+        for (B base : bases()) {
+            hash.put(base, power(base).mult(power));
+        }
+        return new Unit<B>(hash);
+    }
+
+    public Unit<B> reciprocal() {
+        return raise(new Fraction(-1));
+    }
+
+    /**
+     * Does the unit have a single base and does that base has power 1?
+     * 
+     * See singleElement
+     * 
+     * @return True if so.
+     */
+    public boolean isElementary() {
+        if (this.powers.size() == 1) {
+            return this.powers.entrySet().iterator().next().getValue().equals(Fraction.ONE);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The single base in the unit.
+     * 
+     * It is an error if the base does not have exactly one base or the power of
+     * that base does not equal 1.
+     * 
+     * See isElementary.
+     * 
+     * @return The base
+     */
+    public B singleElement() {
+        if (this.powers.size() == 1) {
+            B base = this.powers.keySet().iterator().next();
+
+            if (power(base).equals(Fraction.ONE)) {
+                return base;
+            }
+        }
+
+        throw new RuntimeException(
+                String.format("Cannot get single element of %s, unit is not elementary.", this.toString()));
+    }
+
+    /**
+     * Reduces the unit of measurement to an equivalent coherent dimensioned number.
+     * 
+     * A coherent dimensioned number is a number expressed in base units only.
+     * 
+     * Maps the reducer (recursively) to all bases in the number's unit. It is
+     * assumed the reducer replaces a base with a coherent equivalent.
+     * 
+     * @param reducer Function that maps a base to a coherent equivalent.
+     * @return The equivalent coherent dimensioned number.
+     */
+    public DimensionedNumber<B> reduce(Reduce<B> reducer) {
+        DimensionedNumber<B> number = new DimensionedNumber<B>();
+
+        for (B base : bases()) {
+            DimensionedNumber<B> coherent = reducer.apply(base).raise(power(base));
+
+            number = number.multiply(coherent);
+        }
+
+        return number;
+    }
+
+    /**
+     * Maps b0^p0 * ... * bn^pn to f(b0)^p0 * ... * f(b0)^pn, where f(bi) is
+     * a unit constructed from the result of applying the given map to bi.
+     * 
+     * @param <T> Type of the mapped bases
+     * @param map A map from bases to bases
+     * @return The mapped unit
+     */
+    public <T extends Base> Unit<T> map(Map<B, T> map) {
+        Unit<T> newUnit = new Unit<T>();
+
+        for (B base : bases()) {
+            Unit<T> mapped = new Unit<T>(map.apply(base)).raise(power(base));
+
+            newUnit = newUnit.multiply(mapped);
+        }
+
+        return newUnit;
+    }
+
+    /**
+     * Maps b0^p0 * ... * bn^pn to f(b0)^p0 * ... * f(b0)^pn, where f(bi) is the
+     * result of applying the given map to bi.
+     * 
+     * @param <T> Type of the mapped units
+     * @param map A map from bases to units
+     * @return The mapped unit
+     */
+    public <T extends Base> Unit<T> flatMap(FlatMap<B, T> map) {
+        Unit<T> newUnit = new Unit<T>();
+
+        for (B base : bases()) {
+            Unit<T> mapped = map.apply(base).raise(power(base));
+
+            newUnit = newUnit.multiply(mapped);
+        }
+
+        return newUnit;
+    }
+
+    /**
+     * In b0^p0 * ... * bn^pn replaces b0 by fold.map(b0), * by fold.mult and ^ by
+     * fold.expt.
+     * 
+     * Returns fold.one() if this unit is 1 (the identity unit one()).
+     * 
+     * @param <T>  Type of the result
+     * @param fold The fold operations
+     * @return The folded unit
+     */
+    public <T> T fold(Fold<B, T> fold) {
+        T result = null;
+
+        for (B base : bases()) {
+            Fraction power = power(base);
+            T mapped;
+
+            if (power.equals(Fraction.ONE)) {
+                mapped = fold.map(base);
+            } else {
+                mapped = fold.expt(fold.map(base), power);
+            }
+
+            if (result == null) {
+                result = mapped;
+            } else {
+                result = fold.mult(result, mapped);
+            }
+        }
+
+        return (result == null) ? fold.one() : result;
+    }
+
+    /**
+     * Alphabetical order of units of measurement. Orders the units using the pretty
+     * form.
+     */
+    public class BaseComparator<X extends Base> implements Comparator<X> {
+
+        @Override
+        public int compare(X o1, X o2) {
+            String text1 = o1.pretty();
+            String text2 = o2.pretty();
+            if (text1.length() > 0 && text2.length() > 0) {
+                boolean char1Upper = Character.isUpperCase(text1.charAt(0));
+                boolean char2Upper = Character.isUpperCase(text2.charAt(0));
+                if (char1Upper && !char2Upper) {
+                    return 1;
+                }
+                if (!char1Upper && char2Upper) {
+                    return -1;
+                }
+            }
+            return text1.compareTo(text2);
+        }
+    }
+
     @Override
     public String toString() {
-        return fold(new UnitFold<B, String>() {
+        return fold(new Fold<B, String>() {
 
             @Override
             public String map(B base) {
@@ -134,72 +355,11 @@ public class Unit<B extends Base> {
         });
     }
 
-    public Unit<B> multiply(Unit<B> other) {
-        return new Unit<B>(this, other);
-    }
-
-    public <T> T fold(UnitFold<B, T> fold) {
-        T result = null;
-        for (B base : bases()) {
-            Fraction power = power(base);
-            T mapped;
-            if (power.equals(Fraction.ONE)) {
-                mapped = fold.map(base);
-            } else {
-                mapped = fold.expt(fold.map(base), power);
-            }
-            if (result == null) {
-                result = mapped;
-            } else {
-                result = fold.mult(result, mapped);
-            }
-        }
-        return (result == null) ? fold.one() : result;
-    }
-
-    public DimensionedNumber<B> multiply(BigDecimal factor) {
-        return new DimensionedNumber<B>(factor, this);
-    }
-
-    public Unit<B> raise(Fraction power) {
-        HashMap<B, Fraction> hash = new HashMap<B, Fraction>();
-        for (B base : bases()) {
-            hash.put(base, power(base).mult(power));
-        }
-        return new Unit<B>(hash);
-    }
-
-    public Unit<B> reciprocal() {
-        return raise(new Fraction(-1));
-    }
-
-    public DimensionedNumber<B> reduce(UnitReduce<B> reducer) {
-        DimensionedNumber<B> number = new DimensionedNumber<B>();
-        for (B base : bases()) {
-            DimensionedNumber<B> coherent = reducer.apply(base).raise(power(base));
-            number = number.multiply(coherent);
-        }
-        return number;
-    }
-
-    public <T extends Base> Unit<T> map(UnitMap<B, T> map) {
-        Unit<T> newUnit = new Unit<T>();
-        for (B base : bases()) {
-            Unit<T> mapped = new Unit<T>(map.apply(base)).raise(power(base));
-            newUnit = newUnit.multiply(mapped);
-        }
-        return newUnit;
-    }
-
-    public <T extends Base> Unit<T> flatMap(UnitFlatMap<B, T> map) {
-        Unit<T> newUnit = new Unit<T>();
-        for (B base : bases()) {
-            Unit<T> mapped = map.apply(base).raise(power(base));
-            newUnit = newUnit.multiply(mapped);
-        }
-        return newUnit;
-    }
-
+    /**
+     * Text form for use in output.
+     * 
+     * @return String form suitable for output.
+     */
     public String pretty() {
 
         String symbolic = "";
@@ -259,47 +419,23 @@ public class Unit<B extends Base> {
         return symbolic;
     }
 
-    public boolean isElementary() {
-        if (this.powers.size() == 1) {
-            return this.powers.entrySet().iterator().next().getValue().equals(Fraction.ONE);
-        } else {
-            return false;
-        }
-    }
-
-    public B singleElement() {
-        if (this.powers.size() == 1) {
-            return this.powers.keySet().iterator().next();
-        } else {
-            throw new RuntimeException(
-                    String.format("Cannot get single element of %s, unit is not elementary.", this.pretty()));
-        }
-    }
-
-    public class BaseComparator<X extends Base> implements Comparator<X> {
-
-        @Override
-        public int compare(X o1, X o2) {
-            String text1 = o1.pretty();
-            String text2 = o2.pretty();
-            if (text1.length() > 0 && text2.length() > 0) {
-                boolean char1Upper = Character.isUpperCase(text1.charAt(0));
-                boolean char2Upper = Character.isUpperCase(text2.charAt(0));
-                if (char1Upper && !char2Upper) {
-                    return 1;
-                }
-                if (!char1Upper && char2Upper) {
-                    return -1;
-                }
-            }
-            return text1.compareTo(text2);
-        }
-    }
-
+    /**
+     * Creates a base unit from a base.
+     * 
+     * @param <B>  The unit's base type
+     * @param base A base
+     * @return A base unit
+     */
     public static <B extends Base> Unit<B> from(B base) {
         return new Unit<B>(base);
     }
 
+    /**
+     * The identity element in the group of units.
+     * 
+     * @param <B> The unit's base type
+     * @return A 'dimensionless' unit
+     */
     public static <B extends Base> Unit<B> one() {
         return new Unit<B>();
     }

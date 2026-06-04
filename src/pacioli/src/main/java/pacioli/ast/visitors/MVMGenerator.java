@@ -81,7 +81,6 @@ import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
 import uom.Fraction;
 import uom.Unit;
-import uom.UnitFold;
 
 public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
@@ -101,7 +100,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     }
 
     // UNITTODO
-    static class UnitMVMCompiler implements UnitFold<MatrixBase, String> {
+    static class UnitMVMCompiler implements Unit.Fold<MatrixBase, String> {
 
         @Override
         public String map(MatrixBase base) {

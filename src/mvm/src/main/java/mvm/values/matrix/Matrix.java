@@ -50,7 +50,6 @@ import org.apache.commons.math3.linear.EigenDecomposition;
 import uom.DimensionedNumber;
 import uom.Fraction;
 import uom.Unit;
-import uom.UnitMap;
 
 public class Matrix implements PacioliValue {
 
@@ -541,12 +540,12 @@ public class Matrix implements PacioliValue {
         for (int i = 0; i < nrRows; i++) {
             DimensionedNumber<ScalarBase> number = unitAt(i, i).reciprocal().reduce(ScalarBase::flat);
             if (!number.unit().bases().isEmpty()) {
-                throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
+                throw new MVMException("Cannot convert '%s'  (%s)", number.pretty(), number.unit().bases());
             } else {
                 Double num = number.factor().doubleValue();
                 if (num == 0) {
                     throw new MVMException("Zero conversion factor for '%s' '%s'  (%s)",
-                            unitAt(i, i).reduce(ScalarBase::flat).reciprocal().toText(), number.toText(),
+                            unitAt(i, i).reduce(ScalarBase::flat).reciprocal().pretty(), number.pretty(),
                             number.unit().bases());
                 }
                 numbers.setEntry(i, i, num);
@@ -578,7 +577,7 @@ public class Matrix implements PacioliValue {
                 if (i == j) {
                     DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().reduce(ScalarBase::flat);
                     if (!number.unit().bases().isEmpty()) {
-                        throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
+                        throw new MVMException("Cannot convert '%s'  (%s)", number.pretty(), number.unit().bases());
                     } else {
                         // Double num = unit.factor().doubleValue();
                         // numbers.setEntry(i, i, num);
@@ -622,7 +621,7 @@ public class Matrix implements PacioliValue {
                 if (i == j) {
                     DimensionedNumber<ScalarBase> number = unitAt(i, j).reciprocal().reduce(ScalarBase::flat);
                     if (!number.unit().bases().isEmpty()) {
-                        throw new MVMException("Cannot convert '%s'  (%s)", number.toText(), number.unit().bases());
+                        throw new MVMException("Cannot convert '%s'  (%s)", number.pretty(), number.unit().bases());
                     } else {
                         // Double num = unit.factor().doubleValue();
                         // numbers.setEntry(i, i, num);

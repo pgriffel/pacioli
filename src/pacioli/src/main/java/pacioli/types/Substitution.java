@@ -35,7 +35,6 @@ import pacioli.types.type.Var;
 import pacioli.types.type.matrix.MatrixBase;
 import uom.Base;
 import uom.Unit;
-import uom.UnitFlatMap;
 
 public class Substitution implements Printable {
 
@@ -75,7 +74,7 @@ public class Substitution implements Printable {
     }
 
     public <B extends Base> Unit<B> apply(Unit<B> unit) {
-        return unit.flatMap(new UnitFlatMap<B, B>() {
+        return unit.flatMap(new Unit.FlatMap<B, B>() {
             public Unit<B> apply(B base) {
                 if (base instanceof Var var && map.containsKey(var)) {
                     Object obj = map.get(var);

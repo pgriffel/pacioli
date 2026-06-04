@@ -24,6 +24,11 @@ package uom;
 
 import java.math.BigDecimal;
 
+/**
+ * SI prefix for units of measurement.
+ * 
+ * A Prefix scales an SIBase.
+ */
 public class Prefix {
 
     private final String symbols;

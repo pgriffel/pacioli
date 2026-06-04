@@ -24,6 +24,11 @@ package uom;
 
 import java.math.BigInteger;
 
+/**
+ * Fractional numbers for precise powers in units of measurement.
+ * 
+ * The unit class stores a unit as a map from Bases to Fractions.
+ */
 public class Fraction extends Number implements Comparable<Fraction> {
 
     private final int numerator;

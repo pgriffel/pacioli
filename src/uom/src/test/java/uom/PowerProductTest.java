@@ -45,8 +45,8 @@ class UnitTest {
         SimpleBase meter = new SimpleBase("m");
         SimpleBase second = new SimpleBase("s");
 
-        Unit<SimpleBase> length = new Unit<>(meter);
-        Unit<SimpleBase> time = new Unit<>(second);
+        Unit<SimpleBase> length = Unit.from(meter);
+        Unit<SimpleBase> time = Unit.from(second);
         Unit<SimpleBase> velocity = length.multiply(time.reciprocal());
 
         assertTrue(velocity.bases().contains(meter));
@@ -58,7 +58,7 @@ class UnitTest {
     @Test
     void testRaiseAndReciprocal() {
         SimpleBase meter = new SimpleBase("m");
-        Unit<SimpleBase> length = new Unit<>(meter);
+        Unit<SimpleBase> length = Unit.from(meter);
 
         Unit<SimpleBase> area = length.raise(new Fraction(2));
         assertEquals(new Fraction(2), area.power(meter));
@@ -72,8 +72,8 @@ class UnitTest {
         SimpleBase meter = new SimpleBase("m");
         SimpleBase second = new SimpleBase("s");
 
-        Unit<SimpleBase> unitA = new Unit<>(meter).multiply(new Unit<>(second));
-        Unit<SimpleBase> unitB = new Unit<>(second).multiply(new Unit<>(meter));
+        Unit<SimpleBase> unitA = Unit.from(meter).multiply(Unit.from(second));
+        Unit<SimpleBase> unitB = Unit.from(second).multiply(Unit.from(meter));
 
         assertEquals(unitA, unitB);
     }
@@ -81,7 +81,7 @@ class UnitTest {
     @Test
     void testToStringOmitsExponentOne() {
         SimpleBase meter = new SimpleBase("m");
-        Unit<SimpleBase> length = new Unit<>(meter);
+        Unit<SimpleBase> length = Unit.from(meter);
         assertEquals("m", length.pretty());
 
         Unit<SimpleBase> area = length.raise(new Fraction(2));
@@ -126,9 +126,9 @@ class UnitTest {
         SimpleBase meter = new SimpleBase("m");
         SimpleBase second = new SimpleBase("s");
 
-        Unit<SimpleBase> velocity = new Unit<>(meter)
-                .multiply(new Unit<>(second).raise(new Fraction(2)));
-        Unit<SimpleBase> mapped = velocity.flatMap(base -> new Unit<>(base).raise(new Fraction(2)));
+        Unit<SimpleBase> velocity = Unit.from(meter)
+                .multiply(Unit.from(second).raise(new Fraction(2)));
+        Unit<SimpleBase> mapped = velocity.flatMap(base -> Unit.from(base).raise(new Fraction(2)));
 
         assertEquals(new Fraction(2), mapped.power(meter));
         assertEquals(new Fraction(4), mapped.power(second));
@@ -137,7 +137,7 @@ class UnitTest {
     @Test
     void testFlatUsesBaseFlat() {
         UnitBase meter = new UnitBase("m");
-        Unit<UnitBase> length = new Unit<>(meter);
+        Unit<UnitBase> length = Unit.from(meter);
 
         DimensionedNumber<UnitBase> flat = length.reduce(UnitBase::flat);
 

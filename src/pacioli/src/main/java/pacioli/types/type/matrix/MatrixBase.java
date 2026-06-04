@@ -28,7 +28,6 @@ import uom.Base;
 import uom.DimensionedNumber;
 import uom.Fraction;
 import uom.Unit;
-import uom.UnitFold;
 
 public interface MatrixBase extends Base {
 
@@ -67,7 +66,7 @@ public interface MatrixBase extends Base {
     }
 
     // UNITTODO
-    static public class UnitMVMGenerator implements UnitFold<MatrixBase, String> {
+    static public class UnitMVMGenerator implements Unit.Fold<MatrixBase, String> {
 
         private CompilationSettings settings;
 

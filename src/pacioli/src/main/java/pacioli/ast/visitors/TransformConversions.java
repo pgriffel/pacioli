@@ -38,7 +38,6 @@ import pacioli.types.type.matrix.VectorBaseUnit;
 import uom.DimensionedNumber;
 import uom.Fraction;
 import uom.Unit;
-import uom.UnitFold;
 
 /**
  * Transforms all conversion nodes into matrix literal nodes with the proper
@@ -78,7 +77,7 @@ public class TransformConversions extends IdentityTransformation {
             for (int i = 0; i < nrItems; i++) {
                 final List<String> items = node.rowDim.ElementAt(i);
                 assert (items.size() == width);
-                UnitFold<MatrixBase, DimensionedNumber<MatrixBase>> folder = new UnitFold<MatrixBase, DimensionedNumber<MatrixBase>>() {
+                Unit.Fold<MatrixBase, DimensionedNumber<MatrixBase>> folder = new Unit.Fold<MatrixBase, DimensionedNumber<MatrixBase>>() {
 
                     @Override
                     public DimensionedNumber<MatrixBase> map(MatrixBase base) {

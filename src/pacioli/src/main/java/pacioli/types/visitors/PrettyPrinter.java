@@ -43,7 +43,7 @@ import pacioli.types.type.matrix.MatrixType;
 import pacioli.types.type.matrix.ScalarUnitVar;
 import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Fraction;
-import uom.UnitFold;
+import uom.Unit;
 
 /**
  * WIP. Alternative for pretty printing via the devaluator.
@@ -204,7 +204,7 @@ public class PrettyPrinter implements TypeVisitor {
     }
 
     // UNITTODO Not used. Replace pretty printing in UoM with this?
-    static public class UnitPrinter implements UnitFold<MatrixBase, String> {
+    static public class UnitPrinter implements Unit.Fold<MatrixBase, String> {
 
         @Override
         public String map(MatrixBase base) {

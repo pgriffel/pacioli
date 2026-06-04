@@ -22,6 +22,9 @@
 
 package uom;
 
+/**
+ * Implementation of the Base interface for SI units.
+ */
 public class SIBase implements Base {
 
     private final String name;
