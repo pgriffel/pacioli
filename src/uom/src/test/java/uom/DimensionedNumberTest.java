@@ -8,77 +8,14 @@ import org.junit.jupiter.api.Test;
 
 class DimensionedNumberTest {
 
-    private static final class SimpleBase implements Base {
-        private final String name;
-
-        SimpleBase(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String pretty() {
-            return name;
-        }
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof SimpleBase)) {
-                return false;
-            }
-            return name.equals(((SimpleBase) other).name);
-        }
-
-        @Override
-        public int hashCode() {
-            return name.hashCode();
-        }
-    }
-
-    private static final class UnitBase implements Base {
-        private final String name;
-
-        UnitBase(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String pretty() {
-            return name;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof UnitBase)) {
-                return false;
-            }
-            return name.equals(((UnitBase) other).name);
-        }
-
-        @Override
-        public int hashCode() {
-            return name.hashCode();
-        }
-    }
-
     @Test
     void testMultiplyNumbersAndUnits() {
-        SimpleBase meter = new SimpleBase("m");
-        Unit<SimpleBase> length = Unit.from(meter);
-        DimensionedNumber<SimpleBase> twoMeters = new DimensionedNumber<>(BigDecimal.valueOf(2), length);
-        DimensionedNumber<SimpleBase> threeMeters = new DimensionedNumber<>(BigDecimal.valueOf(3), length);
+        SIBase meter = new SIBase("meter", "m");
+        Unit<SIBase> length = Unit.from(meter);
+        DimensionedNumber<SIBase> twoMeters = new DimensionedNumber<>(BigDecimal.valueOf(2), length);
+        DimensionedNumber<SIBase> threeMeters = new DimensionedNumber<>(BigDecimal.valueOf(3), length);
 
-        DimensionedNumber<SimpleBase> result = twoMeters.multiply(threeMeters);
+        DimensionedNumber<SIBase> result = twoMeters.multiply(threeMeters);
 
         assertEquals(BigDecimal.valueOf(6), result.factor());
         assertEquals(new Fraction(2), result.unit().power(meter));
@@ -87,15 +24,15 @@ class DimensionedNumberTest {
 
     @Test
     void testDivideProducesReciprocalUnit() {
-        SimpleBase meter = new SimpleBase("m");
-        SimpleBase second = new SimpleBase("s");
+        SIBase meter = new SIBase("meter", "m");
+        SIBase second = new SIBase("second", "s");
 
-        DimensionedNumber<SimpleBase> velocity = new DimensionedNumber<>(BigDecimal.valueOf(6),
-                Unit.<SimpleBase>from(meter).multiply(Unit.from(second).reciprocal()));
+        DimensionedNumber<SIBase> velocity = new DimensionedNumber<>(BigDecimal.valueOf(6),
+                Unit.<SIBase>from(meter).multiply(Unit.from(second).reciprocal()));
 
-        DimensionedNumber<SimpleBase> time = new DimensionedNumber<>(BigDecimal.valueOf(2), Unit.from(second));
+        DimensionedNumber<SIBase> time = new DimensionedNumber<>(BigDecimal.valueOf(2), Unit.from(second));
 
-        DimensionedNumber<SimpleBase> result = velocity.divide(time);
+        DimensionedNumber<SIBase> result = velocity.divide(time);
 
         assertEquals(0, result.factor().compareTo(BigDecimal.valueOf(3)));
         assertEquals(Fraction.ONE, result.unit().power(meter));
@@ -104,11 +41,11 @@ class DimensionedNumberTest {
 
     @Test
     void testRaiseIntegerPower() {
-        SimpleBase meter = new SimpleBase("m");
-        Unit<SimpleBase> length = Unit.from(meter);
-        DimensionedNumber<SimpleBase> oneMeter = new DimensionedNumber<>(BigDecimal.valueOf(4), length);
+        SIBase meter = new SIBase("meter", "m");
+        Unit<SIBase> length = Unit.from(meter);
+        DimensionedNumber<SIBase> oneMeter = new DimensionedNumber<>(BigDecimal.valueOf(4), length);
 
-        DimensionedNumber<SimpleBase> area = oneMeter.raise(new Fraction(2));
+        DimensionedNumber<SIBase> area = oneMeter.raise(new Fraction(2));
 
         assertEquals(BigDecimal.valueOf(16), area.factor());
         assertEquals(new Fraction(2), area.unit().power(meter));
@@ -117,11 +54,11 @@ class DimensionedNumberTest {
 
     @Test
     void testReciprocal() {
-        SimpleBase meter = new SimpleBase("m");
-        DimensionedNumber<SimpleBase> number = new DimensionedNumber<>(BigDecimal.valueOf(5),
+        SIBase meter = new SIBase("meter", "m");
+        DimensionedNumber<SIBase> number = new DimensionedNumber<>(BigDecimal.valueOf(5),
                 Unit.from(meter));
 
-        DimensionedNumber<SimpleBase> reciprocal = number.reciprocal();
+        DimensionedNumber<SIBase> reciprocal = number.reciprocal();
 
         assertEquals(0, reciprocal.factor().compareTo(new BigDecimal("0.2")));
         assertEquals(new Fraction(-1), reciprocal.unit().power(meter));
@@ -129,8 +66,8 @@ class DimensionedNumberTest {
 
     @Test
     void testToTextUsesPrettyUnit() {
-        UnitBase meter = new UnitBase("m");
-        DimensionedNumber<UnitBase> number = new DimensionedNumber<>(BigDecimal.valueOf(2), Unit.from(meter));
+        SIBase meter = new SIBase("meter", "m");
+        DimensionedNumber<SIBase> number = new DimensionedNumber<>(BigDecimal.valueOf(2), Unit.from(meter));
 
         assertEquals("2 m", number.pretty());
     }

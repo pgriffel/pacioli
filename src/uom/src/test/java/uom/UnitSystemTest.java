@@ -8,50 +8,21 @@ import org.junit.jupiter.api.Test;
 
 class UnitSystemTest {
 
-    private static final class TestBase implements Base {
-        private final String name;
-
-        private TestBase(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String pretty() {
-            return name;
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) {
-                return true;
-            }
-            if (!(other instanceof TestBase)) {
-                return false;
-            }
-            return name.equals(((TestBase) other).name);
-        }
-
-        @Override
-        public int hashCode() {
-            return name.hashCode();
-        }
-    }
-
     @Test
     void testAddAndLookupUnit() {
-        UnitSystem<TestBase> system = new UnitSystem<>();
-        TestBase meter = new TestBase("meter");
+        UnitSystem<SIBase> system = new UnitSystem<>();
+        SIBase meter = new SIBase("meter", "m");
 
         system.addUnit("m", meter);
 
         assertTrue(system.containsUnit("m"));
         assertEquals(meter, system.lookupBase("m"));
-        assertEquals("meter", system.lookupBase("m").pretty());
+        assertEquals("m", system.lookupBase("m").pretty());
     }
 
     @Test
     void testAddAndLookupPrefix() {
-        UnitSystem<TestBase> system = new UnitSystem<>();
+        UnitSystem<SIBase> system = new UnitSystem<>();
         Prefix kilo = new Prefix("k", BigDecimal.valueOf(1000));
 
         system.addPrefix("k", kilo);
@@ -63,8 +34,8 @@ class UnitSystemTest {
 
     @Test
     void testContainsPrefixedUnitName() {
-        UnitSystem<TestBase> system = new UnitSystem<>();
-        TestBase meter = new TestBase("meter");
+        UnitSystem<SIBase> system = new UnitSystem<>();
+        SIBase meter = new SIBase("meter", "m");
         Prefix deci = new Prefix("d", BigDecimal.valueOf(0.1));
 
         system.addUnit("m", meter);
@@ -75,7 +46,7 @@ class UnitSystemTest {
 
     @Test
     void testLookupPrefixMissingThrows() {
-        UnitSystem<TestBase> system = new UnitSystem<>();
+        UnitSystem<SIBase> system = new UnitSystem<>();
         assertThrows(RuntimeException.class, () -> system.lookupPrefix("x"));
     }
 }

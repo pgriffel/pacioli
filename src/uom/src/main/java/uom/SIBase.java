@@ -97,4 +97,10 @@ public class SIBase implements Base {
         return prefix.equals(Prefix.ONE) ? this.symbol : prefix.prefixName() + ":" + symbol;
     }
 
+    public DimensionedNumber<SIBase> reduce() {
+        return Unit
+                .from(new SIBase(this.name, this.symbol))
+                .multiply(this.prefix.prefixFactor());
+    }
+
 }
