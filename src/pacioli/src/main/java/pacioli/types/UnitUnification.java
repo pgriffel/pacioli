@@ -24,7 +24,6 @@ package pacioli.types;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import pacioli.compiler.PacioliException;
 import pacioli.types.type.UnitVar;
@@ -35,12 +34,11 @@ import uom.Unit;
 
 public class UnitUnification {
 
-    public static Substitution unifyUnits(Unit<MatrixBase> x, Unit<MatrixBase> y) throws PacioliException {
+    public static <B extends MatrixBase> Substitution unifyUnits(Unit<B> x, Unit<B> y) throws PacioliException {
         try {
             if (x.equals(y)) {
                 return new Substitution();
             } else {
-                // hier met de factor(s) multiplyen?
                 return unitUnify(x.multiply(y.reciprocal()));
             }
         } catch (PacioliException ex) {
@@ -48,13 +46,13 @@ public class UnitUnification {
         }
     }
 
-    private static Substitution unitUnify(Unit<MatrixBase> unit) throws PacioliException {
+    private static <B extends MatrixBase> Substitution unitUnify(Unit<B> unit) throws PacioliException {
 
-        List<MatrixBase> varBases = new ArrayList<MatrixBase>();
-        List<MatrixBase> fixedBases = new ArrayList<MatrixBase>();
+        List<B> varBases = new ArrayList<B>();
+        List<B> fixedBases = new ArrayList<B>();
 
-        for (MatrixBase base : unit.bases()) {
-            if (base instanceof UnitVar unitVar && !unitVar.isGround()) {
+        for (B base : unit.bases()) {
+            if (base.isVar()) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -72,12 +70,12 @@ public class UnitUnification {
 
         if (varBases.size() == 1) {
 
-            UnitVar var = (UnitVar) varBases.get(0);
+            B var = varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
-            Unit<MatrixBase> residu = MatrixBase.ONE;
+            Unit<B> residu = Unit.one();
 
-            for (MatrixBase fixed : fixedBases) {
+            for (B fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
                 if (fixedPower % power != 0) {
@@ -86,20 +84,20 @@ public class UnitUnification {
                 residu = residu.multiply(Unit.from(fixed).raise(new Fraction(-fixedPower / power)));
             }
 
-            return new Substitution(var, residu);
+            return new Substitution((Var) var, residu);
         }
 
-        UnitVar minVar = (UnitVar) varBases.get(0);
-        for (MatrixBase var : varBases) {
+        B minVar = varBases.get(0);
+        for (B var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (UnitVar) var;
+                minVar = var;
             }
         }
 
         assert (unit.power(minVar).isInt());
         Fraction minPower = unit.power(minVar);
-        Unit<MatrixBase> rest = MatrixBase.ONE;
-        for (MatrixBase var : unit.bases()) {
+        Unit<B> rest = Unit.one();
+        for (B var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
                 rest = rest.multiply(
@@ -107,18 +105,18 @@ public class UnitUnification {
             }
         }
 
-        Substitution tmp = new Substitution(minVar, Unit.<MatrixBase>from(minVar).multiply(rest));
+        Substitution tmp = new Substitution((Var) minVar, Unit.from(minVar).multiply(rest));
         return unitUnify(tmp.apply(unit)).compose(tmp);
     }
 
     // UNITTODO
-    public static Substitution unitSimplify(Unit<MatrixBase> unit, Set<UnitVar> ignore) {
+    public static Substitution unitSimplify(Unit<MatrixBase> unit) {
 
         List<MatrixBase> varBases = new ArrayList<MatrixBase>();
         List<MatrixBase> fixedBases = new ArrayList<MatrixBase>();
 
         for (MatrixBase base : unit.bases()) {
-            if (base instanceof UnitVar unitVar && !unitVar.isGround() && !ignore.contains((Var) base)) {
+            if (base.isVar()) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -140,8 +138,8 @@ public class UnitUnification {
         Fraction minPower = unit.power(minVar);
 
         if (minPower.signum() < 0) {
-            Substitution tmp = new Substitution(minVar, Unit.<MatrixBase>from(minVar).reciprocal());
-            return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
+            Substitution tmp = new Substitution(minVar, Unit.from(minVar).reciprocal());
+            return unitSimplify(tmp.apply(unit)).compose(tmp);
         }
 
         if (varBases.size() == 1) {
@@ -171,6 +169,6 @@ public class UnitUnification {
         }
 
         Substitution tmp = new Substitution(minVar, Unit.<MatrixBase>from(minVar).multiply(rest));
-        return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
+        return unitSimplify(tmp.apply(unit)).compose(tmp);
     }
 }

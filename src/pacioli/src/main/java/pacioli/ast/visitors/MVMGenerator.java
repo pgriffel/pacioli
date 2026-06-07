@@ -95,15 +95,15 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     }
 
     // Unit compilation
-    public static String compileUnitToMVM(Unit<MatrixBase> unit) {
-        return unit.fold(new UnitMVMCompiler());
+    public static <B extends MatrixBase> String compileUnitToMVM(Unit<B> unit) {
+        return unit.fold(new UnitMVMCompiler<B>());
     }
 
     // UNITTODO
-    static class UnitMVMCompiler implements Unit.Fold<MatrixBase, String> {
+    static class UnitMVMCompiler<B extends MatrixBase> implements Unit.Fold<B, String> {
 
         @Override
-        public String map(MatrixBase base) {
+        public String map(B base) {
             return base.asMVMUnit(null);
         }
 

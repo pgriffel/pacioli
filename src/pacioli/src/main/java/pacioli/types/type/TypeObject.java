@@ -131,7 +131,13 @@ public interface TypeObject extends Printable {
     }
 
     public default Substitution match(TypeObject other) throws PacioliException {
-        return unify(this, other.groundAll(), false);
+        var revertGrounding = new Substitution();
+
+        for (var var : other.typeVars()) {
+            revertGrounding = revertGrounding.compose(new Substitution(var.setGround(true), var));
+        }
+
+        return revertGrounding.compose(unify(this, other.groundAll(), false));
     }
 
     public default boolean matches(TypeObject other) {
@@ -164,28 +170,41 @@ public interface TypeObject extends Printable {
     };
 
     public default TypeObject simplify() {
-        Substitution mgu = new Substitution();
+
         List<Unit<MatrixBase>> parts = simplificationParts();
-        Set<UnitVar> ignore = new HashSet<>();
+
+        Substitution mgu = new Substitution();
+        Set<String> ignore = new HashSet<>();
+
         for (int i = 0; i < parts.size(); i++) {
-            Unit<MatrixBase> part = mgu.apply(parts.get(i));
-            Substitution simplified = UnitUnification.unitSimplify(part, ignore);
+            Unit<MatrixBase> part = mgu.apply(parts.get(i))
+                    .map(x -> (x instanceof Var v)
+                            ? ((MatrixBase) v.setGround(ignore.contains(v.pretty())))
+                            : x);
+
+            Substitution simplified = UnitUnification.unitSimplify(part);
+
             for (MatrixBase base : simplified.apply(part).bases()) {
                 if (base instanceof Var) {
-                    ignore.add((UnitVar) base);
+                    ignore.add(base.pretty());
                 }
             }
+
             mgu = simplified.compose(mgu);
         }
-        TypeObject result = applySubstitution(mgu);
-        return result;
+
+        return applySubstitution(mgu).ungroundAll();
     }
 
     /**
      * Return a copy of this type with all variable occurrences marked as grounded.
      */
     public default TypeObject groundAll() {
-        return new GroundVarsVisitor().typeNodeAccept(this);
+        return new GroundVarsVisitor(true).typeNodeAccept(this);
+    }
+
+    public default TypeObject ungroundAll() {
+        return new GroundVarsVisitor(false).typeNodeAccept(this);
     }
 
     public default boolean isInstanceOf(TypeObject other) {

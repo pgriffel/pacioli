@@ -48,6 +48,7 @@ import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
 import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public class JSTranspiler implements SymbolTableVisitor {
@@ -219,7 +220,7 @@ public class JSTranspiler implements SymbolTableVisitor {
             Optional<UnitNode> optionalBody = optionalDefinition.get().body;
             if (optionalBody.isPresent()) {
                 UnitNode body = optionalBody.get();
-                DimensionedNumber<MatrixBase> number = body.evalUnit();
+                DimensionedNumber<ScalarBase> number = body.evalUnit();
                 out.format("Pacioli.compute_%s = function () {\n", info.globalName());
                 out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: \"%s\"}\n",
                         number.factor(), MatrixBase.compileUnitToJS(number.unit()),
@@ -247,7 +248,7 @@ public class JSTranspiler implements SymbolTableVisitor {
         List<String> unitTexts = new ArrayList<String>();
 
         for (UnitDecl entry : info.items()) {
-            DimensionedNumber<MatrixBase> number = entry.value.evalUnit();
+            DimensionedNumber<ScalarBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
             unitTexts.add("'" + entry.key.name() + "': " + MatrixBase.compileUnitToJS(number.unit()));
         }

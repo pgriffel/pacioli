@@ -34,26 +34,26 @@ import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
 import pacioli.symboltable.info.AliasInfo;
 import pacioli.symboltable.info.ScalarBaseInfo;
-import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.ScalarBase;
 import pacioli.types.type.matrix.ScalarBaseUnit;
 import uom.DimensionedNumber;
 import uom.Fraction;
 
 public class UnitEvaluator extends IdentityVisitor {
 
-    private Stack<DimensionedNumber<MatrixBase>> dimNumStack = new Stack<DimensionedNumber<MatrixBase>>();
+    private Stack<DimensionedNumber<ScalarBase>> dimNumStack = new Stack<DimensionedNumber<ScalarBase>>();
 
     // -------------------------------------------------------------------------
     // Accept and return methods
     // -------------------------------------------------------------------------
 
-    public DimensionedNumber<MatrixBase> unitAccept(UnitNode node) {
+    public DimensionedNumber<ScalarBase> unitAccept(UnitNode node) {
         // Pacioli.logln("accept: %s", node.getClass());
         node.accept(this);
         return dimNumStack.pop();
     }
 
-    private void returnNode(DimensionedNumber<MatrixBase> value) {
+    private void returnNode(DimensionedNumber<ScalarBase> value) {
         // Pacioli.logln("return: %s", value.getClass());
         dimNumStack.push(value);
     }
@@ -64,7 +64,7 @@ public class UnitEvaluator extends IdentityVisitor {
 
     @Override
     public void visit(NumberUnitNode node) {
-        returnNode(MatrixBase.ONE.multiply(new BigDecimal(node.number)));
+        returnNode(ScalarBase.ONE.multiply(new BigDecimal(node.number)));
     }
 
     @Override
@@ -75,9 +75,9 @@ public class UnitEvaluator extends IdentityVisitor {
         } else {
             ScalarBaseInfo sinfo = (ScalarBaseInfo) node.info;
             if (!node.prefix().isPresent()) {
-                returnNode(new DimensionedNumber<MatrixBase>(new ScalarBaseUnit(sinfo)));
+                returnNode(new DimensionedNumber<ScalarBase>(new ScalarBaseUnit(sinfo)));
             } else {
-                returnNode(new DimensionedNumber<MatrixBase>(new ScalarBaseUnit(node.prefix().get(), sinfo)));
+                returnNode(new DimensionedNumber<ScalarBase>(new ScalarBaseUnit(node.prefix().get(), sinfo)));
             }
         }
     }
@@ -85,8 +85,8 @@ public class UnitEvaluator extends IdentityVisitor {
     @Override
     public void visit(UnitOperationNode node) {
 
-        DimensionedNumber<MatrixBase> left = unitAccept(node.left);
-        DimensionedNumber<MatrixBase> right = unitAccept(node.right);
+        DimensionedNumber<ScalarBase> left = unitAccept(node.left);
+        DimensionedNumber<ScalarBase> right = unitAccept(node.right);
 
         if ("*".equals(node.operator)) {
             returnNode(left.multiply(right));

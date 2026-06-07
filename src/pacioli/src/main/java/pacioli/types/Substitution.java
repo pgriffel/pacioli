@@ -33,13 +33,18 @@ import pacioli.compiler.Printable;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import pacioli.types.type.matrix.MatrixBase;
-import uom.Base;
 import uom.Unit;
 
+/**
+ * Substitution for TypeObject and its parts.
+ * 
+ * It substitutes variables (objects of type Var). They are replaced with
+ * objects of type TypeObject, type Var, or type Unit<MatrixBase>. Type Var
+ * and Unit<MatrixBase> are not a TypeObject, but parts of it that can be
+ * substituted.
+ */
 public class Substitution implements Printable {
 
-    // Map van strings van maken. Dan is geen equality op Vars nodig en kun je ze
-    // collecten in een set etc.
     private final Map<Var, Object> map;
 
     public Substitution() {
@@ -51,7 +56,7 @@ public class Substitution implements Printable {
         this.map.put(var, type);
     }
 
-    public Substitution(Var var, Unit<MatrixBase> unit) {
+    public Substitution(Var var, Unit<? extends MatrixBase> unit) {
         map = new HashMap<Var, Object>();
         this.map.put(var, unit);
     }
@@ -65,7 +70,7 @@ public class Substitution implements Printable {
         map = new HashMap<Var, Object>(other.map);
     }
 
-    public Substitution(Map<Var, Object> map) {
+    private Substitution(Map<Var, Object> map) {
         this.map = map;
     }
 
@@ -73,7 +78,7 @@ public class Substitution implements Printable {
         return map.containsKey(var);
     }
 
-    public <B extends Base> Unit<B> apply(Unit<B> unit) {
+    public <B extends MatrixBase> Unit<B> apply(Unit<B> unit) {
         return unit.flatMap(new Unit.FlatMap<B, B>() {
             public Unit<B> apply(B base) {
                 if (base instanceof Var var && map.containsKey(var)) {
@@ -91,9 +96,9 @@ public class Substitution implements Printable {
     }
 
     public TypeObject apply(TypeObject type) {
-        if (type instanceof Var) {
-            if (map.containsKey((Var) type)) {
-                Object obj = map.get((Var) type);
+        if (type instanceof Var var) {
+            if (map.containsKey(var)) {
+                Object obj = map.get(var);
                 assert (obj instanceof TypeObject);
                 return (TypeObject) obj;
             } else {

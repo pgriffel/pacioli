@@ -107,7 +107,7 @@ public final class ScalarBaseUnit implements ScalarBase {
     }
 
     @Override
-    public DimensionedNumber<MatrixBase> flat() {
+    public DimensionedNumber<ScalarBase> flat() {
         BigDecimal fac = new BigDecimal(1);
         if (prefix.isPresent()) {
             BigDecimal s = PREFIXES.get(prefix.get());
@@ -119,12 +119,12 @@ public final class ScalarBaseUnit implements ScalarBase {
         }
         Optional<UnitDefinition> def = info.definition();
         if (def.isPresent()) {
-            DimensionedNumber<MatrixBase> dimNum = def.get().evalBody();
+            DimensionedNumber<ScalarBase> dimNum = def.get().evalBody();
             if (dimNum != null) {
-                return def.get().evalBody().reduce(MatrixBase::flat).multiply(fac);
+                return def.get().evalBody().reduce(ScalarBase::flat).multiply(fac);
             }
         }
-        return Unit.<MatrixBase>from(new ScalarBaseUnit(info)).multiply(fac);
+        return Unit.<ScalarBase>from(new ScalarBaseUnit(info)).multiply(fac);
     }
 
     private String prefixText() {

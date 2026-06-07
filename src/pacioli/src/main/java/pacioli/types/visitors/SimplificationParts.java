@@ -43,7 +43,9 @@ import pacioli.types.type.matrix.IndexList;
 import pacioli.types.type.matrix.IndexType;
 import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
 import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorBase;
 import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
@@ -97,12 +99,12 @@ public class SimplificationParts implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
         List<Unit<MatrixBase>> parts = new ArrayList<Unit<MatrixBase>>();
-        parts.add(type.factor());
+        parts.add(type.factor().map(x -> (ScalarBase) x));
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            parts.add(type.rowUnit());
+            parts.add(type.rowUnit().map(x -> (VectorBase) x));
         }
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            parts.add(type.columnUnit());
+            parts.add(type.columnUnit().map(x -> (VectorBase) x));
         }
         returnParts(parts);
     }

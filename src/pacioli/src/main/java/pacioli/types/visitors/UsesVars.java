@@ -42,7 +42,9 @@ import pacioli.types.type.matrix.IndexList;
 import pacioli.types.type.matrix.IndexType;
 import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
 import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorBase;
 import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
@@ -93,12 +95,12 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
         Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(unitVars(type.factor()));
+        all.addAll(unitVars(type.factor().map(x -> (ScalarBase) x)));
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            all.addAll(unitVars(type.rowUnit()));
+            all.addAll(unitVars(type.rowUnit().map(x -> (VectorBase) x)));
         }
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            all.addAll(unitVars(type.columnUnit()));
+            all.addAll(unitVars(type.columnUnit().map(x -> (VectorBase) x)));
         }
         all.addAll(varSetAccept(type.rowDimension()));
         all.addAll(varSetAccept(type.columnDimension()));

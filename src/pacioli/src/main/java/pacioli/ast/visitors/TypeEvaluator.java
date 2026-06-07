@@ -69,10 +69,11 @@ import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.matrix.IndexList;
 import pacioli.types.type.matrix.IndexType;
-import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
 import pacioli.types.type.matrix.ScalarBaseUnit;
 import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorBase;
 import pacioli.types.type.matrix.VectorBaseUnit;
 import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Fraction;
@@ -124,7 +125,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
         // The index type and row unit for the to be created matrix type
         IndexType indexType;
-        Unit<MatrixBase> rowUnit;
+        Unit<VectorBase> rowUnit;
 
         // Find index set info. The node must have been resolved.
         IndexSetInfo indexInfo = (IndexSetInfo) node.indexSet().info;
@@ -140,7 +141,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
         // Create the row unit if it exists, otherwise the unit is 1.
         if (!node.unit().isPresent()) {
-            rowUnit = MatrixBase.ONE;
+            rowUnit = VectorBase.ONE;
         } else {
 
             // Find the unit info. The node must have been resolved.
@@ -174,7 +175,7 @@ public class TypeEvaluator extends IdentityVisitor {
         if (!new BigDecimal(node.number).equals(BigDecimal.ONE)) {
             visitorThrow(node.location(), "Didn't expect number, just a 1");
         }
-        returnType(new MatrixType(MatrixBase.ONE));
+        returnType(new MatrixType(ScalarBase.ONE));
     }
 
     @Override

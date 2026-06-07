@@ -29,6 +29,7 @@ import pacioli.types.type.TypeObject;
 import pacioli.types.type.matrix.IndexType;
 import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.VectorBase;
 import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
@@ -53,7 +54,7 @@ public class VectorVarNames extends Collector<String> {
         }
     }
 
-    private Set<String> unitVecVarNames(IndexType dimension, Unit<MatrixBase> unit) {
+    private Set<String> unitVecVarNames(IndexType dimension, Unit<VectorBase> unit) {
         Set<String> names = new HashSet<String>();
         if (dimension.isVar()) {
             for (MatrixBase base : unit.bases()) {

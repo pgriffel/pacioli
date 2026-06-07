@@ -23,27 +23,17 @@
 package pacioli.types.type.matrix;
 
 import pacioli.compiler.CompilationSettings;
-import pacioli.types.type.Var;
 import uom.Base;
-import uom.DimensionedNumber;
 import uom.Fraction;
 import uom.Unit;
 
 public interface MatrixBase extends Base {
 
+    default public boolean isVar() {
+        return false;
+    }
+
     public final static Unit<MatrixBase> ONE = Unit.one();
-
-    public static boolean unitIsVar(Unit<MatrixBase> unit) {
-        return unit.isElementary();
-    }
-
-    public static Var unitAsVar(Unit<MatrixBase> unit) {
-        if (unit.singleElement() instanceof Var var) {
-            return var;
-        } else {
-            throw new RuntimeException(String.format("Cannot cast unit %s to var", unit.pretty()));
-        }
-    }
 
     /**
      * The compiler use ScalarBase in unit expressions (defunit) and in type
@@ -57,16 +47,12 @@ public interface MatrixBase extends Base {
 
     public String asMVMShape(CompilationSettings settings);
 
-    public static String compileUnitToMVM(Unit<MatrixBase> unit, CompilationSettings settings) {
-        return unit.fold(new UnitMVMGenerator(settings));
-    }
-
-    default DimensionedNumber<MatrixBase> flat() {
-        return new DimensionedNumber<MatrixBase>(this);
+    public static <B extends MatrixBase> String compileUnitToMVM(Unit<B> unit, CompilationSettings settings) {
+        return unit.fold(new UnitMVMGenerator<B>(settings));
     }
 
     // UNITTODO
-    static public class UnitMVMGenerator implements Unit.Fold<MatrixBase, String> {
+    static public class UnitMVMGenerator<B extends MatrixBase> implements Unit.Fold<B, String> {
 
         private CompilationSettings settings;
 
@@ -95,18 +81,18 @@ public interface MatrixBase extends Base {
         }
     }
 
-    public static String compileUnitToJS(Unit<MatrixBase> unit) {
+    public static <B extends MatrixBase> String compileUnitToJS(Unit<B> unit) {
         return compileUnitToJSHelper(unit, false);
     }
 
-    public static String compileUnitToJSType(Unit<MatrixBase> unit) {
+    public static <B extends MatrixBase> String compileUnitToJSType(Unit<B> unit) {
         return compileUnitToJSHelper(unit, true);
     }
 
-    private static String compileUnitToJSHelper(Unit<MatrixBase> unit, boolean forType) {
+    private static <B extends MatrixBase> String compileUnitToJSHelper(Unit<B> unit, boolean forType) {
         String product = "";
         int n = 0;
-        for (MatrixBase base : unit.bases()) {
+        for (B base : unit.bases()) {
             String baseText = base.asJS(forType) + ".expt(" + unit.power(base) + ")";
             product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
             n++;

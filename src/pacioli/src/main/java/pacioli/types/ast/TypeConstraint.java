@@ -23,10 +23,6 @@
 package pacioli.types.ast;
 
 import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import pacioli.Pacioli;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
@@ -37,8 +33,8 @@ import pacioli.types.type.ParametricType;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import pacioli.types.type.matrix.IndexType;
-import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
 import pacioli.types.type.matrix.VectorUnitVar;
 
 public class TypeConstraint implements Printable {
@@ -63,31 +59,33 @@ public class TypeConstraint implements Printable {
                     type.name(),
                     lhs.arguments().size(), type.args().size());
         }
-        Map<Var, Object> map = new HashMap<Var, Object>();
+
+        var subs = new Substitution();
+
         for (int i = 0; i < lhs.arguments().size(); i++) {
             TypeNode var = lhs.arguments().get(i);
             TypeObject arg = type.args().get(i);
             if (var instanceof TypeIdentifierNode) {
                 TypeObject varType = var.evalType();
-                if (varType instanceof OperatorVar) {
-                    if (arg instanceof ParametricType) {
-                        map.put((Var) varType, ((ParametricType) arg).op());
+                if (varType instanceof OperatorVar opVar) {
+                    if (arg instanceof ParametricType parametricType) {
+                        subs = subs.compose(new Substitution(opVar, parametricType.op()));
                     } else {
-                        map.put((Var) varType, arg);
+                        subs = subs.compose(new Substitution(opVar, arg));
                     }
-                } else if (varType instanceof Var) {
-                    map.put((Var) varType, arg);
-
-                } else if (varType instanceof IndexType) {
-                    if (arg instanceof IndexType) {
-                        map.put((Var) ((IndexType) varType).indexSet(), ((IndexType) arg).indexSet());
+                } else if (varType instanceof Var v) {
+                    subs = subs.compose(new Substitution(v, arg));
+                } else if (varType instanceof IndexType indexVar) {
+                    if (arg instanceof IndexType indexType) {
+                        subs = subs.compose(new Substitution((Var) indexVar.indexSet(), indexType.indexSet()));
                     } else {
                         throw new PacioliException(var.location(),
                                 "Type definitions's parameter is quantified as index, but is given '%s'", arg.pretty());
                     }
                 } else if (varType instanceof MatrixType matrixVar) {
                     if (arg instanceof MatrixType matrixArg) {
-                        map.put(MatrixBase.unitAsVar(matrixVar.factor()), matrixArg.factor());
+                        subs = subs.compose(
+                                new Substitution(ScalarBase.unitAsVar(matrixVar.factor()), matrixArg.factor()));
                     } else {
                         throw new PacioliException(var.location(),
                                 "Type definitions's parameter is quantified as unit, but is given '%s'", arg.pretty());
@@ -96,12 +94,12 @@ public class TypeConstraint implements Printable {
                     throw new PacioliException(var.location(),
                             "Type definitions's parameter should type, index or unit");
                 }
-            } else if (var instanceof BangTypeNode) {
-                if (arg instanceof MatrixType) {
-                    BangTypeNode bang = (BangTypeNode) var;
-                    MatrixType argMat = (MatrixType) arg;
-                    map.put(new IndexSetVar(bang.indexSetName()), argMat.rowDimension().indexSet());
-                    map.put(new VectorUnitVar(bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit());
+            } else if (var instanceof BangTypeNode bang) {
+                if (arg instanceof MatrixType argMat) {
+                    subs = subs.compose(
+                            new Substitution(new IndexSetVar(bang.indexSetName()), argMat.rowDimension().indexSet()));
+                    subs = subs.compose(new Substitution(
+                            new VectorUnitVar(bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit()));
                 } else {
                     throw new PacioliException(var.location(),
                             "Type definitions's parameter is quantified as unit vector, but is given '%s'",
@@ -114,12 +112,10 @@ public class TypeConstraint implements Printable {
         }
 
         if (Pacioli.Options.showTypeReductions) {
-            for (Entry<Var, Object> entry : map.entrySet()) {
-                Pacioli.log("  reduce: %s -> %s", entry.getKey().pretty(), entry.getValue());
-            }
+            Pacioli.log("  reduce: %s ", subs.pretty());
         }
 
-        return rhs.applySubstitution(new Substitution(map));
+        return rhs.applySubstitution(subs);
     }
 
     @Override

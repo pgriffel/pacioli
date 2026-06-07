@@ -43,7 +43,7 @@ import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public class MVMTranspiler implements SymbolTableVisitor {
@@ -122,8 +122,8 @@ public class MVMTranspiler implements SymbolTableVisitor {
             if (!definition.get().body.isPresent()) {
                 out.format("baseunit \"%s\" \"%s\";\n", info.name(), MVMGenerator.escapeString(info.symbol()));
             } else {
-                DimensionedNumber<MatrixBase> number = definition.get().body.get().evalUnit();
-                number = number.reduce(MatrixBase::flat);
+                DimensionedNumber<ScalarBase> number = definition.get().body.get().evalUnit();
+                number = number.reduce(ScalarBase::flat);
                 out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), MVMGenerator.escapeString(info.symbol()),
                         number.factor(),
                         MVMGenerator.compileUnitToMVM(number.unit()));
@@ -146,7 +146,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
         for (UnitDecl entry : info.items()) {
-            DimensionedNumber<MatrixBase> number = entry.value.evalUnit();
+            DimensionedNumber<ScalarBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
             unitTexts.add("\"" + entry.key.name() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
         }

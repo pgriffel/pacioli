@@ -39,6 +39,8 @@ import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
 import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
+import pacioli.types.type.matrix.VectorBase;
 import uom.Unit;
 
 /**
@@ -54,7 +56,8 @@ public class ConstraintSet implements Printable {
 
     private final List<EqualityConstraint> equalityConstaints = new ArrayList<EqualityConstraint>();
     private final List<InstanceConstraint> instanceConstaints = new ArrayList<InstanceConstraint>();
-    private final List<UnitConstraint> unitConstaints = new ArrayList<UnitConstraint>();
+    private final List<UnitConstraint<ScalarBase>> unitConstaints = new ArrayList<>();
+    private final List<UnitConstraint<VectorBase>> vectorUnitConstaints = new ArrayList<>();
     private final List<NModeConstraint> nModeConstaints = new ArrayList<NModeConstraint>();
 
     class EqualityConstraint {
@@ -114,14 +117,14 @@ public class ConstraintSet implements Printable {
         }
     }
 
-    class UnitConstraint {
+    class UnitConstraint<B extends MatrixBase> {
 
-        public final Unit<MatrixBase> lhs;
-        public final Unit<MatrixBase> rhs;
+        public final Unit<B> lhs;
+        public final Unit<B> rhs;
         public String reason;
         public Location location;
 
-        public UnitConstraint(Unit<MatrixBase> lhs, Unit<MatrixBase> rhs, String reason, Location location) {
+        public UnitConstraint(Unit<B> lhs, Unit<B> rhs, String reason, Location location) {
             this.lhs = lhs;
             this.rhs = rhs;
             this.reason = reason;
@@ -189,12 +192,21 @@ public class ConstraintSet implements Printable {
         this.instanceConstaints.add(new InstanceConstraint(lhs, rhs, freeVars, reason, location));
     }
 
-    public void addUnitConstraint(Unit<MatrixBase> lhs, Unit<MatrixBase> rhs, String text, Location location) {
-        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, location));
+    public void addScalarUnitConstraint(Unit<ScalarBase> lhs, Unit<ScalarBase> rhs, String text,
+            Location location) {
+        this.unitConstaints.add(new UnitConstraint<ScalarBase>(lhs, rhs, text, location));
     }
 
-    public void addUnitConstraint(Unit<MatrixBase> lhs, Unit<MatrixBase> rhs, String text) {
-        this.unitConstaints.add(new UnitConstraint(lhs, rhs, text, null));
+    public void addVectorUnitConstraint(Unit<VectorBase> lhs, Unit<VectorBase> rhs, String text, Location location) {
+        this.vectorUnitConstaints.add(new UnitConstraint<VectorBase>(lhs, rhs, text, location));
+    }
+
+    public void addScalarUnitConstraint(Unit<ScalarBase> lhs, Unit<ScalarBase> rhs, String text) {
+        this.unitConstaints.add(new UnitConstraint<ScalarBase>(lhs, rhs, text, null));
+    }
+
+    public void addVectorUnitConstraint(Unit<VectorBase> lhs, Unit<VectorBase> rhs, String text) {
+        this.vectorUnitConstaints.add(new UnitConstraint<VectorBase>(lhs, rhs, text, null));
     }
 
     public void addConstraints(ConstraintSet other) {
@@ -204,8 +216,11 @@ public class ConstraintSet implements Printable {
         for (InstanceConstraint constraint : other.instanceConstaints) {
             instanceConstaints.add(constraint);
         }
-        for (UnitConstraint constraint : other.unitConstaints) {
+        for (UnitConstraint<ScalarBase> constraint : other.unitConstaints) {
             unitConstaints.add(constraint);
+        }
+        for (UnitConstraint<VectorBase> constraint : other.vectorUnitConstaints) {
+            vectorUnitConstaints.add(constraint);
         }
         for (NModeConstraint constraint : other.nModeConstaints) {
             nModeConstaints.add(constraint);
@@ -231,8 +246,13 @@ public class ConstraintSet implements Printable {
                     joinTexts(", ", new ArrayList<Var>(constraint.freeVars)),
                     constraint.rhs.pretty());
         }
-        for (UnitConstraint constraint : unitConstaints) {
+        for (UnitConstraint<ScalarBase> constraint : unitConstaints) {
             out.format("  %s u= %s\n",
+                    constraint.lhs.pretty(),
+                    constraint.rhs.pretty());
+        }
+        for (UnitConstraint<VectorBase> constraint : vectorUnitConstaints) {
+            out.format("  %s v= %s\n",
                     constraint.lhs.pretty(),
                     constraint.rhs.pretty());
         }
@@ -259,13 +279,15 @@ public class ConstraintSet implements Printable {
         int depth = DEPTH - 1;
 
         List<EqualityConstraint> todoEqs = new ArrayList<EqualityConstraint>(equalityConstaints);
-        List<UnitConstraint> todoUnits = new ArrayList<UnitConstraint>(unitConstaints);
+        List<UnitConstraint<ScalarBase>> todoUnits = new ArrayList<>(unitConstaints);
+        List<UnitConstraint<VectorBase>> todoVectorUnits = new ArrayList<>(vectorUnitConstaints);
         List<InstanceConstraint> todoInsts = new ArrayList<InstanceConstraint>(instanceConstaints);
         List<NModeConstraint> todoNModes = new ArrayList<NModeConstraint>(nModeConstaints);
 
         Substitution mgu = new Substitution();
 
-        while (!todoEqs.isEmpty() || !todoInsts.isEmpty() || !todoUnits.isEmpty() || !todoNModes.isEmpty()) {
+        while (!todoEqs.isEmpty() || !todoInsts.isEmpty() || !todoUnits.isEmpty() || !todoVectorUnits.isEmpty()
+                || !todoNModes.isEmpty()) {
 
             while (!todoEqs.isEmpty()) {
 
@@ -294,15 +316,36 @@ public class ConstraintSet implements Printable {
 
             while (!todoUnits.isEmpty()) {
 
-                UnitConstraint constraint = todoUnits.get(0);
+                UnitConstraint<ScalarBase> constraint = todoUnits.get(0);
                 todoUnits.remove(0);
 
                 try {
-                    Unit<MatrixBase> left = mgu.apply(constraint.lhs);
-                    Unit<MatrixBase> right = mgu.apply(constraint.rhs);
+                    Unit<ScalarBase> left = mgu.apply(constraint.lhs);
+                    Unit<ScalarBase> right = mgu.apply(constraint.rhs);
 
                     if (verbose) {
-                        Pacioli.log("\nUnifying units %s and %s\n%s",
+                        Pacioli.log("\nUnifying scalar units %s and %s\n%s",
+                                left.pretty(), right.pretty(), constraint.reason);
+                    }
+
+                    mgu = UnitUnification.unifyUnits(left, right).compose(mgu);
+                } catch (PacioliException ex) {
+                    throw new PacioliException(constraint.location == null ? ex.location() : constraint.location,
+                            "\n" + ex.getLocalizedMessage() + "\n\n" + constraint.reason);
+                }
+            }
+
+            while (!todoVectorUnits.isEmpty()) {
+
+                UnitConstraint<VectorBase> constraint = todoVectorUnits.get(0);
+                todoVectorUnits.remove(0);
+
+                try {
+                    Unit<VectorBase> left = mgu.apply(constraint.lhs);
+                    Unit<VectorBase> right = mgu.apply(constraint.rhs);
+
+                    if (verbose) {
+                        Pacioli.log("\nUnifying vector units %s and %s\n%s",
                                 left.pretty(), right.pretty(), constraint.reason);
                     }
 

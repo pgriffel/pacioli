@@ -32,7 +32,7 @@ import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public final class VectorBaseInfo extends UnitInfo {
@@ -63,12 +63,12 @@ public final class VectorBaseInfo extends UnitInfo {
         return items;
     }
 
-    public DimensionedNumber<MatrixBase> lookupUnit(String name) {
+    public DimensionedNumber<ScalarBase> lookupUnit(String name) {
         // todo: handle ignored factor!!!
         // DimensionedNumber<TypeBase> stored = units.get(name);
         // DimensionedNumber<TypeBase> stored = units.get(name).value.evalUnit();
         UnitDecl stored = units.get(name);
-        return (stored == null) ? new DimensionedNumber<MatrixBase>() : stored.value.evalUnit();
+        return (stored == null) ? new DimensionedNumber<ScalarBase>() : stored.value.evalUnit();
     }
 
     @Override

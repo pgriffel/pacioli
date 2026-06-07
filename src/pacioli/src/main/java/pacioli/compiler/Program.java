@@ -832,7 +832,7 @@ public class Program {
 
                 TypeObject declaredType = declared.get().evalType().instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType2 = inferredType.generalize().instantiate();
+                TypeObject inferredType2 = solvedType.generalize().instantiate();
 
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(

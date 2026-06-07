@@ -30,7 +30,7 @@ import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 import uom.Unit;
 
@@ -55,8 +55,8 @@ public class AliasDefinition extends AbstractNode implements Definition {
         return id.name();
     }
 
-    public Unit<MatrixBase> evalBody() {
-        DimensionedNumber<MatrixBase> number = unit.evalUnit();
+    public Unit<ScalarBase> evalBody() {
+        DimensionedNumber<ScalarBase> number = unit.evalUnit();
         if (!number.factor().equals(BigDecimal.ONE)) {
             throw new PacioliException(location(), "Unexpected number in unit alias");
             // Pacioli.warn("Unexpected number in unit alias %s: %s", id.getName(),

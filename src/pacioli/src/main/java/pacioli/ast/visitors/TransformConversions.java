@@ -32,8 +32,9 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode.ValueDecl;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
+import pacioli.types.type.matrix.VectorBase;
 import pacioli.types.type.matrix.VectorBaseUnit;
 import uom.DimensionedNumber;
 import uom.Fraction;
@@ -57,7 +58,7 @@ public class TransformConversions extends IdentityTransformation {
 
         MatrixType type = (MatrixType) node.typeNode.evalType();
 
-        DimensionedNumber<MatrixBase> typeFactor = type.factor().reduce(MatrixBase::flat);
+        DimensionedNumber<ScalarBase> typeFactor = type.factor().reduce(ScalarBase::flat);
 
         if (!type.rowDimension().equals(type.columnDimension())) {
             throw new RuntimeException("Invalid conversion",
@@ -77,50 +78,54 @@ public class TransformConversions extends IdentityTransformation {
             for (int i = 0; i < nrItems; i++) {
                 final List<String> items = node.rowDim.ElementAt(i);
                 assert (items.size() == width);
-                Unit.Fold<MatrixBase, DimensionedNumber<MatrixBase>> folder = new Unit.Fold<MatrixBase, DimensionedNumber<MatrixBase>>() {
+                Unit.Fold<VectorBase, DimensionedNumber<ScalarBase>> folder = new Unit.Fold<VectorBase, DimensionedNumber<ScalarBase>>() {
 
                     @Override
-                    public DimensionedNumber<MatrixBase> map(MatrixBase base) {
-                        VectorBaseUnit vbase = (VectorBaseUnit) base;
-                        String itemName = items.get(vbase.position());
-                        DimensionedNumber<MatrixBase> unit = vbase.vectorUnitInfo().lookupUnit(itemName);
-                        return unit;
+                    public DimensionedNumber<ScalarBase> map(VectorBase base) {
+                        if (base instanceof VectorBaseUnit vbase) {
+                            String itemName = items.get(vbase.position());
+                            DimensionedNumber<ScalarBase> dimNum = vbase.vectorUnitInfo().lookupUnit(itemName);
+                            return dimNum;
+                        } else {
+                            throw new RuntimeException("Expected a VectorBaseUnit");
+                        }
                     }
 
                     @Override
-                    public DimensionedNumber<MatrixBase> mult(DimensionedNumber<MatrixBase> x,
-                            DimensionedNumber<MatrixBase> y) {
+                    public DimensionedNumber<ScalarBase> mult(
+                            DimensionedNumber<ScalarBase> x,
+                            DimensionedNumber<ScalarBase> y) {
                         return x.multiply(y);
                     }
 
                     @Override
-                    public DimensionedNumber<MatrixBase> expt(DimensionedNumber<MatrixBase> x, Fraction n) {
+                    public DimensionedNumber<ScalarBase> expt(DimensionedNumber<ScalarBase> x, Fraction n) {
                         return x.raise(n);
                     }
 
                     @Override
-                    public DimensionedNumber<MatrixBase> one() {
-                        return new DimensionedNumber<MatrixBase>();
+                    public DimensionedNumber<ScalarBase> one() {
+                        return new DimensionedNumber<ScalarBase>();
                     }
 
                 };
 
-                DimensionedNumber<MatrixBase> rowUnit = type.rowUnit().fold(folder);
-                DimensionedNumber<MatrixBase> columnsUnit = type.columnUnit().fold(folder);
+                DimensionedNumber<ScalarBase> rowUnit = type.rowUnit().fold(folder);
+                DimensionedNumber<ScalarBase> columnsUnit = type.columnUnit().fold(folder);
 
-                DimensionedNumber<MatrixBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
-                DimensionedNumber<MatrixBase> flat = div.reduce(MatrixBase::flat);
+                DimensionedNumber<ScalarBase> div = typeFactor.multiply(rowUnit.multiply(columnsUnit.reciprocal()));
+                DimensionedNumber<ScalarBase> flat = div.reduce(ScalarBase::flat);
 
-                if (!flat.unit().equals(VectorBaseUnit.ONE)) {
-                    var pos = flat.unit()
+                if (!flat.unit().equals(ScalarBase.ONE)) {
+                    Unit<ScalarBase> pos = flat.unit()
                             .flatMap(
-                                    x -> flat.unit().power(x).signum() > 0 ? Unit.from(x) : MatrixBase.ONE);
-                    var neg = flat.unit()
-                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? Unit.from(x) : MatrixBase.ONE);
+                                    x -> flat.unit().power(x).signum() > 0 ? Unit.from(x) : ScalarBase.ONE);
+                    Unit<ScalarBase> neg = flat.unit()
+                            .flatMap(x -> flat.unit().power(x).signum() < 0 ? Unit.from(x) : ScalarBase.ONE);
 
                     throw new PacioliException(node.location(),
                             String.format(
-                                    "Cannot convert automatically form unit %s to unit %s for entry %s. Make sure the units are compatible, or create a custom conversion matrix.",
+                                    "Cannot convert automatically unit %s to unit %s for entry %s. Make sure the units are compatible, or create a custom conversion matrix.",
                                     pos.pretty(),
                                     neg.reciprocal().pretty(),
                                     items.size() == 0 ? "_" : String.join(", ", items)));

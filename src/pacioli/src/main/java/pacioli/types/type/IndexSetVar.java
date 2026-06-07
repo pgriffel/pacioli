@@ -140,7 +140,7 @@ public class IndexSetVar implements TypeObject, Var {
     }
 
     @Override
-    public Var setGround(boolean ground) {
+    public IndexSetVar setGround(boolean ground) {
         return new IndexSetVar(this.name, this.info, ground);
     }
 

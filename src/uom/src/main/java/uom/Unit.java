@@ -175,17 +175,14 @@ public class Unit<B extends Base> {
      * @return True if so.
      */
     public boolean isElementary() {
-        if (this.powers.size() == 1) {
-            return this.powers.entrySet().iterator().next().getValue().equals(Fraction.ONE);
-        } else {
-            return false;
-        }
+        return this.powers.size() == 1
+                && this.powers.values().iterator().next().equals(Fraction.ONE);
     }
 
     /**
      * The single base in the unit.
      * 
-     * It is an error if the base does not have exactly one base or the power of
+     * It is an error if the unit does not have exactly one base or the power of
      * that base does not equal 1.
      * 
      * See isElementary.
