@@ -62,8 +62,7 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
         if (info == null || info.inferredType().isEmpty() || info.isGlobal()) {
             return;
         }
-        TypeObject updatedType = info.inferredType().get().applySubstitution(substitution)
-                .simplify().normalizeMatrixTypes();
+        TypeObject updatedType = info.inferredType().get().applySubstitution(substitution);
         info.replaceInferredType(updatedType);
     }
 
