@@ -74,16 +74,15 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        List<Unit<MatrixBase>> freeVars2 = new ArrayList<>();
-        // List<Var> freeVars = new ArrayList<>(type.type.typeVars());
+        List<Unit<MatrixBase>> unitVars = new ArrayList<>();
+
         for (Var var : type.type().typeVars()) {
-            UnitVar unitVar = (UnitVar) var;
-            if (!type.variables().contains(unitVar)) {
-                freeVars2.add(Unit.from(unitVar));
+            if (var instanceof UnitVar unitVar && !type.variables().contains(unitVar)) {
+                unitVars.add(Unit.from(unitVar));
             }
         }
-        // freeVars.removeAll(type.variables);
-        returnParts(freeVars2);
+
+        returnParts(unitVars);
     }
 
     @Override
