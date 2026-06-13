@@ -113,11 +113,15 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
-    // WIP
-    boolean printVariableTypes = false;
+    boolean printVariableTypes = true;
 
     public PrintVisitor(Printer printer) {
         out = printer;
+    }
+
+    public PrintVisitor(Printer printer, boolean printVariableTypes) {
+        out = printer;
+        this.printVariableTypes = printVariableTypes;
     }
 
     public void write(String text) {
@@ -450,12 +454,14 @@ public class PrintVisitor implements Visitor {
 
             if (node.table != null) {
                 ValueInfo info = node.table.lookup(arg);
-                write(":");
-                Optional<TypeObject> type = info.inferredType();
-                if (type.isPresent()) {
-                    write(type.get().pretty());
-                } else {
-                    write("?");
+                if (printVariableTypes) {
+                    write(": ");
+                    Optional<TypeObject> type = info.inferredType();
+                    if (type.isPresent()) {
+                        write(type.get().pretty());
+                    } else {
+                        write("?");
+                    }
                 }
             }
             ;
@@ -748,15 +754,26 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(LetNode node) {
 
+        mark();
         write("let ");
 
         newlineUp();
 
+        // See remark below
+        List<String> suff = new ArrayList<>();
         if (node.binding instanceof LetBindingNode binding) {
             out.write(binding.var);
             if (printVariableTypes) {
-                out.write(":");
-                write(node.table.lookup(binding.var).inferredType().map(x -> x.pretty()).orElse("?"));
+                write(node.table
+                        .lookup(binding.var)
+                        .inferredType()
+                        .map(x -> ": " + x.pretty())
+                        .orElse(": ?"));
+            }
+            out.write(" = ");
+            binding.value.accept(this);
+            if (suff.size() > 0) {
+                out.write(suff.get(0));
             }
         } else {
             node.binding.accept(this);
@@ -772,10 +789,14 @@ public class PrintVisitor implements Visitor {
         newlineDown();
 
         write("end");
+        unmark();
     }
 
     @Override
     public void visit(LetBindingNode node) {
+        // Overuled above because the variable is stored as a string, and to print the
+        // type we need the info and that is in the table on the let node. The other
+        // let bindings find the info via the identifierNode.
         out.write(node.var);
         out.write(" = ");
         node.value.accept(this);

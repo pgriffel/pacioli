@@ -461,7 +461,9 @@ public class Bundle {
         }
     }
 
-    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
+    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDeclarations, boolean showDocs,
+            boolean showBodies)
+            throws PacioliException {
 
         List<String> names = environment.values().allNames();
         Collections.sort(names);
@@ -480,12 +482,21 @@ public class Bundle {
             ) {
                 TypeObject type = rewriteTypes ? info.localType() : info.publicType();
                 String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
-                Pacioli.println("%s :: %s", info.name(), text);
+
+                if (showDeclarations) {
+                    Pacioli.println("%s :: %s", info.name(), text);
+                }
+
                 if (showDocs) {
                     if (info.generalInfo().documentation().isPresent()) {
                         Pacioli.println("\n    %s\n", info.generalInfo().documentation().get());
                     }
                 }
+
+                if (showBodies) {
+                    Pacioli.println("\n%s\n", info.definition().map(x -> x.prettyTyped()).orElse("null"));
+                }
+
             }
         }
 

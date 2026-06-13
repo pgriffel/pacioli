@@ -67,6 +67,16 @@ public interface Node extends Printable {
         this.accept(new PrintVisitor(new Printer(out)));
     };
 
+    default public String prettyTyped() {
+        StringWriter out = new StringWriter();
+        printPrettyTyped(new PrintWriter(out));
+        return out.toString();
+    }
+
+    default public void printPrettyTyped(PrintWriter out) {
+        this.accept(new PrintVisitor(new Printer(out), true));
+    };
+
     /**
      * Desugars a node by calling the DesugarVisitor.
      * 

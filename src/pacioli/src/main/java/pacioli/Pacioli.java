@@ -405,9 +405,15 @@ public class Pacioli {
 
         log("Displaying types for file '%s'", file.fsFile());
 
-        try {
-            Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, false);
+        // Debug flag (for now)
+        boolean PRINT_VARIABLE_TYPES = false;
 
+        try {
+            if (PRINT_VARIABLE_TYPES) {
+                Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, true, false, true);
+            } else {
+                Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, true, false, false);
+            }
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
