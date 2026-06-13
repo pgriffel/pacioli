@@ -76,7 +76,6 @@ public class Unit<B extends Base> {
      * Interface for the reduce method
      */
     public interface Reduce<X extends Base> {
-
         public DimensionedNumber<X> apply(X base);
     }
 
@@ -112,7 +111,11 @@ public class Unit<B extends Base> {
 
     @Override
     public int hashCode() {
-        return powers.hashCode();
+        int hash = 1;
+        for (B base : bases()) {
+            hash += 31 * base.hashCode() + power(base).hashCode();
+        }
+        return hash;
     }
 
     @Override
@@ -124,12 +127,12 @@ public class Unit<B extends Base> {
             return false;
         }
         Unit<B> otherUnit = (Unit<B>) other;
-        for (B base : bases()) {
+        for (B base : powers.keySet()) {
             if (power(base).compareTo(otherUnit.power(base)) != 0) {
                 return false;
             }
         }
-        for (B base : otherUnit.bases()) {
+        for (B base : otherUnit.powers.keySet()) {
             if (power(base).compareTo(otherUnit.power(base)) != 0) {
                 return false;
             }
@@ -175,8 +178,8 @@ public class Unit<B extends Base> {
      * @return True if so.
      */
     public boolean isElementary() {
-        return this.powers.size() == 1
-                && this.powers.values().iterator().next().equals(Fraction.ONE);
+        return this.bases().size() == 1
+                && this.power(bases().iterator().next()).equals(Fraction.ONE);
     }
 
     /**
@@ -190,8 +193,8 @@ public class Unit<B extends Base> {
      * @return The base
      */
     public B singleElement() {
-        if (this.powers.size() == 1) {
-            B base = this.powers.keySet().iterator().next();
+        if (bases().size() == 1) {
+            B base = bases().iterator().next();
 
             if (power(base).equals(Fraction.ONE)) {
                 return base;
@@ -373,17 +376,17 @@ public class Unit<B extends Base> {
                 symbolic = symbolic.concat(base.pretty());
 
                 // if (power.compareTo(Fraction.MINTHREE) == 0) {
-                // symbolic = symbolic.concat("ï¿½");
+                // symbolic = symbolic.concat("⁻³");
                 // } else if (power.compareTo(Fraction.MINTWO) == 0) {
-                // symbolic = symbolic.concat("ï¿½");
+                // symbolic = symbolic.concat("⁻²");
                 // } else if (power.compareTo(Fraction.MINONE) == 0) {
-                // symbolic = symbolic.concat("ï¿½");
+                // symbolic = symbolic.concat("⁻¹");
                 // } else if (power.compareTo(Fraction.TWO) == 0) {
-                // symbolic = symbolic.concat("ï¿½");
+                // symbolic = symbolic.concat("²");
                 // } else if (power.compareTo(Fraction.THREE) == 0) {
-                // symbolic = symbolic.concat("ï¿½");
+                // symbolic = symbolic.concat("³");
                 // } else if (power.compareTo(Fraction.ONE) != 0) {
-                // symbolic = symbolic.concat("^");
+                // symbolic = symbolic.concat("¹");
                 // symbolic = symbolic.concat(power.toString());
                 // }
                 if (power.compareTo(Fraction.ONE) != 0) {

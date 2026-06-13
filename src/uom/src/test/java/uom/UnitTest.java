@@ -65,7 +65,7 @@ class UnitTest {
 
         assertEquals(Fraction.ONE, velocity.power(kiloMeter));
         assertEquals(new Fraction(-1), velocity.power(second));
-        assertEquals("k:m/s", velocity.pretty());
+        assertEquals("km/s", velocity.pretty());
     }
 
     @Test
@@ -101,5 +101,65 @@ class UnitTest {
 
         assertEquals(0, flat.factor().compareTo(BigDecimal.valueOf(1000)));
         assertEquals(Unit.from(new SIBase("meter", "m")), flat.unit());
+    }
+
+    @Test
+    void testMultiplyByScalarReturnsDimensionedNumber() {
+        SIBase meter = new SIBase("meter", "m");
+        Unit<SIBase> length = Unit.from(meter);
+
+        DimensionedNumber<SIBase> threeMeters = length.multiply(BigDecimal.valueOf(3));
+
+        assertEquals(BigDecimal.valueOf(3), threeMeters.factor());
+        assertEquals(length, threeMeters.unit());
+    }
+
+    @Test
+    void testMapAppliesMapToEachBase() {
+        SIBase meter = new SIBase("meter", "m");
+        SIBase second = new SIBase("second", "s");
+
+        Unit<SIBase> velocity = Unit.from(meter).multiply(Unit.from(second).reciprocal());
+        Unit<SIBase> mapped = velocity.map(base -> new SIBase(base.name() + "_mapped", base.symbol() + "m"));
+
+        assertEquals(Fraction.ONE, mapped.power(new SIBase("meter_mapped", "mm")));
+        assertEquals(new Fraction(-1), mapped.power(new SIBase("second_mapped", "sm")));
+    }
+
+    @Test
+    void testOneIsDimensionless() {
+        Unit<SIBase> one = Unit.one();
+        SIBase meter = new SIBase("meter", "m");
+
+        assertEquals(Fraction.ZERO, one.power(meter));
+        assertEquals("1", one.pretty());
+    }
+
+    @Test
+    void testSingleElementAndIsElementary() {
+        SIBase meter = new SIBase("meter", "m");
+        Unit<SIBase> length = Unit.from(meter);
+
+        assertTrue(length.isElementary());
+        assertEquals(meter, length.singleElement());
+    }
+
+    @Test
+    void testSingleElementThrowsForCompoundUnit() {
+        SIBase meter = new SIBase("meter", "m");
+        SIBase second = new SIBase("second", "s");
+        Unit<SIBase> velocity = Unit.from(meter).multiply(Unit.from(second));
+
+        assertFalse(velocity.isElementary());
+        assertThrows(RuntimeException.class, velocity::singleElement);
+    }
+
+    @Test
+    void testZeroExponentBaseExcludedFromBases() {
+        SIBase meter = new SIBase("meter", "m");
+        Unit<SIBase> dimensionless = Unit.from(meter).multiply(Unit.from(meter).reciprocal());
+
+        assertFalse(dimensionless.bases().contains(meter));
+        assertEquals("1", dimensionless.pretty());
     }
 }

@@ -87,7 +87,7 @@ public class Machine {
     }
 
     public void storeBase(String name, MVMBase unit) {
-        unitSystem.addUnit(name, unit);
+        unitSystem.addBase(name, unit);
     }
 
     public void init() throws MVMException {

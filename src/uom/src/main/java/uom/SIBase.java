@@ -94,7 +94,7 @@ public class SIBase implements Base {
 
     @Override
     public String pretty() {
-        return prefix.equals(Prefix.ONE) ? this.symbol : prefix.prefixName() + ":" + symbol;
+        return prefix.equals(Prefix.ONE) ? this.symbol : prefix.symbol() + this.symbol;
     }
 
     public DimensionedNumber<SIBase> reduce() {

@@ -104,24 +104,31 @@ public class DimensionedNumber<B extends Base> {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + ((factor == null) ? 0 : factor.stripTrailingZeros().hashCode());
         result = prime * result + ((unit == null) ? 0 : unit.hashCode());
-        result = prime * result + ((factor == null) ? 0 : factor.hashCode());
         return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == this) {
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(other instanceof DimensionedNumber)) {
+        if (obj == null)
             return false;
-        }
-        DimensionedNumber<?> otherNumber = (DimensionedNumber<?>) other;
-        if (factor.compareTo(otherNumber.factor()) != 0) {
+        if (getClass() != obj.getClass())
             return false;
-        }
-        return unit.equals(otherNumber.unit);
+        DimensionedNumber other = (DimensionedNumber) obj;
+        if (factor == null) {
+            if (other.factor != null)
+                return false;
+        } else if (factor.compareTo(other.factor) != 0)
+            return false;
+        if (unit == null) {
+            if (other.unit != null)
+                return false;
+        } else if (!unit.equals(other.unit))
+            return false;
+        return true;
     }
 
     @Override

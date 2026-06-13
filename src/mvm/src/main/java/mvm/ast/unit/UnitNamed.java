@@ -49,13 +49,22 @@ public class UnitNamed implements UnitNode {
     public Unit<MVMBase> eval(Machine machine) throws MVMException {
         if (name.isEmpty()) {
             return MVMBase.ONE;
-        } else if (machine.unitSystem.containsUnit(name)) {
+        } else {
             var parts = name.split(":");
+
             if (parts.length == 1) {
-                return Unit.from(machine.unitSystem.lookupBase(name));
+                return machine.unitSystem.lookupBase(name)
+                        .map(Unit::from)
+                        .orElseThrow(() -> new MVMException(String.format("Unit base '%s' unknown", name)));
             } else if (parts.length == 2) {
-                MVMBase base = machine.unitSystem.lookupBase(parts[1]);
-                Prefix prefix = machine.unitSystem.lookupPrefix(parts[0]);
+                Prefix prefix = machine.unitSystem
+                        .lookupPrefix(parts[0])
+                        .orElseThrow(() -> new MVMException(String.format("Unit prefix '%s' unknown", parts[0])));
+
+                MVMBase base = machine.unitSystem
+                        .lookupBase(parts[1])
+                        .orElseThrow(() -> new MVMException(String.format("Unit base '%s' unknown", parts[1])));
+
                 if (base instanceof ScalarBase s) {
                     return Unit.from(new ScalarBase(s.name(), s.symbol(), prefix));
                 } else {
@@ -64,8 +73,6 @@ public class UnitNamed implements UnitNode {
             } else {
                 throw new MVMException("invalid unit name '%s'", name);
             }
-        } else {
-            throw new MVMException("unit '%s' unknown", name);
         }
     }
 

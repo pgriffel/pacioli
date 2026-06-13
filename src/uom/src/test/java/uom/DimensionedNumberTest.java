@@ -71,4 +71,46 @@ class DimensionedNumberTest {
 
         assertEquals("2 m", number.pretty());
     }
+
+    @Test
+    void testMultiplyByBigDecimalScalesFactor() {
+        SIBase meter = new SIBase("meter", "m");
+        Unit<SIBase> length = Unit.from(meter);
+        DimensionedNumber<SIBase> oneMeter = new DimensionedNumber<>(BigDecimal.valueOf(2), length);
+
+        DimensionedNumber<SIBase> scaled = oneMeter.multiply(BigDecimal.valueOf(5));
+
+        assertEquals(BigDecimal.valueOf(10), scaled.factor());
+        assertEquals(length, scaled.unit());
+    }
+
+    @Test
+    void testReduceUsesUnitReducer() {
+        SIBase kiloMeter = new SIBase("meter", "m", new Prefix("k", BigDecimal.valueOf(1000)));
+        DimensionedNumber<SIBase> number = new DimensionedNumber<>(BigDecimal.valueOf(2), Unit.from(kiloMeter));
+
+        DimensionedNumber<SIBase> reduced = number.reduce(SIBase::reduce);
+
+        assertEquals(0, reduced.factor().compareTo(BigDecimal.valueOf(2000)));
+        assertEquals(Fraction.ONE, reduced.unit().power(new SIBase("meter", "m")));
+    }
+
+    @Test
+    void testRaiseFractionalPower() {
+        SIBase meter = new SIBase("meter", "m");
+        DimensionedNumber<SIBase> number = new DimensionedNumber<>(BigDecimal.valueOf(16), Unit.from(meter));
+
+        DimensionedNumber<SIBase> result = number.raise(new Fraction(1, 2));
+
+        assertEquals(0, result.factor().compareTo(BigDecimal.valueOf(4)));
+        assertEquals(new Fraction(1, 2), result.unit().power(meter));
+    }
+
+    @Test
+    void testDefaultConstructorCreatesDimensionlessOne() {
+        DimensionedNumber<SIBase> one = new DimensionedNumber<>();
+
+        assertEquals(BigDecimal.ONE, one.factor());
+        assertEquals(Unit.one(), one.unit());
+    }
 }

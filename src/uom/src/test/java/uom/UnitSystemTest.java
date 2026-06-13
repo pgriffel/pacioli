@@ -9,44 +9,49 @@ import org.junit.jupiter.api.Test;
 class UnitSystemTest {
 
     @Test
-    void testAddAndLookupUnit() {
-        UnitSystem<SIBase> system = new UnitSystem<>();
-        SIBase meter = new SIBase("meter", "m");
-
-        system.addUnit("m", meter);
-
-        assertTrue(system.containsUnit("m"));
-        assertEquals(meter, system.lookupBase("m"));
-        assertEquals("m", system.lookupBase("m").pretty());
-    }
-
-    @Test
     void testAddAndLookupPrefix() {
         UnitSystem<SIBase> system = new UnitSystem<>();
         Prefix kilo = new Prefix("k", BigDecimal.valueOf(1000));
 
         system.addPrefix("k", kilo);
 
-        assertTrue(system.congtainsPrefix("k"));
-        assertEquals(kilo, system.lookupPrefix("k"));
-        assertEquals("k", system.lookupPrefix("k").prefixName());
-    }
-
-    @Test
-    void testContainsPrefixedUnitName() {
-        UnitSystem<SIBase> system = new UnitSystem<>();
-        SIBase meter = new SIBase("meter", "m");
-        Prefix deci = new Prefix("d", BigDecimal.valueOf(0.1));
-
-        system.addUnit("m", meter);
-        system.addPrefix("d", deci);
-
-        assertTrue(system.containsUnit("d:m"));
+        assertTrue(system.containsPrefix("k"));
+        assertEquals(kilo, system.lookupPrefix("k").get());
+        assertEquals("k", system.lookupPrefix("k").get().symbol());
     }
 
     @Test
     void testLookupPrefixMissingThrows() {
         UnitSystem<SIBase> system = new UnitSystem<>();
-        assertThrows(RuntimeException.class, () -> system.lookupPrefix("x"));
+        assertTrue(system.lookupPrefix("x").isEmpty());
+    }
+
+    @Test
+    void testAddAndLookupBase() {
+        UnitSystem<SIBase> system = new UnitSystem<>();
+        SIBase meter = new SIBase("meter", "m");
+
+        system.addBase("meter", meter);
+
+        assertTrue(system.containsBase("meter"));
+        assertEquals(meter, system.lookupBase("meter").get());
+    }
+
+    @Test
+    void testBaseNamesContainsAddedBase() {
+        UnitSystem<SIBase> system = new UnitSystem<>();
+        SIBase meter = new SIBase("meter", "m");
+
+        system.addBase("meter", meter);
+
+        assertTrue(system.baseNames().contains("meter"));
+    }
+
+    @Test
+    void testContainsBaseFalseWhenMissing() {
+        UnitSystem<SIBase> system = new UnitSystem<>();
+
+        assertFalse(system.containsBase("foo"));
+        assertTrue(system.lookupBase("foo").isEmpty());
     }
 }

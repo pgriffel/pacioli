@@ -23,6 +23,7 @@
 package uom;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -34,51 +35,42 @@ public class UnitSystem<B extends Base> {
     }
 
     private final HashMap<String, Prefix> prefixDictionary;
-    private final HashMap<String, B> unitDictionary;
+    private final HashMap<String, B> baseDictionary;
 
     public UnitSystem() {
-        this.unitDictionary = new HashMap<String, B>();
+        this.baseDictionary = new HashMap<String, B>();
         this.prefixDictionary = new HashMap<String, Prefix>();
-    }
-
-    public Set<String> names() {
-        return unitDictionary.keySet();
-    }
-
-    public void addPrefix(String name, Prefix prefix) {
-        prefixDictionary.put(name, prefix);
-    }
-
-    public boolean congtainsPrefix(String name) {
-        return prefixDictionary.containsKey(name);
     }
 
     public Set<String> prefixNames() {
         return prefixDictionary.keySet();
     }
 
-    public Prefix lookupPrefix(String name) {
-        if (prefixDictionary.containsKey(name)) {
-            return prefixDictionary.get(name);
-        } else {
-            throw new RuntimeException("No prefix named '" + name + "'");
-        }
+    public Set<String> baseNames() {
+        return baseDictionary.keySet();
     }
 
-    public void addUnit(String name, B unit) {
-        unitDictionary.put(name, unit);
+    public void addPrefix(String name, Prefix prefix) {
+        prefixDictionary.put(name, prefix);
     }
 
-    public boolean containsUnit(String name) {
-        for (String prefix : prefixNames()) {
-            if (name.startsWith(prefix + ":")) {
-                return unitDictionary.containsKey(name.substring(prefix.length() + 1));
-            }
-        }
-        return unitDictionary.containsKey(name);
+    public boolean containsPrefix(String name) {
+        return prefixDictionary.containsKey(name);
     }
 
-    public B lookupBase(String name) {
-        return this.unitDictionary.get(name);
+    public Optional<Prefix> lookupPrefix(String name) {
+        return Optional.ofNullable(prefixDictionary.get(name));
+    }
+
+    public void addBase(String name, B base) {
+        baseDictionary.put(name, base);
+    }
+
+    public boolean containsBase(String name) {
+        return baseDictionary.containsKey(name);
+    }
+
+    public Optional<B> lookupBase(String name) {
+        return Optional.ofNullable(this.baseDictionary.get(name));
     }
 }

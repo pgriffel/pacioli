@@ -41,13 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
 import org.apache.commons.io.FilenameUtils;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageClient;
-
 import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
@@ -64,8 +58,6 @@ import pacioli.documentation.LibCatalog;
 import pacioli.documentation.PrimitivesDocumentation;
 import pacioli.lsp.LSPContainer;
 import pacioli.lsp.PacioliLanguageServer;
-import pacioli.lsp.PacioliTextDocumentService;
-import pacioli.lsp.PacioliWorkspaceService;
 
 /**
  * The main entry point of the compiler.

@@ -23,7 +23,23 @@ class PrefixTest {
     void testPrefixProperties() {
         Prefix kilo = new Prefix("k", BigDecimal.valueOf(1000));
 
-        assertEquals("k", kilo.prefixName());
+        assertEquals("k", kilo.symbol());
         assertEquals(BigDecimal.valueOf(1000), kilo.prefixFactor());
+    }
+
+    @Test
+    void testPrefixOneIsIdentityPrefix() {
+        assertEquals("", Prefix.ONE.symbol());
+        assertEquals(BigDecimal.ONE, Prefix.ONE.prefixFactor());
+        assertEquals(Prefix.ONE, new Prefix("", BigDecimal.ONE));
+    }
+
+    @Test
+    void testPrefixEqualityIgnoresFactor() {
+        Prefix p1 = new Prefix("k", BigDecimal.valueOf(1000));
+        Prefix p2 = new Prefix("k", BigDecimal.valueOf(1234));
+
+        assertEquals(p1, p2);
+        assertEquals(p1.hashCode(), p2.hashCode());
     }
 }

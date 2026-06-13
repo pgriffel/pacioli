@@ -58,27 +58,33 @@ public class Fraction extends Number implements Comparable<Fraction> {
         }
     }
 
+    @Override
     public int hashCode() {
-        return numerator;
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + numerator;
+        if (numerator != 0) {
+            result = prime * result + denominator;
+        }
+        return result;
     }
 
-    public boolean equals(Object other) {
-        if (other == this) {
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Fraction other = (Fraction) obj;
+        if (numerator != other.numerator)
+            return false;
+        if (numerator == 0 && other.numerator == 0) {
             return true;
         }
-        if (!(other instanceof Fraction)) {
+        if (denominator != other.denominator)
             return false;
-        }
-        Fraction real = (Fraction) other;
-        if (numerator != real.numerator) {
-            return false;
-        }
-        if (numerator == 0 && real.numerator == 0) {
-            return true;
-        }
-        if (denominator != real.denominator) {
-            return false;
-        }
         return true;
     }
 
@@ -102,7 +108,13 @@ public class Fraction extends Number implements Comparable<Fraction> {
     public Fraction floor() {
         int div = numerator / denominator;
         int rem = numerator % denominator;
-        return new Fraction((div < 0 && rem != 0) ? div - 1 : div);
+        if (rem == 0) {
+            return new Fraction(div);
+        }
+        if ((numerator < 0) ^ (denominator < 0)) {
+            return new Fraction(div - 1);
+        }
+        return new Fraction(div);
     }
 
     public boolean isInt() {
@@ -147,7 +159,7 @@ public class Fraction extends Number implements Comparable<Fraction> {
 
     @Override
     public int intValue() {
-        return numerator;
+        return numerator / denominator;
     }
 
     @Override
