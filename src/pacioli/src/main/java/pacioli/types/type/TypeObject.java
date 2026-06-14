@@ -104,19 +104,23 @@ public interface TypeObject extends Printable {
         // that case the more specific IndexSetVar is prefered. Always substituting
         // typevars first is an attempt to force this. Is this sufficient?
         if (x instanceof TypeVar v && !v.isGround()) {
-            return new Substitution((Var) x, y);
+            return new Substitution(v, y);
         }
 
         if (y instanceof TypeVar v && !v.isGround()) {
-            return new Substitution((Var) y, x);
+            return new Substitution(v, x);
         }
 
         if (x instanceof Var v && !v.isGround()) {
-            return new Substitution((Var) x, y);
+            return new Substitution(v, y);
         }
 
         if (y instanceof Var v && !v.isGround()) {
-            return new Substitution((Var) y, x);
+            return new Substitution(v, x);
+        }
+
+        if (x instanceof Var || y instanceof Var) {
+            throw new PacioliException("Cannot unify %s and %s", x.pretty(), y.pretty());
         }
 
         if (x.getClass().equals(y.getClass())) {

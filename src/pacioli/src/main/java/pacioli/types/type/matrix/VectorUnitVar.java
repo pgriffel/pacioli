@@ -38,7 +38,7 @@ import pacioli.types.type.Var;
 public final class VectorUnitVar implements VectorBase, UnitVar, TypeObject {
 
     // Debug flag
-    private static final boolean PRINT_GROUNDED_VARS = true;
+    private static final boolean FLAG_PRINT_GROUNDED_VARS = true;
 
     private final String name;
     public VectorBaseInfo info;
@@ -141,7 +141,7 @@ public final class VectorUnitVar implements VectorBase, UnitVar, TypeObject {
 
     @Override
     public String pretty() {
-        return this.ground && PRINT_GROUNDED_VARS ? "{" + name + "}" : name;
+        return this.ground && FLAG_PRINT_GROUNDED_VARS ? "{" + name + "}" : name;
     }
 
     public String name() {

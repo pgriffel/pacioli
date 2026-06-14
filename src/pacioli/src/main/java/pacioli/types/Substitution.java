@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import pacioli.compiler.Printable;
 import pacioli.types.type.TypeObject;
@@ -138,6 +139,20 @@ public class Substitution implements Printable {
                 tmp.put(var, apply((Unit) obj));
             }
         }
+        return new Substitution(tmp);
+    }
+
+    public Substitution merge(Substitution other) {
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
+
+        for (Entry<Var, Object> entry : map.entrySet()) {
+            tmp.put(entry.getKey(), entry.getValue());
+        }
+
+        for (Entry<Var, Object> entry : other.map.entrySet()) {
+            tmp.put(entry.getKey(), entry.getValue());
+        }
+
         return new Substitution(tmp);
     }
 

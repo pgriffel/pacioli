@@ -38,7 +38,7 @@ import pacioli.types.type.Var;
 public final class ScalarUnitVar implements ScalarBase, UnitVar, TypeObject {
 
     // Debug flag
-    private static final boolean PRINT_GROUNDED_VARS = true;
+    private static final boolean FLAG_PRINT_GROUNDED_VARS = true;
 
     private final String name;
     private final ScalarBaseInfo info;
@@ -117,7 +117,7 @@ public final class ScalarUnitVar implements ScalarBase, UnitVar, TypeObject {
 
     @Override
     public String pretty() {
-        return this.ground && PRINT_GROUNDED_VARS ? "{" + name + "}" : name;
+        return this.ground && FLAG_PRINT_GROUNDED_VARS ? "{" + name + "}" : name;
     }
 
     public String name() {

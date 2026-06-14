@@ -69,22 +69,22 @@ public class TypeConstraint implements Printable {
                 TypeObject varType = var.evalType();
                 if (varType instanceof OperatorVar opVar) {
                     if (arg instanceof ParametricType parametricType) {
-                        subs = subs.compose(new Substitution(opVar, parametricType.op()));
+                        subs = subs.merge(new Substitution(opVar, parametricType.op()));
                     } else {
-                        subs = subs.compose(new Substitution(opVar, arg));
+                        subs = subs.merge(new Substitution(opVar, arg));
                     }
                 } else if (varType instanceof Var v) {
-                    subs = subs.compose(new Substitution(v, arg));
+                    subs = subs.merge(new Substitution(v, arg));
                 } else if (varType instanceof IndexType indexVar) {
                     if (arg instanceof IndexType indexType) {
-                        subs = subs.compose(new Substitution((Var) indexVar.indexSet(), indexType.indexSet()));
+                        subs = subs.merge(new Substitution((Var) indexVar.indexSet(), indexType.indexSet()));
                     } else {
                         throw new PacioliException(var.location(),
                                 "Type definitions's parameter is quantified as index, but is given '%s'", arg.pretty());
                     }
                 } else if (varType instanceof MatrixType matrixVar) {
                     if (arg instanceof MatrixType matrixArg) {
-                        subs = subs.compose(
+                        subs = subs.merge(
                                 new Substitution(ScalarBase.unitAsVar(matrixVar.factor()), matrixArg.factor()));
                     } else {
                         throw new PacioliException(var.location(),
@@ -96,9 +96,9 @@ public class TypeConstraint implements Printable {
                 }
             } else if (var instanceof BangTypeNode bang) {
                 if (arg instanceof MatrixType argMat) {
-                    subs = subs.compose(
+                    subs = subs.merge(
                             new Substitution(new IndexSetVar(bang.indexSetName()), argMat.rowDimension().indexSet()));
-                    subs = subs.compose(new Substitution(
+                    subs = subs.merge(new Substitution(
                             new VectorUnitVar(bang.indexSetName() + "!" + bang.unitVecName()), argMat.rowUnit()));
                 } else {
                     throw new PacioliException(var.location(),

@@ -285,10 +285,10 @@ public class Bundle {
 
         Pacioli.trace("Generating code for %s", this.project.file.module());
 
-        boolean indentCode = false; // feature flag
+        boolean FLAG_INDENT_CODE = false; // feature flag
 
         // Declare a compiler (symbol table visitor) instance
-        Printer printer = new Printer(writer, indentCode);
+        Printer printer = new Printer(writer, FLAG_INDENT_CODE);
         SymbolTableVisitor compiler;
         CodeGenerator gen;
 
@@ -341,8 +341,9 @@ public class Bundle {
         }
 
         // Collect all functions and values with a definition from the value table
-        var shakeCallTree = true; // feature flag
-        if (shakeCallTree) {
+        var FLAG_SHAKE_CALL_TREE = true; // feature flag
+
+        if (FLAG_SHAKE_CALL_TREE) {
 
             List<String> includeTreeModules = this.includedModulesRec();
 

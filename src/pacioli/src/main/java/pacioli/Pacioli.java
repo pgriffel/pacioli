@@ -406,10 +406,10 @@ public class Pacioli {
         log("Displaying types for file '%s'", file.fsFile());
 
         // Debug flag (for now)
-        boolean PRINT_VARIABLE_TYPES = false;
+        boolean FLAG_PRINT_VARIABLE_TYPES = false;
 
         try {
-            if (PRINT_VARIABLE_TYPES) {
+            if (FLAG_PRINT_VARIABLE_TYPES) {
                 Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, true, false, true);
             } else {
                 Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, true, false, false);

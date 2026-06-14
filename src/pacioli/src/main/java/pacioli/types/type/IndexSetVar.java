@@ -33,6 +33,9 @@ import pacioli.types.TypeVisitor;
 
 public class IndexSetVar implements TypeObject, Var {
 
+    // Debug flag
+    private static final boolean FLAG_PRINT_GROUNDED_VARS = true;
+
     private final String name;
     private final IndexSetInfo info;
     private final boolean ground;
@@ -66,19 +69,30 @@ public class IndexSetVar implements TypeObject, Var {
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + (ground ? 1231 : 1237);
+        return result;
     }
 
     @Override
-    public boolean equals(Object other) {
-        if (other == this) {
+    public boolean equals(Object obj) {
+        if (this == obj)
             return true;
-        }
-        if (!(other instanceof IndexSetVar)) {
+        if (obj == null)
             return false;
-        }
-        IndexSetVar otherVar = (IndexSetVar) other;
-        return name.equals(otherVar.name);
+        if (getClass() != obj.getClass())
+            return false;
+        IndexSetVar other = (IndexSetVar) obj;
+        if (name == null) {
+            if (other.name != null)
+                return false;
+        } else if (!name.equals(other.name))
+            return false;
+        if (ground != other.ground)
+            return false;
+        return true;
     }
 
     @Override
@@ -116,9 +130,8 @@ public class IndexSetVar implements TypeObject, Var {
 
     @Override
     public String pretty() {
-        return name;
+        return this.ground && FLAG_PRINT_GROUNDED_VARS ? "{" + name + "}" : name;
     }
-
     // Visiting visitors
 
     @Override
