@@ -29,6 +29,7 @@ import {
   type RawMatrix,
   type RawMatrixStorage,
 } from "./raw-matrix";
+import { $base_system__adjoin_mut } from "../primitives";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -37,6 +38,7 @@ import {
 export type RawValue =
   | RawMatrix
   | RawList
+  | RawSet
   | RawTuple
   | RawArray
   | RawRef
@@ -60,6 +62,13 @@ export interface RawTuple extends Array<RawValue> {
  */
 export interface RawList extends Array<RawValue> {
   kind: "list";
+}
+
+/**
+ * Type of an unboxed Pacioli list. A javascript array tagged with kind 'list'.
+ */
+export interface RawSet extends Set<RawValue> {
+  kind: "set";
 }
 
 /**
@@ -142,6 +151,15 @@ export function tagList(value: Array<RawValue>): RawList {
   return value as RawList;
 }
 
+export function tagSet(value: Array<RawValue>): RawSet {
+  let rawSet = new Set() as RawSet;
+  for (const val of value) {
+    rawSet = $base_system__adjoin_mut(rawSet, val);
+  }
+  rawSet.kind = "set";
+  return rawSet;
+}
+
 export function tagTuple(value: Array<RawValue>): RawTuple {
   (value as RawTuple).kind = "tuple";
   return value as RawTuple;
@@ -170,6 +188,7 @@ export function rawValueLabel(
 ):
   | "matrix"
   | "list"
+  | "set"
   | "tuple"
   | "array"
   | "ref"
@@ -238,6 +257,11 @@ export function stringifyRawValue(value: RawValue): string {
       return `[${value
         .map((element) => stringifyRawValue(element))
         .join(", ")}]`;
+    }
+    case "set": {
+      return `{${[...value]
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}}`;
     }
     case "tuple": {
       return `(${value

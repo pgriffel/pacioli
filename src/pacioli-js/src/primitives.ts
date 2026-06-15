@@ -29,7 +29,7 @@ import {
   getCOONumbers,
   getFullNumbers,
 } from "./raw-values/numbers";
-import { RawMap } from "./raw-values/raw-value";
+import { RawMap, tagSet } from "./raw-values/raw-value";
 import type {
   RawArray,
   RawBoole,
@@ -37,6 +37,7 @@ import type {
   RawFunction,
   RawList,
   RawRef,
+  RawSet,
   RawString,
   RawTuple,
   RawValue,
@@ -224,6 +225,30 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
       },
       false,
     );
+  } else if (x.kind === "set" && y.kind === "set") {
+    for (const itemX of x) {
+      let inY = false;
+      for (const itemY of y) {
+        if ($base_base_equal(itemX, itemY)) {
+          inY = true;
+        }
+      }
+      if (!inY) {
+        return false;
+      }
+    }
+    for (const itemY of y) {
+      let inX = false;
+      for (const itemX of x) {
+        if ($base_base_equal(itemX, itemY)) {
+          inX = true;
+        }
+      }
+      if (!inX) {
+        return false;
+      }
+    }
+    return true;
   } else if (Array.isArray(x) && Array.isArray(y)) {
     const n = x.length;
     if (y.length !== n) {
@@ -1356,6 +1381,36 @@ export function $base_list_contains(list: RawList, item: RawValue): RawBoole {
 
 export function $base_list_empty_list(): RawList {
   return tagList([]);
+}
+
+export function $base_set_empty_set(): RawSet {
+  return tagSet([]);
+}
+
+export function $base_set_set_size(x: RawSet): RawMatrix {
+  return initialNumbers(1, 1, [[0, 0, x.size]]);
+}
+
+export function $base_set_loop_set(
+  init: RawValue,
+  fun: RawFunction,
+  set: RawSet,
+): RawValue {
+  let accu: RawValue = init;
+  for (const element of set) {
+    accu = fun.apply(fun, [accu, element]);
+  }
+  return accu;
+}
+
+export function $base_system__adjoin_mut(set: RawSet, item: RawValue): RawSet {
+  for (const x of set) {
+    if ($base_base_equal(x, item)) {
+      return set;
+    }
+  }
+  set.add(item);
+  return set;
 }
 
 /**
