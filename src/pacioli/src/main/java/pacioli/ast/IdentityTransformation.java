@@ -653,7 +653,7 @@ public class IdentityTransformation implements Visitor {
         Node id = nodeAccept(clause.id);
         ExpressionNode cl = expAccept(clause.list);
         assert (id instanceof IdentifierNode);
-        returnNode(new ComprehensionNode.GeneratorClause((IdentifierNode) id, cl, clause.location()));
+        returnNode(new ComprehensionNode.GeneratorClause(clause.kind, (IdentifierNode) id, cl, clause.location()));
     }
 
     @Override

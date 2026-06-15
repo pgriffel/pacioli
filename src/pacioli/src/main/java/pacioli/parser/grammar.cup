@@ -176,7 +176,7 @@ parser code {:
 
 terminal INCLUDE, IMPORT, EXPORT;
 terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
-terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
+terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, FROM_SET, FROM_LIST, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV, APPEND;
@@ -219,6 +219,7 @@ non terminal List<DataDefinitionNode.Binding>        data_bindings;
 non terminal RecordDefinition.FieldDefinition        field_definition;
 non terminal List<RecordDefinition.FieldDefinition>  field_definitions;
 non terminal List<ExpressionNode>            select_parts;
+non terminal ComprehensionNode.Kind          from;
 
 precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
@@ -662,10 +663,10 @@ parts ::=
 
 part ::= 
  | expr:f                                           {: RESULT = new ComprehensionNode.FilterClause(f, makeLoc(fxleft, fxright)); :}
- | expr:g FROM expr:e                               {:  if (g instanceof IdListNode) {
+ | expr:g from:f expr:e                               {:  if (g instanceof IdListNode) {
                                                            RESULT = new ComprehensionNode.TupleGeneratorClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
-                                                            RESULT = new ComprehensionNode.GeneratorClause((IdentifierNode) g, e,  makeLoc(gxleft, exright));
+                                                            RESULT = new ComprehensionNode.GeneratorClause(f, (IdentifierNode) g, e,  makeLoc(gxleft, exright));
                                                         } else {
                                                             errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
@@ -680,6 +681,12 @@ part ::=
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
                                                         } :}
+ ;
+
+from ::= 
+    FROM                                                {: RESULT = ComprehensionNode.Kind.LIST; :}
+ |  FROM_SET                                            {: RESULT = ComprehensionNode.Kind.SET; :}
+ |  FROM_LIST                                           {: RESULT = ComprehensionNode.Kind.LIST; :}
  ;
 
 //------------------------------------------------------------------------------

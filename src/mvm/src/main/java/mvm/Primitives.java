@@ -37,6 +37,7 @@ import mvm.values.Maybe;
 import mvm.values.PacioliArray;
 import mvm.values.PacioliList;
 import mvm.values.PacioliMap;
+import mvm.values.PacioliSet;
 import mvm.values.PacioliString;
 import mvm.values.PacioliTuple;
 import mvm.values.PacioliValue;
@@ -1211,6 +1212,38 @@ public class Primitives {
                 return new Boole(list.items().contains(item));
             }
         });
+
+        // //////////////////////////////////////////////////////////////////////////////
+        // Sets
+
+        storePrimitive(store, new Primitive("set_empty_set") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new PacioliSet();
+            }
+        });
+
+        storePrimitive(store, new Primitive("set_loop_set") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliValue zero = params.get(0);
+                Callable merge = (Callable) params.get(1);
+                List<PacioliValue> list = ((PacioliSet) params.get(2)).items();
+                PacioliValue accu = zero;
+                for (PacioliValue value : list) {
+                    accu = applyToTwo(merge, accu, value);
+                }
+                return accu;
+            }
+        });
+        storePrimitive(store, new Primitive("system__adjoin_mut") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliSet x = (PacioliSet) params.get(0);
+                PacioliValue y = params.get(1);
+                return x.adjoinMut(y);
+            }
+        });
+
+        // //////////////////////////////////////////////////////////////////////////////
+        // Strings
 
         storePrimitive(store, new Primitive("string_compare_string") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {

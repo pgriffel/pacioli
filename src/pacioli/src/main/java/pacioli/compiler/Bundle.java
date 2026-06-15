@@ -78,6 +78,7 @@ public class Bundle {
     public static final List<String> PRIMITIVE_TYPES = List.of(
             "Tuple",
             "List",
+            "Set",
             "Index",
             "Boole",
             "Void",

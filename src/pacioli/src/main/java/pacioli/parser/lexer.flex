@@ -132,7 +132,6 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defdata"         { return symbol("defdata",DEFDATA); }
   "defrecord"       { return symbol("defrecord",DEFRECORD); }
   "doc"             { return symbol("doc",DOC); }
-  "public"          { return symbol("public", PUBLIC); }
   "export"          { return symbol("export", EXPORT); }
   "for_type"        { return symbol("for_type",FORTYPE); }
   "for_index"       { return symbol("for_index",FORINDEX); }
@@ -163,6 +162,8 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "["               { return symbol("{",LBRACK); }
   "]"               { return symbol("}",RBRACK); }
   "|"               { return symbol("|",PIPE); }
+  "in list"         { return symbol("in list",FROM_LIST); }
+  "in set"          { return symbol("in set",FROM_SET); }
   "<-"              { return symbol("<-",FROM); }
   "@"               { return symbol("@", AT); }
 

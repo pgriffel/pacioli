@@ -81,9 +81,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         assert (ex instanceof ExpressionNode);
 
         if (this.op == null) {
-            return desugarComprehension(this.location(), (ExpressionNode) ex, desugared);
+            return desugarComprehension(this.kind, this.location(), (ExpressionNode) ex, desugared);
         } else {
-            return desugarFoldComprehension(this.location(), this.op, (ExpressionNode) ex, desugared);
+            return desugarFoldComprehension(this.kind, this.location(), this.op, (ExpressionNode) ex, desugared);
         }
     }
 
@@ -114,11 +114,13 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
     }
 
     public static final class GeneratorClause extends AbstractNode implements Clause {
+        public final Kind kind;
         public final IdentifierNode id;
         public final ExpressionNode list;
 
-        public GeneratorClause(IdentifierNode id, ExpressionNode list, Location loc) {
+        public GeneratorClause(Kind kind, IdentifierNode id, ExpressionNode list, Location loc) {
             super(loc);
+            this.kind = kind;
             this.id = id;
             this.list = list;
         }
@@ -188,7 +190,8 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
-    private static ExpressionNode desugarComprehension(pacioli.compiler.Location loc, ExpressionNode e,
+    private static ExpressionNode desugarComprehension(ComprehensionNode.Kind kind, pacioli.compiler.Location loc,
+            ExpressionNode e,
             List<Clause> ps)
             throws PacioliException {
 
@@ -197,7 +200,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
         pacioli.compiler.Location dummyLoc = loc.collapse();
 
-        ExpressionNode addMut = new IdentifierNode("_add_mut", dummyLoc);
+        ExpressionNode addMut = new IdentifierNode(opName(kind, "add"), dummyLoc);
         ExpressionNode accu = new IdentifierNode(accuName, dummyLoc);
         ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), dummyLoc);
 
@@ -207,7 +210,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
                 GeneratorClause clause = (GeneratorClause) part;
                 pacioli.compiler.Location loc2 = clause.list.location();
                 body = new ApplicationNode(
-                        new IdentifierNode("loop_list", dummyLoc),
+                        new IdentifierNode(opName(clause.kind, "loop"), dummyLoc),
                         Arrays.asList((ExpressionNode) new IdentifierNode(accuName, dummyLoc),
                                 new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2),
                                 clause.list),
@@ -224,7 +227,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
                 ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
                 ExpressionNode tup = new IdentifierNode(tupName, dummyLoc);
-                ExpressionNode loopList = new IdentifierNode("loop_list", dummyLoc);
+                ExpressionNode loopList = new IdentifierNode(opName(kind, "loop"), dummyLoc);
                 ExpressionNode accuId = new IdentifierNode(accuName, dummyLoc);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
                 ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
@@ -257,44 +260,109 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
 
         ExpressionNode lambda = new LambdaNode(Arrays.asList(accuName), body, loc);
-        ExpressionNode emptyListId = new IdentifierNode("empty_list", dummyLoc);
+        ExpressionNode emptyListId = new IdentifierNode(opName(kind, "empty"), dummyLoc);
         ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
 
         return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
     }
 
-    private static ExpressionNode desugarFoldComprehension(pacioli.compiler.Location loc, IdentifierNode op,
+    private static ExpressionNode desugarFoldComprehension(ComprehensionNode.Kind kind, pacioli.compiler.Location loc,
+            IdentifierNode op,
             ExpressionNode e, List<Clause> ps) throws PacioliException {
         pacioli.compiler.Location eLoc = e.location();
         pacioli.compiler.Location opLoc = op.location();
         pacioli.compiler.Location dummyLoc = op.location().collapse();
-        ExpressionNode body = desugarComprehension(loc, e, ps);
+        ExpressionNode body = desugarComprehension(kind, loc, e, ps);
         if (op.name().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_sum", dummyLoc), Arrays.asList(body),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "sum"), dummyLoc),
+                    Arrays.asList(body),
                     opLoc);
         } else if (op.name().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_count", dummyLoc),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "count"), dummyLoc),
                     Arrays.asList(body), opLoc);
         } else if (op.name().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_all", dummyLoc), Arrays.asList(body),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "all"), dummyLoc),
+                    Arrays.asList(body),
                     opLoc);
         } else if (op.name().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_some", dummyLoc), Arrays.asList(body),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "some"), dummyLoc),
+                    Arrays.asList(body),
                     opLoc);
         } else if (op.name().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_gcd", dummyLoc), Arrays.asList(body),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "gcd"), dummyLoc),
+                    Arrays.asList(body),
                     opLoc);
         } else if (op.name().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_concat", dummyLoc),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "concat"), dummyLoc),
                     Arrays.asList(body), opLoc);
         } else if (op.name().equals("min")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_min", dummyLoc), Arrays.asList(body),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "min"), dummyLoc),
+                    Arrays.asList(body),
                     opLoc);
         } else if (op.name().equals("max")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_max", dummyLoc), Arrays.asList(body),
+            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "max"), dummyLoc),
+                    Arrays.asList(body),
                     opLoc);
         } else {
             throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
+        }
+    }
+
+    private static String opName(ComprehensionNode.Kind kind, String op) {
+        if (kind.equals(Kind.LIST)) {
+            switch (op) {
+                case "empty":
+                    return "empty_list";
+                case "add":
+                    return "_add_mut";
+                case "loop":
+                    return "loop_list";
+                case "sum":
+                    return "_list_sum";
+                case "count":
+                    return "_list_count";
+                case "all":
+                    return "_list_all";
+                case "some":
+                    return "_list_some";
+                case "gcd":
+                    return "_list_gcd";
+                case "concat":
+                    return "_list_concat";
+                case "min":
+                    return "_list_min";
+                case "max":
+                    return "_list_max";
+                default:
+                    throw new RuntimeException("unknown list comprehension op: " + op);
+            }
+        } else {
+            switch (op) {
+                case "empty":
+                    return "empty_set";
+                case "add":
+                    return "_adjoin_mut";
+                case "loop":
+                    return "loop_set";
+                case "sum":
+                    return "_set_sum";
+                case "count":
+                    return "_set_count";
+                case "all":
+                    return "_set_all";
+                case "some":
+                    return "_set_some";
+                case "gcd":
+                    return "_set_gcd";
+                case "concat":
+                    return "_set_concat";
+                case "min":
+                    return "_set_min";
+                case "max":
+                    return "_set_max";
+                default:
+                    throw new RuntimeException("unknown set comprehension op: " + op);
+            }
         }
     }
 }

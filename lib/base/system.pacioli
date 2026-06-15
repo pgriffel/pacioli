@@ -27,6 +27,7 @@ export
     _atan,
     _atan2,
     _add_mut,
+    _adjoin_mut,
     _precision,
     _set_precision,
     _nr_decimals,
@@ -78,6 +79,10 @@ declare_primitive _atan2(A) ::
 
 declare_primitive _add_mut(list, element) ::
     for_type a: (List(a), a) -> List(a);
+# ----------------------------------------------------------------------------
+
+declare_primitive _adjoin_mut(set, element) ::
+    for_type a: (Set(a), a) -> Set(a);
 
 # ----------------------------------------------------------------------------
 
