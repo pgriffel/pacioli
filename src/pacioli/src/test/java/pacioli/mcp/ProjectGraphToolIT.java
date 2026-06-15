@@ -83,7 +83,7 @@ class ProjectGraphToolIT {
         // Then the text should be correct
         String text = contents0.get("text").getAsString();
         int hash = text.hashCode();
-        assertTrue(hash == -604551361 || hash == 571902904);
+        assertTrue(hash == -604551361 || hash == -78719947);
 
         // Teardown
         server.stop();
