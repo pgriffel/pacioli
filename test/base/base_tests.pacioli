@@ -71,7 +71,13 @@ define base_suites = [
     array_to_list_tests,
     array_equal_tests,
     row_coordinates_tests,
-    column_coordinates_tests
+    column_coordinates_tests,
+    set_equal_tests,
+    set_size_tests,
+    set_as_list_tests,
+    set_as_set_tests,
+    set_union_tests,
+    set_set_contains_tests
 ];
 
 run_test_suites(base_suites); 
@@ -1471,4 +1477,88 @@ define column_coordinates_tests = test_suite("Function column_coordinates", [
 
     test("should give Geom3@z for index -1 for |Geom3!|^T", () ->
         column_coordinates(|Geom3!|^T)(-1) = Geom3@z)
+]);
+
+# ------------------------------------------------------------------------------
+# Sets
+# ------------------------------------------------------------------------------
+
+define set_equal_tests = test_suite("Set equal", [
+    test("should be true for equal sets", () ->
+        {1,2,3} = {1,2,3}),
+
+    test("should ignore order", () ->
+        {1,2,3} = {3,2,1}),
+
+    test("should ignore duplicates", () ->
+        {1,2,3,3,2,1} = {3,2,1}),
+
+    test("should ignore duplicates for nested sets", () ->
+        {{1,1,1}, {}, {2,3,3}, {2,1,2,1}} = {{}, {1}, {1,2}, {2,3}})
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_size_tests = test_suite("Set size", [
+    test("should be zero for the empty set", () ->
+        set_size({}) = 0),
+
+    test("should give 3 for {1,2,3}", () ->
+        set_size({1,2,3}) = 3),
+
+    test("should ignore duplicates", () ->
+        set_size({1,2,3,3,2,1}) = 3)
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_as_list_tests = test_suite("Set as_list", [
+    test("should be the empty list for the empty set", () ->
+        as_list({}) = []),
+
+    test("should give [1,2] or [2,1] for {1,2,1,2}", () ->
+        contains([[1,2], [2,1]], as_list({1,2,1,2}))),
+
+    test("should give [{1,2}] for {{1,2,1,2}}", () ->
+        [{1,2}] = as_list({{1,2,1,2}}))
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_as_set_tests = test_suite("Set as_set", [
+    test("should be the empty list for the empty set", () ->
+        as_set([]) = {}),
+
+    test("should give all elements", () ->
+        {1,2,3} = as_set([1,2,3])),
+
+    test("should remove duplicates", () ->
+        {1,2,3} = as_set([1,2,3,1,2,3]))
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_union_tests = test_suite("Set union", [
+    test("should be the empty set for two empty et sets", () ->
+        union({}, {}) = {}),
+
+    test("should give all elements", () ->
+        union({1,2,3}, {4,5,6}) = {1,2,3,4,5,6}),
+
+    test("should remove duplicates", () ->
+        union({1,2,3}, {2,3,4,5}) = {1,2,3,4,5})
+]);
+
+
+# ------------------------------------------------------------------------------
+
+define set_set_contains_tests = test_suite("Set set_contains", [
+    test("should be true for {1,2,3} and 2", () ->
+        set_contains({1,2,3}, 2) = true),
+
+    test("should be true for {1,2,3} and 4", () ->
+        set_contains({1,2,3}, 4) = false),
+
+    test("should work for nested sets", () ->
+        set_contains({{1},{2},{3}}, {2,2}) = true)
 ]);

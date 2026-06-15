@@ -19,7 +19,9 @@
 # SOFTWARE.
 
 export
-    as_list;
+    as_list,
+    set_contains,
+    union;
 
 # ----------------------------------------------------------------------------
 # Sets
@@ -32,3 +34,20 @@ declare as_list ::
     for_type T: (Set(T)) -> List(T);
 
 define as_list(set) = [x | x in set set];
+
+# ----------------------------------------------------------------------------
+
+doc set_contains
+    "Is the element in the set?";
+
+declare set_contains :: for_type T: (Set(T), T) -> Boole;
+
+define set_contains(set, item) = 
+    contains(as_list(set), item);
+
+# ----------------------------------------------------------------------------
+ 
+declare union :: for_type T: (Set(T), Set(T)) -> Set(T);
+
+define union(xs, ys) = 
+    {x | x <- append(as_list(xs), as_list(ys))};

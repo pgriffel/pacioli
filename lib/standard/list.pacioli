@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 export
+    as_set,
     flatten,
     flat_map,
     combis,
@@ -159,3 +160,12 @@ define distinct(list) =
 
         return reverse(set);
     end;
+
+# ----------------------------------------------------------------------------
+
+doc as_set
+    "Creates a set from a list";
+
+declare as_set :: for_type T: (List(T)) -> Set(T);
+
+define as_set(list) = {x | x <- list};

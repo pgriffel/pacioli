@@ -20,7 +20,8 @@
 
 export
     empty_set,
-    loop_set;
+    loop_set,
+    set_size;
 
 # ----------------------------------------------------------------------------
 # Sets
@@ -31,6 +32,14 @@ doc empty_set
     
 declare_primitive empty_set() ::
     for_type T: () -> Set(T);
+
+# ----------------------------------------------------------------------------
+
+doc set_size
+    "Number of elements in a set";
+
+declare_primitive set_size(set) ::
+    for_type T: (Set(T)) -> 1;
 
 # ----------------------------------------------------------------------------
 

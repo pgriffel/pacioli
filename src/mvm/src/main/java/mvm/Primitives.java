@@ -1242,6 +1242,13 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("set_set_size") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliSet x = (PacioliSet) params.get(0);
+                return new Matrix(x.items().size());
+            }
+        });
+
         // //////////////////////////////////////////////////////////////////////////////
         // Strings
 

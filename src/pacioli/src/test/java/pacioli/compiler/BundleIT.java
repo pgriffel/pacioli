@@ -54,10 +54,10 @@ class BundleIT {
         // When a Bundle is created from the file
         Bundle bundle = Bundle.fromFile(file, LIBS);
 
-        // Then its environment should contain 254 values.
+        // Then its environment should contain 276 values.
         List<ValueInfo> infos = bundle.allValueInfos();
 
-        assertEquals(260, infos.size());
+        assertEquals(276, infos.size());
     }
 
     @Test
