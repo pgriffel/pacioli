@@ -110,6 +110,11 @@ define matrix_gsvd_suite =
 
 # -----------------------------------------------------------------------------
 
+# TODO: figure out why type inference fails sometimes without this declare. It
+# complains that metre and second cannot be matched (1 out of 25 times)
+declare gsvd_suite :: for_index E, G: for_unit E!d, c, b, a, G!f:
+    (String, () -> c^2*E!d per 1/E!d, () -> b^2*G!f per 1/G!f, () -> a/E!d per 1/G!f, decimals) -> TestSuite;
+
 define gsvd_suite(
         description,
         left_metric_generator,
