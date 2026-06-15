@@ -2,6 +2,8 @@
 
 ## [0.6.3] ?
 
+- Added sets and the Set type to the Pacioli values
+
 ### Changed
 
 ## [0.6.2] 2026-05-23
