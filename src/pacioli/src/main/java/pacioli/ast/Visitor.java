@@ -53,6 +53,7 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -239,4 +240,6 @@ public interface Visitor {
     void visit(ReturnVoidNode returnVoidNode);
 
     void visit(ListLiteralNode listLiteralNode);
+
+    void visit(SetLiteralNode setLiteralNode);
 }

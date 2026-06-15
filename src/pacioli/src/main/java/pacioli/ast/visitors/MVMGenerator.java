@@ -44,6 +44,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -718,6 +719,22 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             out.newline();
         }
         out.write("application(var(\"$base_list_empty_list\"))");
+        for (ExpressionNode element : node.elements) {
+            out.write(", ");
+            out.newline();
+            element.accept(this);
+            out.write(")");
+        }
+
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        for (ExpressionNode element : node.elements) {
+            out.write("application(var(\"$base_system__adjoin_mut\"), ");
+            out.newline();
+        }
+        out.write("application(var(\"$base_set_empty_set\"))");
         for (ExpressionNode element : node.elements) {
             out.write(", ");
             out.newline();

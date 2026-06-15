@@ -174,7 +174,7 @@ parser code {:
 :};
 
 
-terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
+terminal INCLUDE, IMPORT, EXPORT;
 terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
 terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
@@ -189,12 +189,12 @@ non terminal ProgramNode                     program;
 non terminal List<Node>                      includes;
 non terminal List<Definition>                definitions;
 non terminal Definition                      definition;
-non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, comprehension, statement, stm_if_tail;
+non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, setlit, comprehension, statement, stm_if_tail;
 non terminal List<ExpressionNode>            exprs, exprlist, statements;
 non terminal IdentifierNode                  id, name;
 non terminal TypeIdentifierNode              typeid, var;
 non terminal List<IdentifierNode>            ids, names, idlist, idlist_tail, exports;
-non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail, vars;
+non terminal List<TypeIdentifierNode>        typeids, vars;
 non terminal UnitNode                        dimnum, unit, unit_term;
 non terminal String                          unsigned, number, integer;
 non terminal StringNode                      path;
@@ -280,10 +280,7 @@ definition ::=
  | DECLARE_PRIMITIVE:d id:id idlist:ids DBLCLN schema:s     {: RESULT = new Declaration(makeLoc(dxleft, sxright), id, s, ids, true); :}
  | DEFINDEX:d typeid:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
- | DEFINDEX:d typeid:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
- | DEFINDEX:d typeid:id EQL LBRC RBRC:p                 {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(new ArrayList<>())); :}
  | DEFINDEX:d typeid:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
-
  | DEFTYPE:d vardecls:c type:e EQL type:t           {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), c, e, t); :}
  | DEFALIAS:d typeid:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
@@ -421,16 +418,6 @@ typeids ::=
   | typeids:ids COMMA typeid:id                     {: ids.add(id); RESULT = ids; :}
   ;
 
-typeidlist ::= 
-    LPAR RPAR                                       {: RESULT = new LinkedList<TypeIdentifierNode>(); :}
-  | LPAR typeidlist_tail:ids                        {: RESULT = ids; :}
-  ;
-
-typeidlist_tail ::= 
-    typeid:id RPAR                                  {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
-  | typeid:id COMMA typeidlist_tail:ids             {: ids.add(0, id); RESULT = ids; :}
-  ;
-  
 name ::= 
    id:id                                            {: RESULT = id; :}
  | STRING:s                                         {: RESULT = new IdentifierNode(s, makeLoc(sxleft, sxright)); :}
@@ -539,6 +526,7 @@ expr_no_id ::=
  | IF:i expr:c THEN expr:b if_tail:t                {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
  | LET lettail:e                                    {: RESULT = e; :}
  | listlit:e                                        {: RESULT = e; :}
+ | setlit:e                                         {: RESULT = e; :}
  | comprehension:e                                  {: RESULT = e; :}
  | PIPE matrix_type:m PIPE                          {: RESULT = new MatrixTypeNode(makeLoc(mxleft, mxright), m); :}
  | BEGIN:b sequence:s END:e                         {: RESULT = new StatementNode(makeLoc(bxleft, exright), s); :}
@@ -646,11 +634,25 @@ listlit ::=
  | LBRACK:l exprs:es RBRACK:r                       {: RESULT = new ListLiteralNode(makeLoc(lxleft, rxright), es); :}
  ;
 
+//------------------------------------------------------------------------------
+// Sets
+//------------------------------------------------------------------------------
+
+setlit ::= 
+   LBRC:l RBRC:r                                    {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
+                                                       RESULT = new ApplicationNode(new IdentifierNode("empty_set", loc), new ArrayList<ExpressionNode>(), loc); :}
+ | LBRC:l exprs:es RBRC:r                           {: RESULT = new SetLiteralNode(makeLoc(lxleft, rxright), es); :}
+ ;
+
 comprehension ::= 
    LBRACK:l expr:e PIPE parts:ps RBRACK:r           {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
-                                                       RESULT = new ComprehensionNode(e, ps, loc); :}
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.LIST, e, ps, loc); :}
  | id:id LBRACK expr:e PIPE parts:ps RBRACK:r       {: pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
-                                                       RESULT = new ComprehensionNode(id, e, ps, loc); :}
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.LIST, id, e, ps, loc); :}
+ | LBRC:l expr:e PIPE parts:ps RBRC:r               {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.SET, e, ps, loc); :}
+ | id:id LBRC expr:e PIPE parts:ps RBRC:r           {: pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.SET, id, e, ps, loc); :}
  ;
 
 parts ::= 

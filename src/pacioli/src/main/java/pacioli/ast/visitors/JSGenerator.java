@@ -42,6 +42,7 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -436,6 +437,22 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ListLiteralNode node) {
         out.write("Pacioli.tagList([");
+        Boolean sep = false;
+        for (Node arg : node.elements) {
+            if (sep) {
+                out.write(", ");
+                newline();
+            } else {
+                sep = true;
+            }
+            arg.accept(this);
+        }
+        out.write("])");
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        out.write("Pacioli.tagSet([");
         Boolean sep = false;
         for (Node arg : node.elements) {
             if (sep) {

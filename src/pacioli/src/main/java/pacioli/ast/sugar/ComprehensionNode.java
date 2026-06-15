@@ -39,19 +39,26 @@ import pacioli.compiler.PacioliException;
 
 public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
+    public enum Kind {
+        LIST, SET
+    }
+
+    public final Kind kind;
     public final IdentifierNode op; // maybe null
     public final ExpressionNode expression;
     public final List<Clause> clauses;
 
-    public ComprehensionNode(ExpressionNode e, List<Clause> ps, Location location) {
+    public ComprehensionNode(Kind kind, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
+        this.kind = kind;
         this.op = null;
         this.expression = e;
         this.clauses = ps;
     }
 
-    public ComprehensionNode(IdentifierNode op, ExpressionNode e, List<Clause> ps, Location location) {
+    public ComprehensionNode(Kind kind, IdentifierNode op, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
+        this.kind = kind;
         this.op = op;
         this.expression = e;
         this.clauses = ps;

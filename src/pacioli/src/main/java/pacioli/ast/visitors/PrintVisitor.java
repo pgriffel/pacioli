@@ -83,6 +83,7 @@ import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
@@ -1028,6 +1029,13 @@ public class PrintVisitor implements Visitor {
         write("[");
         writeCommaSeparated(node.elements);
         write("]");
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        write("{");
+        writeCommaSeparated(node.elements);
+        write("}");
     }
 
 }
