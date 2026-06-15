@@ -310,6 +310,7 @@ define run_test_suite(suite) =
 
                 if is_error(result) then
                     printf("  %s -> An error occurred: %s", test_description(test), result_error(result));
+                    nr_failures := nr_failures + 1;
                 else
                     okay := result_value(result);
 
