@@ -173,7 +173,7 @@ public interface TypeObject extends Printable {
         return new SimplificationParts().partsAccept(this);
     };
 
-    public default TypeObject simplify() {
+    public default Substitution simplification() {
         List<Unit<MatrixBase>> parts = simplificationParts();
 
         Substitution mgu = new Substitution();
@@ -193,7 +193,11 @@ public interface TypeObject extends Printable {
             mgu = simplified.compose(mgu);
         }
 
-        return applySubstitution(mgu).ungroundAll();
+        return mgu;
+    }
+
+    public default TypeObject simplify() {
+        return applySubstitution(simplification());
     }
 
     /**
@@ -239,8 +243,8 @@ public interface TypeObject extends Printable {
             // TypeVar var = (TypeVar) gvar; //fixme
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
-                // Results in weird types like b!b. Is that okay? Yes: output in quantifiers etc
-                // is fixed by MatrixNormalizeVisitor
+                // Results in weird types like b!b. Is corrected by properIndexSets on
+                // MatrixType. See MatrixNormalizeVisitor.
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
             } else if (var instanceof IndexSetVar) {
                 map = map.compose(
@@ -255,7 +259,7 @@ public interface TypeObject extends Printable {
         // Replace all unit vector variables by its name prefixed by the index set name.
         Substitution map2 = new Substitution();
         Set<String> names = new VectorVarNames().acceptTypeObject(unfreshType);
-        // Set<String> names = unfreshType.unitVecVarCompoundNames();
+
         for (String name : names) {
             String[] parts = name.split("!");
             assert (parts.length == 2);
@@ -284,10 +288,5 @@ public interface TypeObject extends Printable {
         this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
                 settings));
         return outputStream.toString();
-    }
-
-    // Hack to print proper compound unit vector in schema's
-    default public Set<String> unitVecVarCompoundNames() {
-        return new VectorVarNames().acceptTypeObject(this);
     }
 }

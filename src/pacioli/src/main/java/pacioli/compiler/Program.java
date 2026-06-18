@@ -766,7 +766,7 @@ public class Program {
 
         expression.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
 
-        return solved.simplify().normalizeMatrixTypes();
+        return solved.simplify();
     }
 
     /**
@@ -798,13 +798,20 @@ public class Program {
 
             Optional<TypeNode> declared = info.declaredType();
 
-            // 2. Solve the typing
+            // 2. Solve the typing. Don't simplify, because that might remove
+            // type variables that are assigned to local variables. They are
+            // needed to commit local variable types.
             Substitution inferenceSolution = typing.solveSubstitution(verbose);
             TypeObject solvedType = inferenceSolution.apply(typing.type());
 
             // 3. Rename to user friendly variable names
             Substitution unfreshSubst = solvedType.unfreshSubstitution();
-            TypeObject solved = unfreshSubst.apply(solvedType);
+
+            // 4. Simplify the type. Remember the simplification substitution for
+            // the local variables commit later.
+            Substitution simplification = solvedType.simplification();
+            TypeObject simplified = solvedType.applySubstitution(simplification);
+            TypeObject solved = unfreshSubst.apply(simplified);
 
             if (verbose) {
                 Pacioli.log("Solved type of %s is\n    %s",
@@ -822,49 +829,51 @@ public class Program {
                 }
             }
 
-            // 4. Determine the substitution to update the local variables and the
-            // type to store as the inferred type.
-            Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
-            TypeObject inferredType = solved.simplify().normalizeMatrixTypes();
+            // 5. Determine the substitution to update the local variables and the type to
+            // store as the inferred type. Local variables are updated with the same
+            // solution, simplification and renaming as the definition type.
+            Substitution finalLocalsSubs = unfreshSubst.compose(simplification).compose(inferenceSolution);
+            TypeObject inferredType = solved;
 
-            // 5. Check the validity of the declared type
+            // 6. Check the validity of the declared type
             if (info.isFromFile(this.file) && declared.isPresent()) {
 
-                TypeObject declaredType = declared.get().evalType().instantiate()
+                Schema declaredSchema = (Schema) declared.get().evalType();
+
+                TypeObject declaredType = declaredSchema
+                        .instantiate()
                         .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType2 = solvedType.generalize().instantiate();
+
+                TypeObject instantiatedType = solvedType.generalize().instantiate();
 
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(
                             "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                            inferredType2.unfresh().pretty(), declaredType.unfresh().pretty());
+                            instantiatedType.unfresh().pretty(), declaredType.unfresh().pretty());
                 }
 
-                if (!declaredType.isInstanceOf(inferredType2)) {
+                if (!declaredType.isInstanceOf(instantiatedType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
                                     "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                    declaredType.unfresh().normalizeMatrixTypes().pretty(),
-                                    inferredType2.unfresh().normalizeMatrixTypes().pretty()));
+                                    declaredType.unfresh().pretty(),
+                                    instantiatedType.unfresh().pretty()));
                 }
-            }
 
-            // 6. See if there is a type declaration.
-            if (info.isFromFile(this.file) && declared.isPresent()) {
-                // 6.a Get the declared type with the code's variable names. We want to use
+                // 7.a Get the declared type with the code's variable names. We want to use
                 // these variable names so they match the declared type when showing hover
                 // messages.
-                TypeObject decld = ((Schema) declared.get().evalType()).type().reduce(i -> i.isFromFile(this.file));
+                TypeObject declaredTypeBody = declaredSchema.type().reduce(i -> i.isFromFile(this.file));
 
-                // 6.b Match the inferred type and the declared type.
-                Substitution unifSubs = solvedType.match(decld);
+                // 7.b Match the inferred type and the declared type.
+                Substitution unifSubs = solvedType.match(declaredTypeBody);
 
-                // 6.c Update finalLocalsSubs and inferredType for the type declaration case
+                // 7.c Update finalLocalsSubs and inferredType for the type declaration case
                 finalLocalsSubs = unifSubs.compose(inferenceSolution);
                 inferredType = unifSubs.apply(solvedType);
             }
 
-            // 7. Update the local variable types and store the inferred type
+            // 8. Update the local variable types and store the inferred type
             def.body.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
             info.setinferredType(inferredType.generalize());
 
