@@ -63,6 +63,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.expression.ForNode.Kind;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ValueInfo;
@@ -430,12 +431,14 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
+        String kind = node.kind.equals(Kind.LIST) ? "List" : "Set";
+
         var itemsType = new ParametricType(
                 null,
-                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                new OperatorConst(new TypeIdentifier("base", kind), findInfo(kind)),
                 List.of(argType));
         typing.addConstraint(itemsType, itemsTyping.type(),
-                "the variables in a for loop must match the list items", node.location());
+                "the variables in a for loop must match the traversed items", node.location());
 
         typing.addConstraint(bodyTyping.type(), newVoidType(),
                 "the body of a for loop must be a statement", node.location());
@@ -495,9 +498,11 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
+        String kind = node.kind.equals(Kind.LIST) ? "List" : "Set";
+
         var itemsType = new ParametricType(
                 null,
-                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                new OperatorConst(new TypeIdentifier("base", kind), findInfo(kind)),
                 List.of(newTupleType(argTypes)));
         typing.addConstraint(itemsType, itemsTyping.type(),
                 "the variables in a for loop must match the list items", node.location());

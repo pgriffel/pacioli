@@ -166,14 +166,50 @@ define for_while_suite = test_suite("While statement", [
             return foo;
         end = 46),
 
-    test("should sum some numbers with a for loop", () -> 
+    test("should sum a list numbers with a for loop using '<-' notation", () ->
         begin 
             foo := 1;
             for n <- naturals(10) do
                 foo := foo + n;
             end
             return foo;
-        end = 46)
+        end = 46),
+
+    test("should sum a list of numbers with a for loop using 'in list' notation", () ->
+        begin 
+            foo := 1;
+            for n in list naturals(10) do
+                foo := foo + n;
+            end
+            return foo;
+        end = 46),
+
+    test("should sum a set of numbers with a for loop", () -> 
+        begin 
+            foo := 1;
+            for n in set as_set(naturals(10)) do
+                foo := foo + n;
+            end
+            return foo;
+        end = 46),
+
+    test("should sum a list of numbers with a tuple for loop using 'in list' notation", () ->
+        begin 
+            foo := 1;
+            for (a, b) in list zip(naturals(10), naturals(10)) do
+                foo := foo + a + b;
+            end
+            return foo;
+        end = 91),
+
+    test("should sum a set of numbers with a tuple for loop", () -> 
+        begin 
+            foo := 1;
+            for (a,b) in set as_set(zip(naturals(10), naturals(10))) do
+                foo := foo + a + b;
+            end
+            return foo;
+        end = 91)
 
     ]);
 

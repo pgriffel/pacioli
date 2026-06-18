@@ -55,6 +55,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.expression.ForNode.Kind;
 import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
@@ -537,8 +538,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ForNode node) {
 
+        String op = node.kind.equals(Kind.LIST) ? "_for" : "_for_set";
+
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_for"));
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", op));
         node.items.accept(this);
         out.print(",");
         node.lambdaBody.accept(this);
@@ -549,8 +552,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ForTupleNode node) {
 
+        String op = node.kind.equals(Kind.LIST) ? "_for" : "_for_set";
+
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_for"));
+        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", op));
         node.items.accept(this);
         out.print(",");
         node.lambdaBody.accept(this);

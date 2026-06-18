@@ -220,6 +220,7 @@ non terminal RecordDefinition.FieldDefinition        field_definition;
 non terminal List<RecordDefinition.FieldDefinition>  field_definitions;
 non terminal List<ExpressionNode>            select_parts;
 non terminal ComprehensionNode.Kind          from;
+non terminal ForNode.Kind                    from_for;
 
 precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
@@ -610,8 +611,8 @@ statement ::=
                                                        RESULT = new ReturnVoidNode(loc); :}
   | WHILE:w expr:e DO sequence:s END:n              {: RESULT = new WhileNode(makeLoc(wxleft, nxright), e, s); :}
 
-  | FOR:f id:id FROM expr:e DO sequence:s END:n     {: RESULT = new ForNode(makeLoc(fxleft, nxright), id, e, s); :}
-  | FOR:f idlist:ids FROM expr:e DO sequence:s END:n{: RESULT = new ForTupleNode(makeLoc(fxleft, nxright), ids, e, s); :}
+  | FOR:f id:id from_for:l expr:e DO sequence:s END:n      {: RESULT = new ForNode(makeLoc(fxleft, nxright), l, id, e, s); :}
+  | FOR:f idlist:ids from_for:l expr:e DO sequence:s END:n {: RESULT = new ForTupleNode(makeLoc(fxleft, nxright), l, ids, e, s); :}
 
   | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.compiler.Location loc = makeLoc(ixleft, txright);
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
@@ -623,6 +624,12 @@ stm_if_tail ::=
  | ELSE:l sequence:s END:e                          {: RESULT = s; :}
  | END:e                                            {: pacioli.compiler.Location loc = makeLoc(exleft, exright);
                                                        RESULT = new ApplicationNode(new IdentifierNode("_skip", loc.collapse()), new ArrayList<ExpressionNode>(), loc); :}
+ ;
+
+from_for ::= 
+    FROM                                                {: RESULT = ForNode.Kind.LIST; :}
+ |  FROM_SET                                            {: RESULT = ForNode.Kind.SET; :}
+ |  FROM_LIST                                           {: RESULT = ForNode.Kind.LIST; :}
  ;
 
 //------------------------------------------------------------------------------
