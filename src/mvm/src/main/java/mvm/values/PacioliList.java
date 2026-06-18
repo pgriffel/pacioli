@@ -48,7 +48,9 @@ public class PacioliList implements PacioliValue {
 
     @Override
     public void printText(PrintWriter out) {
+        out.print("[");
         out.print(Printable.joinText(", ", items));
+        out.print("]");
     }
 
     @Override
