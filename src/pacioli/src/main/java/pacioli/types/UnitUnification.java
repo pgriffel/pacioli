@@ -24,6 +24,7 @@ package pacioli.types;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import pacioli.compiler.PacioliException;
 import pacioli.types.type.UnitVar;
@@ -110,13 +111,13 @@ public class UnitUnification {
     }
 
     // UNITTODO
-    public static Substitution unitSimplify(Unit<MatrixBase> unit) {
+    public static Substitution unitSimplify(Unit<MatrixBase> unit, Set<UnitVar> ignore) {
 
         List<MatrixBase> varBases = new ArrayList<MatrixBase>();
         List<MatrixBase> fixedBases = new ArrayList<MatrixBase>();
 
         for (MatrixBase base : unit.bases()) {
-            if (base.isVar()) {
+            if (base instanceof UnitVar var && !ignore.contains(var)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -139,7 +140,7 @@ public class UnitUnification {
 
         if (minPower.signum() < 0) {
             Substitution tmp = new Substitution(minVar, Unit.from(minVar).reciprocal());
-            return unitSimplify(tmp.apply(unit)).compose(tmp);
+            return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
         }
 
         if (varBases.size() == 1) {
@@ -169,6 +170,6 @@ public class UnitUnification {
         }
 
         Substitution tmp = new Substitution(minVar, Unit.<MatrixBase>from(minVar).multiply(rest));
-        return unitSimplify(tmp.apply(unit)).compose(tmp);
+        return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
 }

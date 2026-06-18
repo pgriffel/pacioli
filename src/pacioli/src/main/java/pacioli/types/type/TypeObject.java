@@ -174,23 +174,19 @@ public interface TypeObject extends Printable {
     };
 
     public default TypeObject simplify() {
-
         List<Unit<MatrixBase>> parts = simplificationParts();
 
         Substitution mgu = new Substitution();
-        Set<String> ignore = new HashSet<>();
+        Set<UnitVar> ignore = new HashSet<>();
 
         for (int i = 0; i < parts.size(); i++) {
-            Unit<MatrixBase> part = mgu.apply(parts.get(i))
-                    .map(x -> (x instanceof Var v)
-                            ? ((MatrixBase) v.setGround(ignore.contains(v.pretty())))
-                            : x);
+            Unit<MatrixBase> part = mgu.apply(parts.get(i));
 
-            Substitution simplified = UnitUnification.unitSimplify(part);
+            Substitution simplified = UnitUnification.unitSimplify(part, ignore);
 
             for (MatrixBase base : simplified.apply(part).bases()) {
-                if (base instanceof Var) {
-                    ignore.add(base.pretty());
+                if (base instanceof UnitVar var) {
+                    ignore.add(var);
                 }
             }
 
