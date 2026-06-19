@@ -878,7 +878,8 @@ public class Program {
             info.setinferredType(inferredType.generalize());
 
         } catch (PacioliException e) {
-            throw new RuntimeException("Type error", new PacioliException(info.location(), e.getMessage()));
+            throw new RuntimeException("Type error",
+                    e.location() == null ? new PacioliException(info.location(), e.getMessage()) : e);
         }
 
     }
