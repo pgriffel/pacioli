@@ -40,7 +40,7 @@ import pacioli.compiler.PacioliException;
 public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
     public enum Kind {
-        LIST, SET
+        LIST, SET, ARRAY
     }
 
     public final Kind kind;
@@ -210,7 +210,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
                 GeneratorClause clause = (GeneratorClause) part;
                 pacioli.compiler.Location loc2 = clause.list.location();
                 body = new ApplicationNode(
-                        new IdentifierNode(opName(clause.kind, "loop"), dummyLoc),
+                        new IdentifierNode(loopName(clause.kind, "loop"), dummyLoc),
                         Arrays.asList((ExpressionNode) new IdentifierNode(accuName, dummyLoc),
                                 new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2),
                                 clause.list),
@@ -227,7 +227,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
                 ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
                 ExpressionNode tup = new IdentifierNode(tupName, dummyLoc);
-                ExpressionNode loopList = new IdentifierNode(opName(kind, "loop"), dummyLoc);
+                ExpressionNode loopList = new IdentifierNode(loopName(kind, "loop"), dummyLoc);
                 ExpressionNode accuId = new IdentifierNode(accuName, dummyLoc);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
                 ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
@@ -308,6 +308,19 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
+    private static String loopName(ComprehensionNode.Kind kind, String op) {
+        switch (kind) {
+            case LIST:
+                return "loop_list";
+            case SET:
+                return "loop_set";
+            case ARRAY:
+                return "loop_array";
+            default:
+                throw new RuntimeException("Unexpected kind for op: " + op);
+        }
+    }
+
     private static String opName(ComprehensionNode.Kind kind, String op) {
         if (kind.equals(Kind.LIST)) {
             switch (op) {
@@ -315,8 +328,6 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
                     return "empty_list";
                 case "add":
                     return "_add_mut";
-                case "loop":
-                    return "loop_list";
                 case "sum":
                     return "_list_sum";
                 case "count":
@@ -342,8 +353,6 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
                     return "empty_set";
                 case "add":
                     return "_adjoin_mut";
-                case "loop":
-                    return "loop_set";
                 case "sum":
                     return "_set_sum";
                 case "count":

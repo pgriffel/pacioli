@@ -431,7 +431,7 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
-        String kind = node.kind.equals(Kind.LIST) ? "List" : "Set";
+        String kind = node.kind.equals(Kind.LIST) ? "List" : (node.kind.equals(Kind.SET) ? "Set" : "Array");
 
         var itemsType = new ParametricType(
                 null,
@@ -498,7 +498,7 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
-        String kind = node.kind.equals(Kind.LIST) ? "List" : "Set";
+        String kind = node.kind.equals(Kind.LIST) ? "List" : (node.kind.equals(Kind.SET) ? "Set" : "Array");
 
         var itemsType = new ParametricType(
                 null,

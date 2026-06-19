@@ -278,6 +278,19 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("base__for_array") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliArray first = (PacioliArray) params.get(0);
+                Callable second = (Callable) params.get(1);
+
+                for (int i = 0; i < first.size(); i++) {
+                    second.apply(List.of(first.get(i)));
+                }
+
+                return VOID;
+            }
+        });
+
         storePrimitive(store, new Primitive("base__throw_result") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Reference first = (Reference) params.get(0);

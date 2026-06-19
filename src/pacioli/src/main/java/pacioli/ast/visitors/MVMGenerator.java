@@ -538,7 +538,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ForNode node) {
 
-        String op = node.kind.equals(Kind.LIST) ? "_for" : "_for_set";
+        String op = node.kind.equals(Kind.LIST) ? "_for" : (node.kind.equals(Kind.SET) ? "_for_set" : "_for_array");
 
         out.mark();
         out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", op));
@@ -552,7 +552,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ForTupleNode node) {
 
-        String op = node.kind.equals(Kind.LIST) ? "_for" : "_for_set";
+        String op = node.kind.equals(Kind.LIST) ? "_for" : (node.kind.equals(Kind.SET) ? "_for_set" : "_for_array");
 
         out.mark();
         out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", op));

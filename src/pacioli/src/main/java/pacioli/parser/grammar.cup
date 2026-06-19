@@ -176,7 +176,7 @@ parser code {:
 
 terminal INCLUDE, IMPORT, EXPORT;
 terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
-terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, FROM_SET, FROM_LIST, LAMBDA;
+terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, FROM_SET, FROM_LIST, FROM_ARRAY, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV, APPEND;
@@ -629,6 +629,7 @@ stm_if_tail ::=
 from_for ::= 
     FROM                                                {: RESULT = ForNode.Kind.LIST; :}
  |  FROM_SET                                            {: RESULT = ForNode.Kind.SET; :}
+ |  FROM_ARRAY                                          {: RESULT = ForNode.Kind.ARRAY; :}
  |  FROM_LIST                                           {: RESULT = ForNode.Kind.LIST; :}
  ;
 
@@ -693,6 +694,7 @@ part ::=
 from ::= 
     FROM                                                {: RESULT = ComprehensionNode.Kind.LIST; :}
  |  FROM_SET                                            {: RESULT = ComprehensionNode.Kind.SET; :}
+ |  FROM_ARRAY                                          {: RESULT = ComprehensionNode.Kind.ARRAY; :}
  |  FROM_LIST                                           {: RESULT = ComprehensionNode.Kind.LIST; :}
  ;
 

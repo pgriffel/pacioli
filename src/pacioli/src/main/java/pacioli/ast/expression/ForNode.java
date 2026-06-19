@@ -33,7 +33,7 @@ import pacioli.symboltable.info.ValueInfo;
 public class ForNode extends AbstractNode implements ExpressionNode {
 
     public enum Kind {
-        LIST, SET
+        LIST, SET, ARRAY
     }
 
     public final IdentifierNode var;

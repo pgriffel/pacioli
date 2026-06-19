@@ -48,6 +48,7 @@ public interface ExpressionNode extends Node {
         defaultTypes.put("Data", (ParametricInfo) prog.types().lookup("Data"));
         defaultTypes.put("List", (ParametricInfo) prog.types().lookup("List"));
         defaultTypes.put("Set", (ParametricInfo) prog.types().lookup("Set"));
+        defaultTypes.put("Array", (ParametricInfo) prog.types().lookup("Array"));
 
         TypeInference visitor = new TypeInference(defaultTypes, file);
         return visitor.typingAccept(this);

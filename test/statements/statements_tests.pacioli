@@ -193,6 +193,15 @@ define for_while_suite = test_suite("While statement", [
             return foo;
         end = 46),
 
+    test("should sum an array of numbers with a for loop", () -> 
+        begin 
+            foo := 1;
+            for n in array array_from_list(naturals(10)) do
+                foo := foo + n;
+            end
+            return foo;
+        end = 46),
+
     test("should sum a list of numbers with a tuple for loop using 'in list' notation", () ->
         begin 
             foo := 1;
@@ -206,6 +215,15 @@ define for_while_suite = test_suite("While statement", [
         begin 
             foo := 1;
             for (a,b) in set as_set(zip(naturals(10), naturals(10))) do
+                foo := foo + a + b;
+            end
+            return foo;
+        end = 91),
+
+    test("should sum an array of numbers with a tuple for loop", () -> 
+        begin 
+            foo := 1;
+            for (a,b) in array array_from_list(zip(naturals(10), naturals(10))) do
                 foo := foo + a + b;
             end
             return foo;

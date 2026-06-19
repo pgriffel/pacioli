@@ -164,6 +164,7 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "|"               { return symbol("|",PIPE); }
   "in list"         { return symbol("in list",FROM_LIST); }
   "in set"          { return symbol("in set",FROM_SET); }
+  "in array"        { return symbol("in set",FROM_ARRAY); }
   "<-"              { return symbol("<-",FROM); }
   "@"               { return symbol("@", AT); }
 
