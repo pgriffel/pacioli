@@ -833,7 +833,7 @@ public class Program {
             // store as the inferred type. Local variables are updated with the same
             // solution, simplification and renaming as the definition type.
             Substitution finalLocalsSubs = unfreshSubst.compose(simplification).compose(inferenceSolution);
-            TypeObject inferredType = solved;
+            TypeObject inferredType = solved.normalizeMatrixTypes();
 
             // 6. Check the validity of the declared type
             if (info.isFromFile(this.file) && declared.isPresent()) {
@@ -874,6 +874,8 @@ public class Program {
             }
 
             // 8. Update the local variable types and store the inferred type
+            // The commit visitor does the normalizeMatrixTypes that is done
+            // for the infered type above!
             def.body.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
             info.setinferredType(inferredType.generalize());
 

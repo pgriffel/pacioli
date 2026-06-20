@@ -27,10 +27,6 @@ import pacioli.types.type.matrix.MatrixType;
 /**
  * Fix for the weird types like x!x that are introduced in the
  * TypeObject.unfresh method.
- * 
- * No longer used. Is solved by calling properIndexSets in PrettyPrinter.
- * 
- * TODO: reconsider fixing this during type inference
  */
 public class MatrixNormalizeVisitor extends TransformType {
 

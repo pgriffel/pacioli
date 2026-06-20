@@ -244,7 +244,7 @@ public interface TypeObject extends Printable {
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
                 // Results in weird types like b!b. Is corrected by properIndexSets on
-                // MatrixType. See MatrixNormalizeVisitor.
+                // MatrixType. See normalizeMatrixTypes and MatrixNormalizeVisitor.
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
             } else if (var instanceof IndexSetVar) {
                 map = map.compose(

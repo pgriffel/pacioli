@@ -121,14 +121,12 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
 
-        MatrixType properType = type.properIndexSets();
-
         // Empty string or something
-        String left = properType.prettyDimensionUnitPair(properType.rowDimension(), properType.rowUnit());
-        String right = properType.prettyDimensionUnitPair(properType.columnDimension(), properType.columnUnit());
+        String left = type.prettyDimensionUnitPair(type.rowDimension(), type.rowUnit());
+        String right = type.prettyDimensionUnitPair(type.columnDimension(), type.columnUnit());
 
         // 1 or something
-        String factorString = properType.factor().pretty();
+        String factorString = type.factor().pretty();
 
         boolean hasFactor = !factorString.equals("1");
         boolean hasLeft = !left.isEmpty();
