@@ -1,0 +1,77 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+
+declare bignum_suites :: List(TestSuite);
+
+define bignum_suites = [
+    bignum_equal_suite,
+    bignum_format_suite,
+    bignum_sqrt_suite
+];
+
+run_test_suites(bignum_suites);
+
+# ------------------------------------------------------------------------------
+# BigNum tests
+# ------------------------------------------------------------------------------
+
+define bignum_equal_suite = test_suite("BigNum equal", [
+    test("should be true for '12.345' and '12.345'", () ->
+        make_bignum("12.345") = make_bignum("12.345")),
+
+    test("should be true for '12.345' and '12.34500'", () ->
+        make_bignum("12.345") = make_bignum("12.34500"))
+]);
+
+# ------------------------------------------------------------------------------
+
+define bignum_format_suite = test_suite("format bignum", [
+    test("should equal '12.345000' for bignum '12.345' and format '%f'", () ->
+        format("%f", make_bignum("12.345")) = "12.345000"),
+
+    test("should equal '12.35' for bignum '12.345' and format '%.2f'", () ->
+        format("%.2f", make_bignum("12.345")) = "12.35"),
+
+    test("should equal '   12.35' for bignum '12.345' and format '%8.2f'", () ->
+        format("%8.2f", make_bignum("12.345")) = "   12.35"),
+
+    test("should equal '12.35' for bignum '12.345' and format '%1.2f'", () ->
+        format("%1.2f", make_bignum("12.345")) = "12.35"),
+
+    test("should equal '        12.3450000' for bignum '12.345' and format '%18.7f'", () ->
+        format("%18.7f", make_bignum("12.345")) = "        12.3450000")
+]);
+
+# ------------------------------------------------------------------------------
+
+define sqrt2 = bignum_sqrt(make_bignum("2"), 12*|digits|);
+
+define bignum_sqrt_suite = test_suite("bignum_sqrt", [
+    test("should compute sqrt of 2 for 12 digits", () ->
+        format("%.15f", sqrt2) = "1.414213562370000"),
+
+    test("should equal '2.0000000000' for square root of 2 and format '%.10f'", () ->
+        format("%.10f", bignum_multiply(sqrt2, sqrt2)) = "2.0000000000"),
+
+    test("should equal '1.99999999999' for square root of 2 and format '%.11f'", () ->
+        format("%.11f", bignum_multiply(sqrt2, sqrt2)) = "1.99999999999")
+]);

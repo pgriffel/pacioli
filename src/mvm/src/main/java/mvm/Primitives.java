@@ -35,6 +35,7 @@ import mvm.values.Callable;
 import mvm.values.FileHandle;
 import mvm.values.Maybe;
 import mvm.values.PacioliArray;
+import mvm.values.PacioliBigNum;
 import mvm.values.PacioliList;
 import mvm.values.PacioliMap;
 import mvm.values.PacioliSet;
@@ -1519,26 +1520,38 @@ public class Primitives {
 
                                         if (floatMatcher.region(position, nrCharacters).find()) {
 
+                                            Integer size;
+                                            Integer nrDecimals;
+
+                                            try {
+                                                size = Integer.parseInt(floatMatcher.group(1));
+                                            } catch (Exception e) {
+                                                size = null;
+                                            }
+
+                                            try {
+                                                nrDecimals = Integer.parseInt(floatMatcher.group(3));
+                                            } catch (Exception e) {
+                                                nrDecimals = size;
+                                                size = null;
+                                            }
+
                                             var value = params.get(argumentIndex++);
 
                                             if (value instanceof Matrix mat) {
 
-                                                Integer size;
-                                                Integer nrDecimals;
-
-                                                try {
-                                                    size = Integer.parseInt(floatMatcher.group(1));
-                                                } catch (Exception e) {
-                                                    size = null;
-                                                }
-
-                                                try {
-                                                    nrDecimals = Integer.parseInt(floatMatcher.group(3));
-                                                } catch (Exception e) {
-                                                    nrDecimals = null;
-                                                }
-
                                                 String val = nrDecimals == null ? mat.toText() : mat.toText(nrDecimals);
+
+                                                builder.append(size == null ? val : pad("", val, size, " "));
+                                                position += floatMatcher.end() - floatMatcher.start();
+
+                                            } else if (value instanceof PacioliBigNum num) {
+
+                                                String fmt = String.format("%%%s%sf",
+                                                        size == null ? "" : size,
+                                                        nrDecimals == null ? "" : "." + nrDecimals.toString());
+
+                                                String val = String.format(fmt, num.value);
 
                                                 builder.append(size == null ? val : pad("", val, size, " "));
                                                 position += floatMatcher.end() - floatMatcher.start();
@@ -1702,6 +1715,83 @@ public class Primitives {
                 PacioliString text = (PacioliString) params.get(1);
                 handle.write(text);
                 return VOID;
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum_make_bignum") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliString input = (PacioliString) params.get(0);
+                return new PacioliBigNum(input.value());
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum__bignum_sqrt") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum input = (PacioliBigNum) params.get(0);
+                Matrix n = (Matrix) params.get(1);
+
+                int d = (int) n.SingletonNumber();
+
+                return input.sqrt(d);
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum_bignum_add") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum x = (PacioliBigNum) params.get(0);
+                PacioliBigNum y = (PacioliBigNum) params.get(1);
+
+                return x.add(y);
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum_bignum_subtract") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum x = (PacioliBigNum) params.get(0);
+                PacioliBigNum y = (PacioliBigNum) params.get(1);
+
+                return x.subtract(y);
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum_bignum_multiply") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum x = (PacioliBigNum) params.get(0);
+                PacioliBigNum y = (PacioliBigNum) params.get(1);
+
+                return x.multiply(y);
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum__bignum_divide") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum x = (PacioliBigNum) params.get(0);
+                PacioliBigNum y = (PacioliBigNum) params.get(1);
+                Matrix n = (Matrix) params.get(2);
+
+                int d = (int) n.SingletonNumber();
+
+                return x.divide(y, d);
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum_bignum_power") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum x = (PacioliBigNum) params.get(0);
+                Matrix n = (Matrix) params.get(1);
+
+                int d = (int) n.SingletonNumber();
+
+                return x.power(d);
+            }
+        });
+
+        storePrimitive(store, new Primitive("bignum_bignum_compare") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                PacioliBigNum x = (PacioliBigNum) params.get(0);
+                PacioliBigNum y = (PacioliBigNum) params.get(1);
+                int val = x.value.compareTo(y.value);
+                return new Matrix(val);
             }
         });
     }

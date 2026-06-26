@@ -88,6 +88,7 @@ public class Bundle {
             "Identifier",
             "Maybe",
             "Array",
+            "BigNum",
             "Map",
             "File",
             "Data");

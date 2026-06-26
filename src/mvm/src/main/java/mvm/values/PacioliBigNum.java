@@ -23,13 +23,19 @@
 package mvm.values;
 
 import java.io.PrintWriter;
+import java.math.BigDecimal;
+import java.math.MathContext;
 
-public class PacioliString implements PacioliValue {
+public class PacioliBigNum implements PacioliValue {
 
-    private final String value;
+    public final BigDecimal value;
 
-    public PacioliString(String value) {
+    public PacioliBigNum(BigDecimal value) {
         this.value = value;
+    }
+
+    public PacioliBigNum(String value) {
+        this.value = new BigDecimal(value);
     }
 
     @Override
@@ -39,7 +45,7 @@ public class PacioliString implements PacioliValue {
 
     @Override
     public void printTerminalText(PrintWriter out) {
-        out.print("\"" + value + "\"");
+        out.print(value);
     }
 
     @Override
@@ -52,14 +58,36 @@ public class PacioliString implements PacioliValue {
         if (other == this) {
             return true;
         }
-        if (!(other instanceof PacioliString)) {
+        if (!(other instanceof PacioliBigNum)) {
             return false;
         }
-        PacioliString otherString = (PacioliString) other;
-        return this.value.equals(otherString.value);
+        PacioliBigNum otherString = (PacioliBigNum) other;
+        return this.value.compareTo(otherString.value) == 0;
     }
 
-    public String value() {
-        return value;
+    public PacioliBigNum add(PacioliBigNum other) {
+        return new PacioliBigNum(value.add(other.value));
+    }
+
+    public PacioliBigNum subtract(PacioliBigNum other) {
+        return new PacioliBigNum(value.subtract(other.value));
+    }
+
+    public PacioliBigNum multiply(PacioliBigNum other) {
+        return new PacioliBigNum(value.multiply(other.value));
+    }
+
+    public PacioliBigNum divide(PacioliBigNum other, int precision) {
+        MathContext mc = new MathContext(precision);
+        return new PacioliBigNum(value.divide(other.value, mc));
+    }
+
+    public PacioliBigNum power(int n) {
+        return new PacioliBigNum(value.pow(n));
+    }
+
+    public PacioliBigNum sqrt(int precision) {
+        MathContext mc = new MathContext(precision);
+        return new PacioliBigNum(value.sqrt(mc));
     }
 }
