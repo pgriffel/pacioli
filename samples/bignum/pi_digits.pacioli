@@ -81,7 +81,7 @@ define pi_to_n_digits(n) =
 
             old := pi_digits;
 
-            printf("Step %2d. diff=%18.3e", i, diff);
+            printf("Step %2d. diff=%.1e", i, diff);
 
         end
 
@@ -105,11 +105,9 @@ define pi_1000_digits = "3.14159265358979323846264338327950288419716939937510582
 
 define pi_1000 = pi_to_n_digits(1000);
 
-define pi_digits = format("%1000f", pi_1000);
-
 define pi_suite = test_suite("Function pi_to_n_digits", [
     test("should equal downloaded pi_1000_digits for n = 1000", () ->
-        pi_1000_digits = pi_digits),
+        pi_1000 = make_bignum(pi_1000_digits)),
 
     test("should calc pi digits for large n (this test is for performance experiments)", () ->
         pi_to_n_digits(10000) != pi_1000)
@@ -136,5 +134,10 @@ define pi_suite = test_suite("Function pi_to_n_digits", [
 # format("%f", make_bignum("12.345"));
 
 # format("%18.7f", make_bignum("12.345")) ;
+
+define pi_digits =
+    format("%1000f", pi_1000);
+
+print("\nPi with 1000 decimals");
 
 print(pi_digits);
