@@ -20,14 +20,37 @@
 
 import testing;
 
-include index_tests;
-include string_tests;
+declare index_suites :: List(TestSuite);
 
-declare standard_suites :: List(TestSuite);
+define index_suites = [
+   sort_index_suite
+];
 
-define standard_suites = flatten([
-   index_suites,
-   string_suites
+run_test_suites(index_suites); 
+
+# ------------------------------------------------------------------------------
+# Sorting indices
+# ------------------------------------------------------------------------------
+
+defindex Foo = {foo, bar, baz};
+
+defunit Foo!unit = {
+    foo : second
+};
+
+defmatrix foo :: metre * Foo! = {
+    foo -> 2,
+    bar -> 3,
+    baz -> 5
+};
+
+define sort_index_suite = test_suite("sort_list", [
+       
+    test("should sort indices ascending", () ->
+        sort_list(row_domain(foo), compare_index) = [Foo@foo, Foo@bar, Foo@baz]
+    ),
+
+    test("should sort indices descending", () ->
+        sort_list(row_domain(foo), (x, y) -> -1 * compare_index(x, y)) = [Foo@baz, Foo@bar, Foo@foo]
+    )
 ]);
-
-run_test_suites(standard_suites); 

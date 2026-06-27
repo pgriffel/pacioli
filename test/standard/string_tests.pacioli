@@ -20,14 +20,33 @@
 
 import testing;
 
-include index_tests;
-include string_tests;
+declare string_suites :: List(TestSuite);
 
-declare standard_suites :: List(TestSuite);
+define string_suites = [
+   join_strings_suite
+];
 
-define standard_suites = flatten([
-   index_suites,
-   string_suites
+run_test_suites(string_suites); 
+
+# ------------------------------------------------------------------------------
+# Function join_strings
+# ------------------------------------------------------------------------------
+
+define join_strings_suite = test_suite("join_strings", [
+
+    test("should join three strings correctly", () ->
+        join_strings(["a", "bb", "ccc"], "++") = "a++bb++ccc"
+    ),
+ 
+    test("should join one string correctly", () ->
+        join_strings(["foo"], "++") = "foo"
+    ),
+
+    test("should give the empty string for an empty list", () ->
+        join_strings([], "++") = ""
+    ),
+
+    test("should work with an empty separator", () ->
+        join_strings(["a", "bb", "ccc"], "") = "abbccc"
+    )
 ]);
-
-run_test_suites(standard_suites); 
