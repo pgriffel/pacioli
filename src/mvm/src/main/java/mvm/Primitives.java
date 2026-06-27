@@ -1437,7 +1437,7 @@ public class Primitives {
         storePrimitive(store, new Primitive("string_format") {
 
             Pattern DECIMAL_PATTERN = Pattern.compile("^%([0-9]*)d");
-            Pattern FLOAT_PATTERN = Pattern.compile("^%([0-9]*)([.]?)([0-9]*)f");
+            Pattern FLOAT_PATTERN = Pattern.compile("^%([0-9]*)([.]?)([0-9]*)(e|f)");
 
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 if (params.isEmpty()) {
@@ -1536,6 +1536,8 @@ public class Primitives {
                                                 size = null;
                                             }
 
+                                            String chr = floatMatcher.group(4);
+
                                             var value = params.get(argumentIndex++);
 
                                             if (value instanceof Matrix mat) {
@@ -1547,9 +1549,10 @@ public class Primitives {
 
                                             } else if (value instanceof PacioliBigNum num) {
 
-                                                String fmt = String.format("%%%s%sf",
+                                                String fmt = String.format("%%%s%s%s",
                                                         size == null ? "" : size,
-                                                        nrDecimals == null ? "" : "." + nrDecimals.toString());
+                                                        nrDecimals == null ? "" : "." + nrDecimals.toString(),
+                                                        chr);
 
                                                 String val = String.format(fmt, num.value);
 
