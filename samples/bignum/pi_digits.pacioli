@@ -43,11 +43,13 @@ define pi_to_n_digits(n) =
         four := make_bignum("4");
 
         digits := (n+1)*|digits|;
+        current_precision := bignum_precision();
+        set_bignum_precision(digits);
 
         treshold := bignum_power(make_bignum("0.1"), n);
 
         a := one;
-        b := bignum_divide(one, bignum_sqrt(two, digits), digits);
+        b := bignum_divide(one, bignum_sqrt(two));
         t := make_bignum("0.25");
         p := one;
 
@@ -61,8 +63,8 @@ define pi_to_n_digits(n) =
         while not(below_treshold) do
             i := i + 1;
 
-            a_new := bignum_divide(s, two, digits);
-            b_new := bignum_sqrt(bignum_multiply(a, b), digits);
+            a_new := bignum_divide(s, two);
+            b_new := bignum_sqrt(bignum_multiply(a, b));
 
             d := bignum_subtract(a, a_new);
             t := bignum_subtract(t, bignum_multiply(p, bignum_multiply(d, d)));
@@ -73,7 +75,7 @@ define pi_to_n_digits(n) =
 
             s := bignum_add(a, b);
 
-            pi_digits := bignum_divide(bignum_divide(bignum_multiply(s, s), four, digits), t, digits);
+            pi_digits := bignum_divide(bignum_divide(bignum_multiply(s, s), four), t);
             
             diff := bignum_subtract(pi_digits, old);
 
@@ -86,6 +88,8 @@ define pi_to_n_digits(n) =
         end
 
         printf("Done in %d steps", i);
+
+        set_bignum_precision(current_precision);
 
         return pi_digits;
     end;
