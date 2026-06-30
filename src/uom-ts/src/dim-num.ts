@@ -73,7 +73,10 @@ export class DimNum {
     return new DimNum(magnitude, this.unit);
   }
 
-  constructor(public magnitude: BigNumber, public unit: SIUnit) {}
+  constructor(
+    public magnitude: BigNumber,
+    public unit: SIUnit,
+  ) {}
 
   /**
    * Are two dimensioned numbers equal? Compares the factors and the units.
@@ -103,7 +106,7 @@ export class DimNum {
           this.toText() +
           " and " +
           other.toText() +
-          " because the units differ"
+          " because the units differ",
       );
     }
     return new DimNum(this.magnitude.plus(other.magnitude), this.unit);
@@ -129,7 +132,7 @@ export class DimNum {
   mult(other: DimNum): DimNum {
     return new DimNum(
       this.magnitude.multipliedBy(other.magnitude),
-      this.unit.mult(other.unit)
+      this.unit.mult(other.unit),
     );
   }
 
@@ -142,7 +145,7 @@ export class DimNum {
   expt(power: number): DimNum {
     return new DimNum(
       this.magnitude.exponentiatedBy(power),
-      this.unit.expt(power)
+      this.unit.expt(power),
     );
   }
 
@@ -177,7 +180,7 @@ export class DimNum {
   round(): DimNum {
     return new DimNum(
       this.magnitude.integerValue(BigNumber.ROUND_HALF_CEIL),
-      this.unit
+      this.unit,
     );
   }
 
@@ -201,7 +204,7 @@ export class DimNum {
     const unitText = this.unit.fold(
       (base, power) => (power === 1 ? base.name : `${base.name}^${power}`),
       (x, y) => x + "*" + y,
-      ""
+      "",
     );
 
     if (unitText.length === 0) {
@@ -240,7 +243,7 @@ export class DimNum {
     const unitText = this.unit.toText();
     // Why does the @types/bignumber.js type for toFixed not
     // have significantDigits?: number as first argument?
-    return unitText.length === 0
+    return unitText === "1"
       ? this.magnitude.toFixed(n!)
       : this.magnitude.toFixed(n!) +
           (unitText[0] === "/" ? "" : " ") +
@@ -262,7 +265,7 @@ export class DimNum {
 
     return (
       this.magnitude.toFixed(decimals).replace(".", separator) +
-      (unitText === "" ? "" : " " + unitText)
+      (unitText === "1" ? "" : " " + unitText)
     );
   }
 
