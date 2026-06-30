@@ -29,7 +29,10 @@ include quaternion/quaternion_tests;
 include random/random_tests;
 include standard/standard_tests;
 
-run_test_suites(flatten(all_suite_collections));
+run_test_suites(all_suites);
+
+define all_suites =
+    flatten(all_suite_collections);
 
 define all_suite_collections = [
     base_suites,

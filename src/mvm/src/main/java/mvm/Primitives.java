@@ -1728,14 +1728,10 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("bignum__bignum_sqrt") {
+        storePrimitive(store, new Primitive("bignum_bignum_sqrt") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliBigNum input = (PacioliBigNum) params.get(0);
-                Matrix n = (Matrix) params.get(1);
-
-                int d = (int) n.SingletonNumber();
-
-                return input.sqrt(d);
+                return input.sqrt(PacioliBigNum.precision);
             }
         });
 
@@ -1766,15 +1762,12 @@ public class Primitives {
             }
         });
 
-        storePrimitive(store, new Primitive("bignum__bignum_divide") {
+        storePrimitive(store, new Primitive("bignum_bignum_divide") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 PacioliBigNum x = (PacioliBigNum) params.get(0);
                 PacioliBigNum y = (PacioliBigNum) params.get(1);
-                Matrix n = (Matrix) params.get(2);
 
-                int d = (int) n.SingletonNumber();
-
-                return x.divide(y, d);
+                return x.divide(y, PacioliBigNum.precision);
             }
         });
 
@@ -1795,6 +1788,20 @@ public class Primitives {
                 PacioliBigNum y = (PacioliBigNum) params.get(1);
                 int val = x.value.compareTo(y.value);
                 return new Matrix(val);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__bignum_precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                return new Matrix(PacioliBigNum.precision);
+            }
+        });
+
+        storePrimitive(store, new Primitive("system__set_bignum_precision") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Matrix n = (Matrix) params.get(0);
+                PacioliBigNum.precision = (int) n.SingletonNumber();
+                return VOID;
             }
         });
     }

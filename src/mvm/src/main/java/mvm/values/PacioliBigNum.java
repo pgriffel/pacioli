@@ -28,6 +28,8 @@ import java.math.MathContext;
 
 public class PacioliBigNum implements PacioliValue {
 
+    static public int precision = 14;
+
     public final BigDecimal value;
 
     public PacioliBigNum(BigDecimal value) {

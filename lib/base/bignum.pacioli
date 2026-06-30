@@ -23,9 +23,9 @@ export
     bignum_add,
     bignum_subtract,
     bignum_multiply,
-    _bignum_divide,
+    bignum_divide,
     bignum_power,
-    _bignum_sqrt,
+    bignum_sqrt,
     bignum_compare;
 
 # ----------------------------------------------------------------------------
@@ -65,11 +65,11 @@ declare_primitive bignum_multiply(x, y) ::
 
 # ----------------------------------------------------------------------------
 
-doc _bignum_divide
+doc bignum_divide
     "System function. Dimensionless primitive for dimensioned bignum_divide";
 
-declare_primitive _bignum_divide(x, y, digits) ::
-    (BigNum, BigNum, 1) -> BigNum;
+declare_primitive bignum_divide(x, y) ::
+    (BigNum, BigNum) -> BigNum;
 
 # ----------------------------------------------------------------------------
 
@@ -81,11 +81,11 @@ declare_primitive bignum_power(x, n) ::
 
 # ----------------------------------------------------------------------------
 
-doc _bignum_sqrt
+doc bignum_sqrt
     "System function. Dimensionless primitive for dimensioned bignum_sqrt";
 
-declare_primitive _bignum_sqrt(num, digits) ::
-    (BigNum, 1) -> BigNum;
+declare_primitive bignum_sqrt(num) ::
+    (BigNum) -> BigNum;
 
 # ----------------------------------------------------------------------------
 

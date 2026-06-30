@@ -19,8 +19,8 @@
 # SOFTWARE.
 
 export
-    bignum_divide,
-    bignum_sqrt;
+    bignum_precision,
+    set_bignum_precision;
 
 defunit digits "digits";
 
@@ -28,20 +28,25 @@ defunit digits "digits";
 # BigNum
 # ----------------------------------------------------------------------------
 
-doc bignum_divide
-    "Quotient of two BigNums";
+doc bignum_precision
+    "The BigNum precision. Used by square root and division to round the
+    result.";
 
-declare bignum_divide ::
-    (BigNum, BigNum, digits) -> BigNum;
+declare_primitive bignum_precision() ::
+    () -> digits;
 
-define bignum_divide(x, y, digits) = _bignum_divide(x, y, digits/|digits|);
+define bignum_precision() =
+    _bignum_precision() * |digits|;
 
 # ----------------------------------------------------------------------------
 
-doc bignum_sqrt
-    "Square root of a BigNum";
+doc set_bignum_precision
+    "Set the BigNum precision. Used by square root and division to round the
+    result.";
 
-declare bignum_sqrt ::
-    (BigNum, digits) -> BigNum;
+declare_primitive set_bignum_precision(n) ::
+    (digits) -> Void;
 
-define bignum_sqrt(num, digits) = _bignum_sqrt(num, digits/|digits|);
+define set_bignum_precision(n) =
+    _set_bignum_precision(n / |digits|);
+

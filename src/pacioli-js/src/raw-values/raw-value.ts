@@ -30,6 +30,7 @@ import {
   type RawMatrixStorage,
 } from "./raw-matrix";
 import { $base_system__adjoin_mut } from "../primitives";
+import { PacioliBigNum } from "../values/bignum";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -48,7 +49,8 @@ export type RawValue =
   | RawString
   | RawMap
   | RawMaybe
-  | RawVoid;
+  | RawVoid
+  | RawBigNum;
 
 /**
  * Type of an unboxed Pacioli tuple. A javascript array tagged with kind 'tuple'.
@@ -82,6 +84,11 @@ export interface RawArray extends Array<RawValue> {
  * Type of raw Void. The same as the non-raw type.
  */
 export type RawVoid = PacioliVoid;
+
+/**
+ * Type of raw Void. The same as the non-raw type.
+ */
+export type RawBigNum = PacioliBigNum;
 
 /**
  * Type of an unboxed mutable Pacioli value. A javascript array tagged with kind 'ref'.
@@ -198,7 +205,8 @@ export function rawValueLabel(
   | "void"
   | "string"
   | "boolean"
-  | "function" {
+  | "function"
+  | "bignum" {
   if (typeof value === "string") {
     return "string";
   } else if (typeof value === "boolean") {
@@ -300,6 +308,9 @@ export function stringifyRawValue(value: RawValue): string {
       return value.value === undefined
         ? "Nothing"
         : `just<${stringifyRawValue(value.value)}>`;
+    }
+    case "bignum": {
+      return `${value.value.toString()}`;
     }
   }
 }
