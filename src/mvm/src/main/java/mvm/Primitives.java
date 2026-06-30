@@ -1536,6 +1536,10 @@ public class Primitives {
                                                 size = null;
                                             }
 
+                                            if (nrDecimals == null) {
+                                                nrDecimals = Matrix.nrDecimals;
+                                            }
+
                                             String chr = floatMatcher.group(4);
 
                                             var value = params.get(argumentIndex++);

@@ -48,7 +48,7 @@ define bignum_equal_suite = test_suite("BigNum equal", [
 # ------------------------------------------------------------------------------
 
 define bignum_format_suite = test_suite("format bignum", [
-    test("should equal '12.345000' for bignum '12.345' and format '%f'", () ->
+    test("should equal '12.35' for bignum '12.345' and format '%f'", () ->
         let formatted = format("%f", make_bignum("12.345")) in
             formatted = "12.35" or
             formatted = "12,35"
@@ -126,27 +126,21 @@ define bignum_divide_suite = test_suite("bignum_divide", [
 define sqrt2 = bignum_sqrt(make_bignum("2"));
 
 define bignum_sqrt_suite = test_suite("bignum_sqrt", [
-    test("should compute sqrt of 2 for 12 digits", () ->
+    test("should compute sqrt of 2 for 50 decimals", () ->
         begin
-            set_bignum_precision(12*|digits|);
+            set_bignum_precision(52*|digits|);
 
             return
-                let formatted = format("%.15f", sqrt2) in
-                    formatted = "1.414213562370000" or
-                    formatted = "1,414213562370000"
+                let formatted = format("%.50f", sqrt2) in
+                    formatted = "1.41421356237309504880168872420969807856967187537695" or
+                    formatted = "1,41421356237309504880168872420969807856967187537695" or error(formatted)
                 end;
         end),
 
-    test("should equal '2.0000000000' for square root of 2 and format '%.10f'", () ->
-        let formatted = format("%.10f", bignum_multiply(sqrt2, sqrt2)) in
-            formatted = "2.0000000000" or
-            formatted = "2,0000000000"
-        end),
-
-    test("should equal '1.99999999999' for square root of 2 and format '%.11f'", () ->
-        let formatted = format("%.11f", bignum_multiply(sqrt2, sqrt2)) in
-            formatted = "1.99999999999" or
-            formatted = "1,99999999999"
+    test("should equal '2.000...' for square root of 2 squared and format '%.50f'", () ->
+        let formatted = format("%.50f", bignum_multiply(sqrt2, sqrt2)) in
+            formatted = "2.00000000000000000000000000000000000000000000000000" or
+            formatted = "2.00000000000000000000000000000000000000000000000000" or error(formatted)
         end)
 ]);
 
