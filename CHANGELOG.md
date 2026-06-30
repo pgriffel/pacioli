@@ -2,8 +2,9 @@
 
 ## [0.6.3] ?
 
-- Added sets and the Set type to the Pacioli values
+- Added sets and the Set type
 - Improved types for local variables in vs-code hover.
+- Added BigNum
 
 ### Changed
 
