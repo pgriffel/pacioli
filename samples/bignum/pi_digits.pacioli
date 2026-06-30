@@ -37,34 +37,38 @@ define pi_to_n_digits(n) =
     begin
         printf("Calculating %d digits of pi", n);
 
+        # Some constant BigNums
         one := make_bignum("1");
         two := make_bignum("2");
         three := make_bignum("3");
         four := make_bignum("4");
 
+        # Set the BigNum precision. Remember the current value to restore it later.
+        # (this fails when an error is thrown!)
         digits := (n+1)*|digits|;
         current_precision := bignum_precision();
         set_bignum_precision(digits);
 
-        treshold := bignum_power(make_bignum("0.1"), n);
-
+        # The algorithm's loop variables.
         a := one;
         b := bignum_divide(one, bignum_sqrt(two));
         t := make_bignum("0.25");
         p := one;
 
-        s := bignum_add(a, b);
+        # The difference between a and b determines the accuracy
+        diff := bignum_subtract(a, b);
 
-        old := make_bignum("0");
+        # The treshold for the difference between a and b. Must give the required n decimals.
+        treshold := bignum_power(make_bignum("0.1"), n);
 
         i := 0;
-        below_treshold := false;
 
-        while not(below_treshold) do
+        # Loop while the difference between a and b is above the treshold
+        while bignum_compare(diff, treshold) > 0 do
             i := i + 1;
 
-            a_new := bignum_divide(s, two);
-            b_new := bignum_sqrt(bignum_multiply(a, b));
+            a_new := bignum_divide(bignum_add(a, b), two); # arithmetic mean
+            b_new := bignum_sqrt(bignum_multiply(a, b));   # geometric mean
 
             d := bignum_subtract(a, a_new);
             t := bignum_subtract(t, bignum_multiply(p, bignum_multiply(d, d)));
@@ -73,19 +77,15 @@ define pi_to_n_digits(n) =
             a := a_new;
             b := b_new;
 
-            s := bignum_add(a, b);
-
-            pi_digits := bignum_divide(bignum_divide(bignum_multiply(s, s), four), t);
-            
-            diff := bignum_subtract(pi_digits, old);
-
-            below_treshold := bignum_compare(diff, treshold) < 0;
-
-            old := pi_digits;
+            diff := bignum_subtract(a, b);
 
             printf("Step %2d. diff=%.1e", i, diff);
-
         end
+
+        pi_digits := 
+            let s = bignum_add(a, b) in
+                bignum_divide(bignum_divide(bignum_multiply(s, s), four), t)
+            end;
 
         printf("Done in %d steps", i);
 
