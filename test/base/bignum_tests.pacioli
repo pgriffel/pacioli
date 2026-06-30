@@ -140,7 +140,7 @@ define bignum_sqrt_suite = test_suite("bignum_sqrt", [
     test("should equal '2.000...' for square root of 2 squared and format '%.50f'", () ->
         let formatted = format("%.50f", bignum_multiply(sqrt2, sqrt2)) in
             formatted = "2.00000000000000000000000000000000000000000000000000" or
-            formatted = "2.00000000000000000000000000000000000000000000000000" or error(formatted)
+            formatted = "2,00000000000000000000000000000000000000000000000000" or error(formatted)
         end)
 ]);
 
