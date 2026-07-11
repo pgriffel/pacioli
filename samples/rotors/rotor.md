@@ -1,4 +1,31 @@
-# Rotations, rotors and rotees
+# Products and dimensions
+
+# Units of Measurement in Rotaties
+Een typisch voorbeeld waar units misgaan is projectie van een vector v op een rotatie 
+as n. Voor projectie wordt vaak de constructie n(n·v) gebruikt. De juiste formule
+voor projectie is n(n·v/n·n), maar de n·n wordt vaak weggelaten in het geval dat n een
+unit vector is (je kunt dit ook zien als m/(m·m)(n·v) met n = m/(m·m) de genormaliseerde
+vector). Numeriek gaat dit goed want n·n is 1, maar de units gaan nu fout.
+
+# Aanpak
+De verschillende rotatie representaties in Pacioli programmeren en vergelijken.
+
+De geometry library ondersteunt op dit moment alleen euler rotations. De functie 
+'euler_rotation' is beschikbaar en heeft type:
+
+    euler_rotation :: (radian, radian, radian) -> Geom3! per Geom3!
+De rotatie matrix die het oplevert is een dimensieloze vierkante matrix. Dit is
+het juiste type aaangezien geometrische ruimtes uniforme units of measurement hebben.
+
+Aanpak voor de andere representaties is:
+ 1. Alle varianten coderen zonder units te corrigeren
+ 2. Een testset maken zodat de numerieke juistheid van elke variant getest kan worden
+ 3. Pin-pointen waar de ongewenste units ontstaan.
+ 4. Indien mogelijk de units fixen.
+
+
+
+## Rotations, rotors and rotees
 
 ## Introduction
 

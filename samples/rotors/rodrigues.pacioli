@@ -150,6 +150,9 @@ declare rotation_align_iquilezles2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom
 define rotation_align_iquilezles2(d, z) =
     let
         k = normalized(cross(z, d)),
+        # cr = cross(z, d),
+        # k = cr '/.' norm(cr),
+
         ang = acos(cos_from_vectors(z, d)),
         co = cos(ang),
         si = sin(ang),

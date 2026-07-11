@@ -1,4 +1,6 @@
-# Iquileslez' blog
+
+# Iquileslez' blog Avoiding trigonometry
+We take Iquileslez' blog as a starting point for the investigation into the unit-aware version to see what we learn.
 The blog https://iquilezles.org/articles/noacos/ explains that trigonometric functions can be removed from computations, and moreover
 that the use of these functions is unnecessary and ugly. The dot and cross products encode all information we need for orientation related
 operations. The trigonometric function acosinus can be avoided, and the same goes for angles in general.
@@ -6,18 +8,72 @@ He rewrites a function to align two vectors that returns a 3d matrix. In stead o
 must be aligned. After that he removes the acosinus step from the computation.
 The resulting 3d matrix essentially is a rotor.
 
-We implement his approach and functions in Pacioli to see how this transates to a unit-aware version of these functions.
-This leads to three functions which are named after the blogpost name.
+We start with a problem statement and then explain how the dot and cross products encode all information for orientation related operations. 
+After that we implement his approach and functions in Pacioli to see how this transates to a unit-aware version of these functions.
 
-The straighforward approach leads to the following function type:
+# Problem statement
+When making unit-aware functions we run into the computation of products of vectors, and the products of matrices.
+A straightforward computation of a product of two vectors that are represented as |metre| units would lead to the result |metre|^2.
+Thus the product does not represent a closed operation. At the same time we see that geometrically we require an invariant result |metre|,
+in case of a rotation operation. The rotation operation requires a product that consists of a rotor (represented as a matrix) and a
+rotee (a matrix or a vector) where the resulting vector again has unit |metre|. This leads to an asymmetric product of a dimensionless
+rotor and a dimensioned (|metre|) rotee and resulting product vector.
 
-    rotation_align :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+Something similar occurs in the cross product, but here the geometric situation is not as clear as in the situation of the rotation.
+In case of the cross product of two vectors with unit |metre|, the resulting vector can be defined as having unit |metre|, or
+as having unit |metre|^2. Only in the first case we obtain a closed operation.
 
-The units a and 1/a in the argument list are not what we want, instead we want both types to be a.
+## The unit-aware cross product in Pacioli
+The function cross can be characterised as
 
-We develop a series of intermediate functions to investigate the source and possible fix of this situation.
+    cross: V x V -> V, where V is the three-dimensional vector space.
 
-Also we switch in this series of functions from a vector and angle input to a pair of vectors input.
+A unit-aware variante associates a unit of measurement a with a space V. 
+We write V(a).
+In Pacioli V(a) is written as a*Geom3!.
+
+The problem of the cross product can then be characterised as a choice between two types:
+
+    cross: V(a) x V(a) -> V(a)
+        or
+    cross: V(a) x V(b) -> V(ab)
+
+Pacioli defines the cross product in de second way, this results in:
+
+    declare cross ::
+        for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
+
+The reason for this choice in Pacioli comes from use cases in physics modelling, such as:
+
+declare torque ::
+    (metre*Geom3!, newton*Geom3!) -> metre*newton*Geom3!;
+
+define torque(position, force) = 
+    cross(position, force);
+
+declare angular_momentum ::
+    (metre*Geom3!, kilo:gram*metre/second*Geom3!) -> kilo:gram*metre^2/second*Geom3!;
+
+define angular_momentum(position, linear_momentum) = 
+    cross(position, linear_momentum);
+
+## The functions norm and normalized in Pacioli
+At various places we will need a unit vector, the question is how to do that in a unit-aware way.
+A unit vector can be obtained from a vector in two ways. When vector v is split into scalar c and unit vector u such that v=cu and u has length one,
+then we can couple the unit with the scalar or with the unit vector, but not with both. We have to pick one.
+In the first case we obtain a dimensionless unit vector, in the second case we obtain the dimensioned unit vector.
+By using the function normalized we create a unit vector that is dimensioned, by using a division by the norm we create a dimensionless unit vector.
+For a vector v, function normalized creates a vector in the same direction as v with the same units but with norm one.
+
+    declare norm :: for_index P: for_unit a: (a*P!) -> a;
+
+    define norm(x) = sqrt(inner(x,x));
+
+
+    declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
+
+    define normalized(x) = x '/.' magnitude(norm(x));
+
 
 ## The dot and cross products encode all information we need for orientation related operations
 The calculation of cosinus and sinus without trigonometric computations depends on the relation of cosinus on the inner product, and of sinus on the cross product:
@@ -48,9 +104,138 @@ We see that indeed the resulting unit type is 1, this is obtained by the divisio
 Note that the compiler derives the general unit types a and b for both functions, whereas in practice both arguments are of the same unit type a.
 
 
-## The resulting 3d matrix essentially is a rotor
-@@@ Uitleg rotor dimensionless @@@
 
+
+# Units of measurement
+- we krijgen van de compiler meer generieke units terug dan we willen (a, b retourneert c is in feite a, a retourneert a)
+In our case we work with vectors for which the unit type |metre| seems a logical (implicit) choice.
+Dimensioned vectors such as a*Geom3! or b*Geom3! are of a more general unit type, such types can be derived by the
+Pacioli compiler. We must choose if we need the more general unit types or rather the a specialised type such as |metre|.
+
+- hoe zien unit vectors er uit 
+
+
+- van angle in radians naar vectors in meters - dit is 
+- rotors zijn dimensieloos
+
+
+
+
+
+
+
+
+@@@ Hier verder gaan in het verhaal - moet dit stuk voor de Rodrigues functions ?? @@@
+
+A unit-aware version of the starting point of the blog leads to questions about the cross product, because it uses a rotation axis.
+In this step we have a function that computes a matrix that rotates vectors around a given axis k by an amount a radians.
+The function uses trigonometric functions sin and cos to compute the resulting matrix, which in fact is a rotor.
+The pacioli compiler derives the declared type of the function; it has dimensionless parameters and returns a dimensionless matrix.
+To call this function, the rotation axis k must be computed, Iquilezles in his second function uses a cross product to do this.
+However, a cross product does not deliver a dimensionless vector.
+The rotation_align_iquilezles1 function is the pacioli version of the first function appearing in the blogpost https://iquilezles.org/articles/noacos/ .
+
+    declare rotation_align_iquilezles1 :: (Geom3!, radian) -> Geom3! per Geom3!;
+
+    define rotation_align_iquilezles1(k, a) = 
+        let
+            si = sin(a),
+            co = cos(a),
+            ic = 1 - co,
+            (k_x, k_y, k_z) = values3d(k)
+        in
+            matrix3d(
+                k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+                k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+                k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+        end;
+
+The parameter k and variables si, co and ic are all of unit 1 dimension. The matrix3d input values contain sums and products of the values k_x, k_y, k_z, si, co and ic
+which are only allowed if the unit types are all 1. As expected the resulting matrix as a rotor is dimensionless.
+
+
+
+The rotation_align_iquilezles2 
+This step leads to the question of normalization of the rotation axis k. 
+In this step we rewrite the function to a variant that takes two input vectors that must be aligned instead of a vector and a radian.
+Here the cross product is introduced for determining the rotation axis k, which also is normalized. As we have seen, in a unit-aware variant this leads to the question
+of how to normalize. If we mindlessly choose the function normalized for normalizing the cross product of the input vectors d and z, we obtain unit types a and 1/a of the input vectors d an z.
+
+
+    declare rotation_align_iquilezles2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+    define rotation_align_iquilezles2(d, z) =
+        let
+            k = normalized(cross(z, d)),
+            ang = acos(cos_from_vectors(z, d)),
+            co = cos(ang),
+            si = sin(ang),
+            ic = 1 - co,
+            (k_x, k_y, k_z) = values3d(k)
+        in
+            matrix3d(
+                k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+                k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+                k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+        end;
+
+We use both acosinus, cosinus and sinus in the computation, these functions are unit correct.
+The function definition deviates from the original in the use of the function cos_from_vectors, we do not need a 'clamp' function.
+
+Note that the input unit types are a and 1/a - these types are derived from the way the computation is set up. The function cross has as function type
+
+    declare cross :: for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
+
+and the variable k must have unit type 1 because its 3d values k_x, k_y and k_z are multiplied and summed in the matrix3d computation and are therefore
+forced to have unit 1. Because of the cross function type input parameters z and d must have reciprocal unit types a and 1/a.
+
+@@@ Op dit punt weer verder gaan. @@@
+
+
+In this step we seek to fix the input units a and 1/a and to remove use of the acosinus function.
+There are two ways to represent a unit vector, one by using the normalize function and one that divides by the norm. Here we see that we need the
+second variant. 
+
+    declare rotation_align_no_acos :: for_index E: for_unit c, b, a: (a*Geom3!, b*Geom3!) -> (c*Geom3!) -> c*Geom3!;
+
+    define rotation_align_no_acos(d, z) =
+        let
+            cr = cross(z, d),
+            k = cr '/.' norm(cr),
+            co = cos_from_vectors(z, d),
+            si = sin_from_vectors(z, d),
+            ic = 1 - co,
+            (k_x, k_y, k_z) = values3d(k),
+            M = matrix3d(
+                k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+                k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+                k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+        in
+            (v) -> M '*' v
+        end;
+
+The input vectors have unit types a and b respectively. The variable cr takes the unit type a*b*Geom3! and hence its norm(cr) is a*b. The variable k has unit type
+Geom3! . We use the functions cos_from_vectors and sin_from_vectors to compute the sinus and cosinus respectively.
+
+
+# ######################
+
+Directly porting the original code leads to the following function type:
+
+    rotation_align :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+The units a and 1/a in the argument list are not what we want, instead we want both types to be a.
+
+We develop a series of intermediate functions to investigate the source and possible fix of this situation.
+We also switch in this series of functions from a vector and angle input to a pair of vectors input.
+
+We conclude that we need the correct representation of the unit vector to fix the units of the to be aligned vectors:
+
+    declare rotation_align_no_acos :: for_index E: for_unit c, b, a: (a*Geom3!, b*Geom3!) -> (c*Geom3!) -> c*Geom3!;
+
+
+
+# Rodrigues
 
 Rodrigues' rotation formula (from https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula) that computes the rotation by using the cross and inner products leads to a unit correct function.
 
@@ -90,98 +275,3 @@ The resulting function has correct unit types, but uses the trigonometric functi
 As the vector k must be a unit vector, we compute it by dividing the cross product of z and d by its norm. Also the unit type of cr is a*Geom3! and the unit type of 
 norm(cr) is a, so that k has unit type Geom3! .The angle computation by means of acosinus and inner requires that inner must be divided by both norm(z) and norm(d) so that the input type 1 to the function acosinus results. 
 So we see that we can make a rotate function that aligns two vectors with correct units, if we use the trigonometric function acosinus.
-
-
-
-@@@ Hier verder gaan in het verhaal - moet dit stuk voor de Rodrigues functions ?? @@@
-
-<kernzin>
-The rotation_align_iquilezles1 function takes a vector and an angle as input and returns a rotor (matrix). As expected both inputs and outputs are dimensionless.
-The rotation_align_iquilezles1 function is the pacioli version of the first function appearing in the blogpost https://iquilezles.org/articles/noacos/ .
-
-    declare rotation_align_iquilezles1 :: (Geom3!, radian) -> Geom3! per Geom3!;
-
-    define rotation_align_iquilezles1(k, a) = 
-        let
-            si = sin(a),
-            co = cos(a),
-            ic = 1 - co,
-            (k_x, k_y, k_z) = values3d(k)
-        in
-            matrix3d(
-                k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
-                k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
-                k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
-        end;
-
-The parameter k and variables si, co and ic are all of unit 1 dimension. The matrix3d input values contain sums and products of the values k_x, k_y, k_z, si, co and ic
-which are only allowed if the unit types are all 1. As expected the resulting matrix as a rotor is dimensionless.
-
-
-
-The rotation_align_iquilezles2 
-In this step we rewrite the function to a variant that takes two input vectors that must be aligned instead of a vector and a radian.
-We introduce a problem in the unit types a and 1/a of the input vectors. Also we use both acosinus, cosinus and sinus in the computation.
-
-    declare rotation_align_iquilezles2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
-
-    define rotation_align_iquilezles2(d, z) =
-        let
-            k = normalized(cross(z, d)),
-            ang = acos(cos_from_vectors(z, d)),
-            co = cos(ang),
-            si = sin(ang),
-            ic = 1 - co,
-            (k_x, k_y, k_z) = values3d(k)
-        in
-            matrix3d(
-                k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
-                k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
-                k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
-        end;
-
-The function definition deviates from the original in the use of the function cos_from_vectors, we do not need a 'clamp' function.
-
-Note that the input unit types are a and 1/a - these types are derived from the way the computation is set up. The function cross has as function type
-
-    declare cross :: for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
-
-and the variable k must have unit type 1 because its 3d values k_x, k_y and k_z are multiplied and summed in the matrix3d computation and are therefore
-forced to have unit 1. Because of the cross function type input parameters z and d must have reciprocal unit types a and 1/a.
-
-
-In this step we seek to fix the input units a and 1/a and to remove use of the acosinus function.
-There is a difference in the use of normalized(cross...) and dividing cross by the norm. This is caused by the function types of cross and norm
-
-    declare norm :: for_index P: for_unit a: (a*P!) -> a;
-
-    declare rotation_align_no_acos :: for_index E: for_unit c, b, a: (a*Geom3!, b*Geom3!) -> (c*Geom3!) -> c*Geom3!;
-
-    define rotation_align_no_acos(d, z) =
-        let
-            cr = cross(z, d),
-            k = cr '/.' norm(cr),
-            co = cos_from_vectors(z, d),
-            si = sin_from_vectors(z, d),
-            ic = 1 - co,
-            (k_x, k_y, k_z) = values3d(k),
-            M = matrix3d(
-                k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
-                k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
-                k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
-        in
-            (v) -> M '*' v
-        end;
-
-The input vectors have unit types a and b respectively. The variable cr takes the unit type a*b*Geom3! and hence its norm(cr) is a*b. The variable k has unit type
-Geom3! . We use the functions cos_from_vectors and sin_from_vectors to compute the sinus and cosinus respectively.
-
-    declare sin_from_vectors :: for_unit a, b: (a*Geom3!, b*Geom3!) -> 1;
-
-    define sin_from_vectors(a, b) =
-        norm(cross(a, b)) / (norm(a) * norm(b));
-        
-(For cos_from_vectors, see above.)
-
-
-
