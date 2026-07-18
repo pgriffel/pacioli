@@ -1,6 +1,9 @@
 
 # Iquileslez' blog Avoiding trigonometry
-We take Iquileslez' blog as a starting point for the investigation into the unit-aware version to see what we learn.
+We take Iquileslez' blog as a starting point for the investigation into the unit-aware version to see what we learn. First, we identify
+two ways for computing the unit-aware cross product, either a closed cross product or a cross product thas has a quadratic unit.
+Second, there are two ways to normalize a vector, the resulting unit vector can be either dimensionless or have a unit. Third, we
+represent a rotation as a product of a dimensionless rotor with a dimensioned rotee.
 The blog https://iquilezles.org/articles/noacos/ explains that trigonometric functions can be removed from computations, and moreover
 that the use of these functions is unnecessary and ugly. The dot and cross products encode all information we need for orientation related
 operations. The trigonometric function acosinus can be avoided, and the same goes for angles in general.
@@ -20,18 +23,43 @@ rotee (a matrix or a vector) where the resulting vector again has unit |metre|. 
 rotor and a dimensioned (|metre|) rotee and resulting product vector.
 
 Something similar occurs in the cross product, but here the geometric situation is not as clear as in the situation of the rotation.
+There are use cases for the cross product resulting in a perpendicular vector, and there are use cases for the result to represent an area.
 In case of the cross product of two vectors with unit |metre|, the resulting vector can be defined as having unit |metre|, or
 as having unit |metre|^2. Only in the first case we obtain a closed operation.
 
-## The unit-aware cross product in Pacioli
-The function cross can be characterised as
 
-    cross: V x V -> V, where V is the three-dimensional vector space.
-
-A unit-aware variante associates a unit of measurement a with a space V. 
-We write V(a).
+# Extending geometric operations with units of measurement
+In this text we add units of measurement to vector and matrix based computations.
+We start with the vector space V, in this paper V is a three-dimensional vector space.
+To this vector space we associate a unit a, and we write V(a), which means that the elements of V carry unit a.
 In Pacioli V(a) is written as a*Geom3!.
+A geometric operator Op can be characterised as
 
+    Op: V x V -> V.
+
+We encounter the following situations:
+
+    Op: V(a) x V(a) -> V(a) - This is a closed operation. An example is the addition operator of vectors.
+        or
+    Op: V(a) x V(b) -> V(ab) - This is any product situation.
+
+
+## Unit-aware products are not closed
+As stated above a product leads to the following unit-aware type:
+
+    *: V(a) x V(b) -> V(ab)
+
+The product is a not-closed operator because the result is an element of the space V(ab) that differs from the spaces V(a) and V(b) of both operands.
+
+If one of the operands is dimensionless - has unit 1 - we obtain a special situation in which the result is an element of the space V(a) or V(b) respectively.
+These special situations apply to the rotation operators by means of a rotor and a rotee:
+    *: V(a) x V(1) -> V(a) - This is the rotee * rotor product situation
+            or
+    *: V(1) x V(a) -> V(a) - This is the rotor * rotee product situation
+        or
+
+
+## The unit-aware cross product in Pacioli
 The problem of the cross product can then be characterised as a choice between two types:
 
     cross: V(a) x V(a) -> V(a)
@@ -56,6 +84,8 @@ declare angular_momentum ::
 
 define angular_momentum(position, linear_momentum) = 
     cross(position, linear_momentum);
+
+
 
 ## The functions norm and normalized in Pacioli
 At various places we will need a unit vector, the question is how to do that in a unit-aware way.
@@ -106,26 +136,9 @@ Note that the compiler derives the general unit types a and b for both functions
 
 
 
-# Units of measurement
-- we krijgen van de compiler meer generieke units terug dan we willen (a, b retourneert c is in feite a, a retourneert a)
-In our case we work with vectors for which the unit type |metre| seems a logical (implicit) choice.
-Dimensioned vectors such as a*Geom3! or b*Geom3! are of a more general unit type, such types can be derived by the
-Pacioli compiler. We must choose if we need the more general unit types or rather the a specialised type such as |metre|.
-
-- hoe zien unit vectors er uit 
 
 
-- van angle in radians naar vectors in meters - dit is 
-- rotors zijn dimensieloos
-
-
-
-
-
-
-
-
-@@@ Hier verder gaan in het verhaal - moet dit stuk voor de Rodrigues functions ?? @@@
+## Rotating with an axis and angle
 
 A unit-aware version of the starting point of the blog leads to questions about the cross product, because it uses a rotation axis.
 In this step we have a function that computes a matrix that rotates vectors around a given axis k by an amount a radians.
@@ -155,6 +168,8 @@ which are only allowed if the unit types are all 1. As expected the resulting ma
 
 
 
+## Rotating with two vectors that are aligned
+
 The rotation_align_iquilezles2 
 This step leads to the question of normalization of the rotation axis k. 
 In this step we rewrite the function to a variant that takes two input vectors that must be aligned instead of a vector and a radian.
@@ -182,15 +197,15 @@ of how to normalize. If we mindlessly choose the function normalized for normali
 We use both acosinus, cosinus and sinus in the computation, these functions are unit correct.
 The function definition deviates from the original in the use of the function cos_from_vectors, we do not need a 'clamp' function.
 
-Note that the input unit types are a and 1/a - these types are derived from the way the computation is set up. The function cross has as function type
+Note that the input unit types are a and 1/a - these types are derived from the way the computation is set up by means of the function
+normalized instead of the use of norm.
 
-    declare cross :: for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
-
-and the variable k must have unit type 1 because its 3d values k_x, k_y and k_z are multiplied and summed in the matrix3d computation and are therefore
+The variable k must have unit type 1 because its 3d values k_x, k_y and k_z are multiplied and summed in the matrix3d computation and are therefore
 forced to have unit 1. Because of the cross function type input parameters z and d must have reciprocal unit types a and 1/a.
 
-@@@ Op dit punt weer verder gaan. @@@
 
+
+## Rotating with two vectors that are aligned - alternative normalization and no acosinus
 
 In this step we seek to fix the input units a and 1/a and to remove use of the acosinus function.
 There are two ways to represent a unit vector, one by using the normalize function and one that divides by the norm. Here we see that we need the
@@ -216,6 +231,8 @@ second variant.
 
 The input vectors have unit types a and b respectively. The variable cr takes the unit type a*b*Geom3! and hence its norm(cr) is a*b. The variable k has unit type
 Geom3! . We use the functions cos_from_vectors and sin_from_vectors to compute the sinus and cosinus respectively.
+
+
 
 
 # ######################
