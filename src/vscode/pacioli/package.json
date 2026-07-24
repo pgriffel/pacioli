@@ -82,6 +82,10 @@
       {
         "command": "pacioli.compilemvm",
         "title": "Pacioli compile to mvm"
+      },
+      {
+        "command": "pacioli.compilelean",
+        "title": "Pacioli compile to lean"
       }
     ],
     "menus": {
@@ -110,6 +114,10 @@
         {
           "command": "pacioli.compilemvm",
           "group": "z_commands"
+        },
+        {
+          "command": "pacioli.compilelean",
+          "group": "z_commands"
         }
       ]
     },
@@ -131,6 +139,10 @@
       {
         "key": "ctrl+f11",
         "command": "pacioli.compilejs"
+      },
+      {
+        "key": "ctrl+f12",
+        "command": "pacioli.compilelean"
       }
     ],
     "snippets": [

@@ -55,6 +55,11 @@ const PREDEFINED_TASKS: PacioliTask[] = [
     target: "mvm",
   },
   {
+    label: "Compile pacioli file to lean",
+    command: "compile",
+    target: "lean",
+  },
+  {
     label: "Types pacioli file",
     command: "types",
   },
@@ -161,6 +166,9 @@ function shellCommand(
         }
         case "javascript": {
           return `java -jar ${jarFile} compile \${file} -target javascript -lib ${libDir}`;
+        }
+        case "lean": {
+          return `java -jar ${jarFile} compile \${file} -target lean -lib ${libDir}`;
         }
         default: {
           return undefined;
