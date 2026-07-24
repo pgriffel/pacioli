@@ -160,7 +160,8 @@ public class Pacioli {
                     if (i < args.length) {
                         target = args[i++];
                     } else {
-                        displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
+                        displayError(
+                                "Expected 'mvm', 'javascript', 'matlab', 'python' or 'lean' after -target. Ignoring target option.");
                     }
                 } else if (arg.equals("-kind")) {
                     if (i < args.length) {
@@ -195,6 +196,8 @@ public class Pacioli {
                     settings.setTarget(Target.MVM);
                 } else if (target.equals("python")) {
                     settings.setTarget(Target.PYTHON);
+                } else if (target.equals("lean")) {
+                    settings.setTarget(Target.LEAN);
                 }
             }
 
@@ -668,7 +671,7 @@ public class Pacioli {
         println("\n");
         println("Options (where applicable)");
         println("   -lib X        Adds directory X to the library paths");
-        println("   -target       sets the compilation target to one of 'mvm' (default) 'javascript' or 'matlab'");
+        println("   -target       sets the compilation target to one of 'mvm' (default), 'javascript', 'matlab', 'python' or 'lean'");
         println("   -debug        toggles stack traces on or off");
         println("   -trace X      turns tracing on for function X");
         println("   -traceall     toggles tracing of all functions on or off");

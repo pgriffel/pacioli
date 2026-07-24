@@ -50,6 +50,7 @@ import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
+import pacioli.ast.visitors.LeanGenerator;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.documentation.DocumentationGenerator;
 import pacioli.documentation.PrimitivesDocumentation;
@@ -64,6 +65,7 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.transpilers.JSTranspiler;
+import pacioli.transpilers.LeanTranspiler;
 import pacioli.transpilers.MATLABTranspiler;
 import pacioli.transpilers.MVMTranspiler;
 import pacioli.transpilers.PythonTranspiler;
@@ -317,6 +319,13 @@ public class Bundle {
 
                 gen = new PythonGenerator(printer, settings);
                 compiler = new PythonTranspiler(printer, settings);
+                break;
+            case LEAN:
+
+                LeanTranspiler.writePrelude(printer);
+
+                gen = new LeanGenerator(printer, settings);
+                compiler = new LeanTranspiler(printer, settings);
                 break;
             default:
                 throw new RuntimeException("Unknown target");
