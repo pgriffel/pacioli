@@ -25,6 +25,15 @@
         {
             "type": "java",
             "vmArgs": "-enableassertions",
+            "name": "Compile to lean",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "compile -target lean ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
             "name": "Symbols Pacioli File",
             "request": "launch",
             "mainClass": "pacioli.Pacioli",

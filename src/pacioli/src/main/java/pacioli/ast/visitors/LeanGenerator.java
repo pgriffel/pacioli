@@ -70,14 +70,14 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         mark();
 
         if (node.function instanceof IdentifierNode funId && funId.isGlobal()) {
-            out.format("Pacioli.%s", funId.info().globalName());
+            out.format("%s", funId.info().globalName());
         } else {
             out.print("(");
             node.function.accept(this);
             out.print(")");
         }
 
-        out.write("(");
+        out.write(" (");
         Boolean sep = false;
         for (Node arg : node.arguments) {
             if (sep) {
@@ -119,7 +119,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         String full = node.info().isGlobal()
-                ? "Pacioli." + node.name()
+                ? node.info().globalName()// "Pacioli." + node.name()
                 : "lcl_" + node.name();
         out.format("%s", full);
     }
@@ -131,7 +131,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(KeyNode node) {
-        out.write("-- TODO: key node");
+        out.format("(coord %s %s)", node.size(), node.position());
     }
 
     @Override

@@ -234,11 +234,14 @@ public class PacioliFile implements Printable {
 
         }
 
+        String LIB_PREFIX = "_";
+
         if (theFile == null) {
             return Optional.empty();
         } else {
             return Optional.of(
-                    new PacioliFile(theFile, "$" + name.replace("/", "_"), name.replace("/", "_"), 0, false, true));
+                    new PacioliFile(theFile, LIB_PREFIX + name.replace("/", "_"), name.replace("/", "_"), 0, false,
+                            true));
         }
     }
 

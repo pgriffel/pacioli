@@ -66,7 +66,70 @@ public class LeanTranspiler implements SymbolTableVisitor {
         out.format("open scoped Matrix\n");
         out.format("open Std\n\n");
         out.format("namespace Pacioli\n\n");
+        out.format(PRIMITIVES);
     }
+
+    private static String PRIMITIVES = """
+
+            -- Begin primitives
+
+
+            def _base_matrix_sum {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
+                let (x, y) := args
+                x + y
+
+            def _base_matrix_minus {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
+                let (x, y) := args
+                x - y
+
+            def _base_matrix_mmult {m k n : Nat} := fun (args : Matrix (Fin m) (Fin k) ℝ × Matrix (Fin k) (Fin n) ℝ) =>
+                let (x, y) := args
+                x * y
+
+            def _base_matrix_multiply {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
+                let (x, y) := args
+                x + y
+
+            def _base_matrix_scale {m n : Nat} (args : ℝ × Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
+                let (x, y) := args
+                x • y
+
+            def _base_matrix_scale_down {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ × ℝ): Matrix (Fin m) (Fin n) ℝ :=
+                let (x, y) := args
+                1/y • x
+
+            def _base_matrix_neg {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
+                let (x) := args
+                _base_matrix_scale (-1, x)
+
+            def _base_matrix_sqrt {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ) : Matrix (Fin m) (Fin n) ℝ :=
+                let (x) := args
+                x
+
+            def _base_matrix_transpose {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ) =>
+                let (x) := args
+                x.transpose
+
+            def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × Real)) : Matrix (Fin m) (Fin n) ℝ :=
+              -- { Matrix.of (fun i j => 1) | k  triples}
+              Matrix.of (fun i j => 1)
+
+            def _base_base_tuple {a : Type u} (x : a) : a := x
+
+            -- def _base_base_apply (f : a -> b) (x : a): b := f x
+
+            def _base_base_apply {a b : Type u} (args : (a -> b) × a): b :=
+              let (f, x) := args
+              f x
+
+            def _base_matrix_get (args : Matrix (Fin m) (Fin n) ℝ × (Fin m) × (Fin n)): Matrix (Fin 1) (Fin 1) ℝ :=
+              let (A, i, j) := args
+              Matrix.of (fun _ _ => (A i j))
+
+            def coord (n : Nat) (i : Fin n) : Fin n := i
+
+            -- End primitives
+                                                                """;;
 
     @Override
     public void visit(ValueInfo info) {
@@ -82,12 +145,16 @@ public class LeanTranspiler implements SymbolTableVisitor {
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             out.newline();
-            out.format("def %s := fun %s => -- TODO: lambda body\n", info.globalName(), argsString(code, "lcl_"));
-            out.format("  -- TODO: %s\n", code.expression);
+            out.format("def %s := fun args => \n  let ( %s ) := args\n", info.globalName(), argsString(code, "lcl_"));
+            out.format("  ");
+            code.expression.compileToLean(out, settings);
+            out.format("  \n");
         } else {
             out.newline();
             out.format("def %s : Real := -- TODO: expression\n", info.globalName());
-            out.format("  -- TODO: %s\n", transformedBody);
+            out.format("  ");
+            transformedBody.compileToJS(out, settings);
+            out.format("\n");
         }
     }
 
@@ -103,7 +170,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
         for (String arg : node.arguments) {
             args.add(prefix + arg);
         }
-        return String.join(" ", args);
+        return String.join(", ", args);
     }
 
     @Override
