@@ -421,7 +421,7 @@ public class Bundle {
         }
 
         // Generate code for the functions
-        for (ValueInfo info : functionsToCompile) {
+        for (ValueInfo info : orderedInfos(functionsToCompile)) {
             info.accept(compiler);
         }
 

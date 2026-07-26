@@ -73,7 +73,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             -- Begin primitives
 
-
             def _base_matrix_sum {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
                 let (x, y) := args
                 x + y
@@ -90,13 +89,13 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x, y) := args
                 x + y
 
-            def _base_matrix_scale {m n : Nat} (args : ℝ × Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
+            def _base_matrix_scale {m n : Nat} (args : Matrix (Fin 1) (Fin 1) ℝ × Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
                 let (x, y) := args
-                x • y
+                (x 0 0) • y
 
-            def _base_matrix_scale_down {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ × ℝ): Matrix (Fin m) (Fin n) ℝ :=
+            noncomputable def _base_matrix_scale_down {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin 1) (Fin 1) ℝ): Matrix (Fin m) (Fin n) ℝ :=
                 let (x, y) := args
-                1/y • x
+                (1/(y 0 0)) • x
 
             def _base_matrix_neg {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
                 let (x) := args
@@ -110,7 +109,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x) := args
                 x.transpose
 
-            def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × Real)) : Matrix (Fin m) (Fin n) ℝ :=
+            def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × Matrix (Fin 1) (Fin 1) ℝ)) : Matrix (Fin m) (Fin n) ℝ :=
               -- { Matrix.of (fun i j => 1) | k  triples}
               Matrix.of (fun i j => 1)
 
@@ -129,7 +128,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
             -- End primitives
-                                                                """;;
+                                                                            """;;
 
     @Override
     public void visit(ValueInfo info) {

@@ -148,8 +148,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                 quoted.add("lcl_" + arg);
             }
         }
-        String args = String.join(" ", quoted);
-        write("fun " + args + " => ");
+        String args = String.join(", ", quoted);
+        write("fun args => let (" + args + ") := args; ");
         node.expression.accept(this);
     }
 
