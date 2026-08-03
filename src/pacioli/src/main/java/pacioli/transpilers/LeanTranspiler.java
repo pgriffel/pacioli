@@ -113,11 +113,11 @@ public class LeanTranspiler implements SymbolTableVisitor {
               -- { Matrix.of (fun i j => 1) | k  triples}
               Matrix.of (fun i j => 1)
 
-            def _base_base_tuple {a : Type u} (x : a) : a := x
+            def _base_base_tuple {a : Type} (x : a) : a := x
 
             -- def _base_base_apply (f : a -> b) (x : a): b := f x
 
-            def _base_base_apply {a b : Type u} (args : (a -> b) × a): b :=
+            def _base_base_apply {a b : Type} (args : (a -> b) × a): b :=
               let (f, x) := args
               f x
 
