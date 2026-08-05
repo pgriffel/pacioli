@@ -251,6 +251,13 @@ public class Pacioli {
                 for (String file : files) {
                     desugarCommand(file, libs);
                 }
+            } else if (command.equals("lean")) {
+                if (files.isEmpty()) {
+                    displayError("No files to print as Lean.");
+                }
+                for (String file : files) {
+                    printLeanSyntaxCommand(file, libs);
+                }
             } else if (command.equals("types")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
@@ -387,6 +394,21 @@ public class Pacioli {
             log("Desugaring file '%s'", file);
             Program program = Program.load(file.get());
             println("%s", program.desugar().ast().pretty());
+        }
+    }
+
+    private static void printLeanSyntaxCommand(String fileName, List<File> libs)
+            throws Exception {
+
+        Integer version = 0; // todo
+        Optional<PacioliFile> file = PacioliFile.get(fileName, version);
+
+        if (!file.isPresent()) {
+            throw new PacioliException("Cannot print as Lean: file '%s' does not exist.", fileName);
+        } else {
+            // log("Desugaring file '%s'", file);
+            Program program = Program.load(file.get());
+            program.printLeanSyntax();
         }
     }
 

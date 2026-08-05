@@ -36,6 +36,7 @@ import pacioli.ast.visitors.DesugarVisitor;
 import pacioli.ast.visitors.HideIdentifiersVisitor;
 import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.LeanGenerator;
+import pacioli.ast.visitors.LeanPrintVisitor;
 import pacioli.ast.visitors.LiftStatements;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
@@ -171,6 +172,10 @@ public interface Node extends Printable {
 
     default public void compileToLean(Printer writer, CompilationSettings settings) {
         this.accept(new LeanGenerator(writer, settings));
+    }
+
+    default public void printLeanSyntax(PrintWriter out) {
+        this.accept(new LeanPrintVisitor(new Printer(out)));
     }
 
     default public String compileToMATLAB(CompilationSettings settings) {

@@ -70,6 +70,15 @@
         {
             "type": "java",
             "vmArgs": "-enableassertions",
+            "name": "To Lean",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "lean ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
             "name": "Info",
             "request": "launch",
             "mainClass": "pacioli.Pacioli",

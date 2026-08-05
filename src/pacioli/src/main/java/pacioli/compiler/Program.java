@@ -22,6 +22,8 @@
 
 package pacioli.compiler;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +53,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.IdentifierNode.Kind;
+import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.TransformConversions;
 import pacioli.ast.visitors.TypeInferenceCommitVisitor;
 import pacioli.parser.Parser;
@@ -125,6 +128,17 @@ public class Program {
     public Program desugar() throws PacioliException {
         ProgramNode desugared = (ProgramNode) this.ast.desugar();
         return new Program(this.file, desugared);
+    }
+
+    // -------------------------------------------------------------------------
+    // Print as Lean
+    // -------------------------------------------------------------------------
+
+    public void printLeanSyntax() throws PacioliException {
+        try (PrintWriter writer = new PrintWriter(System.out)) {
+            this.ast.printLeanSyntax(writer);
+            writer.flush();
+        }
     }
 
     // -------------------------------------------------------------------------
