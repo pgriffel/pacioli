@@ -71,63 +71,89 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     private static String PRIMITIVES = """
 
+            -- START GENERATED CODE
+
+            -- Preliminary definitions
+
+            -- Lean representation of Pacioli's matrix type
+            abbrev Mat (m n : Nat) :=
+                -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
+                (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
+
+            noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
+
+            -- Constructor for coordinates. Used by generated code.
+            def coord (n : Nat) (i : Fin n) : Fin n := i
+
             -- Begin primitives
 
-            def _base_matrix_sum {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
+            def _base_matrix_sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
                 x + y
 
-            def _base_matrix_minus {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
+            def _base_matrix_minus {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
                 x - y
 
-            def _base_matrix_mmult {m k n : Nat} := fun (args : Matrix (Fin m) (Fin k) ℝ × Matrix (Fin k) (Fin n) ℝ) =>
+            def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
                 let (x, y) := args
-                x * y
+                x.comp y
 
-            def _base_matrix_multiply {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin m) (Fin n) ℝ) =>
+            def _base_matrix_multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
                 x + y
 
-            def _base_matrix_scale {m n : Nat} (args : Matrix (Fin 1) (Fin 1) ℝ × Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
+            noncomputable def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
-                (x 0 0) • y
+                (as_scalar x) • y
 
-            noncomputable def _base_matrix_scale_down {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ × Matrix (Fin 1) (Fin 1) ℝ): Matrix (Fin m) (Fin n) ℝ :=
+            noncomputable def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
                 let (x, y) := args
-                (1/(y 0 0)) • x
+                (1/(as_scalar y)) • x
 
-            def _base_matrix_neg {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ): Matrix (Fin m) (Fin n) ℝ :=
+            noncomputable def _base_matrix_neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
                 let (x) := args
                 _base_matrix_scale (-1, x)
 
-            def _base_matrix_sqrt {m n : Nat} (args : Matrix (Fin m) (Fin n) ℝ) : Matrix (Fin m) (Fin n) ℝ :=
+            def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
                 x
 
-            def _base_matrix_transpose {m n : Nat} := fun (args : Matrix (Fin m) (Fin n) ℝ) =>
+            noncomputable def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
-                x.transpose
+                x.adjoint
 
-            def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × Matrix (Fin 1) (Fin 1) ℝ)) : Matrix (Fin m) (Fin n) ℝ :=
-              -- { Matrix.of (fun i j => 1) | k  triples}
-              Matrix.of (fun i j => 1)
+            def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+                sorry
 
             def _base_base_tuple {a : Type} (x : a) : a := x
 
             -- def _base_base_apply (f : a -> b) (x : a): b := f x
 
             def _base_base_apply {a b : Type} (args : (a -> b) × a): b :=
-              let (f, x) := args
-              f x
+                let (f, x) := args
+                f x
 
-            def _base_matrix_get (args : Matrix (Fin m) (Fin n) ℝ × (Fin m) × (Fin n)): Matrix (Fin 1) (Fin 1) ℝ :=
-              let (A, i, j) := args
-              Matrix.of (fun _ _ => (A i j))
-
-            def coord (n : Nat) (i : Fin n) : Fin n := i
+            def _base_matrix_get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+                let (A, i, j) := args
+                Matrix.of (fun _ _ => (A i j))
 
             -- End primitives
+
+            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
+
+            def _base_matrix__  := -- TODO: expression
+                coord 1 0
+
+            noncomputable def _standard_matrix_inner {m : Nat} (args : (Mat m 1) × (Mat m 1)) : (Mat 1 1) :=
+                let ( lcl_x, lcl_y ) := args
+                _base_matrix_mmult (_base_matrix_transpose (lcl_x), lcl_y)
+
+            noncomputable def _standard_matrix_norm {m : Nat} := fun args : (Mat m 1) =>
+                let ( lcl_x ) := args
+                _base_matrix_sqrt (_standard_matrix_inner (lcl_x, lcl_x))
+
+            -- END GENERATED CODE
                                                                             """;;
 
     @Override
