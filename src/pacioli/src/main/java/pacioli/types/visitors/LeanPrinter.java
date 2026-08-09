@@ -154,20 +154,23 @@ public class LeanPrinter implements TypeVisitor {
         String left = prettyDimensionUnitPair(type.rowDimension());
         String right = prettyDimensionUnitPair(type.columnDimension());
 
-        out.format("(Mat %s %s)", left, right);
+        out.format("Mat %s %s", left, right);
     }
 
     @Override
     public void visit(ParametricType type) {
         if (type.op().name().equals("Tuple")) {
-            out.write("(");
+            // out.write("(");
             // out.writeCommaSeparated(p.args(), x -> x.accept(this));
-            out.write(type.args().stream().map(x -> x.printAsLean()).collect(Collectors.joining(" × ")));
-            out.write(")");
+            String argsText = type.args().stream()
+                    .map(x -> x.printAsLean())
+                    .collect(Collectors.joining(" × "));
+            out.write(argsText.isEmpty() ? "Unit" : "(" + argsText + ")");
+            // out.write(")");
         } else {
             type.op().accept(this);
             if (!type.args().isEmpty()) {
-                out.write("(");
+                out.write(" (");
             }
             out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
             if (!type.args().isEmpty()) {
