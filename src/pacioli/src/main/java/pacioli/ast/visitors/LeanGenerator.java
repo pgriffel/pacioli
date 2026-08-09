@@ -140,10 +140,14 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                     writeSeparated(node.arguments, " - ");
                     break;
                 }
+                case "multiply": {
+                    writeSeparated(node.arguments, " ⊙ ");
+                    break;
+                }
                 // case "norm": {
-                // write("\\||");
+                // write("‖");
                 // writeSeparated(node.arguments, "");
-                // write("\\||");
+                // write("‖");
                 // break;
                 // }
                 default: {
