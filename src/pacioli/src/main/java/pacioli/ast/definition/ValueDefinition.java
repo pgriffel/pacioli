@@ -22,6 +22,8 @@
 
 package pacioli.ast.definition;
 
+import java.util.Optional;
+
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -29,18 +31,44 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
+import pacioli.symboltable.info.Info;
 
 public class ValueDefinition extends AbstractNode implements Definition {
 
     public final IdentifierNode id;
     public final boolean isUserDefined;
 
-    // Overwritten by LiftStatements
+    /**
+     * Original parse tree. Not desugared, resolved, etc.
+     */
+    public final ExpressionNode ast;
+
+    /**
+     * Initially equal to the ast, but changed (immutably) when desugaring, etc.
+     * 
+     * Overwritten (mutation) by LiftStatements.
+     */
     public ExpressionNode body;
+
+    // private ValueInfo info;
+
+    public ValueDefinition(
+            Location location,
+            IdentifierNode id,
+            ExpressionNode ast,
+            ExpressionNode body,
+            boolean isUserDefined) {
+        super(location);
+        this.id = id;
+        this.ast = ast;
+        this.body = body;
+        this.isUserDefined = isUserDefined;
+    }
 
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body, boolean isUserDefined) {
         super(location);
         this.id = id;
+        this.ast = body;
         this.body = body;
         this.isUserDefined = isUserDefined;
     }
@@ -48,12 +76,13 @@ public class ValueDefinition extends AbstractNode implements Definition {
     public ValueDefinition(Location location, IdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
+        this.ast = body;
         this.body = body;
         this.isUserDefined = true;
     }
 
     public Node transform(ExpressionNode body) {
-        return new ValueDefinition(location(), id, body, isUserDefined);
+        return new ValueDefinition(location(), id, ast, body, isUserDefined);
     }
 
     public boolean isFunction() {
@@ -69,4 +98,10 @@ public class ValueDefinition extends AbstractNode implements Definition {
     public void accept(Visitor visitor) {
         visitor.visit(this);
     }
+
+    @Override
+    public Optional<Info> getInfo() {
+        return Optional.ofNullable(this.id.info);
+    }
+
 }

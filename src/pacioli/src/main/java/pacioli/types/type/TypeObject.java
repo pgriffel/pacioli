@@ -43,6 +43,7 @@ import pacioli.types.type.matrix.MatrixType;
 import pacioli.types.type.matrix.VectorUnitVar;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
+import pacioli.types.visitors.LeanPrinter;
 import pacioli.types.visitors.MVMGenerator;
 import pacioli.types.visitors.MatrixNormalizeVisitor;
 import pacioli.types.visitors.PrettyPrinter;
@@ -289,4 +290,10 @@ public interface TypeObject extends Printable {
                 settings));
         return outputStream.toString();
     }
+
+    public default String printAsLean() {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new LeanPrinter(new Printer(new PrintWriter(outputStream))));
+        return outputStream.toString();
+    };
 }

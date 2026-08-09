@@ -171,11 +171,27 @@ public interface Node extends Printable {
     }
 
     default public void compileToLean(Printer writer, CompilationSettings settings) {
-        this.accept(new LeanGenerator(writer, settings));
+        this.accept(new LeanGenerator(writer, false, settings));
+    }
+
+    default public void compileToLeaner(Printer writer, CompilationSettings settings) {
+        this.accept(new LeanGenerator(writer, true, settings));
     }
 
     default public void printLeanSyntax(PrintWriter out) {
         this.accept(new LeanPrintVisitor(new Printer(out)));
+    }
+
+    default public String asLean() {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), false, null));
+        return outputStream.toString();
+    }
+
+    default public String asLeaner() {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), true, null));
+        return outputStream.toString();
     }
 
     default public String compileToMATLAB(CompilationSettings settings) {

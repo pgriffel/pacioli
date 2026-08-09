@@ -22,6 +22,10 @@
 
 package pacioli.ast.visitors;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import pacioli.ast.ExportNode;
 import pacioli.ast.ImportNode;
 import pacioli.ast.IncludeNode;
@@ -82,7 +86,10 @@ import pacioli.ast.unit.NumberUnitNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.unit.UnitOperationNode;
 import pacioli.ast.unit.UnitPowerNode;
+import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
+import pacioli.symboltable.info.Info;
+import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.BangTypeNode;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.NumberTypeNode;
@@ -97,6 +104,7 @@ import pacioli.types.ast.TypeMultiplyNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.ast.TypePredicateNode;
+import pacioli.types.type.TypeObject;
 
 public class LeanPrintVisitor extends PrintVisitor implements CodeGenerator {
 
@@ -208,23 +216,87 @@ public class LeanPrintVisitor extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ValueDefinition node) {
-        write("def ");
-        node.id.accept(this);
-        write(" : ");
-        writeTypePlaceholder();
-        write(" := ");
-        if (node.body != null) {
-            node.body.accept(this);
+
+        if (node.getInfo().isPresent()) {
+            write("def ");
+            node.id.accept(this);
+
+            // write(" : ");
+            // writeTypePlaceholder();
+
+            // ValueInfo info = (ValueInfo) node.getInfo().orElseThrow();
+
+            if (node.getInfo().isPresent()) {
+                ValueInfo info = (ValueInfo) node.getInfo().get();
+                // write(" : ");
+                write(info.inferredType().get().printAsLean());
+            } else {
+                write(" : ?");
+            }
+            write(" := ");
+            if (node.body != null) {
+                node.body.accept(this);
+            } else {
+                writeTodo("value body");
+            }
+
+            // ExpressionNode transformedBody = node.body;
+
+            // if (transformedBody instanceof LambdaNode lamb) {
+            // // LambdaNode code = (LambdaNode) transformedBody;
+            // // out.newline();
+            // // lamb.accept(this);
+            // out.format("def %s := fun args => \n let ( %s ) := args\n",
+            // // info.globalName(),
+            // node.id.asLean(),
+            // lambdaArgsTuple(lamb));
+            // // out.format(" ");
+            // // code.expression.compileToLean(out, settings);
+            // out.format(" \n");
+            // } else {
+            // out.newline();
+            // out.format("def %s : Real := -- TODO: expression\n",
+            // node.id.asLean()
+            // // info.globalName()
+            // );
+            // out.format(" ");
+            // // transformedBody.compileToJS(out, settings);
+            // transformedBody.accept(this);
+            // out.format("\n");
+            // }
         } else {
-            writeTodo("value body");
+            out.format("-- def %s", node.body.getInfo());
         }
     }
 
     @Override
     public void visit(ApplicationNode node) {
-        node.function.accept(this);
-        write(" ");
-        writeCommaSeparated(node.arguments);
+        // String fun =
+        // node.function.getInfo().map(Info::globalName).orElse(node.function.asLean());
+
+        String fun = node.function.asLean();
+        switch (fun) {
+            case "_base_matrix_mmult": {
+                writeSeparated(node.arguments, " * ");
+                break;
+            }
+            case "_base_matrix_minus": {
+                writeSeparated(node.arguments, " - ");
+                break;
+            }
+            // case "norm": {
+            // write("\\||");
+            // writeSeparated(node.arguments, "");
+            // write("\\||");
+            // break;
+            // }
+            default: {
+                write(fun);
+                write(" (");
+                writeCommaSeparated(node.arguments);
+                write(")");
+            }
+        }
     }
 
     @Override
@@ -271,18 +343,102 @@ public class LeanPrintVisitor extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(LambdaNode node) {
-        write("fun");
-        if (!node.arguments.isEmpty()) {
-            write(" ");
-            for (int i = 0; i < node.arguments.size(); i++) {
-                if (i > 0) {
-                    write(", ");
-                }
-                write(node.arguments.get(i));
-            }
+        // write("fun");
+        // if (!node.arguments.isEmpty()) {
+        // write(" ");
+        // for (int i = 0; i < node.arguments.size(); i++) {
+        // if (i > 0) {
+        // write(", ");
+        // }
+        // write(node.arguments.get(i));
+        // }
+        // }
+        // // String args = String.join(", ", quoted);
+        // write("fun args => let (" + args + ") := args; ");
+        // node.expression.accept(this);
+        // write(" => ");
+        // node.expression.accept(this);
+
+        if (node.varArgs) {
+            throw new PacioliException("Var args are not implemented for Lean");
+            // out.format("_lambda %s ", node.arguments.get(0));
+            // node.expression.accept(this);
+            // out.format(" end");
+            // return;
         }
-        write(" => ");
+
+        boolean wrap = node.countNodes() > 10;
+        // mark();
+        write("fun args =>");
+        newlineUp();
+        write("let (");
+        out.write(lambdaArgsTuple(node));
+        out.write(") := args; ");
+
+        // Boolean first = true;
+        // for (String arg : node.arguments) {
+        // if (!first)
+        // out.format(", ");
+        // out.format(arg);
+
+        // if (node.table != null) {
+        // ValueInfo info = node.table.lookup(arg);
+        // if (printVariableTypes || true) {
+        // write(": ");
+        // Optional<TypeObject> type = info.inferredType();
+        // if (type.isPresent()) {
+        // write(type.get().printAsLean());
+        // } else {
+        // write("?");
+        // }
+        // }
+        // }
+        // ;
+
+        // first = false;
+        // }
+
+        // if (wrap) {
+        // newlineUp();
+        // }
+        newline();
         node.expression.accept(this);
+        newlineDown();
+        // unmark();
+    }
+
+    static public String lambdaArgsTuple(LambdaNode node) {
+        if (node.varArgs) {
+            throw new PacioliException("Var args are not implemented for Lean");
+            // out.format("_lambda %s ", node.arguments.get(0));
+            // node.expression.accept(this);
+            // out.format(" end");
+            // return;
+        }
+
+        List<String> args = new ArrayList<>();
+
+        for (String arg : node.arguments) {
+
+            if (node.table != null) {
+                ValueInfo info = node.table.lookup(arg);
+                if (true) {
+                    Optional<TypeObject> type = info.inferredType();
+                    args.add(String.format("%s ", arg));
+
+                    // args.add(String.format("%s : %s",
+                    // arg,
+                    // type.isPresent() ? type.get().printAsLean() : "?"));
+
+                }
+            } else {
+                args.add(String.format("%s ", arg));
+            }
+            ;
+
+        }
+
+        return String.join(", ", args);
     }
 
     @Override
@@ -430,7 +586,7 @@ public class LeanPrintVisitor extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(LetNode node) {
-        write("let ");
+        write("letAS ");
         if (node.binding instanceof LetBindingNode binding) {
             write(binding.var);
             write(" := ");
@@ -439,7 +595,7 @@ public class LeanPrintVisitor extends PrintVisitor implements CodeGenerator {
             node.binding.accept(this);
         }
         write("; ");
-        writeTodo("let body");
+        writeTodo("letA body");
     }
 
     @Override

@@ -141,6 +141,8 @@ public class PacioliFile implements Printable {
                 return "py";
             case LEAN:
                 return "lean";
+            case LEANER:
+                return "lean";
             default:
                 throw new RuntimeException("Unknown target");
         }

@@ -27,8 +27,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import pacioli.ast.Node;
+import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
@@ -39,6 +42,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.IfStatementNode;
 import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.SetLiteralNode;
@@ -52,25 +56,110 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.CompilationSettings.Target;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
+import pacioli.symboltable.info.ValueInfo;
+import pacioli.types.ast.FunctionTypeNode;
+import pacioli.types.ast.TypeApplicationNode;
 
 public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     CompilationSettings settings;
 
-    public LeanGenerator(Printer printWriter, CompilationSettings settings) {
+    /**
+     * The LEANER target instead of the LEAN target. No desugaring and lean
+     * operators if applicable.
+     */
+    private boolean leaner;
+
+    public LeanGenerator(Printer printWriter, boolean leaner, CompilationSettings settings) {
         super(printWriter);
         this.settings = settings;
+        this.leaner = settings.target().equals(Target.LEANER);
+    }
+
+    protected void writeTodo(String feature) {
+        out.write("-- TODO: ");
+        out.write(feature);
+    }
+
+    @Override
+    public void visit(IndexSetDefinition node) {
+        writeTodo("index set definition");
+    }
+
+    @Override
+    public void visit(ValueDefinition node) {
+
+        // This info should always be present, even if leaner is true. We always
+        // get called with an analyzed (resolved, desugared, etc.) definition.
+        // In the leaner case we recurse here on the ast instead of the body. This
+        // means the rest of the code cannot assume that infos are present in the
+        // leaner case.
+        ValueInfo info = (ValueInfo) node.getInfo().orElseThrow();
+
+        write("def ");
+
+        node.id.accept(this);
+
+        // The type schema prints the ':'
+        write(info.inferredType().get().printAsLean());
+
+        write(" := ");
+
+        out.newlineUp();
+
+        // Recurse on the AST for the leaner case, recurse on the desugared and resolved
+        // body otherwise
+        if (this.leaner) {
+            node.ast.accept(this);
+        } else {
+            node.body.accept(this);
+        }
+
+        out.newlineDown();
     }
 
     @Override
     public void visit(ApplicationNode node) {
+        if (this.leaner) {
+            String fun = node.function.asLeaner();
+            switch (fun) {
+                case "mmult": {
+                    writeSeparated(node.arguments, " * ");
+                    break;
+                }
+                case "sum": {
+                    writeSeparated(node.arguments, " + ");
+                    break;
+                }
+                case "minus": {
+                    writeSeparated(node.arguments, " - ");
+                    break;
+                }
+                // case "norm": {
+                // write("\\||");
+                // writeSeparated(node.arguments, "");
+                // write("\\||");
+                // break;
+                // }
+                default: {
+                    this.printApplication(node);
+                }
+            }
+        } else {
+            this.printApplication(node);
+        }
+    }
+
+    private void printApplication(ApplicationNode node) {
         mark();
 
-        if (node.function instanceof IdentifierNode funId && funId.isGlobal()) {
-            out.format("%s", funId.info().globalName());
+        if (node.function instanceof IdentifierNode funId) {
+            out.format("%s", this.leaner ? funId.name() : funId.info().globalName());
         } else {
             out.print("(");
             node.function.accept(this);
@@ -79,10 +168,23 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         out.write(" (");
         Boolean sep = false;
+        boolean allIdents = true;
+        for (Node arg : node.arguments) {
+            if (!(arg instanceof IdentifierNode || arg instanceof KeyNode)) {
+                allIdents = false;
+            }
+        }
+        boolean wrap = !allIdents && node.arguments.size() > 1;
         for (Node arg : node.arguments) {
             if (sep) {
                 out.write(", ");
+                if (wrap) {
+                    out.newline();
+                }
             } else {
+                if (wrap) {
+                    out.newlineUp();
+                }
                 sep = true;
             }
             arg.accept(this);
@@ -118,10 +220,14 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IdentifierNode node) {
-        String full = node.info().isGlobal()
-                ? node.info().globalName()// "Pacioli." + node.name()
-                : "lcl_" + node.name();
-        out.format("%s", full);
+        if (leaner) {
+            write(node.name());
+        } else {
+            String full = node.info().isGlobal()
+                    ? node.info().globalName()// "Pacioli." + node.name()
+                    : "lcl_" + node.name();
+            out.format("%s", full);
+        }
     }
 
     @Override
@@ -136,24 +242,73 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(LambdaNode node) {
-        List<String> quoted = new ArrayList<String>();
-        if (node.varArgs) {
-            if (node.arguments.size() == 1) {
-                quoted.add("...lcl_" + node.arguments.get(0));
-            } else {
-                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+        if (leaner) {
+            if (node.varArgs) {
+                throw new PacioliException("Var args are not implemented for Lean");
             }
+
+            // mark();
+            write("fun args =>");
+            newlineUp();
+            write("let (");
+            out.write(String.join(", ", node.arguments));
+            out.write(") := args; ");
+            newline();
+            node.expression.accept(this);
+            newlineDown();
+            // unmark();
         } else {
-            for (String arg : node.arguments) {
-                quoted.add("lcl_" + arg);
+
+            List<String> quoted = new ArrayList<String>();
+            if (node.varArgs) {
+                if (node.arguments.size() == 1) {
+                    quoted.add("...lcl_" + node.arguments.get(0));
+                } else {
+                    throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+                }
+            } else {
+                for (String arg : node.arguments) {
+                    quoted.add("lcl_" + arg);
+                }
             }
+            String args = String.join(", ", quoted);
+            write("fun args => let (" + args + ") := args; ");
+            out.newline();
+            node.expression.accept(this);
         }
-        String args = String.join(", ", quoted);
-        write("fun args => let (" + args + ") := args; ");
-        node.expression.accept(this);
     }
 
     @Override
+    public void visit(LetNode node) {
+        write("let ");
+        if (node.binding instanceof LetBindingNode binding) {
+            write(binding.var);
+            write(" := ");
+            binding.value.accept(this);
+        } else {
+            node.binding.accept(this);
+        }
+        write("; ");
+        out.newline();
+        node.body.accept(this);
+    }
+
+    @Override
+    public void visit(LetTupleBindingNode node) {
+        write("(");
+        Boolean first = true;
+        for (IdentifierNode var : node.vars) {
+            if (!first)
+                write(",");
+            first = false;
+            out.write(var.name());
+        }
+        write(") = ");
+        node.value.accept(this);
+    }
+
+    @Override
+
     public void visit(MatrixLiteralNode node) {
         out.write("-- TODO: matrix literal");
     }
@@ -262,10 +417,10 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         out.write("-- TODO: for-tuple node");
     }
 
-    @Override
-    public void visit(LetNode node) {
-        node.asApplication().accept(this);
-    }
+    // @Override
+    // public void visit(LetNode node) {
+    // node.asApplication().accept(this);
+    // }
 
     @Override
     public void visit(ListLiteralNode node) {
@@ -285,5 +440,22 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(SetLiteralNode node) {
         out.write("-- TODO: set literal");
+    }
+
+    @Override
+    public void visit(FunctionTypeNode node) {
+
+        if (node.domain instanceof TypeApplicationNode app && app.op.name().equals("Tuple")) {
+            out.write("(");
+            out.writeCommaSeparated(app.args, this);
+            out.write(app.args.stream()
+                    .map(x -> this.leaner ? x.asLean() : x.asLeaner())
+                    .collect(Collectors.joining(" x ")));
+            out.write(")");
+        } else {
+            node.domain.accept(this);
+        }
+        write(" -> ");
+        node.range.accept(this);
     }
 }

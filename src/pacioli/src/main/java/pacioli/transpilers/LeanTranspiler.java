@@ -51,11 +51,19 @@ import uom.DimensionedNumber;
 public class LeanTranspiler implements SymbolTableVisitor {
 
     CompilationSettings settings;
+
     Printer out;
 
-    public LeanTranspiler(Printer printWriter, CompilationSettings settings) {
+    /**
+     * The LEANER target instead of the LEAN target. No desugaring and lean
+     * operators if applicable.
+     */
+    private boolean leaner;
+
+    public LeanTranspiler(Printer printWriter, boolean leaner, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
+        this.leaner = leaner;
     }
 
     public static void writePrelude(Printer out) {
@@ -78,9 +86,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
             -- Lean representation of Pacioli's matrix type
             abbrev Mat (m n : Nat) :=
                 -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
-                (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
+                -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
+                Matrix (Fin m) (Fin n) ℝ
 
-            noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
+            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
 
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
@@ -101,15 +110,17 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_matrix_multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
-                x + y
+                fun i j => (x i j) * (y i j)
 
             noncomputable def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
-                (as_scalar x) • y
+                -- (as_scalar x) • y
+                fun i j => (x 1 1) * (y i j)
 
             noncomputable def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
                 let (x, y) := args
-                (1/(as_scalar y)) • x
+                -- (1/(as_scalar y)) • x
+                fun i j => (x i j) / (y 1 1)
 
             noncomputable def _base_matrix_neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
                 let (x) := args
@@ -117,11 +128,12 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
-                x
+                fun i j => Real.sqrt (x i j)
 
             noncomputable def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
-                x.adjoint
+                -- x.adjoint
+                x.transpose
 
             def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
                 sorry
@@ -170,9 +182,13 @@ public class LeanTranspiler implements SymbolTableVisitor {
         if (transformedBody instanceof LambdaNode) {
             LambdaNode code = (LambdaNode) transformedBody;
             out.newline();
-            out.format("def %s := fun args => \n  let ( %s ) := args\n", info.globalName(), argsString(code, "lcl_"));
-            out.format("  ");
-            code.expression.compileToLean(out, settings);
+            // out.format("def %s := fun args => \n let ( %s ) := args\n",
+            // info.globalName(), argsString(code, "lcl_"));
+            // out.format(" ");
+            definition.compileToLean(out, settings);
+            out.format(" \n");
+            definition.compileToLeaner(out, settings);
+            // out.write(definition.asLean());
             out.format("  \n");
         } else {
             out.newline();

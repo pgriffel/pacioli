@@ -289,7 +289,7 @@ public class Bundle {
 
         Pacioli.trace("Generating code for %s", this.project.file.module());
 
-        boolean FLAG_INDENT_CODE = false; // feature flag
+        boolean FLAG_INDENT_CODE = true; // feature flag
 
         // Declare a compiler (symbol table visitor) instance
         Printer printer = new Printer(writer, FLAG_INDENT_CODE);
@@ -324,8 +324,15 @@ public class Bundle {
 
                 LeanTranspiler.writePrelude(printer);
 
-                gen = new LeanGenerator(printer, settings);
-                compiler = new LeanTranspiler(printer, settings);
+                gen = new LeanGenerator(printer, false, settings);
+                compiler = new LeanTranspiler(printer, false, settings);
+                break;
+            case LEANER:
+
+                LeanTranspiler.writePrelude(printer);
+
+                gen = new LeanGenerator(printer, true, settings);
+                compiler = new LeanTranspiler(printer, true, settings);
                 break;
             default:
                 throw new RuntimeException("Unknown target");
@@ -482,33 +489,22 @@ public class Bundle {
 
         Pacioli.println("");
 
-        for (String value : names) {
-            ValueInfo info = environment.values().lookup(value);
-            boolean fromProgram = info.generalInfo().module().equals(this.project.file.module());
-            if (info.name().equals("nmode")) {
-                Pacioli.println("NMODE");
+        for (ValueInfo info : localInfos(includePrivate)) {
+            TypeObject type = rewriteTypes ? info.localType() : info.publicType();
+            String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
+
+            if (showDeclarations) {
+                Pacioli.println("%s :: %s", info.name(), text);
             }
-            if ((includePrivate || info.isPublic()) && fromProgram
-            // && info.definition().isPresent()
-            // && info.isUserDefined()
-            ) {
-                TypeObject type = rewriteTypes ? info.localType() : info.publicType();
-                String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
 
-                if (showDeclarations) {
-                    Pacioli.println("%s :: %s", info.name(), text);
+            if (showDocs) {
+                if (info.generalInfo().documentation().isPresent()) {
+                    Pacioli.println("\n    %s\n", info.generalInfo().documentation().get());
                 }
+            }
 
-                if (showDocs) {
-                    if (info.generalInfo().documentation().isPresent()) {
-                        Pacioli.println("\n    %s\n", info.generalInfo().documentation().get());
-                    }
-                }
-
-                if (showBodies) {
-                    Pacioli.println("\n%s\n", info.definition().map(x -> x.prettyTyped()).orElse("null"));
-                }
-
+            if (showBodies) {
+                Pacioli.println("\n%s\n", info.definition().map(x -> x.prettyTyped()).orElse("null"));
             }
         }
 
@@ -518,6 +514,57 @@ public class Bundle {
             TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
         }
+    }
+
+    public void printAsLean(Program program, boolean rewriteTypes, boolean includePrivate) throws Exception {
+
+        // List<String> names = environment.values().allNames();
+        // Collections.sort(names);
+
+        Pacioli.println("");
+
+        PacioliTable infos = program.generateInfos();
+        for (var info : infos.values().allInfos()) {
+
+            Pacioli.println("->%s%n%s",
+                    environment.values().lookup(info.globalName()),
+                    info.definition().map(Node::asLean).orElse(info.globalName()));
+        }
+
+        for (ValueInfo info : localInfos(includePrivate)) {
+            Pacioli.println("%s",
+                    // info.name(),
+                    // info.inferredType().map(x -> x.printAsLean()).orElse("?"),
+                    info.definition().map(body -> body.asLean()).orElse("N/A"));
+        }
+
+        Integer count = 0;
+        Pacioli.println("");
+        for (Toplevel toplevel : environment.toplevels()) {
+            TypeObject type = toplevel.type;
+            Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
+        }
+    }
+
+    public List<ValueInfo> localInfos(boolean includePrivate) {
+
+        List<ValueInfo> infos = new ArrayList<>();
+
+        List<String> names = environment.values().allNames();
+        Collections.sort(names);
+
+        for (String value : names) {
+            ValueInfo info = environment.values().lookup(value);
+
+            boolean fromProgram = info
+                    .generalInfo().module().equals(this.project.file.module());
+
+            if ((includePrivate || info.isPublic()) && fromProgram) {
+                infos.add(info);
+            }
+        }
+
+        return infos;
     }
 
     public void genAPI(

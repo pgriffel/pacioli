@@ -28,7 +28,7 @@ import java.util.List;
 public class CompilationSettings {
 
     public enum Target {
-        MVM, JS, MATLAB, PYTHON, LEAN
+        MVM, JS, MATLAB, PYTHON, LEAN, LEANER
     };
 
     private Target target = Target.MVM;
