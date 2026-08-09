@@ -43,7 +43,6 @@ import pacioli.types.type.matrix.IndexType;
 import pacioli.types.type.matrix.MatrixBase;
 import pacioli.types.type.matrix.MatrixType;
 import pacioli.types.type.matrix.ScalarUnitVar;
-import pacioli.types.type.matrix.VectorBaseUnit;
 import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Fraction;
 import uom.Unit;
@@ -61,25 +60,24 @@ public class LeanPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        if (false && type.domain() instanceof ParametricType p && p.op().name().equals("Tuple")) {
-            out.write("(");
-            // out.writeCommaSeparated(p.args(), x -> x.accept(this));
-            out.write(p.args().stream().map(x -> x.printAsLean()).collect(Collectors.joining(" × ")));
-            out.write(")");
-        } else {
-            type.domain().accept(this);
-        }
+        type.domain().accept(this);
+
         out.write(" -> ");
+
         type.range().accept(this);
     }
 
     @Override
     public void visit(Schema type) {
         TypeContext tc = new TypeContext(type.variables());
-        // out.print(tc.asLean(out));
+
         tc.asLean(out.out);
+
         out.print(": ");
+
         type.type().accept(this);
+
+        // TODO
         if (type.conditions().size() > 0) {
             out.print(" where ");
             String sep = "";
@@ -160,20 +158,17 @@ public class LeanPrinter implements TypeVisitor {
     @Override
     public void visit(ParametricType type) {
         if (type.op().name().equals("Tuple")) {
-            // out.write("(");
-            // out.writeCommaSeparated(p.args(), x -> x.accept(this));
             String argsText = type.args().stream()
                     .map(x -> x.printAsLean())
                     .collect(Collectors.joining(" × "));
+
             out.write(argsText.isEmpty() ? "Unit" : "(" + argsText + ")");
-            // out.write(")");
         } else {
             type.op().accept(this);
+
             if (!type.args().isEmpty()) {
                 out.write(" (");
-            }
-            out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
-            if (!type.args().isEmpty()) {
+                out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
                 out.write(")");
             }
         }
