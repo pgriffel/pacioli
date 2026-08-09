@@ -25,11 +25,20 @@
         {
             "type": "java",
             "vmArgs": "-enableassertions",
-            "name": "Compile to lean",
+            "name": "Compile to Lean",
             "request": "launch",
             "mainClass": "pacioli.Pacioli",
             "projectName": "pacioli",
             "args": "compile -target lean ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Compile to Leaner",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "compile -target leaner ${file} -lib lib/"
         },
         {
             "type": "java",

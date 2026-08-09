@@ -289,53 +289,63 @@ public class Bundle {
 
         Pacioli.trace("Generating code for %s", this.project.file.module());
 
-        boolean FLAG_INDENT_CODE = true; // feature flag
+        boolean FLAG_INDENT_CODE = false; // feature flag
+
+        Target target = settings.target();
 
         // Declare a compiler (symbol table visitor) instance
-        Printer printer = new Printer(writer, FLAG_INDENT_CODE);
-        SymbolTableVisitor compiler;
-        CodeGenerator gen;
+        Printer printer = new Printer(writer,
+                target.equals(Target.LEAN) || target.equals(Target.LEANER) ? true : FLAG_INDENT_CODE);
 
-        switch (settings.target()) {
+        // Use the right transpiler and generator. The transpiler does the toplevels,
+        // the generator does the ast/bodies.
+        SymbolTableVisitor transpiler;
+        CodeGenerator generator;
+
+        switch (target) {
             case JS:
-                gen = new JSGenerator(printer, settings);
-                compiler = new JSTranspiler(printer, settings);
+                generator = new JSGenerator(printer, settings);
+                transpiler = new JSTranspiler(printer, settings);
                 break;
             case MATLAB:
-                gen = new MatlabGenerator(printer, settings);
-                compiler = new MATLABTranspiler(printer, settings);
+                generator = new MatlabGenerator(printer, settings);
+                transpiler = new MATLABTranspiler(printer, settings);
 
                 MATLABTranspiler.writePrelude(printer);
 
                 break;
             case MVM:
-                gen = new MVMGenerator(printer, settings);
-                compiler = new MVMTranspiler(printer, settings);
+                generator = new MVMGenerator(printer, settings);
+                transpiler = new MVMTranspiler(printer, settings);
 
                 break;
             case PYTHON:
 
-                PythonTranspiler.writePrelude(printer);
-
-                gen = new PythonGenerator(printer, settings);
-                compiler = new PythonTranspiler(printer, settings);
+                generator = new PythonGenerator(printer, settings);
+                transpiler = new PythonTranspiler(printer, settings);
                 break;
-            case LEAN:
+            case LEAN, LEANER:
 
-                LeanTranspiler.writePrelude(printer);
-
-                gen = new LeanGenerator(printer, false, settings);
-                compiler = new LeanTranspiler(printer, false, settings);
-                break;
-            case LEANER:
-
-                LeanTranspiler.writePrelude(printer);
-
-                gen = new LeanGenerator(printer, true, settings);
-                compiler = new LeanTranspiler(printer, true, settings);
+                // The generator and the transpiler determine the difference between lean and
+                // leaner from the target in settings.
+                generator = new LeanGenerator(printer, settings);
+                transpiler = new LeanTranspiler(printer, settings);
                 break;
             default:
                 throw new RuntimeException("Unknown target");
+        }
+
+        // Write preludes if necessary
+        if (target.equals(Target.PYTHON)) {
+            PythonTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEAN)) {
+            LeanTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEANER)) {
+            LeanTranspiler.writePreludeLeaner(printer);
         }
 
         // Lists of infos we will compile below. Functions are always compiled first.
@@ -429,13 +439,13 @@ public class Bundle {
 
         // Generate code for the functions
         for (ValueInfo info : orderedInfos(functionsToCompile)) {
-            info.accept(compiler);
+            info.accept(transpiler);
         }
 
         // Generate code for the rest. This is done in the proper order
         infosToCompile = orderedInfos(infosToCompile);
         for (Info info : infosToCompile) {
-            info.accept(compiler);
+            info.accept(transpiler);
         }
 
         // Generate code for the toplevels
@@ -445,13 +455,13 @@ public class Bundle {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
-                    def.accept(gen);
+                    def.accept(generator);
                     printer.newline();
                 }
                 if (settings.target() == Target.PYTHON) {
                     printer.newline();
                     printer.write("glbl_base_print(");
-                    def.accept(gen);
+                    def.accept(generator);
                     printer.write(")");
                     printer.newline();
                 }
@@ -516,35 +526,36 @@ public class Bundle {
         }
     }
 
-    public void printAsLean(Program program, boolean rewriteTypes, boolean includePrivate) throws Exception {
+    // public void printAsLean(Program program, boolean rewriteTypes, boolean
+    // includePrivate) throws Exception {
 
-        // List<String> names = environment.values().allNames();
-        // Collections.sort(names);
+    // // List<String> names = environment.values().allNames();
+    // // Collections.sort(names);
 
-        Pacioli.println("");
+    // Pacioli.println("");
 
-        PacioliTable infos = program.generateInfos();
-        for (var info : infos.values().allInfos()) {
+    // PacioliTable infos = program.generateInfos();
+    // for (var info : infos.values().allInfos()) {
 
-            Pacioli.println("->%s%n%s",
-                    environment.values().lookup(info.globalName()),
-                    info.definition().map(Node::asLean).orElse(info.globalName()));
-        }
+    // Pacioli.println("->%s%n%s",
+    // environment.values().lookup(info.globalName()),
+    // info.definition().map(Node::asLean).orElse(info.globalName()));
+    // }
 
-        for (ValueInfo info : localInfos(includePrivate)) {
-            Pacioli.println("%s",
-                    // info.name(),
-                    // info.inferredType().map(x -> x.printAsLean()).orElse("?"),
-                    info.definition().map(body -> body.asLean()).orElse("N/A"));
-        }
+    // for (ValueInfo info : localInfos(includePrivate)) {
+    // Pacioli.println("%s",
+    // // info.name(),
+    // // info.inferredType().map(x -> x.printAsLean()).orElse("?"),
+    // info.definition().map(body -> body.asLean()).orElse("N/A"));
+    // }
 
-        Integer count = 0;
-        Pacioli.println("");
-        for (Toplevel toplevel : environment.toplevels()) {
-            TypeObject type = toplevel.type;
-            Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
-        }
-    }
+    // Integer count = 0;
+    // Pacioli.println("");
+    // for (Toplevel toplevel : environment.toplevels()) {
+    // TypeObject type = toplevel.type;
+    // Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
+    // }
+    // }
 
     public List<ValueInfo> localInfos(boolean includePrivate) {
 

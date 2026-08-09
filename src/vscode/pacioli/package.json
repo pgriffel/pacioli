@@ -86,6 +86,10 @@
       {
         "command": "pacioli.compilelean",
         "title": "Pacioli compile to lean"
+      },
+      {
+        "command": "pacioli.compileleaner",
+        "title": "Pacioli translate to lean"
       }
     ],
     "menus": {
@@ -118,6 +122,10 @@
         {
           "command": "pacioli.compilelean",
           "group": "z_commands"
+        },
+        {
+          "command": "pacioli.compileleaner",
+          "group": "z_commands"
         }
       ]
     },
@@ -142,7 +150,7 @@
       },
       {
         "key": "ctrl+f12",
-        "command": "pacioli.compilelean"
+        "command": "pacioli.compileleaner"
       }
     ],
     "snippets": [

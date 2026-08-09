@@ -36,7 +36,6 @@ import pacioli.ast.visitors.DesugarVisitor;
 import pacioli.ast.visitors.HideIdentifiersVisitor;
 import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.LeanGenerator;
-import pacioli.ast.visitors.LeanPrintVisitor;
 import pacioli.ast.visitors.LiftStatements;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
@@ -171,26 +170,22 @@ public interface Node extends Printable {
     }
 
     default public void compileToLean(Printer writer, CompilationSettings settings) {
-        this.accept(new LeanGenerator(writer, false, settings));
+        this.accept(new LeanGenerator(writer, settings));
     }
 
     default public void compileToLeaner(Printer writer, CompilationSettings settings) {
-        this.accept(new LeanGenerator(writer, true, settings));
+        this.accept(new LeanGenerator(writer, settings));
     }
 
-    default public void printLeanSyntax(PrintWriter out) {
-        this.accept(new LeanPrintVisitor(new Printer(out)));
-    }
-
-    default public String asLean() {
+    default public String asLean(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
-        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), false, null));
+        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), settings));
         return outputStream.toString();
     }
 
-    default public String asLeaner() {
+    default public String asLeaner(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
-        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), true, null));
+        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), settings));
         return outputStream.toString();
     }
 

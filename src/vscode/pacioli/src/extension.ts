@@ -40,6 +40,10 @@ const MENU_COMMANDS = [
   { id: "pacioli.compilemvm", task: "pacioli: Compile pacioli file to mvm" },
   { id: "pacioli.compilejs", task: "pacioli: Compile pacioli file to js" },
   { id: "pacioli.compilelean", task: "pacioli: Compile pacioli file to lean" },
+  {
+    id: "pacioli.compileleaner",
+    task: "pacioli: Translate pacioli file to lean",
+  },
 ];
 
 const pacioliClient = new PacioliClient();

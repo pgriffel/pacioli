@@ -33,6 +33,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.CompilationSettings.Target;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.SymbolTableVisitor;
@@ -60,10 +61,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
      */
     private boolean leaner;
 
-    public LeanTranspiler(Printer printWriter, boolean leaner, CompilationSettings settings) {
+    public LeanTranspiler(Printer printWriter, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
-        this.leaner = leaner;
+        this.leaner = settings.target().equals(Target.LEANER);
     }
 
     public static void writePrelude(Printer out) {
@@ -75,6 +76,17 @@ public class LeanTranspiler implements SymbolTableVisitor {
         out.format("open Std\n\n");
         out.format("namespace Pacioli\n\n");
         out.format(PRIMITIVES);
+    }
+
+    public static void writePreludeLeaner(Printer out) {
+        out.format("import Mathlib\n");
+        out.format("import Mathlib.Data.Matrix.Basic\n");
+        out.format("import Mathlib.Data.Real.Basic\n\n");
+        out.format("open scoped BigOperators\n");
+        out.format("open scoped Matrix\n");
+        out.format("open Std\n\n");
+        out.format("namespace Pacioli\n\n");
+        out.format(PRIMITIVES_LEANER);
     }
 
     private static String PRIMITIVES = """
@@ -106,7 +118,8 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
                 let (x, y) := args
-                x.comp y
+                -- x.comp y
+                x * y
 
             def _base_matrix_multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
@@ -126,7 +139,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x) := args
                 _base_matrix_scale (-1, x)
 
-            def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+            noncomputable def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
                 fun i j => Real.sqrt (x i j)
 
@@ -154,19 +167,87 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
 
-            def _base_matrix__  := -- TODO: expression
+            def Geom3 := 3
+
+            def _base_matrix__  :=
                 coord 1 0
 
-            noncomputable def _standard_matrix_inner {m : Nat} (args : (Mat m 1) × (Mat m 1)) : (Mat 1 1) :=
-                let ( lcl_x, lcl_y ) := args
-                _base_matrix_mmult (_base_matrix_transpose (lcl_x), lcl_y)
+            -- END GENERATED CODE
 
-            noncomputable def _standard_matrix_norm {m : Nat} := fun args : (Mat m 1) =>
-                let ( lcl_x ) := args
-                _base_matrix_sqrt (_standard_matrix_inner (lcl_x, lcl_x))
+            """;
+
+    private static String PRIMITIVES_LEANER = """
+
+            -- START GENERATED CODE
+
+            -- Preliminary definitions
+
+            -- Lean representation of Pacioli's matrix type
+            abbrev Mat (m n : Nat) :=
+                -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
+                -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
+                Matrix (Fin m) (Fin n) ℝ
+
+            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
+
+            -- Constructor for coordinates. Used by generated code.
+            def coord (n : Nat) (i : Fin n) : Fin n := i
+
+            -- Begin primitives
+
+            def multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
+                let (x, y) := args
+                fun i j => (x i j) * (y i j)
+
+            noncomputable def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
+                let (x, y) := args
+                -- (as_scalar x) • y
+                fun i j => (x 1 1) * (y i j)
+
+            noncomputable def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
+                let (x, y) := args
+                -- (1/(as_scalar y)) • x
+                fun i j => (x i j) / (y 1 1)
+
+            noncomputable def neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
+                let (x) := args
+                scale (-1, x)
+
+            noncomputable def sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+                let (x) := args
+                fun i j => Real.sqrt (x i j)
+
+            noncomputable def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
+                let (x) := args
+                -- x.adjoint
+                x.transpose
+
+            def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+                sorry
+
+            def tuple {a : Type} (x : a) : a := x
+
+            -- def apply (f : a -> b) (x : a): b := f x
+
+            def apply {a b : Type} (args : (a -> b) × a): b :=
+                let (f, x) := args
+                f x
+
+            def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+                let (A, i, j) := args
+                Matrix.of (fun _ _ => (A i j))
+
+            -- End primitives
+
+            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
+
+            def _one_  := coord 1 0
+
+            def Geom3 := 3
 
             -- END GENERATED CODE
-                                                                            """;;
+
+            """;
 
     @Override
     public void visit(ValueInfo info) {
@@ -180,16 +261,14 @@ public class LeanTranspiler implements SymbolTableVisitor {
         ExpressionNode transformedBody = definition.body;
 
         if (transformedBody instanceof LambdaNode) {
-            LambdaNode code = (LambdaNode) transformedBody;
             out.newline();
-            // out.format("def %s := fun args => \n let ( %s ) := args\n",
-            // info.globalName(), argsString(code, "lcl_"));
-            // out.format(" ");
-            definition.compileToLean(out, settings);
-            out.format(" \n");
-            definition.compileToLeaner(out, settings);
-            // out.write(definition.asLean());
-            out.format("  \n");
+
+            if (this.leaner) {
+                definition.compileToLeaner(out, settings);
+            } else {
+                definition.compileToLean(out, settings);
+            }
+
         } else {
             out.newline();
             out.format("def %s : Real := -- TODO: expression\n", info.globalName());
@@ -197,21 +276,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
             transformedBody.compileToJS(out, settings);
             out.format("\n");
         }
-    }
-
-    private static String argsString(LambdaNode node, String prefix) {
-        if (node.varArgs) {
-            if (node.arguments.size() == 1) {
-                return prefix + node.arguments.get(0);
-            } else {
-                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
-            }
-        }
-        List<String> args = new ArrayList<String>();
-        for (String arg : node.arguments) {
-            args.add(prefix + arg);
-        }
-        return String.join(", ", args);
     }
 
     @Override

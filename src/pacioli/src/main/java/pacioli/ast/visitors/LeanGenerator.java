@@ -75,7 +75,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
      */
     private boolean leaner;
 
-    public LeanGenerator(Printer printWriter, boolean leaner, CompilationSettings settings) {
+    public LeanGenerator(Printer printWriter, CompilationSettings settings) {
         super(printWriter);
         this.settings = settings;
         this.leaner = settings.target().equals(Target.LEANER);
@@ -101,7 +101,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         // leaner case.
         ValueInfo info = (ValueInfo) node.getInfo().orElseThrow();
 
-        write("def ");
+        write("noncomputable def ");
 
         node.id.accept(this);
 
@@ -126,7 +126,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ApplicationNode node) {
         if (this.leaner) {
-            String fun = node.function.asLeaner();
+            String fun = node.function.asLeaner(settings);
             switch (fun) {
                 case "mmult": {
                     writeSeparated(node.arguments, " * ");
@@ -221,7 +221,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(IdentifierNode node) {
         if (leaner) {
-            write(node.name());
+            String name = node.name();
+            write(name.equals("_") ? "_one_" : name);
         } else {
             String full = node.info().isGlobal()
                     ? node.info().globalName()// "Pacioli." + node.name()
@@ -449,7 +450,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             out.write("(");
             out.writeCommaSeparated(app.args, this);
             out.write(app.args.stream()
-                    .map(x -> this.leaner ? x.asLean() : x.asLeaner())
+                    .map(x -> this.leaner ? x.asLean(settings) : x.asLeaner(settings))
                     .collect(Collectors.joining(" x ")));
             out.write(")");
         } else {
