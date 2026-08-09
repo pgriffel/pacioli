@@ -253,13 +253,6 @@ public class Pacioli {
                 for (String file : files) {
                     desugarCommand(file, libs);
                 }
-                // } else if (command.equals("lean")) {
-                // if (files.isEmpty()) {
-                // displayError("No files to print as Lean.");
-                // }
-                // for (String file : files) {
-                // printLeanSyntaxCommand(file, libs);
-                // }
             } else if (command.equals("types")) {
                 if (files.isEmpty()) {
                     displayError("No files to read.");
@@ -398,45 +391,6 @@ public class Pacioli {
             println("%s", program.desugar().ast().pretty());
         }
     }
-
-    // private static void printLeanSyntaxCommand(String fileName, List<File> libs)
-    // throws Exception {
-    // Integer version = 0; // todo
-    // Optional<PacioliFile> optionalFile = PacioliFile.get(fileName, version);
-
-    // if (!optionalFile.isPresent()) {
-    // optionalFile = PacioliFile.findLibrary(FilenameUtils.removeExtension(new
-    // File(fileName).getName()), libs);
-    // }
-
-    // if (!optionalFile.isPresent()) {
-    // throw new PacioliException("Error: file '%s' does not exist.", fileName);
-    // }
-
-    // PacioliFile file = optionalFile.get();
-
-    // // log("Displaying types for file '%s'", file.fsFile());
-
-    // try {
-    // Program program = Program.load(file);
-    // Bundle.fromFile(file, libs).printAsLean(program, false, true);
-    // } catch (IOException e) {
-    // println("\nError: cannot print as Lean for file '%s':\n\n%s", fileName, e);
-    // }
-
-    // // Integer version = 0; // todo
-    // // Optional<PacioliFile> file = PacioliFile.get(fileName, version);
-
-    // // if (!file.isPresent()) {
-    // // throw new PacioliException("Cannot print as Lean: file '%s' does not
-    // exist.",
-    // // fileName);
-    // // } else {
-    // // // log("Desugaring file '%s'", file);
-    // // Program program = Program.load(file.get());
-    // // program.printLeanSyntax();
-    // // }
-    // }
 
     private static void typesCommand(String fileName, List<File> libs, boolean rewriteTypes, boolean includePrivate)
             throws Exception {

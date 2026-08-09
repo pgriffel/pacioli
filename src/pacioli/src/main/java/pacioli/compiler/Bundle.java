@@ -526,37 +526,6 @@ public class Bundle {
         }
     }
 
-    // public void printAsLean(Program program, boolean rewriteTypes, boolean
-    // includePrivate) throws Exception {
-
-    // // List<String> names = environment.values().allNames();
-    // // Collections.sort(names);
-
-    // Pacioli.println("");
-
-    // PacioliTable infos = program.generateInfos();
-    // for (var info : infos.values().allInfos()) {
-
-    // Pacioli.println("->%s%n%s",
-    // environment.values().lookup(info.globalName()),
-    // info.definition().map(Node::asLean).orElse(info.globalName()));
-    // }
-
-    // for (ValueInfo info : localInfos(includePrivate)) {
-    // Pacioli.println("%s",
-    // // info.name(),
-    // // info.inferredType().map(x -> x.printAsLean()).orElse("?"),
-    // info.definition().map(body -> body.asLean()).orElse("N/A"));
-    // }
-
-    // Integer count = 0;
-    // Pacioli.println("");
-    // for (Toplevel toplevel : environment.toplevels()) {
-    // TypeObject type = toplevel.type;
-    // Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
-    // }
-    // }
-
     public List<ValueInfo> localInfos(boolean includePrivate) {
 
         List<ValueInfo> infos = new ArrayList<>();

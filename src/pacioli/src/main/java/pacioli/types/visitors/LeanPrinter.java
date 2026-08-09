@@ -61,7 +61,7 @@ public class LeanPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
-        if (type.domain() instanceof ParametricType p && p.op().name().equals("Tuple")) {
+        if (false && type.domain() instanceof ParametricType p && p.op().name().equals("Tuple")) {
             out.write("(");
             // out.writeCommaSeparated(p.args(), x -> x.accept(this));
             out.write(p.args().stream().map(x -> x.printAsLean()).collect(Collectors.joining(" × ")));
@@ -159,13 +159,20 @@ public class LeanPrinter implements TypeVisitor {
 
     @Override
     public void visit(ParametricType type) {
-        type.op().accept(this);
-        if (!type.args().isEmpty()) {
+        if (type.op().name().equals("Tuple")) {
             out.write("(");
-        }
-        out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
-        if (!type.args().isEmpty()) {
+            // out.writeCommaSeparated(p.args(), x -> x.accept(this));
+            out.write(type.args().stream().map(x -> x.printAsLean()).collect(Collectors.joining(" × ")));
             out.write(")");
+        } else {
+            type.op().accept(this);
+            if (!type.args().isEmpty()) {
+                out.write("(");
+            }
+            out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
+            if (!type.args().isEmpty()) {
+                out.write(")");
+            }
         }
     }
 

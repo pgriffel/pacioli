@@ -304,7 +304,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             first = false;
             out.write(var.name());
         }
-        write(") = ");
+        write(") := ");
         node.value.accept(this);
     }
 
