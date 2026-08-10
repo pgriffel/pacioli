@@ -22,8 +22,6 @@
 
 package pacioli.ast.definition;
 
-import java.util.Optional;
-
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
@@ -31,7 +29,7 @@ import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
-import pacioli.symboltable.info.Info;
+import pacioli.symboltable.info.ValueInfo;
 
 public class ValueDefinition extends AbstractNode implements Definition {
 
@@ -99,9 +97,8 @@ public class ValueDefinition extends AbstractNode implements Definition {
         visitor.visit(this);
     }
 
-    @Override
-    public Optional<Info> getInfo() {
-        return Optional.ofNullable(this.id.info);
+    public ValueInfo getInfo() {
+        return this.id.info;
     }
 
 }

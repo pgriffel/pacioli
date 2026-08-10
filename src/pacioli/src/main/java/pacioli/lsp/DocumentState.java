@@ -44,11 +44,11 @@ import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureInformation;
 
-import pacioli.ast.Node;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
+import pacioli.compiler.Bundle.ReferencesTable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.info.Info;
@@ -211,7 +211,7 @@ public class DocumentState {
 
     public List<org.eclipse.lsp4j.Location> locateValueReferences(String name) {
 
-        List<Node> refNodes = this.bundle.buildReferencesTable().getValueReferences(name);
+        List<ReferencesTable.Entry> refNodes = this.bundle.buildReferencesTable().getValueReferences(name);
 
         if (refNodes == null) {
             throw new RuntimeException("Value '" + name + "'' not found");
@@ -219,8 +219,9 @@ public class DocumentState {
 
         List<org.eclipse.lsp4j.Location> locations = new ArrayList<>();
 
-        for (Node node : refNodes) {
-            var loc = node.location();
+        for (ReferencesTable.Entry entry : refNodes) {
+
+            Location loc = entry.location();
 
             if (loc.file().isPresent() && !loc.isCollapsed()) {
                 var uri = loc.file().get().toURI();
@@ -238,7 +239,7 @@ public class DocumentState {
 
     public List<org.eclipse.lsp4j.Location> locateTypeReferences(String name) {
 
-        List<Node> refNodes = this.bundle.buildReferencesTable().getTypeReferences(name);
+        List<ReferencesTable.Entry> refNodes = this.bundle.buildReferencesTable().getTypeReferences(name);
 
         if (refNodes == null) {
             throw new RuntimeException("Type '" + name + "'' not found");
@@ -246,8 +247,9 @@ public class DocumentState {
 
         Set<org.eclipse.lsp4j.Location> locations = new HashSet<>();
 
-        for (Node node : refNodes) {
-            var loc = node.location();
+        for (ReferencesTable.Entry entry : refNodes) {
+
+            Location loc = entry.location();
 
             if (loc.file().isPresent() && !loc.isCollapsed()) {
                 var uri = loc.file().get().toURI();

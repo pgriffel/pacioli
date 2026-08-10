@@ -99,7 +99,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         // In the leaner case we recurse here on the ast instead of the body. This
         // means the rest of the code cannot assume that infos are present in the
         // leaner case.
-        ValueInfo info = (ValueInfo) node.getInfo().orElseThrow();
+        ValueInfo info = node.getInfo();
 
         write("noncomputable def ");
 

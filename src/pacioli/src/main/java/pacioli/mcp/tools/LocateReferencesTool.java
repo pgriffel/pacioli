@@ -30,9 +30,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
-import pacioli.ast.Node;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Bundle.ReferencesTable;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 import pacioli.mcp.MCPException;
 
@@ -62,8 +62,8 @@ public class LocateReferencesTool {
 
         ReferencesTable refTable = bundle.buildReferencesTable();
 
-        List<Node> valueRefs = refTable.getValueReferences(name);
-        List<Node> typeRefs = refTable.getTypeReferences(name);
+        List<ReferencesTable.Entry> valueRefs = refTable.getValueReferences(name);
+        List<ReferencesTable.Entry> typeRefs = refTable.getTypeReferences(name);
 
         if (valueRefs == null && typeRefs == null) {
             throw new MCPException(String.format("Name '%s' does not exist in file %s", name, file.module()));
@@ -72,12 +72,14 @@ public class LocateReferencesTool {
         var arr = new com.google.gson.JsonArray();
 
         if (valueRefs != null) {
-            for (Node ref : valueRefs) {
+            for (ReferencesTable.Entry ref : valueRefs) {
+                Location loc = ref.location();
+
                 JsonObject s = new JsonObject();
 
-                s.addProperty("file", ref.location().file().get().getCanonicalFile().toString());
-                s.addProperty("startLine", ref.location().fromLine);
-                s.addProperty("startColumn", ref.location().fromColumn);
+                s.addProperty("file", loc.file().get().getCanonicalFile().toString());
+                s.addProperty("startLine", loc.fromLine);
+                s.addProperty("startColumn", loc.fromColumn);
                 s.addProperty("kind", "value");
 
                 arr.add(s);
@@ -85,12 +87,14 @@ public class LocateReferencesTool {
         }
 
         if (typeRefs != null) {
-            for (Node ref : typeRefs) {
+            for (ReferencesTable.Entry ref : typeRefs) {
+                Location loc = ref.location();
+
                 JsonObject s = new JsonObject();
 
-                s.addProperty("file", ref.location().file().get().getCanonicalFile().toString());
-                s.addProperty("startLine", ref.location().fromLine);
-                s.addProperty("startColumn", ref.location().fromColumn);
+                s.addProperty("file", loc.file().get().getCanonicalFile().toString());
+                s.addProperty("startLine", loc.fromLine);
+                s.addProperty("startColumn", loc.fromColumn);
                 s.addProperty("kind", "type");
 
                 arr.add(s);

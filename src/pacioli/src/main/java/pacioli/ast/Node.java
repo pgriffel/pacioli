@@ -26,7 +26,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ast.visitors.AllIdentifiersVisitor;
@@ -44,6 +43,7 @@ import pacioli.ast.visitors.ReferencesVisitor;
 import pacioli.ast.visitors.ResolveVisitor;
 import pacioli.ast.visitors.RewriteOverloads;
 import pacioli.ast.visitors.UsesVisitor;
+import pacioli.compiler.Bundle.ReferencesTable;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
@@ -111,20 +111,6 @@ public interface Node extends Printable {
     }
 
     /**
-     * For all nodes that refer to something (mainly identifier nodes) this gives
-     * the info of the node it refers to.
-     * 
-     * Only available after resolving.
-     * 
-     * Empty for nodes that are not a referencing node.
-     * 
-     * @return Info of the referenced node.
-     */
-    default public Optional<Info> getInfo() {
-        return Optional.empty();
-    };
-
-    /**
      * All used identifiers. Calls the UsesVisitor. Returns the info for each
      * identifier.
      * 
@@ -142,7 +128,7 @@ public interface Node extends Printable {
      * 
      * @return All referencing nodes
      */
-    default public List<Node> references() {
+    default public List<ReferencesTable.Entry> references() {
         return new ReferencesVisitor().idsAccept(this);
     }
 

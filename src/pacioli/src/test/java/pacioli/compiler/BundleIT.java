@@ -96,17 +96,7 @@ class BundleIT {
         String name = "BoM";
 
         Boolean allNamesCorrect = referencesTable.getValueReferences(name).stream()
-                .map(x -> {
-                    if (x instanceof ValueDefinition vd) {
-                        return vd.id.name().equals(name);
-                    } else if (x instanceof Declaration vd) {
-                        return vd.id.name().equals(name);
-                    } else {
-                        Optional<Info> info = x.getInfo();
-
-                        return info.isPresent() && info.get().name().equals(name);
-                    }
-                })
+                .map(x -> x.name().equals(name))
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
@@ -136,13 +126,7 @@ class BundleIT {
         String name = "Product";
 
         Boolean allNamesCorrect = referencesTable.getTypeReferences(name).stream()
-                .map(x -> {
-                    if (x instanceof IndexSetDefinition isd) {
-                        return isd.id.name().equals(name);
-                    } else {
-                        return x.getInfo().orElseThrow().name().equals(name);
-                    }
-                })
+                .map(x -> x.name().equals(name))
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
@@ -173,16 +157,7 @@ class BundleIT {
         String name = "Shell";
 
         Boolean allNamesCorrect = referencesTable.getTypeReferences(name).stream()
-                .map(x -> {
-                    if (x instanceof IndexSetDefinition isd) {
-                        return isd.id.name().equals(name);
-                    } else {
-                        if (x.getInfo().isPresent()) {
-                            return x.getInfo().orElseThrow().name().equals(name);
-                        }
-                        return true;
-                    }
-                })
+                .map(x -> x.name().equals(name))
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
