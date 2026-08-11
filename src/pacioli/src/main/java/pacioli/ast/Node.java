@@ -43,7 +43,7 @@ import pacioli.ast.visitors.ReferencesVisitor;
 import pacioli.ast.visitors.ResolveVisitor;
 import pacioli.ast.visitors.RewriteOverloads;
 import pacioli.ast.visitors.UsesVisitor;
-import pacioli.compiler.Bundle.ReferencesTable;
+import pacioli.compiler.ReferencesTable;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;

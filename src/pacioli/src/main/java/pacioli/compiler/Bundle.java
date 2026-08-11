@@ -29,18 +29,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
 import pacioli.Pacioli.Options;
-import pacioli.ast.Node;
-import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
@@ -885,57 +881,6 @@ public class Bundle {
     // -------------------------------------------------------------------------
 
     /**
-     * A mapping from a value or type name to a list with all references to the
-     * value or type.
-     */
-    public record ReferencesTable(Map<String, List<Entry>> values, Map<String, List<Entry>> types) {
-
-        public enum Kind {
-            VALUE, UNIT, TYPE
-        }
-
-        public record Entry(String name, Location location, Kind kind) {
-        };
-
-        /**
-         * All nodes (typically identifier nodes) that refer to the value with the given
-         * name. Includes the definition of the value itself.
-         * 
-         * @param name Name of some value
-         * @return All references to the value
-         */
-        public List<Entry> getValueReferences(String name) {
-            return this.values.get(name);
-        }
-
-        /**
-         * All nodes (typically identifier nodes) that refer to the type with the given
-         * name. Includes the definition of the type itself.
-         * 
-         * @param name Name of some type
-         * @return All references to the type
-         */
-        public List<Entry> getTypeReferences(String name) {
-            return this.types.get(name);
-        }
-    }
-
-    static List<ReferencesTable.Entry> refTableEntry(Map<String, List<ReferencesTable.Entry>> table, String name) {
-        if (!table.containsKey(name)) {
-            table.put(name, new ArrayList<>());
-        }
-
-        return table.get(name);
-    }
-
-    static void addRef(Map<String, List<ReferencesTable.Entry>> table, String name, ReferencesTable.Entry ref) {
-        var r = refTableEntry(table, name);
-        if (!r.stream().anyMatch(x -> x.location().equals(ref.location()))) {
-            r.add(ref);
-        }
-    }
-
-    /**
      * Builds a ReferencesTable for the bundle.
      */
     public ReferencesTable buildReferencesTable() {
@@ -945,51 +890,30 @@ public class Bundle {
         // A node can be skipped by the ReferencesVisitor
         // A node may not have a location (primitive types like List)
 
-        Map<String, List<ReferencesTable.Entry>> valuesTable = new HashMap<>();
-        Map<String, List<ReferencesTable.Entry>> typeTable = new HashMap<>();
+        ReferencesTable.Builder builder = ReferencesTable.builder();
 
         for (ValueInfo info : allValueInfos()) {
 
             if (info.definition().isPresent()) {
-                Definition definition = info.definition().get();
-
-                // Add all references in the definition's body
-                for (ReferencesTable.Entry ref : definition.references()) {
-                    addRef(ref.kind().equals(ReferencesTable.Kind.VALUE) ? valuesTable : typeTable, ref.name(), ref);
-                }
+                builder.entries(info.definition().get().references());
             }
 
             if (info.declaration().isPresent()) {
-                Declaration declaration = info.declaration().get();
-
-                // Add all references in the declaration's body
-                for (ReferencesTable.Entry ref : declaration.references()) {
-                    addRef(ref.kind().equals(ReferencesTable.Kind.VALUE) ? valuesTable : typeTable, ref.name(), ref);
-                }
+                builder.entries(info.declaration().get().references());
             }
         }
 
         for (TypeInfo info : environment.types().allInfos()) {
 
             if (info.definition().isPresent()) {
-                Definition definition = info.definition().get();
-
-                // Add all references in the definition's body
-                for (ReferencesTable.Entry ref : definition.references()) {
-                    addRef(ref.kind().equals(ReferencesTable.Kind.VALUE) ? valuesTable : typeTable, ref.name(), ref);
-                }
+                builder.entries(info.definition().get().references());
             }
         }
 
         for (Toplevel info : environment.toplevels()) {
-
-            // Add all references in the toplevel's body
-            for (ReferencesTable.Entry ref : info.body.references()) {
-                refTableEntry(ref.kind().equals(ReferencesTable.Kind.VALUE) ? valuesTable : typeTable, ref.name())
-                        .add(ref);
-            }
+            builder.entries(info.body.references());
         }
 
-        return new ReferencesTable(valuesTable, typeTable);
+        return builder.build();
     }
 }

@@ -48,7 +48,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
 import pacioli.compiler.Bundle;
-import pacioli.compiler.Bundle.ReferencesTable;
+import pacioli.compiler.ReferencesTable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.info.Info;

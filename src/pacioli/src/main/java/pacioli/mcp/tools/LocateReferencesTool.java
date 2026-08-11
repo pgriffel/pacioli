@@ -31,7 +31,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import pacioli.compiler.Bundle;
-import pacioli.compiler.Bundle.ReferencesTable;
+import pacioli.compiler.ReferencesTable;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
 import pacioli.mcp.MCPException;
