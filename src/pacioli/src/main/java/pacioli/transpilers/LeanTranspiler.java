@@ -22,19 +22,11 @@
 
 package pacioli.transpilers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
 import pacioli.Pacioli;
-import pacioli.ast.definition.UnitDefinition;
+import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.ValueDefinition;
-import pacioli.ast.expression.ExpressionNode;
-import pacioli.ast.expression.LambdaNode;
-import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.CompilationSettings.Target;
-import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
@@ -45,9 +37,6 @@ import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.types.type.matrix.MatrixBase;
-import pacioli.types.type.matrix.ScalarBase;
-import uom.DimensionedNumber;
 
 public class LeanTranspiler implements SymbolTableVisitor {
 
@@ -91,7 +80,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     private static String PRIMITIVES = """
 
-            -- START GENERATED CODE
+            -- START PRELUDE
 
             -- Preliminary definitions
 
@@ -172,13 +161,13 @@ public class LeanTranspiler implements SymbolTableVisitor {
             def _base_matrix__  :=
                 coord 1 0
 
-            -- END GENERATED CODE
+            -- END PRELUDE
 
             """;
 
     private static String PRIMITIVES_LEANER = """
 
-            -- START GENERATED CODE
+            -- START PRELUDE
 
             -- Preliminary definitions
 
@@ -241,11 +230,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
 
-            def _one_  := coord 1 0
-
-            def Geom3 := 3
-
-            -- END GENERATED CODE
+            -- END PRELUDE
 
             """;
 
@@ -258,23 +243,13 @@ public class LeanTranspiler implements SymbolTableVisitor {
         }
 
         ValueDefinition definition = info.definition().get();
-        ExpressionNode transformedBody = definition.body;
 
-        if (transformedBody instanceof LambdaNode) {
-            out.newline();
+        out.newline();
 
-            if (this.leaner) {
-                definition.compileToLeaner(out, settings);
-            } else {
-                definition.compileToLean(out, settings);
-            }
-
+        if (this.leaner) {
+            definition.compileToLeaner(out, settings);
         } else {
-            out.newline();
-            out.format("def %s : Real := -- TODO: expression\n", info.globalName());
-            out.format("  ");
-            transformedBody.compileToJS(out, settings);
-            out.format("\n");
+            definition.compileToLean(out, settings);
         }
     }
 
@@ -285,7 +260,20 @@ public class LeanTranspiler implements SymbolTableVisitor {
         }
 
         assert (info.definition().isPresent());
-        out.format("-- TODO: index set %s\n", info.globalName());
+
+        IndexSetDefinition def = info.definition().orElseThrow();
+
+        out.newline();
+
+        if (!def.isDynamic()) {
+            out.format("def %s := %s", info.name(), def.items().size());
+        } else {
+            out.format("def %s := length %s -- TODO: proper Lean length function",
+                    info.name(),
+                    info.definition().get().asLean(settings));
+        }
+
+        out.newline();
     }
 
     @Override
@@ -299,21 +287,22 @@ public class LeanTranspiler implements SymbolTableVisitor {
             Pacioli.log("Compiling unit %s", info.globalName());
         }
 
-        Optional<UnitDefinition> optionalDefinition = info.definition();
+        // Optional<UnitDefinition> optionalDefinition = info.definition();
 
-        if (optionalDefinition.isPresent()) {
-            Optional<UnitNode> optionalBody = optionalDefinition.get().body;
-            if (optionalBody.isPresent()) {
-                UnitNode body = optionalBody.get();
-                DimensionedNumber<ScalarBase> number = body.evalUnit();
-                out.format("-- TODO: scalar unit %s = %s %s\n", info.globalName(), number.factor(),
-                        MatrixBase.compileUnitToJS(number.unit()));
-            } else {
-                out.format("-- TODO: scalar unit %s with no body\n", info.globalName());
-            }
-        } else {
-            throw new RuntimeException("ScalarUnitInfo misses definition");
-        }
+        // if (optionalDefinition.isPresent()) {
+        // Optional<UnitNode> optionalBody = optionalDefinition.get().body;
+        // if (optionalBody.isPresent()) {
+        // UnitNode body = optionalBody.get();
+        // DimensionedNumber<ScalarBase> number = body.evalUnit();
+        // out.format("-- TODO: scalar unit %s = %s %s\n", info.globalName(),
+        // number.factor(),
+        // MatrixBase.compileUnitToJS(number.unit()));
+        // } else {
+        // out.format("-- TODO: scalar unit %s with no body\n", info.globalName());
+        // }
+        // } else {
+        // throw new RuntimeException("ScalarUnitInfo misses definition");
+        // }
     }
 
     @Override

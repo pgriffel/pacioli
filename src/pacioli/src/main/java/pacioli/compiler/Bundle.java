@@ -433,15 +433,30 @@ public class Bundle {
             }
         }
 
-        // Generate code for the functions
-        for (ValueInfo info : orderedInfos(functionsToCompile)) {
-            info.accept(transpiler);
-        }
+        boolean functionsFirst = !target.equals(Target.LEAN) && !target.equals(Target.LEANER);
 
-        // Generate code for the rest. This is done in the proper order
-        infosToCompile = orderedInfos(infosToCompile);
-        for (Info info : infosToCompile) {
-            info.accept(transpiler);
+        if (functionsFirst) {
+            // Generate code for the functions
+            for (ValueInfo info : orderedInfos(functionsToCompile)) {
+                info.accept(transpiler);
+            }
+
+            // Generate code for the rest. This is done in the proper order
+            infosToCompile = orderedInfos(infosToCompile);
+            for (Info info : infosToCompile) {
+                info.accept(transpiler);
+            }
+
+        } else {
+            List<Info> all = new ArrayList<>();
+
+            all.addAll(functionsToCompile);
+            all.addAll(infosToCompile);
+
+            for (Info info : orderedInfos(all)) {
+                info.accept(transpiler);
+            }
+
         }
 
         // Generate code for the toplevels

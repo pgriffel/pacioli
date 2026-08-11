@@ -56,6 +56,7 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.CompilationSettings.Target;
@@ -462,5 +463,10 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         }
         write(" -> ");
         node.range.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode comprehensionNode) {
+        write("[] -- TODO: comprehensionNode");
     }
 }

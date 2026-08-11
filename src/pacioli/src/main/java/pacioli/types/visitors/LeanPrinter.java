@@ -97,7 +97,8 @@ public class LeanPrinter implements TypeVisitor {
 
         // out.print("Index(");
         if (type.indexSets().size() == 0) {
-            out.print("One");
+            // out.print("Fin One");
+            out.print("Fin 1");
         }
 
         String sep = "";
