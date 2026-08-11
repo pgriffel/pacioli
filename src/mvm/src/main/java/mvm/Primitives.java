@@ -51,7 +51,7 @@ import mvm.values.matrix.MatrixShape;
 
 public class Primitives {
 
-    static private String prefix = "$base_";
+    static private String PREFIX = "_base_";
 
     static Maybe NOTHING = new Maybe();
     static TheVoid VOID = new TheVoid();
@@ -61,7 +61,7 @@ public class Primitives {
         // //////////////////////////////////////////////////////////////////////////////
         // System Functions (not in the lib_base_base_ namespace)
 
-        store.put("$base_system__runtime_environment", new PacioliString("mvm"));
+        store.put(PREFIX + "system__runtime_environment", new PacioliString("mvm"));
 
         store.put("conversion",
                 new Primitive("conversion") {
@@ -1811,7 +1811,7 @@ public class Primitives {
     }
 
     private static void storeBaseValue(Environment store, String name, PacioliValue primitive) {
-        store.put(prefix + name, primitive);
+        store.put(PREFIX + name, primitive);
     }
 
     private static void storePrimitive(Environment store, Primitive primitive) {

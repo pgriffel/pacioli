@@ -90,6 +90,12 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     CompilationSettings settings;
     Printer out;
 
+    static String BASE_PREFIX = "_base_";
+
+    static private String baseGlobal(String name) {
+        return ValueInfo.global(BASE_PREFIX + "base", name);
+    }
+
     // Constructor
     public MVMGenerator(Printer printWriter, CompilationSettings settings) {
         out = printWriter;
@@ -183,7 +189,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(AssignmentNode node) {
-        out.format("application(var(\"%s\"), var(\"", ValueInfo.global("$base_base", "_ref_set"));
+        out.format("application(var(\"%s\"), var(\"", baseGlobal("_ref_set"));
         out.print(node.var.name());
         out.print("\"), ");
         node.value.accept(this);
@@ -222,7 +228,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
                 : node.name();
 
         if (node.info().isRef()) {
-            out.format("application(var(\"%s\"), var(\"%s\"))", ValueInfo.global("$base_base", "_ref_get"), full);
+            out.format("application(var(\"%s\"), var(\"%s\"))", baseGlobal("_ref_get"), full);
         } else {
             out.format("var(\"%s\")", full);
         }
@@ -321,16 +327,16 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnNode node) {
-        out.format("application(var(\"%s\"), var(\"$result\"), ", ValueInfo.global("$base_base", "_throw_result"));
+        out.format("application(var(\"%s\"), var(\"$result\"), ", baseGlobal("_throw_result"));
         node.value.accept(this);
         out.print(")");
     }
 
     @Override
     public void visit(ReturnVoidNode node) {
-        out.format("application(var(\"%s\"), var(\"$result\"), ", ValueInfo.global("$base_base", "_throw_void"));
+        out.format("application(var(\"%s\"), var(\"$result\"), ", baseGlobal("_throw_void"));
         // Quick fix for node.value.accept(this); above
-        out.print("application(var(\"$base__void\"))");
+        out.format("application(var(\"%s_void\"))", BASE_PREFIX);
         out.print(")");
     }
 
@@ -343,7 +349,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
             Integer n = node.items.size();
             out.mark();
             for (int i = 0; i < n - 1; i++) {
-                out.format("application(var(\"%s\"), ", ValueInfo.global("$base_base", "_seq"));
+                out.format("application(var(\"%s\"), ", baseGlobal("_seq"));
                 out.newlineUp();
                 node.items.get(i).accept(this);
                 out.print(", ");
@@ -396,7 +402,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
 
         // A catch to get the result
         String catcher = node.isVoid ? "_catch_void" : "_catch_result";
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", catcher));
+        out.format("application(var(\"%s\"),", baseGlobal(catcher));
 
         out.newlineUp();
 
@@ -420,24 +426,24 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         out.newlineDown();
 
         // The initial result place
-        out.format("application(var(\"%s\"))", ValueInfo.global("$base_base", "_empty_ref"));
+        out.format("application(var(\"%s\"))", baseGlobal("_empty_ref"));
 
         for (IdentifierNode id : ids) {
             out.print(", ");
             if (node.shadowed.contains(id.name())) {
                 if (node.shadowed.lookup(id.name()).isRef()) {
                     out.format("application(var(\"%s\"), application(var(\"%s\"), var(\"",
-                            ValueInfo.global("$base_base", "_new_ref"),
-                            ValueInfo.global("$base_base", "_ref_get"));
+                            baseGlobal("_new_ref"),
+                            baseGlobal("_ref_get"));
                     out.print(id.name());
                     out.print("\")))");
                 } else {
-                    out.format("application(var(\"%s\"), var(\"", ValueInfo.global("$base_base", "_new_ref"));
+                    out.format("application(var(\"%s\"), var(\"", baseGlobal("_new_ref"));
                     out.print(id.name());
                     out.print("\"))");
                 }
             } else {
-                out.format("application(var(\"%s\"))", ValueInfo.global("$base_base", "_empty_ref"));
+                out.format("application(var(\"%s\"))", baseGlobal("_empty_ref"));
             }
         }
 
@@ -473,7 +479,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // tuple elements and are used in the lambda body to assign the
         // variables. The lambda body is a sequence of these assignments.
         out.mark();
-        out.format("application(var(\"%s\"), lambda (", ValueInfo.global("$base_base", "apply"));
+        out.format("application(var(\"%s\"), lambda (", baseGlobal("apply"));
 
         // The lambda arguments
         Boolean first = true;
@@ -492,8 +498,8 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         // The sequence of assignments
         for (int i = 0; i < size; i++) {
             if (i < size - 1)
-                out.format("application(var(\"%s\"), ", ValueInfo.global("$base_base", "_seq"));
-            out.format("application(var(\"%s\"), var(\"", ValueInfo.global("$base_base", "_ref_set"));
+                out.format("application(var(\"%s\"), ", baseGlobal("_seq"));
+            out.format("application(var(\"%s\"), var(\"", baseGlobal("_ref_set"));
             out.print(names.get(i));
             out.print("\"), var(\"");
             out.print(freshNames.get(i));
@@ -521,7 +527,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(WhileNode node) {
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", "_while"));
+        out.format("application(var(\"%s\"),", baseGlobal("_while"));
         out.newlineUp();
         out.print("lambda () ");
         out.newlineUp();
@@ -541,7 +547,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         String op = node.kind.equals(Kind.LIST) ? "_for" : (node.kind.equals(Kind.SET) ? "_for_set" : "_for_array");
 
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", op));
+        out.format("application(var(\"%s\"),", baseGlobal(op));
         node.items.accept(this);
         out.print(",");
         node.lambdaBody.accept(this);
@@ -555,7 +561,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
         String op = node.kind.equals(Kind.LIST) ? "_for" : (node.kind.equals(Kind.SET) ? "_for_set" : "_for_array");
 
         out.mark();
-        out.format("application(var(\"%s\"),", ValueInfo.global("$base_base", op));
+        out.format("application(var(\"%s\"),", baseGlobal(op));
         node.items.accept(this);
         out.print(",");
         node.lambdaBody.accept(this);
@@ -720,10 +726,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(ListLiteralNode node) {
         for (ExpressionNode element : node.elements) {
-            out.write("application(var(\"$base_system__add_mut\"), ");
+            out.format("application(var(\"%ssystem__add_mut\"), ", BASE_PREFIX);
             out.newline();
         }
-        out.write("application(var(\"$base_list_empty_list\"))");
+        out.format("application(var(\"%slist_empty_list\"))", BASE_PREFIX);
         for (ExpressionNode element : node.elements) {
             out.write(", ");
             out.newline();
@@ -736,10 +742,10 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(SetLiteralNode node) {
         for (ExpressionNode element : node.elements) {
-            out.write("application(var(\"$base_system__adjoin_mut\"), ");
+            out.format("application(var(\"%ssystem__adjoin_mut\"), ", BASE_PREFIX);
             out.newline();
         }
-        out.write("application(var(\"$base_set_empty_set\"))");
+        out.format("application(var(\"%sset_empty_set\"))", BASE_PREFIX);
         for (ExpressionNode element : node.elements) {
             out.write(", ");
             out.newline();
