@@ -60,9 +60,14 @@ const PREDEFINED_TASKS: PacioliTask[] = [
     target: "lean",
   },
   {
-    label: "Translate pacioli file to lean",
+    label: "Compile pacioli file to leaner",
     command: "compile",
     target: "leaner",
+  },
+  {
+    label: "Compile pacioli file to leanest",
+    command: "compile",
+    target: "leanest",
   },
   {
     label: "Types pacioli file",
@@ -177,6 +182,9 @@ function shellCommand(
         }
         case "leaner": {
           return `java -jar ${jarFile} compile \${file} -target leaner -lib ${libDir}`;
+        }
+        case "leanest": {
+          return `java -jar ${jarFile} compile \${file} -target leanest -lib ${libDir}`;
         }
         default: {
           return undefined;

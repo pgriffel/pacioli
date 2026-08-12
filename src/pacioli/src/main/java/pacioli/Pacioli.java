@@ -188,19 +188,18 @@ public class Pacioli {
             }
 
             if (command.equals("run") || command.equals("interpret") || command.equals("compile")) {
-                if (target.equals("javascript")) {
-                    settings.setTarget(Target.JS);
-                } else if (target.equals("matlab")) {
-                    settings.setTarget(Target.MATLAB);
-                } else if (target.equals("mvm")) {
-                    settings.setTarget(Target.MVM);
-                } else if (target.equals("python")) {
-                    settings.setTarget(Target.PYTHON);
-                } else if (target.equals("lean")) {
-                    settings.setTarget(Target.LEAN);
-                } else if (target.equals("leaner")) {
-                    settings.setTarget(Target.LEANER);
-                }
+                settings.setTarget(
+                        switch (target) {
+                            case "javascript" -> Target.JS;
+                            case "matlab" -> Target.MATLAB;
+                            case "mvm" -> Target.MVM;
+                            case "python" -> Target.PYTHON;
+                            case "lean" -> Target.LEAN;
+                            case "leaner" -> Target.LEANER;
+                            case "leanest" -> Target.LEANEST;
+                            default ->
+                                throw new PacioliException(String.format("Unknown compilation target '%s'", target));
+                        });
             }
 
             // Check that the passed library directories exist
@@ -517,9 +516,10 @@ public class Pacioli {
 
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
-                log("Creating bundle for file '%s'", file);
+                log("Creating bundle for file '%s'", file.fsFile());
                 Project project = Project.fromFile(file, libs);
-                bundle(project, settings);
+                Path p = bundle(project, settings);
+                log("Written '%s'", p.toAbsolutePath());
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {

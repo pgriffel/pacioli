@@ -143,6 +143,8 @@ public class PacioliFile implements Printable {
                 return "lean";
             case LEANER:
                 return "lean";
+            case LEANEST:
+                return "lean";
             default:
                 throw new RuntimeException("Unknown target");
         }

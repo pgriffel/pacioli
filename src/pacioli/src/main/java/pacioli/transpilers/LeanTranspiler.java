@@ -44,51 +44,79 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     Printer out;
 
-    /**
-     * The LEANER target instead of the LEAN target. No desugaring and lean
-     * operators if applicable.
-     */
-    private boolean leaner;
-
     public LeanTranspiler(Printer printWriter, CompilationSettings settings) {
         this.out = printWriter;
         this.settings = settings;
-        this.leaner = settings.target().equals(Target.LEANER);
     }
 
     public static void writePrelude(Printer out) {
-        out.format("import Mathlib\n");
-        out.format("import Mathlib.Data.Matrix.Basic\n");
-        out.format("import Mathlib.Data.Real.Basic\n\n");
-        out.format("open scoped BigOperators\n");
-        out.format("open scoped Matrix\n");
-        out.format("open Std\n\n");
-        out.format("namespace Pacioli\n\n");
-        out.format(PRIMITIVES);
+        out.format(GENERAL_IMPORTS);
+        out.format("-- START LEAN PRELUDE");
+        out.newline();
+        out.format(PRIMITIVES_LEAN);
+        out.format("-- END LEAN PRELUDE");
+        out.newline();
+        out.newline();
     }
 
     public static void writePreludeLeaner(Printer out) {
-        out.format("import Mathlib\n");
-        out.format("import Mathlib.Data.Matrix.Basic\n");
-        out.format("import Mathlib.Data.Real.Basic\n\n");
-        out.format("open scoped BigOperators\n");
-        out.format("open scoped Matrix\n");
-        out.format("open Std\n\n");
-        out.format("namespace Pacioli\n\n");
+        out.format(GENERAL_IMPORTS);
+        out.format("-- START LEANER PRELUDE");
+        out.newline();
+        out.format(PRELUDE_COMPREHENSIONS);
         out.format(PRIMITIVES_LEANER);
+        out.format("-- END LEANER PRELUDE");
+        out.newline();
+        out.newline();
     }
 
-    private static String PRIMITIVES = """
+    public static void writePreludeLeanest(Printer out) {
+        out.format(GENERAL_IMPORTS);
+        out.format("-- START LEANEST PRELUDE");
+        out.newline();
+        out.format(PRELUDE_COMPREHENSIONS);
+        out.format(PRIMITIVES_LEANEST);
+        out.format("-- END LEANEST PRELUDE");
+        out.newline();
+        out.newline();
+    }
 
-            -- START PRELUDE
+    private static String GENERAL_IMPORTS = """
+            import Mathlib
+            import Mathlib.Data.Matrix.Basic
+            import Mathlib.Data.Real.Basic
 
-            -- Preliminary definitions
+            open scoped BigOperators
+            open scoped Matrix
+            open Std
+
+            namespace Pacioli
+
+            """;
+
+    private static String PRELUDE_COMPREHENSIONS = """
+
+            declare_syntax_cat compClause
+            syntax "for " term " in " term : compClause
+            syntax "if " term : compClause
+
+            syntax "[" term " | " compClause,* "]" : term
+
+            macro_rules
+            | `([$t:term | ]) => `([$t])
+            | `([$t:term | for $x in $xs]) => `(List.map (λ $x => $t) $xs)
+            | `([$t:term | if $x]) => `(if $x then [$t] else [])
+            | `([$t:term | $c, $cs,*]) => `(List.flatten [[$t | $cs,*] | $c])
+
+            """;
+
+    private static String PRIMITIVES_LEAN = """
 
             -- Lean representation of Pacioli's matrix type
             abbrev Mat (m n : Nat) :=
-                -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
-                -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
                 Matrix (Fin m) (Fin n) Float
+
+            -- Preliminary definitions
 
             -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
 
@@ -152,24 +180,77 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
 
-            -- End primitives
-
             -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
-
-            def Geom3 := 3
-
-            def _base_matrix__  :=
-                coord 1 0
-
-            -- END PRELUDE
 
             """;
 
     private static String PRIMITIVES_LEANER = """
 
-            -- START PRELUDE
+            -- Lean representation of Pacioli's matrix type
+            abbrev Mat (m n : Nat) :=
+                Matrix (Fin m) (Fin n) Float
 
             -- Preliminary definitions
+
+            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
+
+            -- Constructor for coordinates. Used by generated code.
+            def coord (n : Nat) (i : Fin n) : Fin n := i
+
+            -- Begin primitives
+
+            def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
+                let (x, y) := args
+                -- (as_scalar x) • y
+                fun i j => (x 1 1) * (y i j)
+
+            def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
+                let (x, y) := args
+                -- (1/(as_scalar y)) • x
+                fun i j => (x i j) / (y 1 1)
+
+            def neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
+                let (x) := args
+                scale (-1, x)
+
+            def sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+                let (x) := args
+                fun i j => Real.sqrt (x i j)
+
+            def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
+                let (x) := args
+                -- x.adjoint
+                x.transpose
+
+            def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+                sorry
+
+            def tuple {a : Type} (x : a) : a := x
+
+            -- def apply (f : a -> b) (x : a): b := f x
+
+            def apply {a b : Type} (args : (a -> b) × a): b :=
+                let (f, x) := args
+                f x
+
+            def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+                let (A, i, j) := args
+                Matrix.of (fun _ _ => (A i j))
+
+            def naturals (n : Mat 1 1): List (Mat 1 1) :=
+                []
+
+            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)): Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j < y i j
+
+            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
+
+            """;
+
+    private static String PRIMITIVES_LEANEST = """
 
             -- Lean representation of Pacioli's matrix type
             abbrev Mat (m n : Nat) :=
@@ -177,31 +258,14 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
                 Matrix (Fin m) (Fin n) ℝ
 
+            -- Preliminary definitions
+
             -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
-
-
-            declare_syntax_cat compClause
-            syntax "for " term " in " term : compClause
-            syntax "if " term : compClause
-
-            syntax "[" term " | " compClause,* "]" : term
-
-            macro_rules
-            | `([$t:term | ]) => `([$t])
-            | `([$t:term | for $x in $xs]) => `(List.map (λ $x => $t) $xs)
-            | `([$t:term | if $x]) => `(if $x then [$t] else [])
-            | `([$t:term | $c, $cs,*]) => `(List.flatten [[$t | $cs,*] | $c])
-
-            def List.prod (xs : List α) (ys : List β) : List (α × β) := [ (x, y) | for x in xs, for y in ys ]
 
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
             -- Begin primitives
-
-            def multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
-                let (x, y) := args
-                fun i j => (x i j) * (y i j)
 
             noncomputable def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
@@ -250,31 +314,21 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     (List.finRange n).all fun j =>
                         x i j < y i j
 
-            -- End primitives
-
             -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
-
-            -- END PRELUDE
 
             """;
 
     @Override
     public void visit(ValueInfo info) {
-        assert (info.definition().isPresent());
-
         if (Pacioli.Options.showGeneratingCode) {
             Pacioli.log("Compiling value %s", info.globalName());
         }
 
-        ValueDefinition definition = info.definition().get();
+        ValueDefinition definition = info.definition().orElseThrow();
+
+        definition.compileToLean(out, settings);
 
         out.newline();
-
-        if (this.leaner) {
-            definition.compileToLeaner(out, settings);
-        } else {
-            definition.compileToLean(out, settings);
-        }
     }
 
     @Override
@@ -283,19 +337,9 @@ public class LeanTranspiler implements SymbolTableVisitor {
             Pacioli.log("Compiling index set %s", info.globalName());
         }
 
-        assert (info.definition().isPresent());
-
         IndexSetDefinition def = info.definition().orElseThrow();
 
-        out.newline();
-
-        if (!def.isDynamic()) {
-            out.format("def %s := %s", info.name(), def.items().size());
-        } else {
-            out.format("def %s := length %s -- TODO: proper Lean length function",
-                    info.name(),
-                    info.definition().get().asLean(settings));
-        }
+        def.compileToLean(out, settings);
 
         out.newline();
     }
@@ -331,11 +375,11 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     @Override
     public void visit(VectorBaseInfo info) {
-        assert (info.definition().isPresent());
-
         if (Pacioli.Options.showGeneratingCode) {
             Pacioli.log("Compiling vector unit %s", info.globalName());
         }
+
+        assert (info.definition().isPresent());
 
         out.format("-- TODO: vector unit %s\n", info.globalName());
     }

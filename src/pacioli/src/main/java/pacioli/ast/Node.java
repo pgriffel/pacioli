@@ -159,17 +159,7 @@ public interface Node extends Printable {
         this.accept(new LeanGenerator(writer, settings));
     }
 
-    default public void compileToLeaner(Printer writer, CompilationSettings settings) {
-        this.accept(new LeanGenerator(writer, settings));
-    }
-
     default public String asLean(CompilationSettings settings) {
-        StringWriter outputStream = new StringWriter();
-        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), settings));
-        return outputStream.toString();
-    }
-
-    default public String asLeaner(CompilationSettings settings) {
         StringWriter outputStream = new StringWriter();
         this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), settings));
         return outputStream.toString();

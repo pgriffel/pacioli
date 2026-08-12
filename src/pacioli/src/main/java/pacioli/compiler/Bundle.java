@@ -291,7 +291,8 @@ public class Bundle {
 
         // Declare a compiler (symbol table visitor) instance
         Printer printer = new Printer(writer,
-                target.equals(Target.LEAN) || target.equals(Target.LEANER) ? true : FLAG_INDENT_CODE);
+                target.equals(Target.LEAN) || target.equals(Target.LEANER) || target.equals(Target.LEANEST) ? true
+                        : FLAG_INDENT_CODE);
 
         // Use the right transpiler and generator. The transpiler does the toplevels,
         // the generator does the ast/bodies.
@@ -320,7 +321,7 @@ public class Bundle {
                 generator = new PythonGenerator(printer, settings);
                 transpiler = new PythonTranspiler(printer, settings);
                 break;
-            case LEAN, LEANER:
+            case LEAN, LEANER, LEANEST:
 
                 // The generator and the transpiler determine the difference between lean and
                 // leaner from the target in settings.
@@ -342,6 +343,10 @@ public class Bundle {
 
         if (target.equals(Target.LEANER)) {
             LeanTranspiler.writePreludeLeaner(printer);
+        }
+
+        if (target.equals(Target.LEANEST)) {
+            LeanTranspiler.writePreludeLeanest(printer);
         }
 
         // Lists of infos we will compile below. Functions are always compiled first.
@@ -433,7 +438,9 @@ public class Bundle {
             }
         }
 
-        boolean functionsFirst = !target.equals(Target.LEAN) && !target.equals(Target.LEANER);
+        boolean functionsFirst = !(target.equals(Target.LEAN)
+                || target.equals(Target.LEANER)
+                || target.equals(Target.LEANEST));
 
         if (functionsFirst) {
             // Generate code for the functions

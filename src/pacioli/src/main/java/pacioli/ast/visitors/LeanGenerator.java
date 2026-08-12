@@ -79,12 +79,22 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
      * The LEANER target instead of the LEAN target. No desugaring and lean
      * operators if applicable.
      */
-    private boolean leaner;
+    private boolean longNames;
+    private boolean desugared;
+    private boolean preferNative;
+    private boolean noncomputable;
 
     public LeanGenerator(Printer printWriter, CompilationSettings settings) {
         super(printWriter);
+
         this.settings = settings;
-        this.leaner = settings.target().equals(Target.LEANER);
+
+        Target target = settings.target();
+
+        this.longNames = target.equals(Target.LEAN);
+        this.desugared = target.equals(Target.LEAN);
+        this.preferNative = !target.equals(Target.LEAN);
+        this.noncomputable = target.equals(Target.LEANEST);
     }
 
     protected void writeTodo(String feature) {
@@ -94,7 +104,16 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IndexSetDefinition node) {
-        writeTodo("index set definition");
+
+        if (!node.isDynamic()) {
+            out.format("def %s := %s", node.name(), node.items().size());
+        } else {
+            out.format("def %s := length %s -- TODO: proper Lean length function",
+                    node.name(),
+                    node.asLean(settings));
+        }
+
+        out.newline();
     }
 
     @Override
@@ -107,7 +126,11 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         // leaner case.
         ValueInfo info = node.getInfo();
 
-        write("noncomputable def ");
+        if (this.noncomputable) {
+            write("noncomputable def ");
+        } else {
+            write("def ");
+        }
 
         node.id.accept(this);
 
@@ -120,10 +143,10 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         // Recurse on the AST for the leaner case, recurse on the desugared and resolved
         // body otherwise
-        if (this.leaner) {
-            node.ast.accept(this);
-        } else {
+        if (this.desugared) {
             node.body.accept(this);
+        } else {
+            node.ast.accept(this);
         }
 
         out.newlineDown();
@@ -131,8 +154,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ApplicationNode node) {
-        if (this.leaner) {
-            String fun = node.function.asLeaner(settings);
+        if (this.preferNative) {
+            String fun = node.function.asLean(settings);
             switch (fun) {
                 case "mmult": {
                     writeSeparated(node.arguments, " * ");
@@ -169,7 +192,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         mark();
 
         if (node.function instanceof IdentifierNode funId) {
-            out.format("%s", this.leaner ? funId.name() : funId.info().globalName());
+            out.format("%s", this.longNames ? funId.info().globalName() : funId.name());
         } else {
             out.print("(");
             node.function.accept(this);
@@ -230,14 +253,14 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IdentifierNode node) {
-        if (leaner) {
-            String name = node.name();
-            write(name.equals("_") ? "_one_" : name);
-        } else {
+        if (longNames) {
             String full = node.info().isGlobal()
                     ? node.info().globalName()// "Pacioli." + node.name()
                     : "lcl_" + node.name();
             out.format("%s", full);
+        } else {
+            String name = node.name();
+            write(name.equals("_") ? "_one_" : name);
         }
     }
 
@@ -253,7 +276,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(LambdaNode node) {
-        if (leaner) {
+        if (!longNames) {
             if (node.varArgs) {
                 throw new PacioliException("Var args are not implemented for Lean");
             }
@@ -460,7 +483,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             out.write("(");
             out.writeCommaSeparated(app.args, this);
             out.write(app.args.stream()
-                    .map(x -> this.leaner ? x.asLean(settings) : x.asLeaner(settings))
+                    .map(x -> x.asLean(settings))
                     .collect(Collectors.joining(" x ")));
             out.write(")");
         } else {
@@ -495,16 +518,16 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(TupleGeneratorClause tupleGeneratorClause) {
-        write("TODO: comprehensionNode");
+        write("TODO: TupleGeneratorClause");
     }
 
     @Override
     public void visit(AssignmentClause assignmentClause) {
-        write("TODO: comprehensionNode");
+        write("TODO: AssignmentClause");
     }
 
     @Override
     public void visit(TupleAssignmentClause tupleAssignmentClause) {
-        write("TODO: comprehensionNode");
+        write("TODO: TupleAssignmentClause");
     }
 }

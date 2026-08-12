@@ -42,7 +42,11 @@ const MENU_COMMANDS = [
   { id: "pacioli.compilelean", task: "pacioli: Compile pacioli file to lean" },
   {
     id: "pacioli.compileleaner",
-    task: "pacioli: Translate pacioli file to lean",
+    task: "pacioli: Compile pacioli file to leaner",
+  },
+  {
+    id: "pacioli.compileleanest",
+    task: "pacioli: Compile pacioli file to leanest",
   },
 ];
 
