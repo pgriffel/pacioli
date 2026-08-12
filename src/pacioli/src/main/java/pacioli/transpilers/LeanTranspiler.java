@@ -88,7 +88,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
             abbrev Mat (m n : Nat) :=
                 -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
                 -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
-                Matrix (Fin m) (Fin n) ℝ
+                Matrix (Fin m) (Fin n) Float
 
             -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
 
@@ -179,6 +179,21 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
 
+
+            declare_syntax_cat compClause
+            syntax "for " term " in " term : compClause
+            syntax "if " term : compClause
+
+            syntax "[" term " | " compClause,* "]" : term
+
+            macro_rules
+            | `([$t:term | ]) => `([$t])
+            | `([$t:term | for $x in $xs]) => `(List.map (λ $x => $t) $xs)
+            | `([$t:term | if $x]) => `(if $x then [$t] else [])
+            | `([$t:term | $c, $cs,*]) => `(List.flatten [[$t | $cs,*] | $c])
+
+            def List.prod (xs : List α) (ys : List β) : List (α × β) := [ (x, y) | for x in xs, for y in ys ]
+
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
@@ -225,6 +240,15 @@ public class LeanTranspiler implements SymbolTableVisitor {
             def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
+
+            def naturals (n : Mat 1 1): List (Mat 1 1) :=
+                []
+
+            noncomputable def greater {m n : Nat} (args : (Mat m n) × (Mat m n)): Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j < y i j
 
             -- End primitives
 

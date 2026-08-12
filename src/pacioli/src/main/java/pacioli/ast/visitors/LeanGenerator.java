@@ -57,6 +57,11 @@ import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
 import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.FilterClause;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.CompilationSettings.Target;
@@ -175,7 +180,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         Boolean sep = false;
         boolean allIdents = true;
         for (Node arg : node.arguments) {
-            if (!(arg instanceof IdentifierNode || arg instanceof KeyNode)) {
+            if (!(arg instanceof IdentifierNode || arg instanceof KeyNode || arg instanceof ConstNode)) {
                 allIdents = false;
             }
         }
@@ -214,7 +219,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         if (value.equals("true") || value.equals("false")) {
             out.format("%s", value);
         } else {
-            out.format("(%s : Real)", value);
+            out.format("%s", value);
         }
     }
 
@@ -466,7 +471,40 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     @Override
-    public void visit(ComprehensionNode comprehensionNode) {
-        write("[] -- TODO: comprehensionNode");
+    public void visit(ComprehensionNode node) {
+        write("[ ");
+        node.expression.accept(this);
+        write(" | ");
+        writeSeparated(node.clauses, ", ");
+        write(" ]");
+    }
+
+    @Override
+    public void visit(GeneratorClause node) {
+        write("for ");
+        node.id.accept(this);
+        write(" in ");
+        node.list.accept(this);
+    }
+
+    @Override
+    public void visit(FilterClause node) {
+        write("if ");
+        node.list.accept(this);
+    }
+
+    @Override
+    public void visit(TupleGeneratorClause tupleGeneratorClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(AssignmentClause assignmentClause) {
+        write("TODO: comprehensionNode");
+    }
+
+    @Override
+    public void visit(TupleAssignmentClause tupleAssignmentClause) {
+        write("TODO: comprehensionNode");
     }
 }
