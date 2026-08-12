@@ -52,7 +52,7 @@ public class ReferencesVisitor extends IdentityVisitor {
         assert (node.info != null);
 
         if (node.info.definition().isPresent()) {
-            infos.add(new Entry(node.name(), node.location(), Kind.TYPE));
+            infos.add(new Entry(node.info.name(), node.location(), Kind.TYPE));
         }
     }
 

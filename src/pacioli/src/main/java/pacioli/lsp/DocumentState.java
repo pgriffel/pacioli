@@ -242,7 +242,7 @@ public class DocumentState {
         List<ReferencesTable.Entry> refNodes = this.bundle.buildReferencesTable().getTypeReferences(name);
 
         if (refNodes == null) {
-            throw new RuntimeException("Type '" + name + "'' not found");
+            throw new RuntimeException("Type '" + name + "' not found");
         }
 
         Set<org.eclipse.lsp4j.Location> locations = new HashSet<>();

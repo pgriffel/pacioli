@@ -59,7 +59,7 @@ class ProjectGraphToolIT {
         // Given the file bom.pacioli from the samples
         File bomFile = new File("../../samples/bom/bom.pacioli");
 
-        // When the 'locate_references' tool is called with name 'BoM'
+        // When the 'project_graph' tool is called with the bom file
         JsonObject arguments = new JsonObject();
         arguments.addProperty("file", bomFile.getAbsolutePath());
 
@@ -83,7 +83,7 @@ class ProjectGraphToolIT {
         // Then the text should be correct
         String text = contents0.get("text").getAsString();
         int hash = text.hashCode();
-        assertTrue(hash == 182025602 || hash == 10900128);
+        assertTrue(hash == 681680283 || hash == 10900128);
 
         // Teardown
         server.stop();
