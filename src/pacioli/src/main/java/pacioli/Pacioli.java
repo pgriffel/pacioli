@@ -141,7 +141,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
-            String target = "";
+            String target = "mvm";
 
             // Load options first
             loadOptionsFile();
