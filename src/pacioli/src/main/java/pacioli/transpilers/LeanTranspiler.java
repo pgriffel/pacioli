@@ -123,6 +123,14 @@ public class LeanTranspiler implements SymbolTableVisitor {
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
+            -- Allow scalars as one by one matrices
+            instance (m n : Nat) (x : Nat) : OfNat (Mat m n) x where
+                ofNat := fun _ _ => (OfNat.ofNat x : Float)
+
+            instance (m n : Nat) : OfScientific (Mat m n) where
+                ofScientific mantissa exponentSign exponent :=
+                    fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
+
             -- Begin primitives
 
             def _base_matrix_sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
@@ -133,40 +141,45 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x, y) := args
                 x - y
 
+            def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
+                (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
+
             def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
-                let (x, y) := args
-                -- x.comp y
-                x * y
+                let (A, B) := args
+                fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
 
             def _base_matrix_multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
                 fun i j => (x i j) * (y i j)
 
-            noncomputable def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
+            def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
                 -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
-            noncomputable def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
+            def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
                 let (x, y) := args
                 -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
-            noncomputable def _base_matrix_neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
+            def _base_matrix_neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
                 let (x) := args
                 _base_matrix_scale (-1, x)
 
-            noncomputable def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+            def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
-                fun i j => Real.sqrt (x i j)
+                fun i j => Float.sqrt (x i j)
 
-            noncomputable def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
+            def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
                 -- x.adjoint
                 x.transpose
 
             def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
-                sorry
+                fun i j =>
+                    match triples.find? (fun (r, c, _) => r == i && c == j) with
+                    | some (_, _, v) => (v 0) 0
+                    | none => 0
 
             def _base_base_tuple {a : Type} (x : a) : a := x
 
