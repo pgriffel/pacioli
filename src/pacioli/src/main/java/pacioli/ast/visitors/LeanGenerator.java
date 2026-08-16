@@ -134,6 +134,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         node.id.accept(this);
 
+        write(" ");
+
         // The type schema prints the ':'
         write(info.inferredType().get().printAsLean());
 
