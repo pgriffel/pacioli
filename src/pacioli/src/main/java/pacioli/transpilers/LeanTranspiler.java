@@ -150,12 +150,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
-                -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
             def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
                 let (x, y) := args
-                -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
             def _base_matrix_neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
@@ -168,7 +166,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
-                -- x.adjoint
                 x.transpose
 
             def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
@@ -210,12 +207,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
-                -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
             def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
                 let (x, y) := args
-                -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
             def neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
@@ -228,7 +223,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
-                -- x.adjoint
                 x.transpose
 
             def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
@@ -272,12 +266,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             noncomputable def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
-                -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
             noncomputable def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
                 let (x, y) := args
-                -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
             noncomputable def neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
