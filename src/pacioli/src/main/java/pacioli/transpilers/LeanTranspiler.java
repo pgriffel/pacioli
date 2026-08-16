@@ -26,7 +26,6 @@ import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.compiler.CompilationSettings;
-import pacioli.compiler.CompilationSettings.Target;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
@@ -96,6 +95,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     private static String PRELUDE_COMPREHENSIONS = """
 
+            -- Comprehensions
             declare_syntax_cat compClause
             syntax "for " term " in " term : compClause
             syntax "if " term : compClause
@@ -116,22 +116,18 @@ public class LeanTranspiler implements SymbolTableVisitor {
             abbrev Mat (m n : Nat) :=
                 Matrix (Fin m) (Fin n) Float
 
-            -- Preliminary definitions
-
-            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
-
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
             -- Allow scalars as one by one matrices
-            instance (m n : Nat) (x : Nat) : OfNat (Mat m n) x where
+            instance (x : Nat) : OfNat (Mat 1 1) x where
                 ofNat := fun _ _ => (OfNat.ofNat x : Float)
 
-            instance (m n : Nat) : OfScientific (Mat m n) where
+            instance : OfScientific (Mat 1 1) where
                 ofScientific mantissa exponentSign exponent :=
                     fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
 
-            -- Begin primitives
+            -- Primitives
 
             def _base_matrix_sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
@@ -183,8 +179,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_base_tuple {a : Type} (x : a) : a := x
 
-            -- def _base_base_apply (f : a -> b) (x : a): b := f x
-
             def _base_base_apply {a b : Type} (args : (a -> b) × a): b :=
                 let (f, x) := args
                 f x
@@ -192,8 +186,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
             def _base_matrix_get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
-
-            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
 
             """;
 
@@ -203,14 +195,18 @@ public class LeanTranspiler implements SymbolTableVisitor {
             abbrev Mat (m n : Nat) :=
                 Matrix (Fin m) (Fin n) Float
 
-            -- Preliminary definitions
-
-            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
-
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
-            -- Begin primitives
+            -- Allow scalars as one by one matrices
+            instance (x : Nat) : OfNat (Mat 1 1) x where
+                ofNat := fun _ _ => (OfNat.ofNat x : Float)
+
+            instance : OfScientific (Mat 1 1) where
+                ofScientific mantissa exponentSign exponent :=
+                    fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
+
+            -- Primitives
 
             def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
@@ -228,7 +224,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
-                fun i j => Real.sqrt (x i j)
+                fun i j => Float.sqrt (x i j)
 
             def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
@@ -236,11 +232,12 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 x.transpose
 
             def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
-                sorry
+                fun i j =>
+                    match triples.find? (fun (r, c, _) => r == i && c == j) with
+                    | some (_, _, v) => (v 0) 0
+                    | none => 0
 
             def tuple {a : Type} (x : a) : a := x
-
-            -- def apply (f : a -> b) (x : a): b := f x
 
             def apply {a b : Type} (args : (a -> b) × a): b :=
                 let (f, x) := args
@@ -259,8 +256,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     (List.finRange n).all fun j =>
                         x i j < y i j
 
-            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
-
             """;
 
     private static String PRIMITIVES_LEANEST = """
@@ -268,17 +263,12 @@ public class LeanTranspiler implements SymbolTableVisitor {
             -- Lean representation of Pacioli's matrix type
             abbrev Mat (m n : Nat) :=
                 -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
-                -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
-                Matrix (Fin m) (Fin n) ℝ
-
-            -- Preliminary definitions
-
-            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
+                (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
 
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
-            -- Begin primitives
+            -- Primitives
 
             noncomputable def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
                 let (x, y) := args
@@ -303,22 +293,20 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 -- x.adjoint
                 x.transpose
 
-            def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+            noncomputable def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
                 sorry
 
-            def tuple {a : Type} (x : a) : a := x
+            noncomputable def tuple {a : Type} (x : a) : a := x
 
-            -- def apply (f : a -> b) (x : a): b := f x
-
-            def apply {a b : Type} (args : (a -> b) × a): b :=
+            noncomputable def apply {a b : Type} (args : (a -> b) × a): b :=
                 let (f, x) := args
                 f x
 
-            def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+            noncomputable def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
 
-            def naturals (n : Mat 1 1): List (Mat 1 1) :=
+            noncomputable def naturals (n : Mat 1 1): List (Mat 1 1) :=
                 []
 
             noncomputable def greater {m n : Nat} (args : (Mat m n) × (Mat m n)): Bool :=
@@ -326,8 +314,6 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
                         x i j < y i j
-
-            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
 
             """;
 
