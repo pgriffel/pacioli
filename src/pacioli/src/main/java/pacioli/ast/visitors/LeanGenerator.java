@@ -279,16 +279,26 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(LambdaNode node) {
         if (!longNames) {
+
+            String args;
+
             if (node.varArgs) {
-                throw new PacioliException("Var args are not implemented for Lean");
+                if (node.arguments.size() == 1) {
+                    args = node.arguments.get(0);
+                } else {
+                    throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+                }
+                // throw new PacioliException("Var args are not implemented for Lean");
+            } else {
+                args = "(" + String.join(", ", node.arguments) + ")";
             }
 
             // mark();
             write("fun args =>");
             newlineUp();
-            write("let (");
-            out.write(String.join(", ", node.arguments));
-            out.write(") := args; ");
+            write("let ");
+            out.write(args);
+            out.write(" := args; ");
             newline();
             node.expression.accept(this);
             newlineDown();

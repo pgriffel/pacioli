@@ -483,6 +483,14 @@ public class Bundle {
                     printer.write(")");
                     printer.newline();
                 }
+                if (settings.target() == Target.LEAN
+                        || settings.target() == Target.LEANER
+                        || settings.target() == Target.LEANEST) {
+                    printer.newline();
+                    printer.write("#eval ");
+                    def.accept(generator);
+                    printer.newline();
+                }
             }
         }
 
