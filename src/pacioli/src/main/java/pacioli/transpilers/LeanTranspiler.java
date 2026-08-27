@@ -26,7 +26,6 @@ import pacioli.Pacioli;
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.compiler.CompilationSettings;
-import pacioli.compiler.CompilationSettings.Target;
 import pacioli.compiler.Printer;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.symboltable.info.AliasInfo;
@@ -50,33 +49,34 @@ public class LeanTranspiler implements SymbolTableVisitor {
     }
 
     public static void writePrelude(Printer out) {
-        out.format(GENERAL_IMPORTS);
-        out.format("-- START LEAN PRELUDE");
+        out.print(GENERAL_IMPORTS);
+        out.print("-- START LEAN PRELUDE");
         out.newline();
-        out.format(PRIMITIVES_LEAN);
-        out.format("-- END LEAN PRELUDE");
+        out.print(PRIMITIVES_LEAN);
+        out.print("-- END LEAN PRELUDE");
         out.newline();
         out.newline();
     }
 
     public static void writePreludeLeaner(Printer out) {
-        out.format(GENERAL_IMPORTS);
-        out.format("-- START LEANER PRELUDE");
+        out.print(GENERAL_IMPORTS);
+        out.print("-- START LEANER PRELUDE");
         out.newline();
-        out.format(PRELUDE_COMPREHENSIONS);
-        out.format(PRIMITIVES_LEANER);
-        out.format("-- END LEANER PRELUDE");
+        out.print(PRELUDE_COMPREHENSIONS);
+        out.print(PRIMITIVES_LEANER);
+        out.print(PRELUDE_FORMATTING);
+        out.print("-- END LEANER PRELUDE");
         out.newline();
         out.newline();
     }
 
     public static void writePreludeLeanest(Printer out) {
-        out.format(GENERAL_IMPORTS);
-        out.format("-- START LEANEST PRELUDE");
+        out.print(GENERAL_IMPORTS);
+        out.print("-- START LEANEST PRELUDE");
         out.newline();
-        out.format(PRELUDE_COMPREHENSIONS);
-        out.format(PRIMITIVES_LEANEST);
-        out.format("-- END LEANEST PRELUDE");
+        out.print(PRELUDE_COMPREHENSIONS);
+        out.print(PRIMITIVES_LEANEST);
+        out.print("-- END LEANEST PRELUDE");
         out.newline();
         out.newline();
     }
@@ -96,6 +96,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     private static String PRELUDE_COMPREHENSIONS = """
 
+            -- Comprehensions
             declare_syntax_cat compClause
             syntax "for " term " in " term : compClause
             syntax "if " term : compClause
@@ -110,20 +111,110 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             """;
 
+    private static String PRELUDE_FORMATTING = """
+
+            -- Formatting
+
+            inductive FrmtPart where
+                | dec -- %d
+                | str -- %s
+                | lit (txt : String) -- normal text
+
+            class Frmt (α : Type) where
+                frmt : List FrmtPart -> α → String
+
+            class FrmtElt (α : Type) where
+                frmtElt : FrmtPart -> α → String
+
+            -- Recursion over vararg tuple
+
+            instance [FrmtElt α] [Frmt β] : Frmt (α × β) where
+                frmt formats args :=
+                    match formats with
+                    | [] => "Too few format slots"
+                    | FrmtPart.lit str :: f :: fs =>
+                        let (a, as) := args
+                        str ++ FrmtElt.frmtElt f a ++ Frmt.frmt fs as
+                        -- str ++ Frmt.frmt rest args
+                    | f :: fs =>
+                        let (a, as) := args
+                        FrmtElt.frmtElt f a ++ Frmt.frmt fs as
+
+            instance [FrmtElt α] : Frmt α where
+                frmt formats arg :=
+                    match formats with
+                    | FrmtPart.lit str :: r :: [] => str ++ FrmtElt.frmtElt r arg
+                    | FrmtPart.lit str :: r :: [FrmtPart.lit str2] => str ++ FrmtElt.frmtElt r arg ++ str2
+                    | p :: _ => FrmtElt.frmtElt p arg
+                    | _ => "Trash left!!"
+
+
+            -- instance : Frmt Unit where
+            --     frmt formats arg :=
+            --         match formats with
+            --         | FrmtPart.lit str ::  _ => str
+            --         | _ => "Trash left!!"
+
+            -- Formatting for all primitive data types
+
+            instance : FrmtElt Nat where
+                frmtElt _ n := toString n
+
+            instance : FrmtElt String where
+                frmtElt _ n := n
+
+            instance {α : Type} [Repr α] : FrmtElt (List α) where
+                frmtElt _ n :=
+                    let a := n.map (fun x => (Repr.reprPrec x 0))
+                    toString a
+
+            instance {m n : Nat} : FrmtElt (Mat m n) where
+                frmtElt _ x := toString (Repr.reprPrec x 1)
+
+            def format {t : Type} [Frmt t] (ps : List FrmtPart) (args : t) : String :=
+                (Frmt.frmt ps args)
+
+            def splitFrmt : List Char -> List FrmtPart
+            | [] => []
+            | '%' :: 's' :: cs => FrmtPart.str :: splitFrmt cs
+            | c :: cs =>
+                let ch := toString c
+                match splitFrmt cs with
+                | FrmtPart.lit a :: rs => FrmtPart.lit (ch ++ a) :: rs
+                | other => FrmtPart.lit ch :: other
+
+            def printf {t : Type} [Frmt t] : String × t -> IO Unit :=
+                fun args =>
+                    let (first, rest) := args
+                    let frm := splitFrmt first.toList
+                    do
+                        IO.print (format frm rest)
+
+            """;
+
     private static String PRIMITIVES_LEAN = """
 
             -- Lean representation of Pacioli's matrix type
             abbrev Mat (m n : Nat) :=
                 Matrix (Fin m) (Fin n) Float
 
-            -- Preliminary definitions
-
-            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
-
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
-            -- Begin primitives
+            -- Allow scalars as one by one matrices
+            instance (x : Nat) : OfNat (Mat 1 1) x where
+                ofNat := fun _ _ => (OfNat.ofNat x : Float)
+
+            instance : OfScientific (Mat 1 1) where
+                ofScientific mantissa exponentSign exponent :=
+                    fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
+
+            instance : Repr (Matrix (Fin 1) (Fin 1) Float) :=
+            {
+                reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
+            }
+
+            -- Primitives
 
             def _base_matrix_sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
@@ -133,54 +224,62 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x, y) := args
                 x - y
 
+            def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
+                (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
+
             def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
-                let (x, y) := args
-                -- x.comp y
-                x * y
+                let (A, B) := args
+                fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
 
             def _base_matrix_multiply {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
                 fun i j => (x i j) * (y i j)
 
-            noncomputable def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
+            def _base_matrix_scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
                 let (x, y) := args
-                -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
-            noncomputable def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
+            def _base_matrix_scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
                 let (x, y) := args
-                -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
-            noncomputable def _base_matrix_neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
+            def _base_matrix_neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
                 _base_matrix_scale (-1, x)
 
-            noncomputable def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+            def _base_matrix_sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
-                fun i j => Real.sqrt (x i j)
+                fun i j => Float.sqrt (x i j)
 
-            noncomputable def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
+            def _base_matrix_transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
-                -- x.adjoint
                 x.transpose
 
             def _base_matrix_make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
-                sorry
+                fun i j =>
+                    match triples.find? (fun (r, c, _) => r == i && c == j) with
+                    | some (_, _, v) => (v 0) 0
+                    | none => 0
 
             def _base_base_tuple {a : Type} (x : a) : a := x
 
-            -- def _base_base_apply (f : a -> b) (x : a): b := f x
-
-            def _base_base_apply {a b : Type} (args : (a -> b) × a): b :=
+            def _base_base_apply {a b : Type} (args : (a -> b) × a) : b :=
                 let (f, x) := args
                 f x
 
-            def _base_matrix_get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+            def _base_matrix_get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
 
-            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
+            def naturals (n : Mat 1 1) : List (Mat 1 1) :=
+                let m : Nat := (n 0 0).toUInt64.toNat
+                (List.finRange m).map fun i : Nat => OfNat.ofNat i
+
+            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j < y i j
 
             """;
 
@@ -190,63 +289,69 @@ public class LeanTranspiler implements SymbolTableVisitor {
             abbrev Mat (m n : Nat) :=
                 Matrix (Fin m) (Fin n) Float
 
-            -- Preliminary definitions
-
-            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
-
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
-            -- Begin primitives
+            -- Allow scalars as one by one matrices
+            instance (x : Nat) : OfNat (Mat 1 1) x where
+                ofNat := fun _ _ => (OfNat.ofNat x : Float)
 
-            def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
+            instance : OfScientific (Mat 1 1) where
+                ofScientific mantissa exponentSign exponent :=
+                    fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
+
+            instance : Repr (Matrix (Fin 1) (Fin 1) Float) :=
+            {
+                reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
+            }
+
+            -- Primitives
+
+            def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
                 let (x, y) := args
-                -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
-            def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
+            def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
                 let (x, y) := args
-                -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
-            def neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
+            def neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
                 scale (-1, x)
 
             def sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
-                fun i j => Real.sqrt (x i j)
+                fun i j => Float.sqrt (x i j)
 
             def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
                 let (x) := args
-                -- x.adjoint
                 x.transpose
 
             def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
-                sorry
+                fun i j =>
+                    match triples.find? (fun (r, c, _) => r == i && c == j) with
+                    | some (_, _, v) => (v 0) 0
+                    | none => 0
 
             def tuple {a : Type} (x : a) : a := x
 
-            -- def apply (f : a -> b) (x : a): b := f x
-
-            def apply {a b : Type} (args : (a -> b) × a): b :=
+            def apply {a b : Type} (args : (a -> b) × a) : b :=
                 let (f, x) := args
                 f x
 
-            def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+            def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
 
-            def naturals (n : Mat 1 1): List (Mat 1 1) :=
-                []
+            def naturals (n : Mat 1 1) : List (Mat 1 1) :=
+                let m : Nat := (n 0 0).toUInt64.toNat
+                (List.finRange m).map fun i : Nat => OfNat.ofNat i
 
-            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)): Bool :=
+            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
                 let (x, y) := args
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
                         x i j < y i j
-
-            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
 
             """;
 
@@ -255,29 +360,22 @@ public class LeanTranspiler implements SymbolTableVisitor {
             -- Lean representation of Pacioli's matrix type
             abbrev Mat (m n : Nat) :=
                 -- (EuclideanSpace ℝ (Fin n)) →L[ℝ] (EuclideanSpace ℝ (Fin m))
-                -- (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
-                Matrix (Fin m) (Fin n) ℝ
-
-            -- Preliminary definitions
-
-            -- noncomputable def as_scalar (x : (Mat 1 1)) := x (EuclideanSpace.single 0 1) 0
+                (EuclideanSpace ℝ (Fin n)) →ₗ[ℝ] (EuclideanSpace ℝ (Fin m))
 
             -- Constructor for coordinates. Used by generated code.
             def coord (n : Nat) (i : Fin n) : Fin n := i
 
-            -- Begin primitives
+            -- Primitives
 
-            noncomputable def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)): (Mat m n) :=
+            noncomputable def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
                 let (x, y) := args
-                -- (as_scalar x) • y
                 fun i j => (x 1 1) * (y i j)
 
-            noncomputable def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)): (Mat m n) :=
+            noncomputable def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
                 let (x, y) := args
-                -- (1/(as_scalar y)) • x
                 fun i j => (x i j) / (y 1 1)
 
-            noncomputable def neg {m n : Nat} (args : (Mat m n)): (Mat m n) :=
+            noncomputable def neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                 let (x) := args
                 scale (-1, x)
 
@@ -290,31 +388,27 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 -- x.adjoint
                 x.transpose
 
-            def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+            noncomputable def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
                 sorry
 
-            def tuple {a : Type} (x : a) : a := x
+            noncomputable def tuple {a : Type} (x : a) : a := x
 
-            -- def apply (f : a -> b) (x : a): b := f x
-
-            def apply {a b : Type} (args : (a -> b) × a): b :=
+            noncomputable def apply {a b : Type} (args : (a -> b) × a) : b :=
                 let (f, x) := args
                 f x
 
-            def get (args : (Mat m n) × (Fin m) × (Fin n)): Mat 1 1 :=
+            noncomputable def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
 
-            def naturals (n : Mat 1 1): List (Mat 1 1) :=
+            noncomputable def naturals (n : Mat 1 1) : List (Mat 1 1) :=
                 []
 
-            noncomputable def greater {m n : Nat} (args : (Mat m n) × (Mat m n)): Bool :=
+            noncomputable def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
                 let (x, y) := args
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
                         x i j < y i j
-
-            -- Temprary overwrites to fix shortcomings of the current translation from Pacioli to Lean
 
             """;
 
