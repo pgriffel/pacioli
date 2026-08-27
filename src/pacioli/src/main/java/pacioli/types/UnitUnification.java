@@ -27,20 +27,19 @@ import java.util.List;
 import java.util.Set;
 
 import pacioli.compiler.PacioliException;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.MatrixBase;
 import uom.Fraction;
 import uom.Unit;
 
 public class UnitUnification {
 
-    public static Substitution unifyUnits(Unit<TypeBase> x, Unit<TypeBase> y) throws PacioliException {
+    public static <B extends MatrixBase> Substitution unifyUnits(Unit<B> x, Unit<B> y) throws PacioliException {
         try {
             if (x.equals(y)) {
                 return new Substitution();
             } else {
-                // hier met de factor(s) multiplyen?
                 return unitUnify(x.multiply(y.reciprocal()));
             }
         } catch (PacioliException ex) {
@@ -48,13 +47,13 @@ public class UnitUnification {
         }
     }
 
-    private static Substitution unitUnify(Unit<TypeBase> unit) throws PacioliException {
+    private static <B extends MatrixBase> Substitution unitUnify(Unit<B> unit) throws PacioliException {
 
-        List<TypeBase> varBases = new ArrayList<TypeBase>();
-        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
+        List<B> varBases = new ArrayList<B>();
+        List<B> fixedBases = new ArrayList<B>();
 
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar) {
+        for (B base : unit.bases()) {
+            if (base.isVar()) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -72,52 +71,53 @@ public class UnitUnification {
 
         if (varBases.size() == 1) {
 
-            UnitVar var = (UnitVar) varBases.get(0);
+            B var = varBases.get(0);
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
-            Unit<TypeBase> residu = TypeBase.ONE;
+            Unit<B> residu = Unit.one();
 
-            for (TypeBase fixed : fixedBases) {
+            for (B fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
                 if (fixedPower % power != 0) {
                     throw new PacioliException("Cannot unify unit 2 %s", unit.pretty());
                 }
-                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
+                residu = residu.multiply(Unit.from(fixed).raise(new Fraction(-fixedPower / power)));
             }
 
-            return new Substitution(var, residu);
+            return new Substitution((Var) var, residu);
         }
 
-        UnitVar minVar = (UnitVar) varBases.get(0);
-        for (TypeBase var : varBases) {
+        B minVar = varBases.get(0);
+        for (B var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
-                minVar = (UnitVar) var;
+                minVar = var;
             }
         }
 
         assert (unit.power(minVar).isInt());
         Fraction minPower = unit.power(minVar);
-        Unit<TypeBase> rest = TypeBase.ONE;
-        for (TypeBase var : unit.bases()) {
+        Unit<B> rest = Unit.one();
+        for (B var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
-                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
+                rest = rest.multiply(
+                        Unit.from(var).raise(unit.power(var).div(minPower).floor().negate()));
             }
         }
 
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
+        Substitution tmp = new Substitution((Var) minVar, Unit.from(minVar).multiply(rest));
         return unitUnify(tmp.apply(unit)).compose(tmp);
     }
 
     // UNITTODO
-    public static Substitution unitSimplify(Unit<TypeBase> unit, Set<UnitVar> ignore) {
+    public static Substitution unitSimplify(Unit<MatrixBase> unit, Set<UnitVar> ignore) {
 
-        List<TypeBase> varBases = new ArrayList<TypeBase>();
-        List<TypeBase> fixedBases = new ArrayList<TypeBase>();
+        List<MatrixBase> varBases = new ArrayList<MatrixBase>();
+        List<MatrixBase> fixedBases = new ArrayList<MatrixBase>();
 
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar && !ignore.contains((Var) base)) {
+        for (MatrixBase base : unit.bases()) {
+            if (base instanceof UnitVar var && !ignore.contains(var)) {
                 varBases.add(base);
             } else {
                 fixedBases.add(base);
@@ -130,7 +130,7 @@ public class UnitUnification {
         }
 
         UnitVar minVar = (UnitVar) varBases.get(0);
-        for (TypeBase var : varBases) {
+        for (MatrixBase var : varBases) {
             if (unit.power(var).abs().compareTo(unit.power(minVar).abs()) < 0) {
                 minVar = (UnitVar) var;
             }
@@ -139,7 +139,7 @@ public class UnitUnification {
         Fraction minPower = unit.power(minVar);
 
         if (minPower.signum() < 0) {
-            Substitution tmp = new Substitution(minVar, minVar.reciprocal());
+            Substitution tmp = new Substitution(minVar, Unit.from(minVar).reciprocal());
             return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
         }
 
@@ -149,26 +149,27 @@ public class UnitUnification {
             assert (unit.power(var).isInt());
             int power = unit.power(var).intValue();
             // Unit residu = Unit.ONE.multiply(unit.factor());
-            Unit<TypeBase> residu = TypeBase.ONE;
+            Unit<MatrixBase> residu = MatrixBase.ONE;
 
-            for (TypeBase fixed : fixedBases) {
+            for (MatrixBase fixed : fixedBases) {
                 assert (unit.power(fixed).isInt());
                 int fixedPower = unit.power(fixed).intValue();
-                residu = residu.multiply(fixed.raise(new Fraction(-fixedPower / power)));
+                residu = residu.multiply(Unit.from(fixed).raise(new Fraction(-fixedPower / power)));
             }
 
-            return new Substitution(var, var.multiply(residu));
+            return new Substitution(var, Unit.<MatrixBase>from(var).multiply(residu));
         }
 
-        Unit<TypeBase> rest = (Unit<TypeBase>) TypeBase.ONE;
-        for (TypeBase var : unit.bases()) {
+        Unit<MatrixBase> rest = (Unit<MatrixBase>) MatrixBase.ONE;
+        for (MatrixBase var : unit.bases()) {
             if (!var.equals(minVar)) {
                 assert (unit.power(var).isInt());
-                rest = rest.multiply(var.raise(unit.power(var).div(minPower).floor().negate()));
+                rest = rest.multiply(
+                        Unit.<MatrixBase>from(var).raise(unit.power(var).div(minPower).floor().negate()));
             }
         }
 
-        Substitution tmp = new Substitution(minVar, minVar.multiply(rest));
+        Substitution tmp = new Substitution(minVar, Unit.<MatrixBase>from(minVar).multiply(rest));
         return unitSimplify(tmp.apply(unit), ignore).compose(tmp);
     }
 }

@@ -29,14 +29,16 @@ import {
   getCOONumbers,
   getFullNumbers,
 } from "./raw-values/numbers";
-import { RawMap } from "./raw-values/raw-value";
+import { RawMap, tagSet } from "./raw-values/raw-value";
 import type {
   RawArray,
+  RawBigNum,
   RawBoole,
   RawCoordinates,
   RawFunction,
   RawList,
   RawRef,
+  RawSet,
   RawString,
   RawTuple,
   RawValue,
@@ -70,6 +72,8 @@ import {
   unaryNumbers,
 } from "./raw-values/raw-matrix";
 import { PacioliError } from "./pacioli-error";
+import { PacioliBigNum } from "./values/bignum";
+import { BigNumber } from "bignumber.js";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -224,6 +228,32 @@ export function $base_base_equal(x: RawValue, y: RawValue): RawBoole {
       },
       false,
     );
+  } else if (x.kind === "bignum" && y.kind === "bignum") {
+    return x.value.comparedTo(y.value) === 0;
+  } else if (x.kind === "set" && y.kind === "set") {
+    for (const itemX of x) {
+      let inY = false;
+      for (const itemY of y) {
+        if ($base_base_equal(itemX, itemY)) {
+          inY = true;
+        }
+      }
+      if (!inY) {
+        return false;
+      }
+    }
+    for (const itemY of y) {
+      let inX = false;
+      for (const itemX of x) {
+        if ($base_base_equal(itemX, itemY)) {
+          inX = true;
+        }
+      }
+      if (!inX) {
+        return false;
+      }
+    }
+    return true;
   } else if (Array.isArray(x) && Array.isArray(y)) {
     const n = x.length;
     if (y.length !== n) {
@@ -1358,6 +1388,36 @@ export function $base_list_empty_list(): RawList {
   return tagList([]);
 }
 
+export function $base_set_empty_set(): RawSet {
+  return tagSet([]);
+}
+
+export function $base_set_set_size(x: RawSet): RawMatrix {
+  return initialNumbers(1, 1, [[0, 0, x.size]]);
+}
+
+export function $base_set_loop_set(
+  init: RawValue,
+  fun: RawFunction,
+  set: RawSet,
+): RawValue {
+  let accu: RawValue = init;
+  for (const element of set) {
+    accu = fun.apply(fun, [accu, element]);
+  }
+  return accu;
+}
+
+export function $base_system__adjoin_mut(set: RawSet, item: RawValue): RawSet {
+  for (const x of set) {
+    if ($base_base_equal(x, item)) {
+      return set;
+    }
+  }
+  set.add(item);
+  return set;
+}
+
 /**
  * Format in pacioli-js is not really supported. It only works for dimensionless
  * scalars. No unit information is available, so all units are dropped from the
@@ -1460,7 +1520,10 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
             out += size === null ? txt : txt.padStart(size, " ");
             i += match[0].length;
           } else {
-            const regex = /^%([0-9]*)([.]?)([0-9]*)f/;
+            // Use a non-capturing group (?: ... ) to match the optional decimal part and
+            // use a capturing group ( ... ) inside the non-capturing group to get the
+            // part we want (the number after the dot)
+            const regex = /^%([0-9]*)?(?:[.]([0-9]*))?([e|f])/;
 
             const match = regex.exec(formatString.slice(i));
 
@@ -1468,36 +1531,48 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
               let nrDecs: number;
               try {
                 nrDecs =
-                  match[3] === "" ? NR_DECIMALS : Number.parseInt(match[3]);
+                  match[2] === undefined
+                    ? NR_DECIMALS
+                    : Number.parseInt(match[2]);
               } catch {
                 nrDecs = NR_DECIMALS;
               }
 
               let size: number | null;
               try {
-                size = match[1] === "" ? null : Number.parseInt(match[1]);
+                size =
+                  match[1] === undefined ? null : Number.parseInt(match[1]);
               } catch {
                 size = null;
               }
 
               const mat = args[argumentIndex++];
 
-              if (typeof mat !== "object" || mat.kind !== "matrix") {
+              if (typeof mat !== "object") {
                 throw new Error("Expected matrix for %d format argument");
               }
 
-              if (mat.nrRows === 1 && mat.nrColumns === 1) {
-                const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+              if (mat.kind === "matrix") {
+                if (mat.nrRows === 1 && mat.nrColumns === 1) {
+                  const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+                  out += size === null ? txt : txt.padStart(size, " ");
+                } else {
+                  // // FIXME: replace this quick and dirty solution with proper matrix formatting
+                  // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
+                  // if (rowList === null) {
+                  //   out += "Could not format matrix";
+                  // } else {
+                  //   out += rowList;
+                  // }
+                  out += stringifyRawValue(mat);
+                }
+              } else if (mat.kind === "bignum") {
+                const txt = mat.value.toFormat(nrDecs);
                 out += size === null ? txt : txt.padStart(size, " ");
               } else {
-                // // FIXME: replace this quick and dirty solution with proper matrix formatting
-                // const rowList = DOM(mat, { decimals: nrDecs }).textContent;
-                // if (rowList === null) {
-                //   out += "Could not format matrix";
-                // } else {
-                //   out += rowList;
-                // }
-                out += stringifyRawValue(mat);
+                throw new Error(
+                  "Expected a matrix or a bignum for %f or %e argument",
+                );
               }
 
               i += match[0].length;
@@ -1528,6 +1603,12 @@ export function $base_string_format(formatter: RawValue, ...args: RawValue[]) {
 
 export let NR_DECIMALS = 2;
 let PRECISION = 14;
+let BIGNUM_PRECISION = initializeBigNum(14);
+
+function initializeBigNum(precision: number) {
+  BigNumber.config({ DECIMAL_PLACES: precision });
+  return precision;
+}
 
 export function $base_system__nr_decimals(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
@@ -1551,7 +1632,10 @@ export function $base_string_unit2string(unit: RawMatrix): RawString {
   const shape = unit.shape;
 
   if (shape === undefined) {
-    throw new Error("shape undefined in unit2string");
+    // return "1";
+    throw new Error(
+      "No unit info available in unit2string. It must be called with a unit literal (e.g. unit2string(|metre|)",
+    );
   }
 
   const rowOrder = shape.rowOrder();
@@ -1573,7 +1657,9 @@ export function $base_system__num2string(
 ): RawString {
   const shape = unit.shape;
   if (shape === undefined) {
-    throw new Error("shape undefined");
+    throw new PacioliError(
+      "No unit info available in num2string. It must be called with a unit literal (e.g. mum2string(x, 3, |metre|)",
+    );
   }
   const matrix = new PacioliMatrix(shape, num);
   return matrix.toDecimal(getNumber(decimals, 0, 0));
@@ -1675,9 +1761,77 @@ export function $base_map_store(
 ): PacioliVoid {
   return map.store(key, value);
 }
+// een paragraaf over de uom die we gaan tegenomen:
+// switch van angule naar vector
+// rotors zijn dimensionless
+// aanscherping van a,b -> ab naar a,a -> a etc
+// main question: unit vectors uom
 
 export function $base_map_keys(map: RawMap): RawList {
   return map.keys();
+}
+
+export function $base_bignum_make_bignum(x: RawString): RawBigNum {
+  return new PacioliBigNum(new BigNumber(x));
+}
+
+export function $base_bignum_bignum_add(x: RawBigNum, y: RawBigNum): RawBigNum {
+  return new PacioliBigNum(new BigNumber(x.value.plus(y.value)));
+}
+
+export function $base_bignum_bignum_subtract(
+  x: RawBigNum,
+  y: RawBigNum,
+): RawBigNum {
+  return new PacioliBigNum(new BigNumber(x.value.minus(y.value)));
+}
+
+export function $base_bignum_bignum_multiply(
+  x: RawBigNum,
+  y: RawBigNum,
+): RawBigNum {
+  return new PacioliBigNum(new BigNumber(x.value.multipliedBy(y.value)));
+}
+
+export function $base_bignum_bignum_divide(
+  x: RawBigNum,
+  y: RawBigNum,
+): RawBigNum {
+  return new PacioliBigNum(new BigNumber(x.value.dividedBy(y.value)));
+}
+
+export function $base_bignum_bignum_sqrt(x: RawBigNum): RawBigNum {
+  return new PacioliBigNum(new BigNumber(x.value.sqrt()));
+}
+
+export function $base_bignum_bignum_power(
+  x: RawBigNum,
+  p: RawMatrix,
+): RawBigNum {
+  // BigNumber.config({ DECIMAL_PLACES: getNumber(dp, 0, 0) });
+  return new PacioliBigNum(
+    new BigNumber(x.value.exponentiatedBy(getNumber(p, 0, 0))),
+  );
+}
+
+export function $base_bignum_bignum_compare(
+  x: RawBigNum,
+  y: RawBigNum,
+): RawMatrix {
+  const comparison = x.value.comparedTo(y.value) as number;
+  return initialNumbers(1, 1, [[0, 0, comparison]]);
+}
+
+export function $base_system__bignum_precision(): RawMatrix {
+  return initialNumbers(1, 1, [[0, 0, BIGNUM_PRECISION]]);
+}
+
+export function $base_system__set_bignum_precision(
+  precision: RawMatrix,
+): PacioliVoid {
+  BIGNUM_PRECISION = getNumber(precision, 0, 0);
+  BigNumber.config({ DECIMAL_PLACES: BIGNUM_PRECISION });
+  return VOID;
 }
 
 // Abandoned experiment

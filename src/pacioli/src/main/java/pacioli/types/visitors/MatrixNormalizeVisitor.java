@@ -22,7 +22,7 @@
 
 package pacioli.types.visitors;
 
-import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.matrix.MatrixType;
 
 /**
  * Fix for the weird types like x!x that are introduced in the

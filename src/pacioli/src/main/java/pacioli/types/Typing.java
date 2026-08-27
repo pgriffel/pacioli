@@ -112,6 +112,10 @@ public class Typing implements Printable {
         return constraints.solve(verbose).apply(type);
     }
 
+    public Substitution solveSubstitution(Boolean verbose) throws PacioliException {
+        return constraints.solve(verbose);
+    }
+
     public Set<String> assumedNames() {
         return assumptions.keySet();
     }

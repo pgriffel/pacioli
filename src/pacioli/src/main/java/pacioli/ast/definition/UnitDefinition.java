@@ -29,7 +29,7 @@ import pacioli.ast.Visitor;
 import pacioli.ast.unit.UnitNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeIdentifierNode;
-import pacioli.types.type.TypeBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public class UnitDefinition extends AbstractNode implements Definition {
@@ -53,7 +53,7 @@ public class UnitDefinition extends AbstractNode implements Definition {
     }
 
     // Make Optional or exception!!!
-    public DimensionedNumber<TypeBase> evalBody() {
+    public DimensionedNumber<ScalarBase> evalBody() {
         return body.isPresent() ? body.get().evalUnit() : null;
     }
 

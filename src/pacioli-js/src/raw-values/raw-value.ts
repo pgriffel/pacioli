@@ -29,6 +29,8 @@ import {
   type RawMatrix,
   type RawMatrixStorage,
 } from "./raw-matrix";
+import { $base_system__adjoin_mut } from "../primitives";
+import { PacioliBigNum } from "../values/bignum";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -37,6 +39,7 @@ import {
 export type RawValue =
   | RawMatrix
   | RawList
+  | RawSet
   | RawTuple
   | RawArray
   | RawRef
@@ -46,7 +49,8 @@ export type RawValue =
   | RawString
   | RawMap
   | RawMaybe
-  | RawVoid;
+  | RawVoid
+  | RawBigNum;
 
 /**
  * Type of an unboxed Pacioli tuple. A javascript array tagged with kind 'tuple'.
@@ -63,6 +67,13 @@ export interface RawList extends Array<RawValue> {
 }
 
 /**
+ * Type of an unboxed Pacioli list. A javascript array tagged with kind 'list'.
+ */
+export interface RawSet extends Set<RawValue> {
+  kind: "set";
+}
+
+/**
  * Type of an unboxed Pacioli array. A javascript array tagged with kind 'array'.
  */
 export interface RawArray extends Array<RawValue> {
@@ -73,6 +84,11 @@ export interface RawArray extends Array<RawValue> {
  * Type of raw Void. The same as the non-raw type.
  */
 export type RawVoid = PacioliVoid;
+
+/**
+ * Type of raw Void. The same as the non-raw type.
+ */
+export type RawBigNum = PacioliBigNum;
 
 /**
  * Type of an unboxed mutable Pacioli value. A javascript array tagged with kind 'ref'.
@@ -142,6 +158,15 @@ export function tagList(value: Array<RawValue>): RawList {
   return value as RawList;
 }
 
+export function tagSet(value: Array<RawValue>): RawSet {
+  let rawSet = new Set() as RawSet;
+  for (const val of value) {
+    rawSet = $base_system__adjoin_mut(rawSet, val);
+  }
+  rawSet.kind = "set";
+  return rawSet;
+}
+
 export function tagTuple(value: Array<RawValue>): RawTuple {
   (value as RawTuple).kind = "tuple";
   return value as RawTuple;
@@ -170,6 +195,7 @@ export function rawValueLabel(
 ):
   | "matrix"
   | "list"
+  | "set"
   | "tuple"
   | "array"
   | "ref"
@@ -179,7 +205,8 @@ export function rawValueLabel(
   | "void"
   | "string"
   | "boolean"
-  | "function" {
+  | "function"
+  | "bignum" {
   if (typeof value === "string") {
     return "string";
   } else if (typeof value === "boolean") {
@@ -239,6 +266,11 @@ export function stringifyRawValue(value: RawValue): string {
         .map((element) => stringifyRawValue(element))
         .join(", ")}]`;
     }
+    case "set": {
+      return `{${[...value]
+        .map((element) => stringifyRawValue(element))
+        .join(", ")}}`;
+    }
     case "tuple": {
       return `(${value
         .map((element) => stringifyRawValue(element))
@@ -276,6 +308,9 @@ export function stringifyRawValue(value: RawValue): string {
       return value.value === undefined
         ? "Nothing"
         : `just<${stringifyRawValue(value.value)}>`;
+    }
+    case "bignum": {
+      return `${value.value.toString()}`;
     }
   }
 }

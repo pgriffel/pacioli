@@ -1,0 +1,98 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+import random;
+import si;
+import testdata;
+import geometry;
+
+declare array_suites :: List(TestSuite);
+
+define array_suites = [
+    array_from_list_tests,
+    array_to_list_tests,
+    array_equal_tests
+];
+
+run_test_suites(array_suites); 
+
+# ------------------------------------------------------------------------------
+# Arrays
+# ------------------------------------------------------------------------------
+
+define array_from_list_tests = test_suite("Function array_from_list", [
+    random_test("should give an array of the right size", () ->
+        just(
+            let 
+                l = random_string_list()
+            in
+                array_size(array_from_list(l)) = list_size(l)
+            end)),
+
+    random_test("should give an array with the right elements at the right position", () ->
+        just(
+            let 
+                l = random_string_list(),
+                n = list_size(l),
+                a = array_from_list(l)
+            in
+                all[array_get(a, i) = nth(i, l) | i <- naturals(n)]
+            end))
+]);
+
+define array_to_list_tests = test_suite("Function array_to_list", [
+    random_test("should give a list of the right size", () ->
+        just(
+            let 
+                a = array_from_list(random_string_list())
+            in
+                array_size(a) = list_size(array_to_list(a))
+            end)),
+
+    random_test("should give a list with the right elements at the right position", () ->
+        just(
+            let 
+                a = array_from_list(random_string_list()),
+                n = array_size(a),
+                l = array_to_list(a)
+            in
+                all[array_get(a, i) = nth(i, l) | i <- naturals(n)]
+            end))
+]);
+
+define array_equal_tests = test_suite("Function equal for arrays", [
+    random_test("should be true for two empty arrays", () ->
+        just(make_array(0) = make_array(0))),
+
+    random_test("should be true for two arrays with equal contents", () -> 
+        just(array_from_list([1,2,3]) = array_from_list([1,2,3]))
+    ),
+
+    random_test("should be false for two arrays with different contents", () -> 
+        just(array_from_list([1,2,3]) != array_from_list([1,2,4]))
+    ),
+
+    random_test("should be false for two arrays with different size", () ->
+        just(array_from_list([1,2,3]) != array_from_list([1,2]))),
+
+    random_test("should be true for two arrays of arrays with equal contents", () ->
+        just(array_from_list([[1,2],[3]]) = array_from_list([[1,2],[3]])))
+]);

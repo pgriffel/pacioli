@@ -83,6 +83,7 @@ import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
@@ -113,8 +114,15 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
+    boolean printVariableTypes = true;
+
     public PrintVisitor(Printer printer) {
         out = printer;
+    }
+
+    public PrintVisitor(Printer printer, boolean printVariableTypes) {
+        out = printer;
+        this.printVariableTypes = printVariableTypes;
     }
 
     public void write(String text) {
@@ -447,12 +455,14 @@ public class PrintVisitor implements Visitor {
 
             if (node.table != null) {
                 ValueInfo info = node.table.lookup(arg);
-                write(":");
-                Optional<TypeObject> type = info.inferredType();
-                if (type.isPresent()) {
-                    write(type.get().pretty());
-                } else {
-                    write("?");
+                if (printVariableTypes) {
+                    write(": ");
+                    Optional<TypeObject> type = info.inferredType();
+                    if (type.isPresent()) {
+                        write(type.get().pretty());
+                    } else {
+                        write("?");
+                    }
                 }
             }
             ;
@@ -745,10 +755,31 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(LetNode node) {
 
+        mark();
         write("let ");
 
         newlineUp();
-        node.binding.accept(this);
+
+        // See remark below
+        List<String> suff = new ArrayList<>();
+        if (node.binding instanceof LetBindingNode binding) {
+            out.write(binding.var);
+            if (printVariableTypes) {
+                write(node.table
+                        .lookup(binding.var)
+                        .inferredType()
+                        .map(x -> ": " + x.pretty())
+                        .orElse(": ?"));
+            }
+            out.write(" = ");
+            binding.value.accept(this);
+            if (suff.size() > 0) {
+                out.write(suff.get(0));
+            }
+        } else {
+            node.binding.accept(this);
+        }
+
         newlineDown();
 
         write("in");
@@ -759,10 +790,14 @@ public class PrintVisitor implements Visitor {
         newlineDown();
 
         write("end");
+        unmark();
     }
 
     @Override
     public void visit(LetBindingNode node) {
+        // Overuled above because the variable is stored as a string, and to print the
+        // type we need the info and that is in the table on the let node. The other
+        // let bindings find the info via the identifierNode.
         out.write(node.var);
         out.write(" = ");
         node.value.accept(this);
@@ -777,6 +812,10 @@ public class PrintVisitor implements Visitor {
                 write(",");
             first = false;
             out.write(var.name());
+            if (printVariableTypes) {
+                out.write(":");
+                write(var.info().inferredType().map(x -> x.pretty()).orElse("?"));
+            }
         }
         write(") = ");
         node.value.accept(this);
@@ -990,6 +1029,13 @@ public class PrintVisitor implements Visitor {
         write("[");
         writeCommaSeparated(node.elements);
         write("]");
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        write("{");
+        writeCommaSeparated(node.elements);
+        write("}");
     }
 
 }

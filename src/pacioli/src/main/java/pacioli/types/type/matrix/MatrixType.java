@@ -1,0 +1,400 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package pacioli.types.type.matrix;
+
+import java.util.Arrays;
+import java.util.List;
+
+import pacioli.compiler.CompilationSettings;
+import pacioli.compiler.PacioliException;
+import pacioli.types.ConstraintSet;
+import pacioli.types.TypeVisitor;
+import pacioli.types.type.TypeIdentifier;
+import pacioli.types.type.TypeObject;
+import uom.Fraction;
+import uom.Unit;
+
+public class MatrixType implements TypeObject {
+
+    private final Unit<ScalarBase> factor;
+    private final IndexType rowDimension;
+    private final IndexType columnDimension;
+    private final Unit<VectorBase> rowUnit;
+    private final Unit<VectorBase> columnUnit;
+
+    public MatrixType(
+            Unit<ScalarBase> factor,
+            IndexType rowDimension,
+            Unit<VectorBase> rowUnit,
+            IndexType columnDimension,
+            Unit<VectorBase> columnUnit) {
+        this.factor = factor;
+        this.rowDimension = rowDimension;
+        this.rowUnit = rowUnit;
+        this.columnDimension = columnDimension;
+        this.columnUnit = columnUnit;
+    }
+
+    public MatrixType(Unit<ScalarBase> factor) {
+        this.factor = factor;
+        this.rowDimension = new IndexType();
+        this.rowUnit = VectorBase.ONE;
+        this.columnDimension = new IndexType();
+        this.columnUnit = VectorBase.ONE;
+    }
+
+    public MatrixType() {
+        this.factor = ScalarBase.ONE;
+        this.rowDimension = new IndexType();
+        this.rowUnit = VectorBase.ONE;
+        this.columnDimension = new IndexType();
+        this.columnUnit = VectorBase.ONE;
+    }
+
+    public MatrixType(IndexType rowDimension, Unit<VectorBase> rowUnit) {
+        this.factor = ScalarBase.ONE;
+        this.rowDimension = rowDimension;
+        this.rowUnit = rowUnit;
+        this.columnDimension = new IndexType();
+        this.columnUnit = VectorBase.ONE;
+    }
+
+    public MatrixType properIndexSets() {
+        Unit<VectorBase> rowUnit = this.rowUnit;
+        Unit<VectorBase> columnUnit = this.columnUnit;
+
+        if (this.rowDimension.isVar() || this.rowDimension.width() > 0) {
+
+            // If a unit var exists, then there is at most one dimension.
+            String idx = this.rowDimension.isVar() ? this.rowDimension.varName()
+                    : this.rowDimension.nthIndexSet(0).name();
+
+            rowUnit = this.rowUnit.map(base -> base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base);
+        }
+
+        if (this.columnDimension.isVar() || this.columnDimension.width() > 0) {
+
+            // If a unit var exists, then there is at most one dimension.
+            String idx = this.columnDimension.isVar() ? this.columnDimension.varName()
+                    : this.columnDimension.nthIndexSet(0).name();
+
+            columnUnit = this.columnUnit.map(base -> base instanceof VectorUnitVar b ? b.withIndexSetName(idx) : base);
+        }
+
+        return new MatrixType(
+                this.factor,
+                this.rowDimension,
+                rowUnit,
+                this.columnDimension,
+                columnUnit);
+    }
+
+    @Override
+    public String description() {
+        return "matrix type";
+    }
+
+    @Override
+    public String toString() {
+        return String.format("<Matrix %s, %s, %s, %s, %s>",
+                factor, rowDimension, rowUnit, columnDimension, columnUnit);
+    }
+
+    @Override
+    public int hashCode() {
+        return factor.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof MatrixType)) {
+            return false;
+        }
+        MatrixType otherType = (MatrixType) other;
+        return factor.equals(otherType.factor) && rowDimension.equals(otherType.rowDimension)
+                && rowUnit.equals(otherType.rowUnit) && columnDimension.equals(otherType.columnDimension)
+                && columnUnit.equals(otherType.columnUnit);
+    }
+
+    @Override
+    public void accept(TypeVisitor visitor) {
+        visitor.visit(this);
+    }
+
+    public Unit<ScalarBase> factor() {
+        return factor;
+    }
+
+    public IndexType rowDimension() {
+        return rowDimension;
+    }
+
+    public IndexType columnDimension() {
+        return columnDimension;
+    }
+
+    public Unit<VectorBase> rowUnit() {
+        return rowUnit;
+    }
+
+    public Unit<VectorBase> columnUnit() {
+        return columnUnit;
+    }
+
+    public boolean unitSquare() {
+        return rowUnit.equals(columnUnit);
+    }
+
+    public MatrixType dimensionless() {
+        return new MatrixType(ScalarBase.ONE, rowDimension, VectorBase.ONE, columnDimension, VectorBase.ONE);
+    }
+
+    public MatrixType factorless() {
+        return new MatrixType(ScalarBase.ONE, rowDimension, rowUnit, columnDimension, columnUnit);
+    }
+
+    public MatrixType transpose() {
+        return new MatrixType(factor, columnDimension, columnUnit.reciprocal(), rowDimension, rowUnit.reciprocal());
+    }
+
+    public boolean multiplyable(MatrixType other) {
+        return (rowDimension.equals(other.rowDimension) && columnDimension.equals(other.columnDimension));
+    }
+
+    public MatrixType multiply(MatrixType other) {
+        return new MatrixType(factor.multiply(other.factor), rowDimension, rowUnit.multiply(other.rowUnit),
+                columnDimension, columnUnit.multiply(other.columnUnit));
+    }
+
+    public MatrixType reciprocal() {
+        return new MatrixType(factor.reciprocal(), rowDimension, rowUnit.reciprocal(), columnDimension,
+                columnUnit.reciprocal());
+    }
+
+    public MatrixType sqrt() {
+        Fraction half = new Fraction(1, 2);
+        return new MatrixType(factor.raise(half), rowDimension, rowUnit.raise(half), columnDimension,
+                columnUnit.raise(half));
+    }
+
+    public boolean joinable(MatrixType other) {
+        return columnDimension.equals(other.rowDimension) &&
+                columnUnit.equals(other.rowUnit);
+    }
+
+    public MatrixType join(MatrixType other) {
+        return new MatrixType(factor.multiply(other.factor), rowDimension, rowUnit, other.columnDimension,
+                other.columnUnit);
+    }
+
+    public MatrixType kronecker(MatrixType other) throws PacioliException {
+        if (rowDimension instanceof IndexType && columnDimension instanceof IndexType
+                && other.rowDimension instanceof IndexType && other.columnDimension instanceof IndexType) {
+
+            assert (((IndexType) columnDimension).width() == 0);
+            assert (((IndexType) other.columnDimension).width() == 0);
+
+            IndexType rowType = (IndexType) rowDimension;
+            int offset = rowType.width();
+
+            return new MatrixType(factor.multiply(other.factor), rowType.kronecker(other.rowDimension),
+                    rowUnit.multiply(VectorBaseUnit.shiftUnit(other.rowUnit, offset)), new IndexType(), VectorBase.ONE);
+        } else {
+            throw new PacioliException("Kronecker product is not allowed for index variables: %s %% %s (%s)", pretty(),
+                    other.pretty(), rowDimension.getClass());
+        }
+    }
+
+    public MatrixType project(final List<Integer> columns) throws PacioliException {
+        if (rowDimension instanceof IndexType) {
+
+            assert (((IndexType) columnDimension).width() == 0);
+
+            IndexType rowType = (IndexType) rowDimension;
+
+            // UNITTODO
+            // Can kroneckerNth from MatrixBase or VectorBase be used here?
+            Unit<VectorBase> unit = VectorBase.ONE;
+            for (int i = 0; i < columns.size(); i++) {
+                final int tmp = i;
+                unit = rowUnit.flatMap(base -> {
+                    assert (base instanceof VectorBaseUnit);
+                    VectorBaseUnit bangBase = (VectorBaseUnit) base;
+                    return ((bangBase.position() == columns.get(tmp))
+                            ? Unit.from(bangBase.move(tmp))
+                            : VectorBase.ONE);
+                });
+            }
+
+            // THE REMAINING UNITS MUST MULTIPLY TO 1 because they are summed at
+            // runtime!!!!!
+
+            return new MatrixType(factor, rowType.project(columns), unit, new IndexType(), VectorBase.ONE);
+
+        } else {
+            throw new PacioliException("Projection is not allowed for open type: %s", pretty());
+        }
+    }
+
+    public MatrixType nmode(Integer n, MatrixType transform) throws PacioliException {
+
+        // Start with an empty matrix type
+        MatrixType newType = new MatrixType(factor);
+
+        MatrixType tmp = factorless();
+
+        // Add the dimension below n unchanged
+        for (int i = 0; i < n; i++) {
+            newType = newType.kronecker(tmp.project(Arrays.asList(i)));
+        }
+
+        // Transform the n-th dimension and add it
+        MatrixType projected = tmp.project(Arrays.asList(n));
+        if (!transform.joinable(projected)) {
+            throw new RuntimeException(
+                    String.format("Invalid transformation in nmode product: cannot multiply %s and %s",
+                            transform.pretty(),
+                            tmp.project(Arrays.asList(n)).pretty()));
+        }
+        ;
+        newType = newType.kronecker(transform.join(projected));
+
+        // Add the dimension above n unchanged
+        for (int i = n + 1; i < rowDimension.width(); i++) {
+            newType = newType.kronecker(tmp.project(Arrays.asList(i)));
+        }
+
+        return newType;
+    }
+
+    public boolean singleton() {
+        if (rowDimension.isVar() || columnDimension.isVar()) {
+            return false;
+        }
+        return rowDimension.width() == 0 && columnDimension.width() == 0;
+    }
+
+    public MatrixType scale(MatrixType other) {
+        return new MatrixType(factor.multiply(other.factor), other.rowDimension, other.rowUnit, other.columnDimension,
+                other.columnUnit);
+    }
+
+    public MatrixType extractColumn() {
+        return new MatrixType(factor, rowDimension, rowUnit, new IndexType(), VectorBase.ONE);
+    }
+
+    public MatrixType extractRow() {
+        return new MatrixType(factor, new IndexType(), VectorBase.ONE, columnDimension, columnUnit);
+    }
+
+    public MatrixType leftIdentity() {
+        return new MatrixType(ScalarBase.ONE, rowDimension, rowUnit, rowDimension, rowUnit);
+    }
+
+    public MatrixType rightIdentity() {
+        return new MatrixType(ScalarBase.ONE, columnDimension, columnUnit, columnDimension, columnUnit);
+    }
+
+    public MatrixType raise(Fraction power) {
+        return new MatrixType(factor.raise(power), rowDimension, rowUnit.raise(power), columnDimension,
+                columnUnit.raise(power));
+    }
+
+    @Override
+    public ConstraintSet unificationConstraints(TypeObject other) throws PacioliException {
+        MatrixType otherType = (MatrixType) other;
+        ConstraintSet constraints = new ConstraintSet();
+        constraints.addScalarUnitConstraint(factor, otherType.factor, "Matrix factors must match");
+        constraints.addConstraint(rowDimension, otherType.rowDimension, "Matrix row dimensions must match");
+        constraints.addConstraint(columnDimension, otherType.columnDimension, "Matrix column dimensions must match");
+        constraints.addVectorUnitConstraint(rowUnit, otherType.rowUnit, "Matrix row units must match");
+        constraints.addVectorUnitConstraint(columnUnit, otherType.columnUnit, "Matrix column units must match");
+        return constraints;
+    }
+
+    // UNITTODO
+    public String prettyDimensionUnitPair(final IndexType dimension, Unit<VectorBase> unit) {
+        if (dimension.isVar()) {
+            String devaluated = unit.pretty();
+            devaluated = devaluated.equals("1") ? dimension.getVar().pretty() + "!" : devaluated;
+            return devaluated;
+
+        } else {
+            final IndexType dimType = (IndexType) dimension;
+            String node = "";
+            for (int i = 0; i < dimType.width(); i++) {
+
+                Unit<VectorBase> filtered = VectorBaseUnit.kroneckerNth((Unit<VectorBase>) unit, i);
+
+                String idx = dimType.nthIndexSet(i).name();
+                String pretty = filtered.pretty();
+                pretty = pretty.equals("1") ? idx + "!" : pretty;
+                if (i == 0) {
+                    node = pretty;
+                } else {
+                    node = node + " % " + pretty;
+                }
+            }
+            return node;
+        }
+    }
+
+    // UNITTODO
+    public String asMVMDimensionUnitPair(final IndexType dimension, Unit<VectorBase> unit,
+            CompilationSettings settings) {
+        if (dimension.isVar()) {
+            throw new UnsupportedOperationException("Is this used?");
+            // String devaluated = TypeBase.compileUnitToMVM(unit, settings); //
+            // unit.pretty();
+            // devaluated = devaluated.equals("") ? dimension.getVar().pretty() + "!" :
+            // devaluated;
+            // return devaluated;
+
+        } else {
+            final IndexType dimType = (IndexType) dimension;
+            String node = "";
+            for (int i = 0; i < dimType.width(); i++) {
+                // IndexType ty = dimType.project(Arrays.asList(i));
+                // VectorUnitDeval unitDevaluator = new VectorUnitDeval(dimType, i);
+                Unit<VectorBase> filtered = VectorBaseUnit.kroneckerNth((Unit<VectorBase>) unit, i);
+
+                TypeIdentifier idx = dimType.nthIndexSet(i);
+
+                String devaluated = MatrixBase.compileUnitToMVM(filtered, settings);
+                devaluated = filtered.pretty().equals("1")
+                        ? String.format("bang_shape(\"index_%s_%s\", \"\")", idx.home(), idx.name())
+                        : devaluated;
+                if (i == 0) {
+                    node = devaluated;
+                } else {
+                    node = String.format("shape_binop(\"kronecker\", %s, %s)", node, devaluated);
+                }
+            }
+            return node;
+        }
+    }
+
+}

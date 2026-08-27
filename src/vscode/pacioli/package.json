@@ -2,7 +2,7 @@
   "name": "pacioli",
   "displayName": "Pacioli",
   "description": "The Pacioli language",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "publisher": "PRG",
   "repository": "https://github.com/pgriffel/pacioli",
   "icon": "icon.png",
@@ -32,7 +32,7 @@
       {
         "language": "pacioli",
         "scopeName": "pacioli",
-        "path": "./syntaxes/pacioli.tmLanguage.json"
+        "path": "./syntaxes/pacioli.language.json"
       }
     ],
     "configuration": {
@@ -82,6 +82,18 @@
       {
         "command": "pacioli.compilemvm",
         "title": "Pacioli compile to mvm"
+      },
+      {
+        "command": "pacioli.compilelean",
+        "title": "Pacioli compile to lean"
+      },
+      {
+        "command": "pacioli.compileleaner",
+        "title": "Pacioli compile to leaner"
+      },
+      {
+        "command": "pacioli.compileleanest",
+        "title": "Pacioli compile to leanest"
       }
     ],
     "menus": {
@@ -110,6 +122,18 @@
         {
           "command": "pacioli.compilemvm",
           "group": "z_commands"
+        },
+        {
+          "command": "pacioli.compilelean",
+          "group": "z_commands"
+        },
+        {
+          "command": "pacioli.compileleaner",
+          "group": "z_commands"
+        },
+        {
+          "command": "pacioli.compileleanest",
+          "group": "z_commands"
         }
       ]
     },
@@ -131,6 +155,10 @@
       {
         "key": "ctrl+f11",
         "command": "pacioli.compilejs"
+      },
+      {
+        "key": "ctrl+f12",
+        "command": "pacioli.compileleanest"
       }
     ],
     "snippets": [

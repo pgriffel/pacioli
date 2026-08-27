@@ -38,6 +38,11 @@ public class PacioliString implements PacioliValue {
     }
 
     @Override
+    public void printTerminalText(PrintWriter out) {
+        out.print("\"" + value + "\"");
+    }
+
+    @Override
     public int hashCode() {
         return value.hashCode();
     }
@@ -52,5 +57,9 @@ public class PacioliString implements PacioliValue {
         }
         PacioliString otherString = (PacioliString) other;
         return this.value.equals(otherString.value);
+    }
+
+    public String value() {
+        return value;
     }
 }

@@ -1,0 +1,154 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+
+declare bignum_suites :: List(TestSuite);
+
+define bignum_suites = [
+    bignum_equal_suite,
+    bignum_format_suite,
+    bignum_add_suite,
+    bignum_subtract_suite,
+    bignum_multiply_suite,
+    bignum_sqrt_suite
+];
+
+run_test_suites(bignum_suites);
+
+# ------------------------------------------------------------------------------
+# BigNum tests
+# ------------------------------------------------------------------------------
+
+define bignum_equal_suite = test_suite("BigNum equal", [
+    test("should be true for '12.345' and '12.345'", () ->
+        make_bignum("12.345") = make_bignum("12.345")),
+
+    test("should be true for '12.345' and '12.34500'", () ->
+        make_bignum("12.345") = make_bignum("12.34500"))
+]);
+
+# ------------------------------------------------------------------------------
+
+define bignum_format_suite = test_suite("format bignum", [
+    test("should equal '12.35' for bignum '12.345' and format '%f'", () ->
+        let formatted = format("%f", make_bignum("12.345")) in
+            formatted = "12.35" or
+            formatted = "12,35"
+            or error(formatted)
+        end),
+
+    test("should equal '12.35' for bignum '12.345' and format '%.2f'", () ->
+        let formatted = format("%.2f", make_bignum("12.345")) in
+            formatted = "12.35" or
+            formatted = "12,35"
+        end),
+
+    test("should equal '   12.35' for bignum '12.345' and format '%8.2f'", () ->
+        let formatted = format("%8.2f", make_bignum("12.345")) in
+            formatted = "   12.35" or
+            formatted = "   12,35"
+        end),
+
+    test("should equal '12.35' for bignum '12.345' and format '%1.2f'", () ->
+        let formatted = format("%1.2f", make_bignum("12.345")) in
+            formatted = "12.35" or
+            formatted = "12,35"
+        end),
+
+    test("should equal '        12.3450000' for bignum '12.345' and format '%18.7f'", () ->
+        let formatted = format("%18.7f", make_bignum("12.345")) in
+            formatted = "        12.3450000" or
+            formatted = "        12,3450000"
+        end)
+]);
+
+# ------------------------------------------------------------------------------
+
+define bignum_add_suite = test_suite("bignum_add", [
+    test("should give for ", () ->
+        bignum_add(
+            make_bignum("1.11111111111111111111111111111111111111111111"),
+            make_bignum("1.11111111111111111111111111111111111111111111")) = 
+        make_bignum("2.22222222222222222222222222222222222222222222"))
+]);
+
+# ------------------------------------------------------------------------------
+
+define bignum_subtract_suite = test_suite("bignum_subtract", [
+    test("should give for ", () ->
+        bignum_subtract(
+            make_bignum("1.11111111111111111111111111111111111111111111"),
+            make_bignum("2.22222222222222222222222222222222222222222222")) = 
+        make_bignum("-1.11111111111111111111111111111111111111111111"))
+]);
+
+# ------------------------------------------------------------------------------
+
+define bignum_multiply_suite = test_suite("bignum_multiply", [
+    test("should give for ", () ->
+        bignum_multiply(
+            make_bignum("12345.6789"),
+            make_bignum("12345.6789")) = 
+        make_bignum("152415787.50190521"))
+]);
+
+# ------------------------------------------------------------------------------
+
+define bignum_divide_suite = test_suite("bignum_divide", [
+    test("should give for ", () ->
+        bignum_divide(
+            make_bignum("12345.6789"),
+            make_bignum("12345.6789")) = 
+        make_bignum("152415787.50190521"))
+]);
+
+
+# ------------------------------------------------------------------------------
+
+define sqrt2 = bignum_sqrt(make_bignum("2"));
+
+define bignum_sqrt_suite = test_suite("bignum_sqrt", [
+    test("should compute sqrt of 2 for 50 decimals", () ->
+        begin
+            set_bignum_precision(52*|digits|);
+
+            return
+                let formatted = format("%.50f", sqrt2) in
+                    formatted = "1.41421356237309504880168872420969807856967187537695" or
+                    formatted = "1,41421356237309504880168872420969807856967187537695" or error(formatted)
+                end;
+        end),
+
+    test("should equal '2.000...' for square root of 2 squared and format '%.50f'", () ->
+        let formatted = format("%.50f", bignum_multiply(sqrt2, sqrt2)) in
+            formatted = "2.00000000000000000000000000000000000000000000000000" or
+            formatted = "2,00000000000000000000000000000000000000000000000000" or error(formatted)
+        end)
+]);
+
+
+bignum_multiply(
+            make_bignum("12345.6789"),
+            make_bignum("12345.6789"));
+
+set_bignum_precision(5*|digits|);
+
+bignum_sqrt(make_bignum("2"));

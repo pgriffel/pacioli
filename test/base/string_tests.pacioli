@@ -1,0 +1,299 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+import random;
+
+declare string_suites :: List(TestSuite);
+
+define string_suites = [
+    string_length_suite,
+    compare_string_suite,
+    substring_suite,
+    pad_suite,
+    pad_left_suite,
+    pad_right_suite,
+    format_suite
+];
+
+run_test_suites(string_suites); 
+
+# ------------------------------------------------------------------------------
+# General
+# ------------------------------------------------------------------------------
+
+define is_js =
+    _runtime_environment = "javascript";
+
+# ------------------------------------------------------------------------------
+# Pad suite
+# ------------------------------------------------------------------------------
+
+define pad_suite = test_suite("Function pad", [
+        
+    test("should not pad if string longer than requested length", () ->
+        pad("foo", "bar", 1, " ") = "foobar"),
+    
+    test("should pad if string is shorter than requested length", () ->
+        pad("foo", "bar", 12, " ") = "foo      bar"),
+    
+    test("should not pad if the string length equals the requested length", () ->
+        pad("foo", "bar", 3, " ") = "foobar"),
+    
+    test("should pad a padding string of multiple characters", () ->
+        pad("foo", "bar", 12, "ab") = "fooabababbar")
+]);
+
+# ------------------------------------------------------------------------------
+# Pad left suite
+# ------------------------------------------------------------------------------
+
+define pad_left_suite = test_suite("Function pad_left", [
+        
+    test("should not pad if string longer than requested length", () ->
+        pad_left("foo", 1, " ") = "foo"),
+    
+    test("should pad if string is shorter than requested length", () ->
+        pad_left("foo", 12, " ") = "         foo"),
+    
+    test("should not pad if the string length equals the requested length", () ->
+        pad_left("foo", 3, " ") = "foo"),
+    
+    test("should pad a padding string of multiple characters", () ->
+        pad_left("foo", 12, "ab") = "ababababafoo")
+]);
+
+# ------------------------------------------------------------------------------
+# string_length suite
+# ------------------------------------------------------------------------------
+
+define string_length_suite = test_suite("Function string_length", [
+    
+    test("should be zero for the empty string", () ->
+        string_length("") = 0),
+ 
+    test("should be three for the string 'foo'", () ->
+        string_length("foo") = 3)
+]);
+
+# ------------------------------------------------------------------------------
+# compare_string suite
+# ------------------------------------------------------------------------------
+
+define compare_string_suite = test_suite("Function compare_string", [
+    
+    test("should be zero for two empty strings", () ->
+        compare_string("", "") = 0),
+ 
+    test("should be 1 for strings 'a' and 'b'", () ->
+        compare_string("a", "b") = -1)
+]);
+
+# ------------------------------------------------------------------------------
+# substring suite
+# ------------------------------------------------------------------------------
+
+define substring_suite = test_suite("Function substring", [
+
+    test("should give the empty string when called with indices zero and minus one", () ->
+        let str = "abc" in
+            substring(str, 0, -1) = ""
+        end),
+
+    test("should give the empty string when called with indices zero and zero", () ->
+        let str = "abc" in
+            substring(str, 0, 0) = ""
+        end),
+
+    test("should give the original string when called with zero and string_length", () ->
+        let str = "abc" in
+            substring(str, 0, string_length(str)) = str
+        end),
+
+    test("should give the empty string when called with string_length and string_length", () ->
+        let str = "abc" in
+            substring(str, string_length(str), string_length(str)) = ""
+        end),
+        
+    test("should give the first character of a string when called with zero and one", () ->
+        let
+            first_char = "a",
+            str = concatenate(first_char, "bc")
+        in
+            substring(str, 0, 1) = first_char
+        end),
+        
+    test("should give the first character of a string when called with string_length and string_length + 1", () ->
+        let
+            first_char = "a",
+            str = concatenate(first_char, "bc")
+        in
+            substring(str, string_length(str), string_length(str) + 1) = first_char
+        end),
+
+    test("should give the last character of a string when called with string_length - 1 and string_length", () ->
+        let
+            last_char = "c",
+            str = concatenate("ab", last_char)
+        in
+            substring(str, string_length(str) - 1, string_length(str)) = last_char
+        end),
+
+    test("should give the last character of a string when called with minus one and zero", () ->
+        let str = "abc" in
+            substring(str, -1, 0) = "c"
+        end),
+
+    test("should double the string when called with zero and double string_length", () ->
+        let str = "abc" in
+            substring(str, 0, 2 * string_length(str)) = concatenate(str, str)
+        end),
+
+    test("should permutate first char to end when called with 1 and string_length + 1", () ->
+        let 
+            char = "a",
+            rest = "bc",
+            str = concatenate(char, rest)
+        in
+            substring(str, 1, string_length(str) + 1) = concatenate(rest, char)
+        end),
+
+    test("should permutate last char to begin when called with -1 and string_length - 1", () ->
+        let 
+            char = "c",
+            rest = "ab",
+            str = concatenate(rest, char)
+        in
+            substring(str, -1, string_length(str) - 1) = concatenate(char, rest)
+        end),
+
+    random_test("should give a string of the right size", () ->
+        let
+            n = random_nat(10),
+            str = random_string(n),
+            startPos = random_nat(10) - 5,
+            endPos = random_nat(10) - 5,
+
+            substr = substring(str, startPos, endPos)
+        in
+            if n = 0 then
+                just(string_length(substr) = 0)
+            else
+                just(string_length(substr) = max(0, endPos - startPos))
+            end
+        end),
+        
+    random_test("should give a string with the right contents", () ->
+        let
+            n = random_nat(10),
+            str = random_string(n),
+            startPos = random_nat(10) - 5,
+            endPos = random_nat(10) - 5,
+
+            substr = substring(str, startPos, endPos)
+        in
+            if n = 0 then
+                just(substr = "")
+            else
+                just(all[char_at(substr, i) = char_at(str, mod(startPos + i, n)) | i <- naturals(string_length(substr))])
+            end
+        end)
+]);
+
+define random_string(n) =
+    concat[random_char() | _ <- naturals(n)];
+
+define random_char() =
+    let chars = ["a", "b", "c", "d", "e"] in
+        nth(random_nat(list_size(chars)), chars)
+    end;
+
+# ------------------------------------------------------------------------------
+# Pad right suite
+# ------------------------------------------------------------------------------
+
+define pad_right_suite = test_suite("Function pad_right", [
+    
+    test("should not pad if string longer than requested length", () ->
+        pad_right("foo", 1, " ") = "foo"),
+    
+    test("should pad if string is shorter than requested length", () ->
+        pad_right("foo", 12, " ") = "foo         "),
+    
+    test("should not pad if the string length equals the requested length", () ->
+        pad_right("foo", 3, " ") = "foo"),
+    
+    test("should pad a padding string of multiple characters", () ->
+        pad_right("foo", 12, "ab") = "fooababababa")
+]);
+
+# ------------------------------------------------------------------------------
+# Index elements suite
+# ------------------------------------------------------------------------------
+
+define format_suite = test_suite("Function format", [
+    
+    test("should format empty string", () ->
+        format("") = ""),
+
+    test("should format %n as a newline", () ->
+        format("foo%nbar%n") = "foo\nbar\n" or
+        format("foo%nbar%n") = "foo\r\nbar\r\n"),
+         
+    test("should format %s with a string", () ->
+        format("prefix%ssuffix", "foo") = "prefixfoosuffix"),
+
+    test("should format %s with a scalar", () ->
+        format("num=%s", 12) = "num=12.00" or
+        format("num=%s", 12) = "num=12,00"),
+      
+    test("should format %d with a dimensionless number", () ->
+        format("prefix%dsuffix", 12) = "prefix12suffix"),   
+
+    test("should format %10d with a dimensionless number", () ->
+        format("prefix%10dsuffix", 12) = "prefix        12suffix"),   
+
+    test("should format %10d with a dimensioned number", () ->
+        format("prefix%10dsuffix", 12 * |metre|) = "prefix      12 msuffix" or
+        (is_js and format("prefix%10dsuffix", 12 * |metre|) = "prefix        12suffix")),   
+
+    test("should format %f with a dimensionless number", () ->
+        format("prefix%fsuffix", 12) = "prefix12,00suffix" or
+        format("prefix%fsuffix", 12) = "prefix12.00suffix"),   
+
+    test("should format %7.3f with a dimensionless number", () ->
+        format("prefix%7.3fsuffix", 12) = "prefix 12,000suffix" or
+        format("prefix%7.3fsuffix", 12) = "prefix 12.000suffix"),   
+
+    test("should format %7.3f with a dimensioned number", () ->
+        format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix     12.000 m/s^2suffix" or
+        format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix     12,000 m/s^2suffix" or
+        (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12.000suffix") or
+        (is_js and format("prefix%17.3fsuffix", 12 * |metre/second^2|) = "prefix           12,000suffix")),   
+
+    test("should error on not number for %f", () ->
+        is_error(catch(() -> format("%f", "foo")))),   
+
+    test("should error on not number for %d", () ->
+        is_error(catch(() -> format("%d", "foo")))),   
+         
+    test("should error on trailing percentage character", () ->
+         is_error(catch(() -> format("%"))))
+]);

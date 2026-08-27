@@ -41,13 +41,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-
 import org.apache.commons.io.FilenameUtils;
-import org.eclipse.lsp4j.jsonrpc.Launcher;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.eclipse.lsp4j.services.LanguageClient;
-
 import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
@@ -64,8 +58,6 @@ import pacioli.documentation.LibCatalog;
 import pacioli.documentation.PrimitivesDocumentation;
 import pacioli.lsp.LSPContainer;
 import pacioli.lsp.PacioliLanguageServer;
-import pacioli.lsp.PacioliTextDocumentService;
-import pacioli.lsp.PacioliWorkspaceService;
 
 /**
  * The main entry point of the compiler.
@@ -76,7 +68,7 @@ public class Pacioli {
 
     // Constants
     private static final String OPTIONS_FILE = "debug.options";
-    public static final String VERSION = "v0.6.2-SNAPSHOT";
+    public static final String VERSION = "v0.6.3-SNAPSHOT";
 
     // Make command line parameter?
     public static Charset CHARSET = StandardCharsets.UTF_8;
@@ -149,7 +141,7 @@ public class Pacioli {
             List<String> files = new ArrayList<String>();
             List<File> libs = new ArrayList<File>();
             CompilationSettings settings = new CompilationSettings();
-            String target = "";
+            String target = "mvm";
 
             // Load options first
             loadOptionsFile();
@@ -168,7 +160,8 @@ public class Pacioli {
                     if (i < args.length) {
                         target = args[i++];
                     } else {
-                        displayError("Expected 'mvm', 'javascript' or 'matlab' after -target. Ignoring target option.");
+                        displayError(
+                                "Expected 'mvm', 'javascript', 'matlab', 'python' or 'lean' after -target. Ignoring target option.");
                     }
                 } else if (arg.equals("-kind")) {
                     if (i < args.length) {
@@ -195,15 +188,18 @@ public class Pacioli {
             }
 
             if (command.equals("run") || command.equals("interpret") || command.equals("compile")) {
-                if (target.equals("javascript")) {
-                    settings.setTarget(Target.JS);
-                } else if (target.equals("matlab")) {
-                    settings.setTarget(Target.MATLAB);
-                } else if (target.equals("mvm")) {
-                    settings.setTarget(Target.MVM);
-                } else if (target.equals("python")) {
-                    settings.setTarget(Target.PYTHON);
-                }
+                settings.setTarget(
+                        switch (target) {
+                            case "javascript" -> Target.JS;
+                            case "matlab" -> Target.MATLAB;
+                            case "mvm" -> Target.MVM;
+                            case "python" -> Target.PYTHON;
+                            case "lean" -> Target.LEAN;
+                            case "leaner" -> Target.LEANER;
+                            case "leanest" -> Target.LEANEST;
+                            default ->
+                                throw new PacioliException(String.format("Unknown compilation target '%s'", target));
+                        });
             }
 
             // Check that the passed library directories exist
@@ -413,9 +409,15 @@ public class Pacioli {
 
         log("Displaying types for file '%s'", file.fsFile());
 
-        try {
-            Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, false);
+        // Debug flag (for now)
+        boolean FLAG_PRINT_VARIABLE_TYPES = false;
 
+        try {
+            if (FLAG_PRINT_VARIABLE_TYPES) {
+                Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, true, false, true);
+            } else {
+                Bundle.fromFile(file, libs).printTypes(rewriteTypes, includePrivate, true, false, false);
+            }
         } catch (IOException e) {
             println("\nError: cannot display types in file '%s':\n\n%s", fileName, e);
         }
@@ -514,9 +516,10 @@ public class Pacioli {
 
             PacioliFile file = optionalFile.get();
             if (kind.equals("bundle")) {
-                log("Creating bundle for file '%s'", file);
+                log("Creating bundle for file '%s'", file.fsFile());
                 Project project = Project.fromFile(file, libs);
-                bundle(project, settings);
+                Path p = bundle(project, settings);
+                log("Written '%s'", p.toAbsolutePath());
             } else if (kind.equals("single")) {
                 compile(file, libs, settings);
             } else if (kind.equals("recursive")) {
@@ -670,7 +673,7 @@ public class Pacioli {
         println("\n");
         println("Options (where applicable)");
         println("   -lib X        Adds directory X to the library paths");
-        println("   -target       sets the compilation target to one of 'mvm' (default) 'javascript' or 'matlab'");
+        println("   -target       sets the compilation target to one of 'mvm' (default), 'javascript', 'matlab', 'python' or 'lean'");
         println("   -debug        toggles stack traces on or off");
         println("   -trace X      turns tracing on for function X");
         println("   -traceall     toggles tracing of all functions on or off");

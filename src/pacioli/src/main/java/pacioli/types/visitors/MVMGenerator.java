@@ -25,21 +25,21 @@ package pacioli.types.visitors;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Printer;
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Quant;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class MVMGenerator implements TypeVisitor {
 
@@ -76,7 +76,7 @@ public class MVMGenerator implements TypeVisitor {
 
         // UNITTODO
 
-        String factorString = TypeBase.compileUnitToMVM(type.factor(), settings);
+        String factorString = MatrixBase.compileUnitToMVM(type.factor(), settings);
         String left = type.asMVMDimensionUnitPair(type.rowDimension(), type.rowUnit(), settings);
         String right = type.asMVMDimensionUnitPair(type.columnDimension(), type.columnUnit(), settings);
 

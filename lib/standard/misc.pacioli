@@ -39,6 +39,14 @@ export
     _list_gcd,
     _list_all,
     _list_some,
+    _set_count,
+    _set_concat,
+    _set_sum,
+    _set_min,
+    _set_max,
+    _set_gcd,
+    _set_all,
+    _set_some,
     _is_js,
     maybe,
     is_something,
@@ -187,6 +195,28 @@ define _list_max(x) = fold_list(max, x);
 define _list_gcd(x) = fold_list(gcd, x);
 define _list_all(x) = if x = [] then true else fold_list((a, b) -> a and b, x) end;
 define _list_some(x) = if x = [] then false else fold_list((a, b) -> a or b, x) end;
+
+declare _set_count :: (Set(Boole())) -> 1;
+
+declare _set_concat :: (Set(String())) -> String();
+
+declare _set_sum, _set_min, _set_max :: 
+  for_index P, Q: for_unit a, P!u, Q!v: (Set(a*P!u per Q!v)) -> a*P!u per Q!v;
+
+declare _set_gcd :: 
+  for_index P, Q: for_unit a, P!u, Q!v: (Set(P! per Q!)) -> P! per Q!;
+
+declare _set_all, _set_some :: (Set(Boole())) -> Boole();
+
+
+define _set_count(xs) = list_size([x | x in set xs, x]);
+define _set_concat(xs) = if xs = {} then "" else fold_list(concatenate, [i | i in set xs]) end;
+define _set_sum(x) = fold_list(sum, [i | i in set x]);
+define _set_min(x) = fold_list(min, [i | i in set x]);
+define _set_max(x) = fold_list(max, [i | i in set x]);
+define _set_gcd(x) = fold_list(gcd, [i | i in set x]);
+define _set_all(x) = if x = {} then true else fold_list((a, b) -> a and b, [i | i in set x]) end;
+define _set_some(x) = if x = {} then false else fold_list((a, b) -> a or b, [i | i in set x]) end;
 
 # ------------------------------------------------------------------------------
 # Function printf

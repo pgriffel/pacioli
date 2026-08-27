@@ -29,8 +29,8 @@ import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.matrix.MatrixType;
 
 public class ConversionNode extends AbstractNode implements ExpressionNode {
 

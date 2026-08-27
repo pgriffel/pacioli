@@ -25,6 +25,8 @@ package pacioli.lsp;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -81,8 +83,8 @@ class LocateReferencesIT {
         assertEquals(2, output.size());
 
         // And the locations should be correct
-        assertRefEquals(output.get(0), path, 46, 14, 46, 22);
-        assertRefEquals(output.get(1), path, 55, 22, 55, 30);
+        assertEquals(output.get(0), makeLsp4jLocation(path, 46, 14, 46, 22));
+        assertEquals(output.get(1), makeLsp4jLocation(path, 55, 22, 55, 30));
 
         // Teardown
         handle.cancel(true);
@@ -107,37 +109,32 @@ class LocateReferencesIT {
 
         List<? extends org.eclipse.lsp4j.Location> output = res.get();
 
-        // Then the output should have 12 references
+        // Then the output should have 6 references
+        // TODO: Why these duplicates?
         assertEquals(12, output.size());
 
-        // And the locations should be correct
-        assertRefEquals(output.get(0), path, 48, 16, 48, 20);
-        assertRefEquals(output.get(1), path, 100, 12, 100, 16);
-        assertRefEquals(output.get(2), path, 100, 29, 100, 33);
-        assertRefEquals(output.get(3), path, 71, 12, 71, 16);
-        assertRefEquals(output.get(4), path, 84, 25, 84, 29);
-        assertRefEquals(output.get(5), path, 84, 42, 84, 46);
+        List<org.eclipse.lsp4j.Location> list = Arrays.asList(
+                makeLsp4jLocation(path, 48, 16, 48, 20),
+                makeLsp4jLocation(path, 100, 12, 100, 16),
+                makeLsp4jLocation(path, 100, 29, 100, 33),
+                makeLsp4jLocation(path, 71, 12, 71, 16),
+                makeLsp4jLocation(path, 84, 25, 84, 29),
+                makeLsp4jLocation(path, 84, 42, 84, 46));
 
-        // TODO: Why these duplicates?
-        assertRefEquals(output.get(6), path, 48, 16, 48, 20);
-        assertRefEquals(output.get(7), path, 100, 12, 100, 16);
-        assertRefEquals(output.get(8), path, 100, 29, 100, 33);
-        assertRefEquals(output.get(9), path, 71, 12, 71, 16);
-        assertRefEquals(output.get(10), path, 84, 25, 84, 29);
-        assertRefEquals(output.get(11), path, 84, 42, 84, 46);
+        assertEquals(new HashSet<>(list), new HashSet<>(output));
 
         // Teardown
         handle.cancel(true);
         server.shutdown();
     }
 
-    void assertRefEquals(org.eclipse.lsp4j.Location ref3, String file,
+    org.eclipse.lsp4j.Location makeLsp4jLocation(String file,
             int startLine, int startColumn,
             int endLine, int endColumn) {
-        assertEquals(file, ref3.getUri());
-        assertEquals(startLine, ref3.getRange().getStart().getLine());
-        assertEquals(startColumn, ref3.getRange().getStart().getCharacter());
-        assertEquals(endLine, ref3.getRange().getEnd().getLine());
-        assertEquals(endColumn, ref3.getRange().getEnd().getCharacter());
-    }
+        return new org.eclipse.lsp4j.Location(
+                file,
+                new org.eclipse.lsp4j.Range(
+                        new Position(startLine, startColumn),
+                        new Position(endLine, endColumn)));
+    };
 }

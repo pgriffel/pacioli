@@ -224,12 +224,12 @@ declare quaternion2string ::
 define quaternion2string(q, decimals, u) =
     let
         (r, v) = q,
-        magnitude_r = num2string(magnitude(r), decimals, 1),
-        magnitude_i = num2string(get_num(v, Geom3@x, _), decimals, 1),
-        magnitude_j = num2string(get_num(v, Geom3@y, _), decimals, 1),
-        magnitude_k = num2string(get_num(v, Geom3@z, _), decimals, 1),
-        unit = unit2string(unit(quaternion_scalar(q))),
-        #unit = unit2string(u),
+        magnitude_r = num2string(magnitude(r), decimals, |1|),
+        magnitude_i = num2string(get_num(v, Geom3@x, _), decimals, |1|),
+        magnitude_j = num2string(get_num(v, Geom3@y, _), decimals, |1|),
+        magnitude_k = num2string(get_num(v, Geom3@z, _), decimals, |1|),
+        # unit = unit2string(unit(quaternion_scalar(q))),
+        unit = unit2string(u),
         quat = format("%s + %si + %sj + %sk", magnitude_r, magnitude_i, magnitude_j, magnitude_k)
     in
         if unit = "1" then

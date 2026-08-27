@@ -1,0 +1,124 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+import testdata;
+import geometry;
+
+declare index_suites :: List(TestSuite);
+
+define index_suites = [
+    indexing_suite,
+    index_element_suite,
+    row_coordinates_tests,
+    column_coordinates_tests
+];
+
+run_test_suites(index_suites); 
+
+# ------------------------------------------------------------------------------
+# General
+# ------------------------------------------------------------------------------
+
+declare is_js :: Boole;
+
+define is_js =
+    _runtime_environment = "javascript";
+
+# ------------------------------------------------------------------------------
+# Indexing
+# ------------------------------------------------------------------------------
+
+define indexing_suite = test_suite("Indexing", [
+    
+    test("should work for scalars with _", () ->
+        get(42, _, _) = 42),
+      
+    test("should work for vectors with _", () ->
+        get(test_vec(1,2,3,4,5,6), Bar@v3, _) = 4),
+      
+    test("should work for transposed vectors with _", () ->
+        get(test_vec(1,2,3,4,5,6)^T, _, Bar@v3) = 4)
+]);
+
+# ------------------------------------------------------------------------------
+# Index elements suite
+# ------------------------------------------------------------------------------
+
+defindex Foo = {foo, bar, baz};
+
+defmatrix foo :: metre * Foo! = {
+   foo -> 12,
+   bar -> 13
+};
+
+define index_element_suite = test_suite("Index element", [
+    
+    test("should do something", () ->
+        get(foo, Foo@foo, _) = 12*|metre|),
+         
+   test("should work with row_domain", () ->
+        [get(foo, x, _) | x <- row_domain(foo)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+
+   test("should work with row_domain and assignment", () ->
+        [value | x <- row_domain(foo), value := get(foo, x, _)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+         
+   test("should work with column_domain", () ->
+        [get(foo^T, _, y) | y <- column_domain(foo^T)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+
+   test("should work with column_domain and assignment", () ->
+        [value | y <- column_domain(foo^T), value := get(foo^T, _, y)] = [12*|metre|, 13*|metre|, 0*|metre|]),
+         
+   test("should print test", () ->
+        begin print_test(); return "foo"; end = "foo")
+]);
+
+declare print_test :: () -> Void;
+
+define print_test() =
+   print(format("Print test. This should show Foo@foo: '%s'", Foo@foo));
+
+# ------------------------------------------------------------------------------
+# Coordinates
+# ------------------------------------------------------------------------------
+
+define row_coordinates_tests = test_suite("Function row_coordinates", [
+    test("should give Geom3@x for index 0 for |Geom3!|", () ->
+        row_coordinates(|Geom3!|)(0) = Geom3@x),
+
+    test("should give Geom3@y for index 4 for |Geom3!|", () ->
+        row_coordinates(|Geom3!|)(4) = Geom3@y),
+
+    test("should give Geom3@z for index -1 for |Geom3!|", () ->
+        row_coordinates(|Geom3!|)(-1) = Geom3@z)
+]);
+
+# ------------------------------------------------------------------------------
+
+define column_coordinates_tests = test_suite("Function column_coordinates", [
+    test("should give Geom3@x for index 0 for |Geom3!|^T", () ->
+        column_coordinates(|Geom3!|^T)(0) = Geom3@x),
+
+    test("should give Geom3@y for index 4 for |Geom3!|^T", () ->
+        column_coordinates(|Geom3!|^T)(4) = Geom3@y),
+
+    test("should give Geom3@z for index -1 for |Geom3!|^T", () ->
+        column_coordinates(|Geom3!|^T)(-1) = Geom3@z)
+]);

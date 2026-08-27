@@ -25,23 +25,27 @@ package pacioli.types;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import pacioli.compiler.Printable;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.Var;
-import uom.PowerProduct;
+import pacioli.types.type.matrix.MatrixBase;
 import uom.Unit;
-import uom.UnitMap;
 
+/**
+ * Substitution for TypeObject and its parts.
+ * 
+ * It substitutes variables (objects of type Var). They are replaced with
+ * objects of type TypeObject, type Var, or type Unit<MatrixBase>. Type Var
+ * and Unit<MatrixBase> are not a TypeObject, but parts of it that can be
+ * substituted.
+ */
 public class Substitution implements Printable {
 
-    // Map van strings van maken. Dan is geen equality op Vars nodig en kun je ze
-    // collecten in een set etc.
     private final Map<Var, Object> map;
 
     public Substitution() {
@@ -53,7 +57,7 @@ public class Substitution implements Printable {
         this.map.put(var, type);
     }
 
-    public Substitution(Var var, Unit<TypeBase> unit) {
+    public Substitution(Var var, Unit<? extends MatrixBase> unit) {
         map = new HashMap<Var, Object>();
         this.map.put(var, unit);
     }
@@ -67,7 +71,7 @@ public class Substitution implements Printable {
         map = new HashMap<Var, Object>(other.map);
     }
 
-    public Substitution(Map<Var, Object> map) {
+    private Substitution(Map<Var, Object> map) {
         this.map = map;
     }
 
@@ -75,24 +79,27 @@ public class Substitution implements Printable {
         return map.containsKey(var);
     }
 
-    public <B> Unit<B> apply(Unit<B> unit) {
-        return unit.map(new UnitMap<B>() {
-            public Unit<B> map(B base) {
-                if (base instanceof Var && map.containsKey((Var) base)) {
-                    Object obj = map.get((Var) base);
-                    assert (obj instanceof Unit);
-                    return (Unit<B>) obj;
+    public <B extends MatrixBase> Unit<B> apply(Unit<B> unit) {
+        return unit.flatMap(new Unit.FlatMap<B, B>() {
+            public Unit<B> apply(B base) {
+                if (base instanceof Var var && map.containsKey(var)) {
+                    Object obj = map.get(var);
+                    if (obj instanceof Unit un) {
+                        return un;
+                    } else {
+                        return Unit.from((B) obj);
+                    }
                 } else {
-                    return ((Unit<B>) base);
+                    return Unit.from(base);
                 }
             }
         });
     }
 
     public TypeObject apply(TypeObject type) {
-        if (type instanceof Var) {
-            if (map.containsKey((Var) type)) {
-                Object obj = map.get((Var) type);
+        if (type instanceof Var var) {
+            if (map.containsKey(var)) {
+                Object obj = map.get(var);
                 assert (obj instanceof TypeObject);
                 return (TypeObject) obj;
             } else {
@@ -103,10 +110,16 @@ public class Substitution implements Printable {
         }
     }
 
-    public void removeAll(Set<Var> vars) {
-        for (Var var : vars) {
-            map.remove(var);
+    public Substitution removeAll(Set<Var> vars) {
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
+
+        for (Var var : map.keySet()) {
+            if (!vars.contains(var)) {
+                tmp.put(var, map.get(var));
+            }
         }
+
+        return new Substitution(tmp);
     }
 
     public Substitution compose(Substitution other) {
@@ -129,27 +142,18 @@ public class Substitution implements Printable {
         return new Substitution(tmp);
     }
 
-    public boolean isInjective() {
+    public Substitution merge(Substitution other) {
+        Map<Var, Object> tmp = new HashMap<Var, Object>();
 
-        Set<Var> check = new HashSet<Var>();
-
-        for (Var var : map.keySet()) {
-            Object obj = map.get(var);
-            if (obj instanceof Unit) {
-                obj = PowerProduct.normal((Unit) obj);
-            }
-            if (!(obj instanceof Var)) {
-                return false;
-            } else {
-                Var objVar = (Var) obj;
-                if (check.contains(objVar)) {
-                    return false;
-                } else {
-                    check.add(objVar);
-                }
-            }
+        for (Entry<Var, Object> entry : map.entrySet()) {
+            tmp.put(entry.getKey(), entry.getValue());
         }
-        return true;
+
+        for (Entry<Var, Object> entry : other.map.entrySet()) {
+            tmp.put(entry.getKey(), entry.getValue());
+        }
+
+        return new Substitution(tmp);
     }
 
     @Override

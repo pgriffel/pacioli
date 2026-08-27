@@ -29,18 +29,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import pacioli.Pacioli;
 import pacioli.Pacioli.Options;
-import pacioli.ast.Node;
-import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.definition.ValueDefinition;
@@ -50,6 +46,7 @@ import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PythonGenerator;
 import pacioli.ast.visitors.AllIdentifiersVisitor.IdentifierInfo;
+import pacioli.ast.visitors.LeanGenerator;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.documentation.DocumentationGenerator;
 import pacioli.documentation.PrimitivesDocumentation;
@@ -64,6 +61,7 @@ import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.transpilers.JSTranspiler;
+import pacioli.transpilers.LeanTranspiler;
 import pacioli.transpilers.MATLABTranspiler;
 import pacioli.transpilers.MVMTranspiler;
 import pacioli.transpilers.PythonTranspiler;
@@ -78,6 +76,7 @@ public class Bundle {
     public static final List<String> PRIMITIVE_TYPES = List.of(
             "Tuple",
             "List",
+            "Set",
             "Index",
             "Boole",
             "Void",
@@ -87,6 +86,7 @@ public class Bundle {
             "Identifier",
             "Maybe",
             "Array",
+            "BigNum",
             "Map",
             "File",
             "Data");
@@ -285,39 +285,68 @@ public class Bundle {
 
         Pacioli.trace("Generating code for %s", this.project.file.module());
 
-        boolean indentCode = false; // feature flag
+        boolean FLAG_INDENT_CODE = false; // feature flag
+
+        Target target = settings.target();
 
         // Declare a compiler (symbol table visitor) instance
-        Printer printer = new Printer(writer, indentCode);
-        SymbolTableVisitor compiler;
-        CodeGenerator gen;
+        Printer printer = new Printer(writer,
+                target.equals(Target.LEAN) || target.equals(Target.LEANER) || target.equals(Target.LEANEST) ? true
+                        : FLAG_INDENT_CODE);
 
-        switch (settings.target()) {
+        // Use the right transpiler and generator. The transpiler does the toplevels,
+        // the generator does the ast/bodies.
+        SymbolTableVisitor transpiler;
+        CodeGenerator generator;
+
+        switch (target) {
             case JS:
-                gen = new JSGenerator(printer, settings);
-                compiler = new JSTranspiler(printer, settings);
+                generator = new JSGenerator(printer, settings);
+                transpiler = new JSTranspiler(printer, settings);
                 break;
             case MATLAB:
-                gen = new MatlabGenerator(printer, settings);
-                compiler = new MATLABTranspiler(printer, settings);
+                generator = new MatlabGenerator(printer, settings);
+                transpiler = new MATLABTranspiler(printer, settings);
 
                 MATLABTranspiler.writePrelude(printer);
 
                 break;
             case MVM:
-                gen = new MVMGenerator(printer, settings);
-                compiler = new MVMTranspiler(printer, settings);
+                generator = new MVMGenerator(printer, settings);
+                transpiler = new MVMTranspiler(printer, settings);
 
                 break;
             case PYTHON:
 
-                PythonTranspiler.writePrelude(printer);
+                generator = new PythonGenerator(printer, settings);
+                transpiler = new PythonTranspiler(printer, settings);
+                break;
+            case LEAN, LEANER, LEANEST:
 
-                gen = new PythonGenerator(printer, settings);
-                compiler = new PythonTranspiler(printer, settings);
+                // The generator and the transpiler determine the difference between lean and
+                // leaner from the target in settings.
+                generator = new LeanGenerator(printer, settings);
+                transpiler = new LeanTranspiler(printer, settings);
                 break;
             default:
                 throw new RuntimeException("Unknown target");
+        }
+
+        // Write preludes if necessary
+        if (target.equals(Target.PYTHON)) {
+            PythonTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEAN)) {
+            LeanTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEANER)) {
+            LeanTranspiler.writePreludeLeaner(printer);
+        }
+
+        if (target.equals(Target.LEANEST)) {
+            LeanTranspiler.writePreludeLeanest(printer);
         }
 
         // Lists of infos we will compile below. Functions are always compiled first.
@@ -341,8 +370,9 @@ public class Bundle {
         }
 
         // Collect all functions and values with a definition from the value table
-        var shakeCallTree = true; // feature flag
-        if (shakeCallTree) {
+        var FLAG_SHAKE_CALL_TREE = true; // feature flag
+
+        if (FLAG_SHAKE_CALL_TREE) {
 
             List<String> includeTreeModules = this.includedModulesRec();
 
@@ -408,15 +438,32 @@ public class Bundle {
             }
         }
 
-        // Generate code for the functions
-        for (ValueInfo info : functionsToCompile) {
-            info.accept(compiler);
-        }
+        boolean functionsFirst = !(target.equals(Target.LEAN)
+                || target.equals(Target.LEANER)
+                || target.equals(Target.LEANEST));
 
-        // Generate code for the rest. This is done in the proper order
-        infosToCompile = orderedInfos(infosToCompile);
-        for (Info info : infosToCompile) {
-            info.accept(compiler);
+        if (functionsFirst) {
+            // Generate code for the functions
+            for (ValueInfo info : orderedInfos(functionsToCompile)) {
+                info.accept(transpiler);
+            }
+
+            // Generate code for the rest. This is done in the proper order
+            infosToCompile = orderedInfos(infosToCompile);
+            for (Info info : infosToCompile) {
+                info.accept(transpiler);
+            }
+
+        } else {
+            List<Info> all = new ArrayList<>();
+
+            all.addAll(functionsToCompile);
+            all.addAll(infosToCompile);
+
+            for (Info info : orderedInfos(all)) {
+                info.accept(transpiler);
+            }
+
         }
 
         // Generate code for the toplevels
@@ -426,13 +473,13 @@ public class Bundle {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
-                    def.accept(gen);
+                    def.accept(generator);
                     printer.newline();
                 }
                 if (settings.target() == Target.PYTHON) {
                     printer.newline();
                     printer.write("glbl_base_print(");
-                    def.accept(gen);
+                    def.accept(generator);
                     printer.write(")");
                     printer.newline();
                 }
@@ -461,31 +508,31 @@ public class Bundle {
         }
     }
 
-    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
+    public void printTypes(boolean rewriteTypes, boolean includePrivate, boolean showDeclarations, boolean showDocs,
+            boolean showBodies)
+            throws PacioliException {
 
         List<String> names = environment.values().allNames();
         Collections.sort(names);
 
         Pacioli.println("");
 
-        for (String value : names) {
-            ValueInfo info = environment.values().lookup(value);
-            boolean fromProgram = info.generalInfo().module().equals(this.project.file.module());
-            if (info.name().equals("nmode")) {
-                Pacioli.println("NMODE");
-            }
-            if ((includePrivate || info.isPublic()) && fromProgram
-            // && info.definition().isPresent()
-            // && info.isUserDefined()
-            ) {
-                TypeObject type = rewriteTypes ? info.localType() : info.publicType();
-                String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
+        for (ValueInfo info : localInfos(includePrivate)) {
+            TypeObject type = rewriteTypes ? info.localType() : info.publicType();
+            String text = Pacioli.Options.printTypesAsString ? type.toString() : type.pretty();
+
+            if (showDeclarations) {
                 Pacioli.println("%s :: %s", info.name(), text);
-                if (showDocs) {
-                    if (info.generalInfo().documentation().isPresent()) {
-                        Pacioli.println("\n    %s\n", info.generalInfo().documentation().get());
-                    }
+            }
+
+            if (showDocs) {
+                if (info.generalInfo().documentation().isPresent()) {
+                    Pacioli.println("\n    %s\n", info.generalInfo().documentation().get());
                 }
+            }
+
+            if (showBodies) {
+                Pacioli.println("\n%s\n", info.definition().map(x -> x.prettyTyped()).orElse("null"));
             }
         }
 
@@ -495,6 +542,27 @@ public class Bundle {
             TypeObject type = toplevel.type;
             Pacioli.println("Toplevel %s :: %s", count++, type.unfresh().pretty());
         }
+    }
+
+    public List<ValueInfo> localInfos(boolean includePrivate) {
+
+        List<ValueInfo> infos = new ArrayList<>();
+
+        List<String> names = environment.values().allNames();
+        Collections.sort(names);
+
+        for (String value : names) {
+            ValueInfo info = environment.values().lookup(value);
+
+            boolean fromProgram = info
+                    .generalInfo().module().equals(this.project.file.module());
+
+            if ((includePrivate || info.isPublic()) && fromProgram) {
+                infos.add(info);
+            }
+        }
+
+        return infos;
     }
 
     public void genAPI(
@@ -835,50 +903,6 @@ public class Bundle {
     // -------------------------------------------------------------------------
 
     /**
-     * A mapping from a value or type name to a list with all references to the
-     * value or type.
-     */
-    public record ReferencesTable(Map<String, List<Node>> values, Map<String, List<Node>> types) {
-
-        /**
-         * All nodes (typically identifier nodes) that refer to the value with the given
-         * name. Includes the definition of the value itself.
-         * 
-         * @param name Name of some value
-         * @return All references to the value
-         */
-        public List<Node> getValueReferences(String name) {
-            return this.values.get(name);
-        }
-
-        /**
-         * All nodes (typically identifier nodes) that refer to the type with the given
-         * name. Includes the definition of the type itself.
-         * 
-         * @param name Name of some type
-         * @return All references to the type
-         */
-        public List<Node> getTypeReferences(String name) {
-            return this.types.get(name);
-        }
-    }
-
-    static List<Node> refTableEntry(Map<String, List<Node>> table, String name) {
-        if (!table.containsKey(name)) {
-            table.put(name, new ArrayList<>());
-        }
-
-        return table.get(name);
-    }
-
-    static void addRef(Map<String, List<Node>> table, String name, Node ref) {
-        var r = refTableEntry(table, name);
-        if (!r.stream().anyMatch(x -> x.location().equals(ref.location()))) {
-            r.add(ref);
-        }
-    }
-
-    /**
      * Builds a ReferencesTable for the bundle.
      */
     public ReferencesTable buildReferencesTable() {
@@ -888,57 +912,30 @@ public class Bundle {
         // A node can be skipped by the ReferencesVisitor
         // A node may not have a location (primitive types like List)
 
-        Map<String, List<Node>> valuesTable = new HashMap<>();
-        Map<String, List<Node>> typeTable = new HashMap<>();
+        ReferencesTable.Builder builder = ReferencesTable.builder();
 
         for (ValueInfo info : allValueInfos()) {
 
             if (info.definition().isPresent()) {
-                Definition definition = info.definition().get();
-
-                // Add all references in the definition's body
-                for (Node ref : definition.references()) {
-                    Info refInfo = ref.getInfo().orElseThrow();
-
-                    addRef(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name(), ref);
-                }
+                builder.entries(info.definition().get().references());
             }
 
             if (info.declaration().isPresent()) {
-                Declaration declaration = info.declaration().get();
-
-                // Add all references in the declaration's body
-                for (Node ref : declaration.references()) {
-                    Info refInfo = ref.getInfo().orElseThrow();
-
-                    addRef(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name(), ref);
-                }
+                builder.entries(info.declaration().get().references());
             }
         }
 
         for (TypeInfo info : environment.types().allInfos()) {
 
             if (info.definition().isPresent()) {
-                Definition definition = info.definition().get();
-
-                // Add all references in the definition's body
-                for (Node ref : definition.references()) {
-                    Info refInfo = ref.getInfo().orElseThrow();
-
-                    addRef(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name(), ref);
-                }
+                builder.entries(info.definition().get().references());
             }
         }
 
         for (Toplevel info : environment.toplevels()) {
-
-            // Add all references in the toplevel's body
-            for (Node ref : info.body.references()) {
-                Info refInfo = ref.getInfo().orElseThrow();
-                refTableEntry(refInfo instanceof ValueInfo ? valuesTable : typeTable, refInfo.name()).add(ref);
-            }
+            builder.entries(info.body.references());
         }
 
-        return new ReferencesTable(valuesTable, typeTable);
+        return builder.build();
     }
 }

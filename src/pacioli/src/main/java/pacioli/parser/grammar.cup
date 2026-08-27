@@ -174,9 +174,9 @@ parser code {:
 :};
 
 
-terminal INCLUDE, IMPORT, EXPORT, PUBLIC;
+terminal INCLUDE, IMPORT, EXPORT;
 terminal DEFINE, DECLARE, DECLARE_PRIMITIVE, DEFINDEX, DEFTYPE, DEFUNIT, DEFMATRIX, DEFALIAS, DEFCONV, DEFCLASS, DEFINSTANCE, DOC, DEFDATA, DEFRECORD;
-terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, LAMBDA;
+terminal IF, ELSE, ELSEIF, BEGIN, END, WHILE, FOR, DO, ASSIGN, EXCL, TO, FROM, FROM_SET, FROM_LIST, FROM_ARRAY, LAMBDA;
 terminal IN, LET, PER, THEN, RETURN, FORTYPE, FORUNIT, FORINDEX, FOROP, AT;
 terminal COLON, SEMICOLON, DBLCLN, COMMA, LPAR, RPAR, LBRC, RBRC, LBRACK, RBRACK, PIPE;
 terminal PLUS, MULT, DIV, MOD, MMULT, HAT, NEG, LEFTDIV, MDIV, MEXPT, MLEFTDIV, APPEND;
@@ -189,12 +189,12 @@ non terminal ProgramNode                     program;
 non terminal List<Node>                      includes;
 non terminal List<Definition>                definitions;
 non terminal Definition                      definition;
-non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, comprehension, statement, stm_if_tail;
+non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, setlit, comprehension, statement, stm_if_tail;
 non terminal List<ExpressionNode>            exprs, exprlist, statements;
 non terminal IdentifierNode                  id, name;
 non terminal TypeIdentifierNode              typeid, var;
 non terminal List<IdentifierNode>            ids, names, idlist, idlist_tail, exports;
-non terminal List<TypeIdentifierNode>        typeids, typeidlist, typeidlist_tail, vars;
+non terminal List<TypeIdentifierNode>        typeids, vars;
 non terminal UnitNode                        dimnum, unit, unit_term;
 non terminal String                          unsigned, number, integer;
 non terminal StringNode                      path;
@@ -219,6 +219,8 @@ non terminal List<DataDefinitionNode.Binding>        data_bindings;
 non terminal RecordDefinition.FieldDefinition        field_definition;
 non terminal List<RecordDefinition.FieldDefinition>  field_definitions;
 non terminal List<ExpressionNode>            select_parts;
+non terminal ComprehensionNode.Kind          from;
+non terminal ForNode.Kind                    from_for;
 
 precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
@@ -280,10 +282,7 @@ definition ::=
  | DECLARE_PRIMITIVE:d id:id idlist:ids DBLCLN schema:s     {: RESULT = new Declaration(makeLoc(dxleft, sxright), id, s, ids, true); :}
  | DEFINDEX:d typeid:id                                 {: List<String> names = new ArrayList<String>();
                                                        RESULT = new IndexSetDefinition(makeLoc(dxleft, idxright), id, names); :}
- | DEFINDEX:d typeid:id EQL LBRC names:ids RBRC:p       {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(ids)); :}
- | DEFINDEX:d typeid:id EQL LBRC RBRC:p                 {: RESULT = new IndexSetDefinition(makeLoc(dxleft, pxright), id, idNames(new ArrayList<>())); :}
  | DEFINDEX:d typeid:id EQL expr:e                      {: RESULT = new IndexSetDefinition(makeLoc(dxleft, exright), id, e); :}
-
  | DEFTYPE:d vardecls:c type:e EQL type:t           {: RESULT = new TypeDefinition(makeLoc(dxleft, txright), c, e, t); :}
  | DEFALIAS:d typeid:id EQL unit:u                      {: RESULT = new AliasDefinition(makeLoc(dxleft, uxright), id, u); :}
  | DEFUNIT:d typeid:id EXCL typeid:n EQL unitvec:ps {: /* Todo: remove hashmap and use pair list directly in UnitVectorDefinition */
@@ -421,16 +420,6 @@ typeids ::=
   | typeids:ids COMMA typeid:id                     {: ids.add(id); RESULT = ids; :}
   ;
 
-typeidlist ::= 
-    LPAR RPAR                                       {: RESULT = new LinkedList<TypeIdentifierNode>(); :}
-  | LPAR typeidlist_tail:ids                        {: RESULT = ids; :}
-  ;
-
-typeidlist_tail ::= 
-    typeid:id RPAR                                  {: RESULT = new LinkedList<TypeIdentifierNode>(); RESULT.add(id); :}
-  | typeid:id COMMA typeidlist_tail:ids             {: ids.add(0, id); RESULT = ids; :}
-  ;
-  
 name ::= 
    id:id                                            {: RESULT = id; :}
  | STRING:s                                         {: RESULT = new IdentifierNode(s, makeLoc(sxleft, sxright)); :}
@@ -539,6 +528,7 @@ expr_no_id ::=
  | IF:i expr:c THEN expr:b if_tail:t                {: RESULT = new BranchNode(c, b, t, makeLoc(ixleft, txright)); :}
  | LET lettail:e                                    {: RESULT = e; :}
  | listlit:e                                        {: RESULT = e; :}
+ | setlit:e                                         {: RESULT = e; :}
  | comprehension:e                                  {: RESULT = e; :}
  | PIPE matrix_type:m PIPE                          {: RESULT = new MatrixTypeNode(makeLoc(mxleft, mxright), m); :}
  | BEGIN:b sequence:s END:e                         {: RESULT = new StatementNode(makeLoc(bxleft, exright), s); :}
@@ -621,8 +611,8 @@ statement ::=
                                                        RESULT = new ReturnVoidNode(loc); :}
   | WHILE:w expr:e DO sequence:s END:n              {: RESULT = new WhileNode(makeLoc(wxleft, nxright), e, s); :}
 
-  | FOR:f id:id FROM expr:e DO sequence:s END:n     {: RESULT = new ForNode(makeLoc(fxleft, nxright), id, e, s); :}
-  | FOR:f idlist:ids FROM expr:e DO sequence:s END:n{: RESULT = new ForTupleNode(makeLoc(fxleft, nxright), ids, e, s); :}
+  | FOR:f id:id from_for:l expr:e DO sequence:s END:n      {: RESULT = new ForNode(makeLoc(fxleft, nxright), l, id, e, s); :}
+  | FOR:f idlist:ids from_for:l expr:e DO sequence:s END:n {: RESULT = new ForTupleNode(makeLoc(fxleft, nxright), l, ids, e, s); :}
 
   | IF:i expr:e THEN sequence:s stm_if_tail:t       {: pacioli.compiler.Location loc = makeLoc(ixleft, txright);
                                                        RESULT = new IfStatementNode(loc, e, s, t); :}
@@ -636,6 +626,13 @@ stm_if_tail ::=
                                                        RESULT = new ApplicationNode(new IdentifierNode("_skip", loc.collapse()), new ArrayList<ExpressionNode>(), loc); :}
  ;
 
+from_for ::= 
+    FROM                                                {: RESULT = ForNode.Kind.LIST; :}
+ |  FROM_SET                                            {: RESULT = ForNode.Kind.SET; :}
+ |  FROM_ARRAY                                          {: RESULT = ForNode.Kind.ARRAY; :}
+ |  FROM_LIST                                           {: RESULT = ForNode.Kind.LIST; :}
+ ;
+
 //------------------------------------------------------------------------------
 // Lists
 //------------------------------------------------------------------------------
@@ -646,11 +643,25 @@ listlit ::=
  | LBRACK:l exprs:es RBRACK:r                       {: RESULT = new ListLiteralNode(makeLoc(lxleft, rxright), es); :}
  ;
 
+//------------------------------------------------------------------------------
+// Sets
+//------------------------------------------------------------------------------
+
+setlit ::= 
+   LBRC:l RBRC:r                                    {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
+                                                       RESULT = new ApplicationNode(new IdentifierNode("empty_set", loc), new ArrayList<ExpressionNode>(), loc); :}
+ | LBRC:l exprs:es RBRC:r                           {: RESULT = new SetLiteralNode(makeLoc(lxleft, rxright), es); :}
+ ;
+
 comprehension ::= 
    LBRACK:l expr:e PIPE parts:ps RBRACK:r           {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
-                                                       RESULT = new ComprehensionNode(e, ps, loc); :}
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.LIST, e, ps, loc); :}
  | id:id LBRACK expr:e PIPE parts:ps RBRACK:r       {: pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
-                                                       RESULT = new ComprehensionNode(id, e, ps, loc); :}
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.LIST, id, e, ps, loc); :}
+ | LBRC:l expr:e PIPE parts:ps RBRC:r               {: pacioli.compiler.Location loc = makeLoc(lxleft, rxright);
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.SET, e, ps, loc); :}
+ | id:id LBRC expr:e PIPE parts:ps RBRC:r           {: pacioli.compiler.Location loc = makeLoc(idxleft, rxright);
+                                                       RESULT = new ComprehensionNode(ComprehensionNode.Kind.SET, id, e, ps, loc); :}
  ;
 
 parts ::= 
@@ -660,10 +671,10 @@ parts ::=
 
 part ::= 
  | expr:f                                           {: RESULT = new ComprehensionNode.FilterClause(f, makeLoc(fxleft, fxright)); :}
- | expr:g FROM expr:e                               {:  if (g instanceof IdListNode) {
+ | expr:g from:f expr:e                               {:  if (g instanceof IdListNode) {
                                                            RESULT = new ComprehensionNode.TupleGeneratorClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
-                                                            RESULT = new ComprehensionNode.GeneratorClause((IdentifierNode) g, e,  makeLoc(gxleft, exright));
+                                                            RESULT = new ComprehensionNode.GeneratorClause(f, (IdentifierNode) g, e,  makeLoc(gxleft, exright));
                                                         } else {
                                                             errorLocation = g.location();
                                                             errorMessage = "Expected a variable or tuple";
@@ -678,6 +689,13 @@ part ::=
                                                             errorMessage = "Expected a variable or tuple";
                                                             report_fatal_error("Fixme: this string is not used? How to throw an error here?", g);
                                                         } :}
+ ;
+
+from ::= 
+    FROM                                                {: RESULT = ComprehensionNode.Kind.LIST; :}
+ |  FROM_SET                                            {: RESULT = ComprehensionNode.Kind.SET; :}
+ |  FROM_ARRAY                                          {: RESULT = ComprehensionNode.Kind.ARRAY; :}
+ |  FROM_LIST                                           {: RESULT = ComprehensionNode.Kind.LIST; :}
  ;
 
 //------------------------------------------------------------------------------

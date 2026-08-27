@@ -48,6 +48,7 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.compiler.PacioliException;
@@ -62,12 +63,11 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.expression.ForNode.Kind;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.Typing;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.ParametricType;
@@ -75,6 +75,8 @@ import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.MatrixType;
 
 public class TypeInference extends IdentityVisitor {
 
@@ -117,6 +119,11 @@ public class TypeInference extends IdentityVisitor {
 
     private ParametricType newListType(TypeObject arg) {
         return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                List.of(arg));
+    }
+
+    private ParametricType newSetType(TypeObject arg) {
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Set"), findInfo("Set")),
                 List.of(arg));
     }
 
@@ -424,12 +431,14 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
+        String kind = node.kind.equals(Kind.LIST) ? "List" : (node.kind.equals(Kind.SET) ? "Set" : "Array");
+
         var itemsType = new ParametricType(
                 null,
-                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                new OperatorConst(new TypeIdentifier("base", kind), findInfo(kind)),
                 List.of(argType));
         typing.addConstraint(itemsType, itemsTyping.type(),
-                "the variables in a for loop must match the list items", node.location());
+                "the variables in a for loop must match the traversed items", node.location());
 
         typing.addConstraint(bodyTyping.type(), newVoidType(),
                 "the body of a for loop must be a statement", node.location());
@@ -489,9 +498,11 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
+        String kind = node.kind.equals(Kind.LIST) ? "List" : (node.kind.equals(Kind.SET) ? "Set" : "Array");
+
         var itemsType = new ParametricType(
                 null,
-                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                new OperatorConst(new TypeIdentifier("base", kind), findInfo(kind)),
                 List.of(newTupleType(argTypes)));
         typing.addConstraint(itemsType, itemsTyping.type(),
                 "the variables in a for loop must match the list items", node.location());
@@ -846,6 +857,25 @@ public class TypeInference extends IdentityVisitor {
             typing.addConstraint(
                     resultType,
                     elementTyping.type(), "All list elements must have the same type",
+                    node.location());
+            typing.addConstraintsAndAssumptions(elementTyping);
+        }
+
+        returnNode(typing);
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+
+        TypeObject resultType = new TypeVar();
+
+        Typing typing = new Typing(newSetType(resultType));
+
+        for (ExpressionNode element : node.elements) {
+            Typing elementTyping = typingAccept(element);
+            typing.addConstraint(
+                    resultType,
+                    elementTyping.type(), "All set elements must have the same type",
                     node.location());
             typing.addConstraintsAndAssumptions(elementTyping);
         }

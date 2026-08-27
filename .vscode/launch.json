@@ -25,6 +25,33 @@
         {
             "type": "java",
             "vmArgs": "-enableassertions",
+            "name": "Compile to Lean",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "compile -target lean ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Compile to Leaner",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "compile -target leaner ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "Compile to Leanest",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "compile -target leanest ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
             "name": "Symbols Pacioli File",
             "request": "launch",
             "mainClass": "pacioli.Pacioli",
@@ -57,6 +84,15 @@
             "mainClass": "pacioli.Pacioli",
             "projectName": "pacioli",
             "args": "desugar ${file} -lib lib/"
+        },
+        {
+            "type": "java",
+            "vmArgs": "-enableassertions",
+            "name": "To Lean",
+            "request": "launch",
+            "mainClass": "pacioli.Pacioli",
+            "projectName": "pacioli",
+            "args": "lean ${file} -lib lib/"
         },
         {
             "type": "java",

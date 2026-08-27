@@ -20,11 +20,13 @@
 
 include string;
 include list;
+include set;
 include array;
 include map;
 include matrix;
 include io;
 include system;
+include bignum;
 
 # ----------------------------------------------------------------------------
 # Units

@@ -1,17 +1,33 @@
+/*
+ * Copyright 2026 Paul Griffioen
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package pacioli.compiler;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
-import pacioli.ast.definition.Declaration;
-import pacioli.ast.definition.IndexSetDefinition;
-import pacioli.ast.definition.ValueDefinition;
-import pacioli.compiler.Bundle.ReferencesTable;
 import pacioli.mcp.TestEnvironment;
-import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 
 import org.junit.jupiter.api.Test;
@@ -32,10 +48,10 @@ class BundleIT {
         // When a Bundle is created from the file
         Bundle bundle = Bundle.fromFile(file, LIBS);
 
-        // Then its environment should contain 254 values.
+        // Then its environment should contain 276 values.
         List<ValueInfo> infos = bundle.allValueInfos();
 
-        assertEquals(254, infos.size());
+        assertEquals(288, infos.size());
     }
 
     @Test
@@ -53,10 +69,11 @@ class BundleIT {
         // Then its usesValueClosure should contain the correct items.
         List<ValueInfo> closure = Bundle.usesValueClosure(Collections.singletonList(value));
 
-        String usedNames = closure.stream().map(ValueInfo::globalName).sorted().collect(Collectors.joining(","));
+        String usedNames = closure.stream().map(ValueInfo::globalName).sorted()
+                .collect(Collectors.joining(","));
 
         assertEquals(
-                "$base_matrix__,$standard_matrix_closure,$standard_matrix_delta,$standard_matrix_inverse,$standard_matrix_kleene,$standard_matrix_right_inverse,bom_BoM,bom_conv,bom_cost_breakdown,bom_ingredient_breakdown,bom_price,bom_trade_BoM",
+                "_base_matrix__,_standard_matrix_closure,_standard_matrix_delta,_standard_matrix_inverse,_standard_matrix_kleene,_standard_matrix_right_inverse,bom_BoM,bom_conv,bom_cost_breakdown,bom_ingredient_breakdown,bom_price,bom_trade_BoM",
                 usedNames);
     }
 
@@ -74,17 +91,7 @@ class BundleIT {
         String name = "BoM";
 
         Boolean allNamesCorrect = referencesTable.getValueReferences(name).stream()
-                .map(x -> {
-                    if (x instanceof ValueDefinition vd) {
-                        return vd.id.name().equals(name);
-                    } else if (x instanceof Declaration vd) {
-                        return vd.id.name().equals(name);
-                    } else {
-                        Optional<Info> info = x.getInfo();
-
-                        return info.isPresent() && info.get().name().equals(name);
-                    }
-                })
+                .map(x -> x.name().equals(name))
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
@@ -114,13 +121,7 @@ class BundleIT {
         String name = "Product";
 
         Boolean allNamesCorrect = referencesTable.getTypeReferences(name).stream()
-                .map(x -> {
-                    if (x instanceof IndexSetDefinition isd) {
-                        return isd.id.name().equals(name);
-                    } else {
-                        return x.getInfo().orElseThrow().name().equals(name);
-                    }
-                })
+                .map(x -> x.name().equals(name))
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);
@@ -151,16 +152,7 @@ class BundleIT {
         String name = "Shell";
 
         Boolean allNamesCorrect = referencesTable.getTypeReferences(name).stream()
-                .map(x -> {
-                    if (x instanceof IndexSetDefinition isd) {
-                        return isd.id.name().equals(name);
-                    } else {
-                        if (x.getInfo().isPresent()) {
-                            return x.getInfo().orElseThrow().name().equals(name);
-                        }
-                        return true;
-                    }
-                })
+                .map(x -> x.name().equals(name))
                 .collect(Collectors.reducing(true, Boolean::logicalAnd));
 
         assertTrue(allNamesCorrect);

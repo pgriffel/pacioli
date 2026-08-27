@@ -38,17 +38,16 @@ import mvm.ast.expression.Expression;
 import mvm.values.PacioliValue;
 import mvm.values.matrix.IndexSet;
 import mvm.values.matrix.Matrix;
-import mvm.values.matrix.MatrixBase;
 import mvm.values.matrix.UnitVector;
-// import pacioli.Pacioli;
+import mvm.values.matrix.MVMBase;
+
 import uom.Prefix;
-import uom.Unit;
 import uom.UnitSystem;
 
 public class Machine {
 
     public final Environment store;
-    public final UnitSystem<MatrixBase> unitSystem;
+    public final UnitSystem<MVMBase> unitSystem;
     public final HashMap<String, IndexSet> indexSets;
     public final HashMap<String, UnitVector> unitVectors;
     private static final LinkedList<String> debugStack = new LinkedList<String>();
@@ -87,17 +86,9 @@ public class Machine {
         store.putCode(name, code);
     }
 
-    // public void storeValue(String name, PacioliValue value) {
-    // store.put(name, value);
-    // }
-
-    public void storeUnit(String name, Unit<MatrixBase> unit) {
-        unitSystem.addUnit(name, unit);
+    public void storeBase(String name, MVMBase unit) {
+        unitSystem.addBase(name, unit);
     }
-
-    // public void storeBaseValue(String name, PacioliValue primitive) {
-    // storeValue("lib_base_base_" + name, primitive);
-    // }
 
     public void init() throws MVMException {
         Primitives.load(store);
@@ -158,8 +149,8 @@ public class Machine {
         }
     }
 
-    static public UnitSystem<MatrixBase> makeSI() {
-        UnitSystem<MatrixBase> si = new UnitSystem<MatrixBase>();
+    static public UnitSystem<MVMBase> makeSI() {
+        UnitSystem<MVMBase> si = new UnitSystem<MVMBase>();
         si.addPrefix("yotta", new Prefix("Y", new BigDecimal("1").movePointRight(24)));
         si.addPrefix("zetta", new Prefix("Z", new BigDecimal("1").movePointRight(21)));
         si.addPrefix("exa", new Prefix("E", new BigDecimal("1").movePointRight(18)));

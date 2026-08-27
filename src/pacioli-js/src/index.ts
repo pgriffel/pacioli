@@ -82,7 +82,7 @@ export { PacioliBoole } from "./values/boole";
 
 export { PacioliCoordinates } from "./values/coordinates";
 
-export { RawValue } from "./raw-values/raw-value";
+export { RawValue, tagList, tagSet } from "./raw-values/raw-value";
 
 export { MatrixShape as Shape } from "./values/matrix-shape";
 
@@ -247,6 +247,20 @@ export {
   $base_map_keys,
   $base_map_lookup,
   $base_map_store,
+  $base_set_empty_set,
+  $base_set_set_size,
+  $base_system__adjoin_mut,
+  $base_set_loop_set,
+  $base_bignum_make_bignum,
+  $base_bignum_bignum_add,
+  $base_bignum_bignum_subtract,
+  $base_bignum_bignum_multiply,
+  $base_bignum_bignum_divide,
+  $base_bignum_bignum_power,
+  $base_bignum_bignum_sqrt,
+  $base_bignum_bignum_compare,
+  $base_system__bignum_precision,
+  $base_system__set_bignum_precision,
   ONE,
 } from "./primitives";
 

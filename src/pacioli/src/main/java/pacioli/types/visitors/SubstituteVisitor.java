@@ -23,16 +23,16 @@
 package pacioli.types.visitors;
 
 import pacioli.types.Substitution;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class SubstituteVisitor extends TransformType {
 
@@ -44,9 +44,11 @@ public class SubstituteVisitor extends TransformType {
 
     @Override
     public void visit(Schema type) {
-        Substitution reduced = new Substitution(substitution);
-        reduced.removeAll(type.variables());
-        returnTypeNode(new Schema(type.variables(), type.applySubstitution(reduced), type.conditions()));
+        returnTypeNode(
+                new Schema(
+                        type.variables(),
+                        type.type().applySubstitution(substitution.removeAll(type.variables())),
+                        type.conditions()));
     }
 
     @Override

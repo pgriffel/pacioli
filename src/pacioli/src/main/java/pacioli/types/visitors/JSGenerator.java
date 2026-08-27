@@ -25,22 +25,22 @@ package pacioli.types.visitors;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.Printer;
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Quant;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class JSGenerator implements TypeVisitor {
 
@@ -93,7 +93,7 @@ public class JSGenerator implements TypeVisitor {
         out.write("Pacioli.createMatrixType(");
 
         // Scalar factor
-        out.write(TypeBase.compileUnitToJSType(type.factor()));
+        out.write(MatrixBase.compileUnitToJSType(type.factor()));
         out.write(", ");
 
         // Row dimension
@@ -102,7 +102,7 @@ public class JSGenerator implements TypeVisitor {
 
         // Row unit
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJSType(type.rowUnit()));
+            out.write(MatrixBase.compileUnitToJSType(type.rowUnit()));
         } else {
             out.write("Pacioli.ONE");
         }
@@ -114,7 +114,7 @@ public class JSGenerator implements TypeVisitor {
 
         // Column unit
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            out.write(TypeBase.compileUnitToJSType(type.columnUnit()));
+            out.write(MatrixBase.compileUnitToJSType(type.columnUnit()));
         } else {
             out.write("Pacioli.ONE");
         }

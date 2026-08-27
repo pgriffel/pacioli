@@ -27,23 +27,25 @@ import java.util.Set;
 import java.util.Stack;
 
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Quant;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorBase;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
 public class UsesVars implements TypeVisitor {
@@ -93,21 +95,21 @@ public class UsesVars implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
         Set<Var> all = new LinkedHashSet<Var>();
-        all.addAll(unitVars(type.factor()));
+        all.addAll(unitVars(type.factor().map(x -> (ScalarBase) x)));
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            all.addAll(unitVars(type.rowUnit()));
+            all.addAll(unitVars(type.rowUnit().map(x -> (VectorBase) x)));
         }
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            all.addAll(unitVars(type.columnUnit()));
+            all.addAll(unitVars(type.columnUnit().map(x -> (VectorBase) x)));
         }
         all.addAll(varSetAccept(type.rowDimension()));
         all.addAll(varSetAccept(type.columnDimension()));
         returnTypeNode(all);
     }
 
-    public static Set<Var> unitVars(Unit<TypeBase> unit) {
+    public static Set<Var> unitVars(Unit<MatrixBase> unit) {
         Set<Var> all = new LinkedHashSet<Var>();
-        for (TypeBase base : unit.bases()) {
+        for (MatrixBase base : unit.bases()) {
             if (base instanceof Var) {
                 all.add((Var) base);
             }

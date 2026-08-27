@@ -34,10 +34,10 @@ import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypeIdentifierNode;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorVar;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 
 public class TypeContext implements Printable {
 
@@ -192,6 +192,29 @@ public class TypeContext implements Printable {
     private static String quantified(String quantifier, List<String> names) {
         if (!names.isEmpty()) {
             return quantifier + " " + String.join(", ", names) + ": ";
+        } else {
+            return "";
+        }
+    }
+
+    public void asLean(PrintWriter out) {
+        String quant = quantified("Type", typeVars)
+                + leanImplicit("Nat", indexVars)
+        // + quantified("for_unit", unitVars)
+        ;
+        out.print(quant);
+        if (quant.length() > 30 && Pacioli.Options.wrapTypes) {
+            out.println();
+            out.print("    ");
+        }
+        // out.print(quantified("for_type", typeVars));
+        // out.print(quantified("for_index", indexVars));
+        // out.print(quantified("for_unit", unitVars));
+    }
+
+    private static String leanImplicit(String quantifier, List<String> names) {
+        if (!names.isEmpty()) {
+            return " { " + String.join(" ", names) + " : " + quantifier + " } ";
         } else {
             return "";
         }

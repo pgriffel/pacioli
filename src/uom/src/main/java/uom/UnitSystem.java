@@ -23,76 +23,54 @@
 package uom;
 
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 
-public class UnitSystem<B> {
+/**
+ * A store for unit bases and prefixes.
+ */
+public class UnitSystem<B extends Base> {
+
+    record Equation<X extends Base>(Unit<X> lhs, Unit<X> rhs) {
+    }
 
     private final HashMap<String, Prefix> prefixDictionary;
-    private final HashMap<String, Unit<B>> unitDictionary;
+    private final HashMap<String, B> baseDictionary;
 
     public UnitSystem() {
-        unitDictionary = new HashMap<String, Unit<B>>();
-        prefixDictionary = new HashMap<String, Prefix>();
-    }
-
-    public void importSystem(UnitSystem<B> other) {
-        for (String name : other.names()) {
-            addUnit(name, other.lookupUnit(name));
-        }
-    }
-
-    public Set<String> names() {
-        return unitDictionary.keySet();
-    }
-
-    public void addPrefix(String name, Prefix prefix) {
-        prefixDictionary.put(name, prefix);
-    }
-
-    public boolean congtainsPrefix(String name) {
-        return prefixDictionary.containsKey(name);
+        this.baseDictionary = new HashMap<String, B>();
+        this.prefixDictionary = new HashMap<String, Prefix>();
     }
 
     public Set<String> prefixNames() {
         return prefixDictionary.keySet();
     }
 
-    public Prefix lookupPrefix(String name) {
-        if (prefixDictionary.containsKey(name)) {
-            return prefixDictionary.get(name);
-        } else {
-            throw new RuntimeException("No prefix named '" + name + "'");
-        }
+    public Set<String> baseNames() {
+        return baseDictionary.keySet();
     }
 
-    public void addUnit(String name, Unit<B> unit) {
-        unitDictionary.put(name, unit);
+    public void addPrefix(String name, Prefix prefix) {
+        prefixDictionary.put(name, prefix);
     }
 
-    public boolean congtainsUnit(String name) {
-        for (String prefix : prefixNames()) {
-            if (name.startsWith(prefix + ":")) {
-                return unitDictionary.containsKey(name.substring(prefix.length() + 1));
-            }
-        }
-        return unitDictionary.containsKey(name);
+    public boolean containsPrefix(String name) {
+        return prefixDictionary.containsKey(name);
     }
 
-    public Unit<B> lookupUnit(String name) {
-        for (String prefix : prefixNames()) {
-            if (name.startsWith(prefix + ":")) {
-                String suffix = name.substring(prefix.length() + 1);
-                if (unitDictionary.containsKey(suffix)) {
-                    return new ScaledUnit<B>(lookupPrefix(prefix), unitDictionary.get(suffix));
-                } else {
-                    throw new RuntimeException("No unit named '" + suffix + "' when looking for '" + name + "'");
-                }
-            }
-        }
-        if (unitDictionary.containsKey(name)) {
-            return unitDictionary.get(name);
-        } else {
-            throw new RuntimeException("No unit named '" + name + "'");
-        }
+    public Optional<Prefix> lookupPrefix(String name) {
+        return Optional.ofNullable(prefixDictionary.get(name));
+    }
+
+    public void addBase(String name, B base) {
+        baseDictionary.put(name, base);
+    }
+
+    public boolean containsBase(String name) {
+        return baseDictionary.containsKey(name);
+    }
+
+    public Optional<B> lookupBase(String name) {
+        return Optional.ofNullable(this.baseDictionary.get(name));
     }
 }

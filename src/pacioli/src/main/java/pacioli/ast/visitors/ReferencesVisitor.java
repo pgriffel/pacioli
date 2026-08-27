@@ -26,11 +26,12 @@ import java.util.ArrayList;
 import java.util.List;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
-import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
+import pacioli.compiler.ReferencesTable.Entry;
+import pacioli.compiler.ReferencesTable.Kind;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.info.Info;
 import pacioli.types.ast.QuantNode;
@@ -39,9 +40,9 @@ import pacioli.types.ast.TypePredicateNode;
 
 public class ReferencesVisitor extends IdentityVisitor {
 
-    List<Node> infos = new ArrayList<>();
+    List<Entry> infos = new ArrayList<>();
 
-    public List<Node> idsAccept(Node node) {
+    public List<Entry> idsAccept(Node node) {
         node.accept(this);
         return infos;
     }
@@ -51,7 +52,7 @@ public class ReferencesVisitor extends IdentityVisitor {
         assert (node.info != null);
 
         if (node.info.definition().isPresent()) {
-            infos.add(node);
+            infos.add(new Entry(node.info.name(), node.location(), Kind.TYPE));
         }
     }
 
@@ -59,7 +60,7 @@ public class ReferencesVisitor extends IdentityVisitor {
     public void visit(IdentifierNode node) {
         if (node.name().equals("nmode") || node.info().definition().isPresent()
                 || node.info().declaredType().isPresent() || !node.info().isGlobal()) {
-            infos.add(node);
+            infos.add(new Entry(node.name(), node.location(), Kind.VALUE));
         } else {
             throw new RuntimeException("Visit error", new PacioliException(node.location(),
                     "Definition or declaration missing for '%s'", node.name()));
@@ -77,7 +78,7 @@ public class ReferencesVisitor extends IdentityVisitor {
     public void visit(UnitIdentifierNode node) {
         assert (node.info != null);
         assert (node.info.definition().isPresent());
-        infos.add(node);
+        infos.add(new Entry(node.name(), node.location(), Kind.UNIT));
     }
 
     @Override

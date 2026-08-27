@@ -72,6 +72,7 @@ import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
@@ -644,7 +645,7 @@ public class IdentityTransformation implements Visitor {
             transformed.add((ComprehensionNode.Clause) cl);
         }
 
-        returnNode(new ComprehensionNode(expr, transformed, node.location()));
+        returnNode(new ComprehensionNode(node.kind, expr, transformed, node.location()));
     }
 
     @Override
@@ -652,7 +653,7 @@ public class IdentityTransformation implements Visitor {
         Node id = nodeAccept(clause.id);
         ExpressionNode cl = expAccept(clause.list);
         assert (id instanceof IdentifierNode);
-        returnNode(new ComprehensionNode.GeneratorClause((IdentifierNode) id, cl, clause.location()));
+        returnNode(new ComprehensionNode.GeneratorClause(clause.kind, (IdentifierNode) id, cl, clause.location()));
     }
 
     @Override
@@ -708,6 +709,18 @@ public class IdentityTransformation implements Visitor {
         }
 
         returnNode(new ListLiteralNode(node.location(), transformed));
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        List<ExpressionNode> transformed = new ArrayList<>();
+        for (ExpressionNode element : node.elements) {
+            Node tr = nodeAccept(element);
+            assert (tr instanceof ExpressionNode);
+            transformed.add((ExpressionNode) tr);
+        }
+
+        returnNode(new SetLiteralNode(node.location(), transformed));
     }
 
 }

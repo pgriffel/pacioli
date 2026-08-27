@@ -20,8 +20,11 @@
 
 include string;
 include list;
+include set;
 include matrix;
 include map;
 include io;
 include column;
 include misc;
+include array;
+include bignum;
