@@ -29,7 +29,7 @@ import {
   type RawMatrix,
   type RawMatrixStorage,
 } from "./raw-matrix";
-import { $base_system__adjoin_mut } from "../primitives";
+import { _base_system__adjoin_mut } from "../primitives";
 import { PacioliBigNum } from "../values/bignum";
 
 /**
@@ -161,7 +161,7 @@ export function tagList(value: Array<RawValue>): RawList {
 export function tagSet(value: Array<RawValue>): RawSet {
   let rawSet = new Set() as RawSet;
   for (const val of value) {
-    rawSet = $base_system__adjoin_mut(rawSet, val);
+    rawSet = _base_system__adjoin_mut(rawSet, val);
   }
   rawSet.kind = "set";
   return rawSet;
