@@ -62,7 +62,7 @@ declare time_frame_oscillate:: (second, metre, metre, radian/second) ->
 define time_frame_oscillate(time, x1, y1, w) = 
         let x = vector3d(x1, 0 * |metre|, 0 * |metre|),
             y = vector3d(sin(time * w) * y1, cos(time * w) * y1, 0 * |metre|),
-            z = cross_sqrt(x, y)
+            z = perpendicular(x, y)
         in
             tuple(x, y, z)
         end;
