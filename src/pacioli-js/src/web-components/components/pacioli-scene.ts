@@ -44,6 +44,7 @@ import { PacioliError } from "../../pacioli-error";
  */
 const SCENE_ATTRIBUTES = {
   strings: [
+    "unit",
     "unitx",
     "unity",
     "unitz",
