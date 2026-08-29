@@ -1,0 +1,82 @@
+# ------------------------------------------------------------------------------
+# Rotation tests for the complex numbers
+# ------------------------------------------------------------------------------
+
+import testing;
+import geometry;
+import quaternion;
+import complex;
+
+# ------------------------------------------------------------------------------
+# Running the tests
+# ------------------------------------------------------------------------------
+
+run_test_suites([
+    rotation_test_suite("dimensioned", test_numbers_dimensioned),
+    rotation_test_suite("dimensionless", test_numbers_dimless)
+]);
+
+# ------------------------------------------------------------------------------
+# Test input
+# ------------------------------------------------------------------------------
+
+define test_numbers_dimless = [
+    make_scalar_complex(0, 0),
+    make_scalar_complex(1, 0),
+    make_scalar_complex(0, 1),
+    make_scalar_complex(1, 1),
+    make_scalar_complex(-1, -1),
+    make_scalar_complex(2, 3),
+    make_scalar_complex(-2, 3)
+];
+
+define test_numbers_dimensioned = [
+    make_scalar_complex(0 * |metre|, 0 * |metre|),
+    make_scalar_complex(1 * |metre|, 0 * |metre|),
+    make_scalar_complex(0 * |metre|, 1 * |metre|),
+    make_scalar_complex(1 * |metre|, 1 * |metre|),
+    make_scalar_complex(-1 * |metre|, -1 * |metre|),
+    make_scalar_complex(2 * |metre|, 3 * |metre|),
+    make_scalar_complex(-2 * |metre|, 3 * |metre|)
+];
+
+
+
+
+
+# ------------------------------------------------------------------------------
+# Rotations tests
+# ------------------------------------------------------------------------------
+ 
+define rotor = make_scalar_complex(0, 2);
+define unit_rotor = unit_complex(rotor);
+
+define rotor_dim = scale_complex_matrix(|metre|, rotor);
+define unit_rotor_dim = scale_complex_matrix(|metre|, unit_rotor);
+
+define rotee = make_scalar_complex(1 * |metre|, 2 * |metre|);
+
+"rotee:";
+complex2str(rotee, |metre|);
+
+"rotor:";
+complex2str(rotor, |1|);
+
+define rotation_test_suite(description, test_numbers) =
+    test_suite(format("Rotation - %s", description), [
+
+        # A dimless rotor produces a complex number with unit metre invariant - also a metre
+        test("rotee is rotated by rotor", () ->
+            multiply_matrix_complex(rotor, rotee) = make_scalar_complex(-4 * |metre|, 2 * |metre|)
+        ),
+
+        # A rotor as a dimensioned complex number does not produce a complex number with unit metre but with metre^2
+        test("rotee is rotated by rotor_dim", () ->
+            multiply_matrix_complex(rotor_dim, rotee) = make_scalar_complex(-4 * |metre^2|, 2 * |metre^2|)
+        )
+    ]);
+
+
+
+
+
