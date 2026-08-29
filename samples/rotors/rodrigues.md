@@ -22,11 +22,6 @@ in case of a rotation operation. The rotation operation requires a product that 
 rotee (a matrix or a vector) where the resulting vector again has unit |metre|. This leads to an asymmetric product of a dimensionless
 rotor and a dimensioned (|metre|) rotee and resulting product vector.
 
-Something similar occurs in the cross product, but here the geometric situation is not as clear as in the situation of the rotation.
-There are use cases for the cross product resulting in a perpendicular vector, and there are use cases for the result to represent an area.
-In case of the cross product of two vectors with unit |metre|, the resulting vector can be defined as having unit |metre|, or
-as having unit |metre|^2. Only in the first case we obtain a closed operation.
-
 
 # Extending geometric operations with units of measurement
 In this text we add units of measurement to vector and matrix based computations.
@@ -43,66 +38,12 @@ We encounter the following situations:
         or
     Op: V(a) x V(b) -> V(ab) - This is any product situation.
 
-
-## Unit-aware products are not closed
-As stated above a product leads to the following unit-aware type:
-
-    *: V(a) x V(b) -> V(ab)
-
-The product is a not-closed operator because the result is an element of the space V(ab) that differs from the spaces V(a) and V(b) of both operands.
-
 If one of the operands is dimensionless - has unit 1 - we obtain a special situation in which the result is an element of the space V(a) or V(b) respectively.
 These special situations apply to the rotation operators by means of a rotor and a rotee:
-    *: V(a) x V(1) -> V(a) - This is the rotee * rotor product situation
+    Op: V(a) x V(1) -> V(a) - This is the rotee * rotor product situation
             or
-    *: V(1) x V(a) -> V(a) - This is the rotor * rotee product situation
+    Op: V(1) x V(a) -> V(a) - This is the rotor * rotee product situation
         or
-
-
-## The unit-aware cross product in Pacioli
-The problem of the cross product can then be characterised as a choice between two types:
-
-    cross: V(a) x V(a) -> V(a)
-        or
-    cross: V(a) x V(b) -> V(ab)
-
-Pacioli defines the cross product in de second way, this results in:
-
-    declare cross ::
-        for_unit a,b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
-
-The reason for this choice in Pacioli comes from use cases in physics modelling, such as:
-
-declare torque ::
-    (metre*Geom3!, newton*Geom3!) -> metre*newton*Geom3!;
-
-define torque(position, force) = 
-    cross(position, force);
-
-declare angular_momentum ::
-    (metre*Geom3!, kilo:gram*metre/second*Geom3!) -> kilo:gram*metre^2/second*Geom3!;
-
-define angular_momentum(position, linear_momentum) = 
-    cross(position, linear_momentum);
-
-
-
-## The functions norm and normalized in Pacioli
-At various places we will need a unit vector, the question is how to do that in a unit-aware way.
-A unit vector can be obtained from a vector in two ways. When vector v is split into scalar c and unit vector u such that v=cu and u has length one,
-then we can couple the unit with the scalar or with the unit vector, but not with both. We have to pick one.
-In the first case we obtain a dimensionless unit vector, in the second case we obtain the dimensioned unit vector.
-By using the function normalized we create a unit vector that is dimensioned, by using a division by the norm we create a dimensionless unit vector.
-For a vector v, function normalized creates a vector in the same direction as v with the same units but with norm one.
-
-    declare norm :: for_index P: for_unit a: (a*P!) -> a;
-
-    define norm(x) = sqrt(inner(x,x));
-
-
-    declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
-
-    define normalized(x) = x '/.' magnitude(norm(x));
 
 
 ## The dot and cross products encode all information we need for orientation related operations

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <title>Cross and Unit Vectors</title>
+
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+
+    <script type="text/x-mathjax-config">
+        MathJax.Hub.Config({
+            TeX: {
+            equationNumbers: { autoNumber: "all" },
+            tagSide: "right"
+            },
+            tex2jax: {
+            NOinlineMath: [ ['$','$'], ["\\(","\\)"] ],
+            NOdisplayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+            processEscapes: true
+            }
+        });
+    </script>
+
+    <script type="text/javascript" src="../../js/pacioli.bundle.js"></script>
+
+    <link rel="stylesheet" href="../sceneNO.css">
+
+    <!-- Include each compiled example script here and add the examples to the list below -->
+    <script type="text/javascript" src="./scratch.js"></script>
+
+    <style>
+        body {
+            font-family: Verdana, sans-serif;
+            NOfont-size: 10pt;
+            /* display: flex;
+            flex-direction: column; */
+            NOalign-items: center;
+            NOjustify-content: center;
+            /* height: 100vh; */
+            width: 600pt;
+            margin-left: 24pt;
+            NObackground: #111;
+            NOcolor: white;
+        }
+
+        .examples {
+            display: flex;
+            flex-direction: row;
+        }
+
+        pacioli-scene {
+            margin: 8pt;
+        }
+    </style>
+</head>
+
+<body>
+    \( \newcommand{\prp}{\operatorname{perp}} \)
+    \( \newcommand{\v}{\mathbf{v}} \)
+    \( \newcommand{\w}{\mathbf{w}} \)
+    \( \newcommand{\p}{\mathbf{p}} \)
+    \( \newcommand{\i}{\mathbf{i}} \)
+    \( \newcommand{\j}{\mathbf{j}} \)
+    \( \newcommand{\k}{\mathbf{k}} \)
+
+    <div id="console"></div>
+
+
+
+
+    <h1>Defining a Unit-Aware Cross Product</h1>
+
+    <p>
+        Investigation into some subtleties regarding units of measurement in the cross product.
+        This leads to a rabbit hole with unit vectors and normal vectors and more .
+
+
+
+
+    <h2>Introduction</h2>
+
+    <p>
+        Implementing the cross product in Pacioli raised some questions that lead to a rabbit hole.
+
+    <p>
+        The cross product, as any other product, is not a closed product when units of measurement are considered.
+        Gibb's original defintion is however not clear about it. A dimensioned cross vectors leads to questions
+        about what a unit vector is and how a normal vector is computed.
+
+    <p>
+        This note first discusses unit vectors. Then it looks at the cross product. We look at some use cases to
+        see the needs for uom support. We introduce a symmetric closed variant of the cross product that creates
+        a vector perpendicular to two given vectors. The given vectors and the outcome have the same units.
+
+
+
+
+    <h2>The Cross Product</h2>
+
+    <p>
+        To implement the cross product we start from Gibb's definition.
+
+    <p>
+        <b>Definition (Gibbs)</b>
+
+    <p>
+        The cross product \(\v\times\w\) between vectors \(\v\) and \(\w\) is give by
+
+        \[ \v\times\w = \Vert \v \Vert \Vert \w \Vert \sin(\theta)\,\mathbf{n} \]
+    <p> where
+    <ul>
+        <li>
+            \(\theta\) is the angle between vectors \(\v\) and \(\w\)
+        </li>
+        <li> \(\mathbf{n}\) is a unit vector perpendicular to \(\v\) and \(\w\) </li>
+    </ul>
+
+    <p>
+        This form is not easily implemented, because a question is how \(\mathbf{n}\) is obtained. A common way to
+        compute a vector perpendicular to two other vectors is to use the cross product. How do we compute
+        \(\mathbf{n}\) if we don't have the cross product?
+
+    <p>
+        Fortunately, later Gibbs uses unit vectors \(\mathbf{i}\), \(\mathbf{j}\), and \(\mathbf{k}\) to derive from
+        \( \v = v_1\mathbf{i} + v_2\mathbf{j} + v_3\mathbf{k} \)
+        and
+        \( \w = w_1\mathbf{i} + w_2\mathbf{j} + w_3\mathbf{k} \)
+        that
+
+        \[ \v\times\w = (v_2w_3 - v_3w_2)\mathbf{i} + (v_3w_1 - v_1w_3)\mathbf{j} + (v_1w_2 - v_2w_1)\mathbf{k} \]
+
+        This can easily be implemented without \(\mathbf{n}\).
+    <p>
+        Gibb's definitions work for dimensionless vectors, but for dimensioned vectors we need some care.
+
+    <p>
+        We expect the type of the cross product to give the product of the vector's units. Let's write \(\text{Vec}\ a\)
+        for
+        the type of a vector with unit of measurement \(a\).
+        The cross product between vectors with units \(a\) and \(b\) is typed as
+
+        \[ \text{Vec}\ a \times \text{Vec}\ b \to \text{Vec}\ ab \]
+
+        For example when the unit of the vectors is in metre, the cross vector magnitude is metre squared. This matches
+        with the idea that the magnitude of the cross vector is usualy explained as the are of the parallelogram.
+
+        Other confirmation is several products in physics, e.g. ... ....
+
+        Just as other products, the unit of the cross product is the product of the units.
+
+
+    <p>
+        It is not directly clear how to derive such a dimensionally correct implementation of the cross product from
+        Gibb's
+        definition and alternative.
+        We will see that the following version of the alternative computation gives the correct result.
+
+        \[
+        \v \times \w =
+        \left[ {\begin{array}{c}
+        \v_2\w_3 - \v_3\w_2 \\
+        \v_3\w_1 - \v_1\w_3 \\
+        \v_1\w_2 - \v_2\w_1 \\
+        \end{array} } \right]
+        \]
+
+        However, that requires examining some details about unit and normal vectors.
+
+        We will see it this depends on the subtle distinction between vector elements \(\v_i\) and \(\w_i\) and
+        coordinates \(v_i\) and \(w_i\).
+
+
+
+
+    <h2>Vectors and Coordinates</h2>
+
+    <p>
+        The one-to-one correspondence between a vector and its coordinates is a fundamental principle in
+        linear algebra notation.
+
+        For a vector \(\v\) given as a linear combination of basis vectors \(\i\), \(\j\) and \(\k\)
+
+        \[ \v = v_1\mathbf{i} + v_2\mathbf{j} + v_3\mathbf{k} \]
+
+        the tuple \( (v_1, v_2, v_3) \) is called the <em>coordinate vector</em>.
+
+        The vector and the coordinate tuple are considered the same.
+
+        Gibbs writes
+    <blockquote>By means of these vectors \(\i\), \(\j\), \(\k\), such a correspondence is established between vector
+        analysis and the
+        analysis in Cartesian coordinates that it becomes possible to pass at will from one to the other.</blockquote>
+
+
+    Strang writes
+
+    <blockquote>The vector \(\v\) is identified with the point whose coordinates are \(v_1, v_2, v_3\) </blockquote>
+
+
+    and mentions this was Descartes's idea when he united geometry and algebra.
+
+    This identification allows calculating with vectors via its representation. Operations are defined on coordinate
+    vectors that translate to the represented vectors. This one-to-one translation is a basic principle.
+
+    <p>
+        The one-to-one correspondence requires some scrutiny when moving from dimensionless to dimensioned linear
+        algebra. Identifying a vector with its coordinates works fine for dimensionless vector, but if we now consider a
+        dimensioned vector we have to be careful with the units. Consider vector \( \v = \i + 2\j + 3\k \) in a
+        dimensioned vector space with unit metre. In this space the vector elements have a unit of measurement:
+
+        \[
+        \v =
+        \left[ {\begin{array}{c}
+        1\, \text{m} \\
+        2\, \text{m} \\
+        3\, \text{m} \\
+        \end{array} } \right]
+        \]
+
+        <!-- \( \v_1 = v_1 \cdot \i_1 \) -->
+
+
+        If we look at \(\v\)'s elements we see for example that \(\v_1\) equals \(1\, \text{m}\). However, since \(\v\)
+        and
+        \(\i\) are both from the dimensioned space and thus have unit metre, it follows from (1) that coordinate \(v_1\)
+        cannot have a unit. It is the undimensioned scalar 1. We see that \(\v_1\) differs from \(v_1\).
+
+        <!-- <p>
+        Roman gives an explicit bijection between a vector and its coordinates. This does only work when extrinsic uom
+        are supposed. From just the coordinates the dimensioned elements cannot be reconstructed without external
+        information. -->
+
+    <p>
+        This difference is the basis of Hart's theory of dimensioned matrices. Hart p.62 a vector is a n-tuple of
+        dimensioned scalars.
+        By adding the units you get the rich structure of dimensioned linear algebra.
+
+    <p>
+        Handling this difference requires some care to avoid ambiguities.
+
+
+
+
+    <h2>What is a Unit Vector?</h2>
+
+    <p>
+        One thing that requires attention when moving to dimensioned vector spaces is the notion of a unit vector. In
+        many applications it makes a difference whether the unit vector is dimensionless or not.
+
+        [Hier iets over rotor en rotee?]
+
+    <p>
+        A common ambituity in mathematical texts is the unit of measurement of a unit vector.
+
+        Consider the following two statements:
+
+    <ul>
+        <li>A unit vector is a vector with norm one
+        </li>
+        <!-- <li> A unit vector is computed as \(\mathbf{v} / \Vert \mathbf{v} \Vert\)
+        </li> -->
+        <li> A unit vector is computed as \[\frac{\v }{\Vert \v \Vert} \nonumber \]
+        </li>
+    </ul>
+
+    These two statements give a conflict when units of measurement are considered. In a normed
+    vector space with unit of measurement <em>metre</em>, does a unit vector have norm 1 or norm 1m?
+
+    <p>
+        If the norm \(\Vert \v \Vert\) has unit metre, then it cancels \(\v\)'s unit when it is divided
+        by \( \Vert \v \Vert\) and the result is a dimensionless unit vector. If norm \(\Vert \v \Vert\)
+        is dimensionless it does not cancel \(\v \)'s unit and the result is a dimensioned vector with unit
+        metre. Either way we have a contradiction.
+
+    <p>
+        An alternative viewpoint is that a unit vector can be obtained from a vector in two ways.
+        When vector \(\v\) is split into scalar \(c\) and unit vector \(\mathbf{u}\) such that \(\v =
+        c\mathbf{u}\) and \( \mathbf{u} \) has length one, then we can couple the unit with the scalar or
+        with the unit vector, but not with both. We have to pick one.
+
+
+    <p>
+        Dimensioned and dimensionless unit vector both have use cases.
+        For example, when a vector is written as a linear combination of unit vectors \(\mathbf{i}\), \(\mathbf{j}\),
+        and \(\mathbf{k}\)
+
+        \[ \v = v_1\mathbf{i} + v_2\mathbf{j} + v_3\mathbf{k} \nonumber \]
+
+        the units are on the unit vectors to give them the same unit as \(\v\).
+        But when vector \(\v\) is split as \(\v = \mathbf{v_{\parallel}} +
+        \mathbf{v_{\perp}}\) with the vector's projection
+
+        \[ \mathbf{v_{\parallel}} = (\v\cdot \mathbf{u})\, \mathbf{u} \nonumber \]
+
+        and the vector's rejection
+
+        \[ \mathbf{v_{\perp}} = -\mathbf{u}\times(\mathbf{u}\times \v) \nonumber \]
+
+        the unit vector \(\mathbf{u}\) has to be dimensionless to give \(\mathbf{v_{\parallel}}\) and
+        \(\mathbf{v_{\perp}}\) the same unit as \(\v\).
+
+
+
+
+    <h2>Unit Vectors in Pacioli</h2>
+
+    <p>
+        Since Pacioli supports units of measurement we have to be careful to use the right unit vector.
+        For a vector \(\v\), function <em>normalized</em> creates a vector in the
+        same direction as \(\v\) with the same units but with norm one.
+
+    <pre>
+        declare normalized :: for_index P: for_unit a: (a*P!) -> a*P!;
+
+        define normalized(x) = x '/.' magnitude(norm(x));
+    </pre>
+
+    To get a dimensionless unit vector we can do
+    <pre>
+        magnitude(normalized(v))
+    </pre>
+    or directly
+    <pre>
+        v '/.' norm(v)
+    </pre>
+    Both cases give a dimensionless unit vector, since function norm gives a dimensioned number.
+
+
+
+
+    <h2>Deriving the Dimensioned Cross Product</h2>
+
+    <p>
+        Gibb's uses the following propeties of the base vectors when deriving the alternative computation.
+    <ul>
+        <li> \( \i \times \i = \j \times \j = \k \times \k = 0 \) </li>
+        <li> \( \i \times \j = -\j \times \i = \k \) </li>
+        <li> \( \j \times \k = -\k \times \j = \i \) </li>
+        <li> \( \k \times \i = -\i \times \k = \j \) </li>
+    </ul>
+    These clearly only work in the dimensionless case.
+
+    <p>
+        Using furthermore the distributivity of the cross product he derives
+
+        $$
+        \begin{eqnarray*}
+        \v \times \w &=& (v_1\mathbf{i} + v_2\mathbf{j} + v_3\mathbf{k}) \times (w_1\mathbf{i} + w_2\mathbf{j} +
+        w_3\mathbf{k}) \\
+        &=& v_1w_1\mathbf{i}\times\mathbf{i} + v_1w_2\mathbf{i}\times\mathbf{j} + v_1w_3\mathbf{i}\times\mathbf{k}\ + \\
+        & & v_2w_1\mathbf{j}\times\mathbf{i} + v_2w_2\mathbf{j}\times\mathbf{j} + v_2w_3\mathbf{j}\times\mathbf{k}\ + \\
+        & & v_3w_1\mathbf{k}\times\mathbf{i} + v_3w_2\mathbf{k}\times\mathbf{j} + v_3w_3\mathbf{k}\times\mathbf{k} \\
+        &=& (v_2w_3 - v_3w_2)\mathbf{i} + (v_3w_1 - v_1w_3)\mathbf{j} + (v_1w_2 - v_2w_1)\mathbf{k}
+        \end{eqnarray*}
+        $$
+
+        Gibb's text does only work for dimensionless vectors
+
+    <p>
+        We can simply add step
+        \[
+        \v \times \w =
+        \left[ {\begin{array}{c}
+        \v_2\w_3 - \v_3\w_2 \\
+        \v_3\w_1 - \v_1\w_3 \\
+        \v_1\w_2 - \v_2\w_1 \\
+        \end{array} } \right]
+        \]
+
+        The alternative (2) is less clear. At first glance it seems to give a vector from the same space.
+        This would be a closed cross product.
+        A cross product of type \(\text{Vec}\ a \times \text{Vec}\ a \to \text{Vec}\ a \).
+        However, this depends on how the units are attached to the coordinates \(v_i\) or the base
+        vectors \(\i\), \(\j\) and \(\k\).
+
+    <p>
+        If we look at Gibb's definition we can arrive at the correct units. The unit of a vector's norm \(\Vert \v
+        \Vert\) equals the vector's unit. This means that definition (1) gives the correct product of the units as long
+        as unit vector \(\mathbf{n}\) is dimensionless.
+
+
+
+        <!-- <p>
+        \(\j\times\i=-\k\), \(\j\times\k=\i\) and \(\k\times\i=\j\)
+
+    <p>
+        \( \i \times \j = \k^2 \), \( \j \times \k = \i^2 \) and \( \k \times \i = \j^2 \)
+        \( \j \times \i = -\k^2 \), \( \j \times \k = \i^2 \) and \( \k \times \i = \j^2 \) -->
+
+        <!-- <p>
+        with \( \mathbf{x}^2 \) is the element wise product of \( \mathbf{x} \) with itself. -->
+
+    <p>
+        <!-- Let
+        \( \v = v_1\mathbf{i} + v_2\mathbf{j} + v_3\mathbf{k} \)
+        and
+        \( \w = w_1\mathbf{i} + w_2\mathbf{j} + w_3\mathbf{k} \)
+        that -->
+
+
+
+
+    <h2>Cross Product in Pacioli</h2>
+
+    <p>
+        We define the cross product as follows in Pacioli
+
+    <pre>
+    declare cross ::
+        for_unit a, b: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
+
+    define cross(v, w) =
+        let
+            (vx, vy, vz) = values3d(v),
+            (wx, wy, wz) = values3d(w)
+        in
+            vector3d(vy*wz - vz*wy, vz*wx - vx*wz, vx*wy - vy*wx)
+        end;
+    </pre>
+
+    Here <code>a*Geom3!</code> is Pacioli's notation for \( \text{Vec}\ a\).
+
+    <pre>
+    vector3d :: for_unit a: (a, a, a) -> a*Geom3!
+    values3d :: for_unit a: (a*Geom3!) -> Tuple(a, a, a)
+    </pre>
+
+
+
+    <!-- <p>
+        <code>a*Geom3!</code> = \(
+        \text{a} \left[ {\begin{array}{c}
+        1 \\
+        1 \\
+        1 \\
+        \end{array} } \right]
+        =
+        \left[ {\begin{array}{c}
+        \texttt{a} \\
+        \text{a} \\
+        \text{a} \\
+        \end{array} } \right]
+        \) -->
+
+    <p>
+        in our notation this would be
+        \[ a \times a \times a \to \text{Vec}\ a \nonumber \]
+        \[ \text{Vec}\ a \to a \times a \times a \nonumber \]
+
+
+        The product of the units seems okay, since the norm of the cross products represents an area. So for
+        vectors from a metre space it gives unit metre squared.
+
+    <p>
+        So the type is \( \text{Vec}\ a \times \text{Vec}\ b \to \text{Vec}\ ab \), as expected.
+
+    <p>
+        With this version of the cross vector we can actually implement Gibb's original definition, since
+        we only need a dimensionless normal. With the help of some utilities we can define:
+
+    <pre>
+
+    define dimless_normal(v, w) = 
+        let x = cross(v, w) in x '/.' norm(x) end;
+    
+    define cross_def(v, w) =
+        norm(v) * norm(w) * sin(angle_between_vectors(v, w)) '.*' dimless_normal(v, w);
+    </pre>
+
+    The types are as expected:
+
+    <pre>
+    dimless_normal :: for_unit b, a: (a*Geom3!, b*Geom3!) -> Geom3!
+    cross_def :: for_unit b, a: (a*Geom3!, b*Geom3!) -> a*b*Geom3!;
+    </pre>
+
+    <p>
+        The cross vectors turns out to be no problem, but the question remains how to compute a normal vector. The cross
+        product gives a vector in the wrong space.
+
+
+
+
+    <h2>Normal Vectors</h2>
+
+    <p>
+        How to compute a normal vector from two vectors?
+
+
+    <h2>Conclusion</h2>
+
+    Units of measurement makes the definition of the cross product a little more subtle. Following Gibbs and creating a
+    closed cross product in Pacioli would lead to:
+
+    <pre>
+        cross(v, w) = magnitude(norm(v)) * magnitude(norm(w)) * sin(angle(v, w)) * normalized(perpendicular(v, w))
+    </pre>
+
+    This gives a closed cross product with correct units of measurement. The magnitude around the norms are needed to
+    cancel the unit from the norms. The unit comes from the normalized(perpendicular(v, w)) term.
+
+    <p>
+        As long as we stay in the dimensionless world it does not matter. We can use this version of the cross product
+        to do physics etc. But as soon as units are added, we need to distinguish closed and non-closed operations.
+
+    <p>
+        We prefer the non-closed cross product. Function perpendicular is given as a closed variant.
+
+</body>
+
+
+</html>
