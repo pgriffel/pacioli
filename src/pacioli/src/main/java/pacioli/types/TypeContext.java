@@ -198,7 +198,7 @@ public class TypeContext implements Printable {
     }
 
     public void asLean(PrintWriter out) {
-        String quant = quantified("Type", typeVars)
+        String quant = leanImplicit("Type", typeVars)
                 + leanImplicit("Nat", indexVars)
         // + quantified("for_unit", unitVars)
         ;
@@ -214,7 +214,7 @@ public class TypeContext implements Printable {
 
     private static String leanImplicit(String quantifier, List<String> names) {
         if (!names.isEmpty()) {
-            return " { " + String.join(" ", names) + " : " + quantifier + " } ";
+            return " {" + String.join(" ", names) + " : " + quantifier + "} ";
         } else {
             return "";
         }

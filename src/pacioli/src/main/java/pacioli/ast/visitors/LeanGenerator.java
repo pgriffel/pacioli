@@ -175,6 +175,10 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                     writeSeparated(node.arguments, " ⊙ ");
                     break;
                 }
+                case "equal": {
+                    writeSeparated(node.arguments, " = ");
+                    break;
+                }
                 // case "norm": {
                 // write("‖");
                 // writeSeparated(node.arguments, "");

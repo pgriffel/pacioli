@@ -166,6 +166,8 @@ public class LeanPrinter implements TypeVisitor {
             out.write(argsText.isEmpty() ? "Unit" : "(" + argsText + ")");
         } else if (type.op().name().equals("Void")) {
             out.write("IO Unit");
+        } else if (type.op().name().equals("Boole")) {
+            out.write("Bool");
         } else {
             type.op().accept(this);
 
