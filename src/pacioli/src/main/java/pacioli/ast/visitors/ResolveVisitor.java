@@ -56,8 +56,11 @@ import pacioli.ast.expression.KeyNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
@@ -743,26 +746,20 @@ public class ResolveVisitor extends IdentityVisitor {
         // Create the node's symbol table
         node.table = new SymbolTable<ValueInfo>(valueTables.peek());
 
-        // Create a symbol info record for each lambda parameter and store it in the
-        // table
-        node.binding.accept(this);
-        assert (node.binding instanceof LetBindingNode);
-        LetBindingNode functionBinding = (LetBindingNode) node.binding;
-        String arg = functionBinding.var;
-
-        ValueInfo info = ValueInfo.builder()
-                .name(arg)
-                .file(file)
-                .isGlobal(false)
-                .isMonomorphic(false)
-                .location(node.location())
-                .isPublic(false)
-                .build();
-
-        // todo: set the definition!!!!!!!
-        // Pacioli.logln("SKIPPING definitions in LetNode resolve!!!!!!!!");
-
-        node.table.put(arg, info);
+        if (node.binding instanceof LetBindingNode binding) {
+            binding.accept(this);
+            node.table.put(binding.var, localValue(binding.var, node.location(), false));
+        } else if (node.binding instanceof LetTupleBindingNode binding) {
+            binding.accept(this);
+            for (IdentifierNode var : binding.vars) {
+                var.setInfo(putLocal(node.table, var.name(), var.location(), false));
+            }
+        } else if (node.binding instanceof LetFunctionBindingNode binding) {
+            node.table.put(binding.name.name(), localValue(binding.name.name(), node.location(), false));
+            binding.table = resolveLambdaBody(binding.args, binding.body);
+        } else {
+            throw new RuntimeException("Unexpected let binding");
+        }
 
         // Push the symboltable on the stack and resolve the body
         valueTables.push(node.table);
@@ -778,12 +775,106 @@ public class ResolveVisitor extends IdentityVisitor {
     @Override
     public void visit(LetTupleBindingNode node) {
         node.value.accept(this);
-        throw new RuntimeException("todo");
     }
 
     @Override
     public void visit(LetFunctionBindingNode node) {
-        throw new PacioliException(node.location(), "obsolete");
+        node.body.accept(this);
+    }
+
+    private ValueInfo localValue(String name, Location location, boolean monomorphic) {
+        return ValueInfo.builder()
+                .name(name)
+                .file(file)
+                .isGlobal(false)
+                .isMonomorphic(monomorphic)
+                .location(location)
+                .isPublic(false)
+                .build();
+    }
+
+    private ValueInfo putLocal(SymbolTable<ValueInfo> table, String name, Location location,
+            boolean monomorphic) {
+        ValueInfo info = localValue(name, location, monomorphic);
+        table.put(name, info);
+        return info;
+    }
+
+    private SymbolTable<ValueInfo> resolveLambdaBody(List<IdentifierNode> arguments, ExpressionNode body) {
+        SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+        for (IdentifierNode argument : arguments) {
+            argument.setInfo(putLocal(table, argument.name(), argument.location(), true));
+        }
+        valueTables.push(table);
+        body.accept(this);
+        valueTables.pop();
+        return table;
+    }
+
+    @Override
+    public void visit(ExponentNode node) {
+        node.base.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        if (node.op != null) {
+            node.op.accept(this);
+        }
+
+        SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+        valueTables.push(table);
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            clause.accept(this);
+        }
+        node.expression.accept(this);
+        valueTables.pop();
+    }
+
+    @Override
+    public void visit(ComprehensionNode.GeneratorClause node) {
+        node.list.accept(this);
+        node.id.setInfo(putLocal(valueTables.peek(), node.id.name(), node.id.location(), true));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.FilterClause node) {
+        node.list.accept(this);
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleGeneratorClause node) {
+        node.list.accept(this);
+        for (IdentifierNode id : node.ids) {
+            id.setInfo(putLocal(valueTables.peek(), id.name(), id.location(), true));
+        }
+    }
+
+    @Override
+    public void visit(ComprehensionNode.AssignmentClause node) {
+        node.value.accept(this);
+        node.id.setInfo(putLocal(valueTables.peek(), node.id.name(), node.id.location(), true));
+    }
+
+    @Override
+    public void visit(ComprehensionNode.TupleAssignmentClause node) {
+        node.value.accept(this);
+        for (IdentifierNode id : node.ids) {
+            id.setInfo(putLocal(valueTables.peek(), id.name(), id.location(), true));
+        }
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+        pushTypeContext(TypeContext.fromQuantNodes(node.quantNodes), node.location());
+        for (QuantNode quantNode : node.quantNodes) {
+            quantNode.accept(this);
+        }
+        node.type.accept(this);
+        for (RecordDefinition.FieldDefinition field : node.fields) {
+            field.type.accept(this);
+        }
+        typeTables.pop();
     }
 
     @Override
