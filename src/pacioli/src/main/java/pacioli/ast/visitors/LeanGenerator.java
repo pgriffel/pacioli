@@ -84,6 +84,9 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     private boolean preferNative;
     private boolean noncomputable;
 
+    String prefix = "";
+    // private String prefix = "lcl_";
+
     public LeanGenerator(Printer printWriter, CompilationSettings settings) {
         super(printWriter);
 
@@ -145,7 +148,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         // Recurse on the AST for the leaner case, recurse on the desugared and resolved
         // body otherwise
-        if (this.desugared) {
+        if (this.desugared || node.body instanceof MatrixLiteralNode) {
             node.body.accept(this);
         } else {
             node.ast.accept(this);
@@ -262,7 +265,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         if (longNames) {
             String full = node.info().isGlobal()
                     ? node.info().globalName()// "Pacioli." + node.name()
-                    : "lcl_" + node.name();
+                    : this.prefix + node.name();
             out.format("%s", full);
         } else {
             String name = node.name();
@@ -312,17 +315,19 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             List<String> quoted = new ArrayList<String>();
             if (node.varArgs) {
                 if (node.arguments.size() == 1) {
-                    quoted.add("...lcl_" + node.arguments.get(0));
+                    quoted.add("..." + this.prefix + node.arguments.get(0));
                 } else {
                     throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
                 }
             } else {
                 for (String arg : node.arguments) {
-                    quoted.add("lcl_" + arg);
+                    quoted.add(this.prefix + arg);
                 }
             }
             String args = String.join(", ", quoted);
-            write("fun args => let (" + args + ") := args; ");
+            write("fun args => ");
+            out.newlineUp();
+            write("let (" + args + ") := args; ");
             out.newline();
             node.expression.accept(this);
         }
@@ -332,7 +337,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(LetNode node) {
         write("let ");
         if (node.binding instanceof LetBindingNode binding) {
-            write(binding.var);
+            write(this.prefix + binding.var);
             write(" := ");
             binding.value.accept(this);
         } else {
@@ -358,9 +363,27 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     @Override
-
     public void visit(MatrixLiteralNode node) {
-        out.write("-- TODO: matrix literal");
+        out.write("make_matrix [");
+        boolean first = true;
+        for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
+            if (!first) {
+                out.write(", ");
+            }
+            first = false;
+            out.write("(");
+            out.write("⟨");
+            out.write(Integer.toString(decl.row));
+            out.write(", by decide⟩");
+            out.write(", ");
+            out.write("⟨");
+            out.write(Integer.toString(decl.column));
+            out.write(", by decide⟩");
+            out.write(", ");
+            out.write(decl.valueDecl.value);
+            out.write(")");
+        }
+        out.write("]");
     }
 
     @Override
@@ -394,6 +417,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(StatementNode node) {
+
         mark();
         Set<String> assignedVariables = new HashSet<>();
         for (IdentifierNode id : node.body.locallyAssignedVariables()) {
@@ -405,25 +429,37 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         for (String id : assignedVariables) {
             if (node.shadowed.contains(id)) {
-                shadowed.add("lcl_" + id);
+                shadowed.add(this.prefix + id);
             } else {
-                nonShadowed.add("lcl_" + id);
+                nonShadowed.add(prefix + id);
             }
         }
 
         write("(fun ");
         write(String.join(" ", shadowed));
         write(" => ");
+        newlineUp();
+        write("Id.run do");
         newline();
 
         for (String id : nonShadowed) {
-            write("let " + id + " := _\n");
+            write("let mut " + id + " := default");
+            newline();
+        }
+
+        for (String id : shadowed) {
+            write("let mut " + id + " := " + id);
+            newline();
         }
 
         node.body.accept(this);
         newline();
 
-        write("");
+        // Close the lambda application
+        write(") (");
+        write(String.join(", ", shadowed));
+        write(")");
+
         unmark();
     }
 
@@ -440,7 +476,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(TupleAssignmentNode node) {
         final List<String> names = new ArrayList<String>();
         for (IdentifierNode id : node.vars) {
-            names.add("lcl_" + id.name());
+            names.add(this.prefix + id.name());
         }
 
         write("(");
@@ -451,20 +487,45 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(WhileNode node) {
-        out.write("while ");
+        mark();
+        format("while ");
         node.test.accept(this);
-        out.write(" do ");
+        write(" do");
+        newlineUp();
         node.body.accept(this);
+        newlineDown();
+        newline();
+        unmark();
     }
 
     @Override
     public void visit(ForNode node) {
-        out.write("-- TODO: for node");
+        mark();
+        out.write("List.map (fun ");
+        node.var.accept(this);
+        out.write(" => ");
+        node.body.accept(this);
+        out.write(") ");
+        node.items.accept(this);
+        unmark();
     }
 
     @Override
     public void visit(ForTupleNode node) {
-        out.write("-- TODO: for-tuple node");
+        mark();
+        out.write("List.map (fun x => ");
+        out.write("let (");
+        for (int i = 0; i < node.vars.size(); i++) {
+            if (i > 0) {
+                out.write(", ");
+            }
+            node.vars.get(i).accept(this);
+        }
+        out.write(") := x; ");
+        node.body.accept(this);
+        out.write(") ");
+        node.items.accept(this);
+        unmark();
     }
 
     // @Override
@@ -489,7 +550,16 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(SetLiteralNode node) {
-        out.write("-- TODO: set literal");
+        out.write("{");
+        boolean first = true;
+        for (Node arg : node.elements) {
+            if (!first) {
+                out.write(", ");
+            }
+            first = false;
+            arg.accept(this);
+        }
+        out.write("}");
     }
 
     @Override
