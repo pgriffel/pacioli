@@ -114,7 +114,7 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
-    boolean printVariableTypes = true;
+    boolean printVariableTypes = false;
 
     public PrintVisitor(Printer printer) {
         out = printer;

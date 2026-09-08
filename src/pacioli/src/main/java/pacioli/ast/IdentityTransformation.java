@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import pacioli.Pacioli;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
@@ -100,6 +101,9 @@ import pacioli.types.ast.TypePredicateNode;
 
 public class IdentityTransformation implements Visitor {
 
+    // Dev tool
+    private static boolean LOG_CALLS = false;
+
     private Stack<Node> stack;
 
     public IdentityTransformation() {
@@ -107,13 +111,13 @@ public class IdentityTransformation implements Visitor {
     }
 
     public Node nodeAccept(Node child) {
-        // Pacioli.logln("accept: %s", child.getClass());
+        Pacioli.logIf(LOG_CALLS, "accept: %s", child.getClass());
         child.accept(this);
         return stack.pop();
     }
 
     public void returnNode(Node value) {
-        // Pacioli.logln("return: %s", value.getClass());
+        Pacioli.logIf(LOG_CALLS, "return: %s", value.getClass());
         stack.push(value);
     }
 
@@ -148,24 +152,26 @@ public class IdentityTransformation implements Visitor {
             assert (node instanceof IncludeNode);
             includes.add((IncludeNode) node);
         }
-        for (IncludeNode def : program.includes()) {
+
+        for (ImportNode def : program.imports()) {
             Node node = nodeAccept(def);
-            assert (node instanceof IncludeNode);
-            includes.add((IncludeNode) node);
+            assert (node instanceof ImportNode);
+            imports.add((ImportNode) node);
         }
+
+        for (ExportNode def : program.exports()) {
+            Node node = nodeAccept(def);
+            assert (node instanceof ExportNode);
+            exports.add((ExportNode) node);
+        }
+
         for (Definition def : program.definitions()) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
-
         }
-        for (Definition def : program.definitions()) {
-            Node node = nodeAccept(def);
-            assert (node instanceof Definition);
-            defs.add((Definition) node);
 
-        }
-        returnNode(new ProgramNode(null, includes, imports, exports, defs));
+        returnNode(new ProgramNode(program.location(), includes, imports, exports, defs));
     }
 
     @Override

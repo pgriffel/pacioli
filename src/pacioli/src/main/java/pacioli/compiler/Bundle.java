@@ -124,7 +124,7 @@ public class Bundle {
             }
 
             // Parse the file
-            Program program = Program.load(current); // .desugar();
+            Program program = Program.load(current).desugar(); // .lower();
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program

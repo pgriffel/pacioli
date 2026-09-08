@@ -127,6 +127,11 @@ public class Program {
         return new Program(this.file, desugared);
     }
 
+    public Program lower() throws PacioliException {
+        ProgramNode desugared = (ProgramNode) this.ast.lower();
+        return new Program(this.file, desugared);
+    }
+
     // -------------------------------------------------------------------------
     // Building symbol tables
     // -------------------------------------------------------------------------
