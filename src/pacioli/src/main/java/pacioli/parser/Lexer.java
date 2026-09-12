@@ -31,6 +31,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 
 
 @SuppressWarnings("fallthrough")
@@ -566,13 +567,13 @@ public class Lexer implements java_cup.runtime.Scanner, sym {
 
   /* user code: */
     StringBuffer string = new StringBuffer();
-    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, File file, String source){
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, PacioliFile file, String source){
 	this(in);
 	symbolFactory = sf;
         this.file = file;
         this.source = source;
     }
-    File file;
+    PacioliFile file;
     String source;
     ComplexSymbolFactory symbolFactory;
 

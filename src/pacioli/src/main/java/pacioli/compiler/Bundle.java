@@ -186,7 +186,7 @@ public class Bundle {
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
-            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location(file.fsFile())));
+            environment.types().put(type, new ParametricInfo(type, true, true, new Location(file)));
         }
         // Makes generating docs crash. Uncomment when nmode experiment continues.
         // ValueInfo nmodeInfo = ValueInfo.builder()
@@ -468,8 +468,8 @@ public class Bundle {
 
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels()) {
-            assert (def.location().file().isPresent());
-            if (def.location().file().get().equals(this.project.file.fsFile())) {
+            assert (def.location().fsFile().isPresent());
+            if (def.location().fsFile().get().equals(this.project.file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
@@ -540,7 +540,7 @@ public class Bundle {
             }
 
             if (showBodies) {
-                Pacioli.println("\n%s\n", info.definition().map(x -> x.prettyTyped()).orElse("null"));
+                Pacioli.println("\n%s\n", info.definition().map(x -> x.lower().prettyTyped()).orElse("null"));
             }
         }
 
@@ -660,8 +660,8 @@ public class Bundle {
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
-                    && info.location().file().isPresent()
-                    && includes.contains(info.location().file().get())) {
+                    && info.location().fsFile().isPresent()
+                    && includes.contains(info.location().fsFile().get())) {
                 PrimitivesDocumentation.addInfo(info, generator);
 
             }
@@ -669,7 +669,7 @@ public class Bundle {
 
         for (String name : environment.types().allNames()) {
             TypeInfo info = environment.types().lookup(name);
-            if (info.location().file().isPresent() && includes.contains(info.location().file().get())
+            if (info.location().fsFile().isPresent() && includes.contains(info.location().fsFile().get())
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),

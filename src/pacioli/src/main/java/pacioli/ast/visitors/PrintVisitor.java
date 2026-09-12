@@ -72,6 +72,7 @@ import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
 import pacioli.ast.sugar.ComprehensionNode.FilterClause;
 import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.Kind;
 import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
 import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
 import pacioli.ast.sugar.ExponentNode;
@@ -995,18 +996,44 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(ComprehensionNode comprehensionNode) {
-        write("TODO: comprehensionNode");
+    public void visit(ComprehensionNode node) {
+
+        // Write the leading op if it exists
+        if (node.hasOperator()) {
+            write(node.operator.id().get().name());
+        }
+
+        write("[ ");
+
+        node.expression.accept(this);
+
+        write(" | ");
+
+        out.writeCommaSeparated(node.clauses, x -> {
+            x.accept(this);
+        });
+
+        write(" ]");
     }
 
     @Override
-    public void visit(GeneratorClause generatorClause) {
-        write("TODO: comprehensionNode");
+    public void visit(GeneratorClause node) {
+        node.id.accept(this);
+
+        String sym = switch (node.kind) {
+            case LIST -> " <- ";
+            case ARRAY -> " in array ";
+            case SET -> " in set ";
+        };
+
+        write(sym);
+
+        node.list.accept(this);
     }
 
     @Override
-    public void visit(FilterClause filterClause) {
-        write("TODO: comprehensionNode");
+    public void visit(FilterClause node) {
+        node.list.accept(this);
     }
 
     @Override
@@ -1015,8 +1042,12 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(AssignmentClause assignmentClause) {
-        write("TODO: comprehensionNode");
+    public void visit(AssignmentClause node) {
+        node.id.accept(this);
+
+        write(" := ");
+
+        node.value.accept(this);
     }
 
     @Override

@@ -53,6 +53,7 @@ import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 import pacioli.ast.*;
 import pacioli.ast.definition.*;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
@@ -67,7 +68,7 @@ import pacioli.types.ast.TypeIdentifierNode.Kind;
 parser code {:
 
     /* The file being parsed. Only needed for location info. */
-    File file;                   
+    PacioliFile file;     
 
     /* Buffer to get syntax error ino from message and location info
        from CUP's syntax_error to CUP's report_fatal_error
@@ -76,19 +77,21 @@ parser code {:
     pacioli.compiler.Location errorLocation;
 
     /* Public interface */
-    public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
-        super(lex,sf);
+    public Parser(Lexer lex, ComplexSymbolFactory sf, PacioliFile file) {
+        super(lex, sf);
         this.file = file;
     }
    
-    public static ProgramNode parseFile(File file, Charset charset) throws Exception {
+    public static ProgramNode parseFile(PacioliFile pacioliFile, Charset charset) throws Exception {
       ProgramNode node;
+
+      File file = pacioliFile.fsFile();
 
       try (var fileReader = new FileReader(file, charset);
           var reader = new BufferedReader(fileReader)) {
         var csf = new ComplexSymbolFactory();
-        var lexer = new Lexer(reader, csf, file, null);
-        var parser = new Parser(lexer, csf, file);
+        var lexer = new Lexer(reader, csf, pacioliFile, null);
+        var parser = new Parser(lexer, csf, pacioliFile);
         node = (ProgramNode) parser.parse().value;
       }
 

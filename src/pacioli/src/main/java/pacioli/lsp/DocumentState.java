@@ -105,8 +105,8 @@ public class DocumentState {
 
         for (Info info : infos) {
             var loc = info.location();
-            if (loc.file().isPresent()) {
-                var uri = loc.file().get().toURI();
+            if (loc.fsFile().isPresent()) {
+                var uri = loc.fsFile().get().toURI();
 
                 var range = new Range(new Position(loc.fromLine, loc.fromColumn),
                         new Position(loc.toLine, loc.toColumn));
@@ -223,8 +223,8 @@ public class DocumentState {
 
             Location loc = entry.location();
 
-            if (loc.file().isPresent() && !loc.isCollapsed()) {
-                var uri = loc.file().get().toURI();
+            if (loc.fsFile().isPresent() && !loc.isCollapsed()) {
+                var uri = loc.fsFile().get().toURI();
 
                 var range = new Range(
                         new Position(loc.fromLine, loc.fromColumn),
@@ -251,8 +251,8 @@ public class DocumentState {
 
             Location loc = entry.location();
 
-            if (loc.file().isPresent() && !loc.isCollapsed()) {
-                var uri = loc.file().get().toURI();
+            if (loc.fsFile().isPresent() && !loc.isCollapsed()) {
+                var uri = loc.fsFile().get().toURI();
 
                 var range = new Range(
                         new Position(loc.fromLine, loc.fromColumn),

@@ -33,6 +33,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import pacioli.compiler.Location;
+import pacioli.compiler.PacioliFile;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Schema;
@@ -48,7 +49,7 @@ public class SchemaTest {
         // Optional.empty(), new OperatorVar("var"), List.of());
         // TypeDefinition def = new TypeDefinition(null, null, null, null)
 
-        ParametricType parametric = new ParametricType(new Location(new File("dummy")),
+        ParametricType parametric = new ParametricType(new Location(PacioliFile.dummy()),
                 // new ParametricInfo("Bar", null, true, new Location()), Optional.empty(),
                 new OperatorVar("dummy"), List.of());
         Schema schema = new Schema(Set.of(new OperatorVar("dummy")), parametric, List.of());

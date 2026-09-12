@@ -25,6 +25,7 @@ package pacioli.ast.sugar;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
@@ -36,6 +37,8 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.ValueInfo;
 
 public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
@@ -44,22 +47,33 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
     }
 
     public final Kind kind;
-    public final IdentifierNode op; // maybe null
+    public final Operator operator;
     public final ExpressionNode expression;
     public final List<Clause> clauses;
 
-    public ComprehensionNode(Kind kind, ExpressionNode e, List<Clause> ps, Location location) {
+    // Set during resolving and used during lowering
+    public SymbolTable<ValueInfo> table = null;
+
+    public ComprehensionNode(Kind kind, Operator op, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
         this.kind = kind;
-        this.op = null;
+        this.operator = op;
         this.expression = e;
         this.clauses = ps;
     }
 
-    public ComprehensionNode(Kind kind, IdentifierNode op, ExpressionNode e, List<Clause> ps, Location location) {
+    public ComprehensionNode(Kind kind, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
         this.kind = kind;
-        this.op = op;
+        this.operator = Operator.none();
+        this.expression = e;
+        this.clauses = ps;
+    }
+
+    public ComprehensionNode(Kind kind, IdentifierNode id, ExpressionNode e, List<Clause> ps, Location location) {
+        super(location);
+        this.kind = kind;
+        this.operator = Operator.fromId(id);
         this.expression = e;
         this.clauses = ps;
     }
@@ -69,6 +83,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         visitor.visit(this);
     }
 
+    // Obsolete. Is now done in the LoweringVisitor
     public ExpressionNode asLambdas() {
         List<Clause> desugared = new ArrayList<>();
         for (Clause clause : this.clauses) {
@@ -80,11 +95,26 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         Node ex = this.expression.desugar();
         assert (ex instanceof ExpressionNode);
 
-        if (this.op == null) {
-            return desugarComprehension(this.kind, this.location(), (ExpressionNode) ex, desugared);
+        if (this.hasOperator()) {
+            return desugarFoldComprehension(this.kind, this.location(), this.operator, (ExpressionNode) ex, desugared,
+                    this.operatorFunction());
         } else {
-            return desugarFoldComprehension(this.kind, this.location(), this.op, (ExpressionNode) ex, desugared);
+            return desugarComprehension(this.kind, this.location(), (ExpressionNode) ex, desugared);
         }
+    }
+
+    public boolean hasOperator() {
+        return this.operator.kind() != Operator.Kind.NONE;
+    }
+
+    public IdentifierNode operatorFunction() {
+        String functionName = switch (this.kind) {
+            case LIST -> this.operator.functionForLists();
+            case SET -> this.operator.functionForSets();
+            case ARRAY -> this.operator.functionForLists();
+        };
+
+        return new IdentifierNode(functionName, this.operator.op.location());
     }
 
     private static int counter = 0;
@@ -111,6 +141,84 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
     public sealed interface Clause extends Node
             permits GeneratorClause, TupleGeneratorClause, FilterClause, AssignmentClause, TupleAssignmentClause {
+    }
+
+    /**
+     * Operator
+     */
+    public static final class Operator {
+        public enum Kind {
+            SUM, COUNT, ALL, SOME, GCD, CONCAT, MIN, MAX, NONE
+        }
+
+        private final IdentifierNode op;
+        private final Kind kind;
+
+        public Operator(IdentifierNode op, Kind kind) {
+            this.op = op;
+            this.kind = kind;
+        }
+
+        public Kind kind() {
+            return this.kind;
+        }
+
+        public Optional<IdentifierNode> id() {
+            return Optional.ofNullable(this.op);
+        }
+
+        public static Operator none() {
+            return new Operator(null, Kind.NONE);
+        }
+
+        public static Operator fromId(IdentifierNode id) {
+            return new Operator(id, kindFromId(id));
+        }
+
+        public String functionForLists() {
+            return switch (this.kind) {
+                case SUM -> "_list_sum";
+                case COUNT -> "_list_count";
+                case ALL -> "_list_all";
+                case SOME -> "_list_some";
+                case GCD -> "_list_gcd";
+                case CONCAT -> "_list_concat";
+                case MIN -> "_list_min";
+                case MAX -> "_list_max";
+                case NONE -> "identity";
+            };
+        }
+
+        public String functionForSets() {
+            return switch (this.kind) {
+                case SUM -> "_set_sum";
+                case COUNT -> "_set_count";
+                case ALL -> "_set_all";
+                case SOME -> "_set_some";
+                case GCD -> "_set_gcd";
+                case CONCAT -> "_set_concat";
+                case MIN -> "_set_min";
+                case MAX -> "_set_max";
+                case NONE -> "identity";
+            };
+        }
+    }
+
+    public static Operator.Kind kindFromId(IdentifierNode id) {
+        return switch (id.name()) {
+            case "sum" -> Operator.Kind.SUM;
+            case "count" -> Operator.Kind.COUNT;
+            case "all" -> Operator.Kind.ALL;
+            case "some" -> Operator.Kind.SOME;
+            case "gcd" -> Operator.Kind.GCD;
+            case "concat" -> Operator.Kind.CONCAT;
+            case "min" -> Operator.Kind.MIN;
+            case "max" -> Operator.Kind.MAX;
+            default -> throw new PacioliException(
+                    id.location(),
+                    "Unknown comprehension operator: %s. Valid operators are sum, count, all, some, gcd, concat, min or max.",
+                    id.name());
+        };
     }
 
     public static final class GeneratorClause extends AbstractNode implements Clause {
@@ -266,49 +374,23 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
     }
 
-    private static ExpressionNode desugarFoldComprehension(ComprehensionNode.Kind kind, pacioli.compiler.Location loc,
-            IdentifierNode op,
-            ExpressionNode e, List<Clause> ps) throws PacioliException {
-        pacioli.compiler.Location eLoc = e.location();
-        pacioli.compiler.Location opLoc = op.location();
-        pacioli.compiler.Location dummyLoc = op.location().collapse();
+    private static ExpressionNode desugarFoldComprehension(
+            ComprehensionNode.Kind kind,
+            Location loc,
+            Operator op,
+            ExpressionNode e,
+            List<Clause> ps,
+            IdentifierNode fun) throws PacioliException {
+
+        pacioli.compiler.Location opLoc = op.id().get().location();
+
         ExpressionNode body = desugarComprehension(kind, loc, e, ps);
-        if (op.name().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "sum"), dummyLoc),
-                    Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "count"), dummyLoc),
-                    Arrays.asList(body), opLoc);
-        } else if (op.name().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "all"), dummyLoc),
-                    Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "some"), dummyLoc),
-                    Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "gcd"), dummyLoc),
-                    Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "concat"), dummyLoc),
-                    Arrays.asList(body), opLoc);
-        } else if (op.name().equals("min")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "min"), dummyLoc),
-                    Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("max")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode(opName(kind, "max"), dummyLoc),
-                    Arrays.asList(body),
-                    opLoc);
-        } else {
-            throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
-        }
+
+        return new ApplicationNode((ExpressionNode) fun, Arrays.asList(body), opLoc);
+
     }
 
-    private static String loopName(ComprehensionNode.Kind kind, String op) {
+    public static String loopName(ComprehensionNode.Kind kind, String op) {
         switch (kind) {
             case LIST:
                 return "loop_list";
@@ -321,7 +403,7 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
-    private static String opName(ComprehensionNode.Kind kind, String op) {
+    public static String opName(ComprehensionNode.Kind kind, String op) {
         if (kind.equals(Kind.LIST)) {
             switch (op) {
                 case "empty":

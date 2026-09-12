@@ -19,10 +19,11 @@ import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.SetLiteralNode;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Location;
+import pacioli.compiler.PacioliFile;
 
 public class LeanPrintVisitorTest {
 
-    private final Location location = new Location(new File("dummy.pacioli"));
+    private final Location location = new Location(PacioliFile.dummy());
 
     @Test
     void printsLeanStyleDefinitionsWithTypePlaceholder() {

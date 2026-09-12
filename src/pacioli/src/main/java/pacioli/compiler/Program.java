@@ -114,7 +114,7 @@ public class Program {
     // -------------------------------------------------------------------------
 
     public static Program load(PacioliFile file) throws Exception {
-        ProgramNode ast = Parser.parseFile(file.fsFile(), Pacioli.CHARSET);
+        ProgramNode ast = Parser.parseFile(file, Pacioli.CHARSET);
         return new Program(file, ast);
     }
 
@@ -182,7 +182,6 @@ public class Program {
             if (definition instanceof ClassDefinition def) {
                 ClassInfo.Builder builder = ClassInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .definition(def)
                         .isGlobal(true)
                         .location(def.location());
@@ -191,14 +190,12 @@ public class Program {
                 AliasInfo.Builder builder = AliasInfo.builder();
                 builder.name(def.name())
                         .definition(def)
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location());
                 putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof IndexSetDefinition def) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .definition(def);
@@ -206,7 +203,6 @@ public class Program {
             } else if (definition instanceof TypeDefinition def) {
                 ParametricInfo.Builder builder = ParametricInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .definition(def);
@@ -214,7 +210,6 @@ public class Program {
             } else if (definition instanceof UnitDefinition def) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .symbol(def.symbol)
@@ -223,7 +218,6 @@ public class Program {
             } else if (definition instanceof UnitVectorDefinition def) {
                 VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .items(def.items)
@@ -241,7 +235,6 @@ public class Program {
                         .name(def.name())
                         .location(def.location())
                         .isMonomorphic(false)
-                        .file(this.file)
                         .isGlobal(true)
                         .declaredType(def)
                         .isPublic(false)
@@ -256,7 +249,7 @@ public class Program {
                 if (builder == null) {
                     throw new PacioliException(def.location(), "No class found for instance %s", def.name());
                 }
-                builder.instance(new InstanceInfo(def, file, genclassInstanceName()));
+                builder.instance(new InstanceInfo(def, genclassInstanceName()));
             } else if (definition instanceof ValueDefinition def) {
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
@@ -271,7 +264,6 @@ public class Program {
                 builder
                         .definition(def)
                         .name(def.name())
-                        .file(this.file)
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .isPublic(false)
@@ -459,7 +451,7 @@ public class Program {
                     Pacioli.log("Resolving index set %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
         }
 
@@ -470,7 +462,7 @@ public class Program {
                     Pacioli.log("Resolving unit %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
         }
 
@@ -482,12 +474,12 @@ public class Program {
                 }
 
                 // Resolve the class definition itself
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
 
                 // Resolve all class instances
                 for (InstanceInfo instanceInfo : classInfo.instances()) {
                     for (ValueEquation member : instanceInfo.definition().get().members) {
-                        member.body.resolve(this.file, prog);
+                        member.body.resolve(prog);
                     }
                 }
             }
@@ -499,13 +491,13 @@ public class Program {
                     Pacioli.log("Resolving type %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
 
             // This would be needed for hover info etc. How is resolving the doc identifier
             // done? It can be a value or a type!
             // if (nfo.generalInfo().documentation().isPresent()) {
-            // nfo.generalInfo().documentation().get().resolve(this.file, prog);
+            // nfo.generalInfo().documentation().get().resolve(prog);
             // }
         }
 
@@ -516,7 +508,7 @@ public class Program {
                     Pacioli.log("Resolving value or function %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
 
             if (nfo.declaration().isPresent()) {
@@ -525,13 +517,13 @@ public class Program {
                     Pacioli.log("Resolving declaration %s", nfo.globalName());
                 }
 
-                nfo.declaration().get().resolve(this.file, prog);
+                nfo.declaration().get().resolve(prog);
             }
 
             // This would be needed for hover info etc. How is resolving the doc identifier
             // done? It can be a value or a type!
             // if (nfo.generalInfo().documentation().isPresent()) {
-            // nfo.generalInfo().documentation().get().resolve(this.file, prog);
+            // nfo.generalInfo().documentation().get().resolve(prog);
             // }
 
         }
@@ -542,7 +534,7 @@ public class Program {
                 Pacioli.log("Resolving toplevel %s", definition.name());
             }
 
-            definition.resolve(this.file, prog);
+            definition.resolve(prog);
         }
 
         prog.popParent();

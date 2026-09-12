@@ -49,8 +49,11 @@ import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
 import pacioli.ast.expression.SetLiteralNode;
+import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
+import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
 import pacioli.ast.expression.MatrixLiteralNode;
@@ -125,6 +128,60 @@ public class TypeInference extends IdentityVisitor {
     private ParametricType newSetType(TypeObject arg) {
         return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Set"), findInfo("Set")),
                 List.of(arg));
+    }
+
+    private ParametricType newArrayType(TypeObject arg) {
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Array"), findInfo("Array")),
+                List.of(arg));
+    }
+
+    private ParametricType newCollectionType(ComprehensionNode.Kind kind, TypeObject element) {
+        switch (kind) {
+            case LIST:
+                return newListType(element);
+            case SET:
+                return newSetType(element);
+            case ARRAY:
+                return newArrayType(element);
+            default:
+                throw new RuntimeException("Unexpected comprehension kind: " + kind);
+        }
+    }
+
+    private ParametricType newCollectionType(ComprehensionNode.GeneratorClause clause, TypeObject element) {
+        return newCollectionType(clause.kind, element);
+    }
+
+    private void addBindingAssumptions(Typing typing, IdentifierNode id, TypeObject type, Location location) {
+        ValueInfo info = id.info();
+        if (info == null) {
+            throw new PacioliException(location, "Unresolved comprehension variable %s", id.name());
+        }
+        if (info.inferredType().isEmpty()) {
+            info.setinferredType(type);
+        }
+        for (TypeVar var : typing.assumptions(id.name())) {
+            typing.addConstraint(var, type,
+                    String.format("Comprehension variable %s must have the proper type", id.name()), location);
+        }
+        typing.addConstraint(info.inferredType().get(), type,
+                String.format("Comprehension variable %s must have the proper type", id.name()), location);
+    }
+
+    private void addTyping(Typing target, Typing source, HashMap<String, TypeObject> localTypes) {
+        target.addConstraints(source);
+        for (String name : source.assumedNames()) {
+            if (localTypes.containsKey(name)) {
+                for (TypeVar var : source.assumptions(name)) {
+                    target.addConstraint(var, localTypes.get(name),
+                            String.format("Comprehension variable %s must have the proper type", name), null);
+                }
+            } else {
+                for (TypeVar var : source.assumptions(name)) {
+                    target.addAssumption(name, var);
+                }
+            }
+        }
     }
 
     public Typing typingAccept(Node node) {
@@ -881,5 +938,91 @@ public class TypeInference extends IdentityVisitor {
         }
 
         returnNode(typing);
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        TypeObject elementType = new TypeVar();
+        TypeObject collectionType = newCollectionType(node.kind, elementType);
+        Typing typing = new Typing(node.hasOperator() ? new TypeVar() : collectionType);
+        HashMap<String, TypeObject> localTypes = new HashMap<>();
+
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            if (clause instanceof ComprehensionNode.GeneratorClause generator) {
+                Typing listTyping = typingAccept(generator.list);
+                addTyping(typing, listTyping, localTypes);
+
+                TypeObject itemType = new TypeVar();
+                TypeObject sourceType = newCollectionType(generator, itemType);
+                typing.addConstraint(sourceType, listTyping.type(),
+                        "The generator source must have the proper collection type", generator.location());
+                addBindingAssumptions(typing, generator.id, itemType, generator.location());
+                localTypes.put(generator.id.name(), itemType);
+            } else if (clause instanceof ComprehensionNode.TupleGeneratorClause generator) {
+                Typing listTyping = typingAccept(generator.list);
+                addTyping(typing, listTyping, localTypes);
+
+                List<TypeObject> itemTypes = new ArrayList<>();
+                for (IdentifierNode id : generator.ids) {
+                    itemTypes.add(new TypeVar());
+                }
+                TypeObject sourceType = newListType(newTupleType(itemTypes));
+                typing.addConstraint(sourceType, listTyping.type(),
+                        "The tuple generator source must have the proper list type", generator.location());
+                for (int i = 0; i < generator.ids.size(); i++) {
+                    addBindingAssumptions(typing, generator.ids.get(i), itemTypes.get(i), generator.location());
+                    localTypes.put(generator.ids.get(i).name(), itemTypes.get(i));
+                }
+            } else if (clause instanceof ComprehensionNode.FilterClause filter) {
+                Typing filterTyping = typingAccept(filter.list);
+                addTyping(typing, filterTyping, localTypes);
+                typing.addConstraint(filterTyping.type(), newBooleType(),
+                        "A comprehension filter must be Boolean", filter.location());
+            } else if (clause instanceof ComprehensionNode.AssignmentClause assignment) {
+                Typing valueTyping = typingAccept(assignment.value);
+                addTyping(typing, valueTyping, localTypes);
+                addBindingAssumptions(typing, assignment.id, valueTyping.type(), assignment.location());
+                localTypes.put(assignment.id.name(), valueTyping.type());
+            } else if (clause instanceof ComprehensionNode.TupleAssignmentClause assignment) {
+                Typing valueTyping = typingAccept(assignment.value);
+                addTyping(typing, valueTyping, localTypes);
+
+                List<TypeObject> itemTypes = new ArrayList<>();
+                for (IdentifierNode id : assignment.ids) {
+                    itemTypes.add(new TypeVar());
+                }
+                typing.addConstraint(newTupleType(itemTypes), valueTyping.type(),
+                        "A tuple assignment in a comprehension must receive a tuple", assignment.location());
+                for (int i = 0; i < assignment.ids.size(); i++) {
+                    addBindingAssumptions(typing, assignment.ids.get(i), itemTypes.get(i), assignment.location());
+                    localTypes.put(assignment.ids.get(i).name(), itemTypes.get(i));
+                }
+            }
+        }
+
+        Typing expressionTyping = typingAccept(node.expression);
+        addTyping(typing, expressionTyping, localTypes);
+        typing.addConstraint(elementType, expressionTyping.type(),
+                "The comprehension expression must have the element type", node.expression.location());
+
+        if (node.hasOperator()) {
+            throw new UnsupportedOperationException("Comprehension op must have been desugared!");
+            // Typing operatorTyping = typingAccept(node.op);
+            // addTyping(typing, operatorTyping, new HashMap<>());
+            // typing.addConstraint(new FunctionType(collectionType, typing.type()),
+            // operatorTyping.type(),
+            // "The comprehension operator must accept the produced collection",
+            // node.op.location());
+        }
+
+        returnNode(typing);
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+        node.type.evalType();
+        for (RecordDefinition.FieldDefinition field : node.fields) {
+            field.type.evalType();
+        }
     }
 }

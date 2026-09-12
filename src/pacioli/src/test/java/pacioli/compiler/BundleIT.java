@@ -98,7 +98,7 @@ class BundleIT {
 
         String usedNames = referencesTable.getValueReferences(name).stream()
                 .map(x -> {
-                    return x.location().file().orElseThrow().getName() + ":" +
+                    return x.location().fsFile().orElseThrow().getName() + ":" +
                             x.location().fromLine;
                 })
                 .collect(Collectors.joining(","));
@@ -128,7 +128,7 @@ class BundleIT {
 
         String usedNames = referencesTable.getTypeReferences(name).stream()
                 .map(x -> {
-                    return x.location().file().orElseThrow().getName() + ":" +
+                    return x.location().fsFile().orElseThrow().getName() + ":" +
                             x.location().fromLine;
                 })
                 .collect(Collectors.joining(","));
@@ -159,7 +159,7 @@ class BundleIT {
 
         String usedNames = referencesTable.getTypeReferences(name).stream()
                 .map(x -> {
-                    return x.location().file().orElseThrow().getName() + ":" +
+                    return x.location().fsFile().orElseThrow().getName() + ":" +
                             x.location().fromLine;
                 })
                 .collect(Collectors.joining(","));

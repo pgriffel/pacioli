@@ -70,7 +70,6 @@ import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
@@ -96,22 +95,18 @@ import pacioli.types.type.matrix.MatrixType;
 
 public class ResolveVisitor extends IdentityVisitor {
 
-    private PacioliFile file;
-
     private Deque<SymbolTable<TypeInfo>> typeTables = new ArrayDeque<>();
     private Deque<SymbolTable<ValueInfo>> valueTables = new ArrayDeque<>();
 
-    private Stack<String> statementResult;
+    private Stack<String> statementResult = new Stack<String>();
 
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
-    public ResolveVisitor(PacioliFile file, PacioliTable env) {
-        statementResult = new Stack<String>();
+    public ResolveVisitor(PacioliTable env) {
         typeTables.push(env.types());
         valueTables.push(env.values());
-        this.file = file;
     }
 
     // -------------------------------------------------------------------------
@@ -218,7 +213,6 @@ public class ResolveVisitor extends IdentityVisitor {
             // TODO: check that definition is left empty is okay
             Builder builder = ValueInfo.builder()
                     .name(arg)
-                    .file(file)
                     .isGlobal(false)
                     .isMonomorphic(true)
                     .location(node.location())
@@ -246,7 +240,6 @@ public class ResolveVisitor extends IdentityVisitor {
             // TODO: check that definition is left empty is okay
             Builder builder = ValueInfo.builder()
                     .name(arg.name())
-                    .file(file)
                     .isGlobal(false)
                     .isMonomorphic(true)
                     .location(node.location())
@@ -274,7 +267,6 @@ public class ResolveVisitor extends IdentityVisitor {
         // TODO: check that definition is left empty is okay
         Builder builder = ValueInfo.builder()
                 .name(arg)
-                .file(file)
                 .isGlobal(false)
                 .isMonomorphic(true)
                 .location(node.location())
@@ -538,7 +530,6 @@ public class ResolveVisitor extends IdentityVisitor {
             if (info == null) { // Equality in the set is not on names. The set does not make sense.
                 info = ValueInfo.builder()
                         .name(id.name())
-                        .file(file)
                         .isGlobal(false)
                         .isMonomorphic(false)
                         .location(id.location())
@@ -568,7 +559,6 @@ public class ResolveVisitor extends IdentityVisitor {
         // Create an info record for the result and put it in the symbol table
         ValueInfo info = ValueInfo.builder()
                 .name(resultName)
-                .file(file)
                 .isGlobal(false)
                 .isMonomorphic(false)
                 .location(node.location())
@@ -653,24 +643,26 @@ public class ResolveVisitor extends IdentityVisitor {
 
     private void pushTypeContext(TypeContext context, Location location) {
 
+        var file = location.file(); // todo: remove file from typevar info
+
         // Create the node's symbol table
         SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>(typeTables.peek());
 
         // Add info records for all variables
         for (String arg : context.typeVars()) {
-            table.put(arg, new TypeVarInfo(arg, file, false, false, location));
+            table.put(arg, new TypeVarInfo(arg, false, false, location));
         }
         for (String arg : context.opVars()) {
-            table.put(arg, new ParametricInfo(arg, file, false, false, location));
+            table.put(arg, new ParametricInfo(arg, false, false, location));
         }
         for (String arg : context.indexVars()) {
-            table.put(arg, new IndexSetInfo(arg, file, false, false, location));
+            table.put(arg, new IndexSetInfo(arg, false, false, location));
         }
         for (String arg : context.unitVars()) {
             if (arg.contains("!")) {
-                table.put(arg, new VectorBaseInfo(arg, file, false, false, location));
+                table.put(arg, new VectorBaseInfo(arg, false, false, location));
             } else {
-                table.put(arg, new ScalarBaseInfo(arg, file, false, false, location, ""));
+                table.put(arg, new ScalarBaseInfo(arg, false, false, location, ""));
             }
 
         }
@@ -783,9 +775,12 @@ public class ResolveVisitor extends IdentityVisitor {
     }
 
     private ValueInfo localValue(String name, Location location, boolean monomorphic) {
+        // if (!location.fsFile().get().equals(this.file.fsFile())) {
+        // throw new RuntimeException(String.format("Ai \n%s \n%s", this.file,
+        // location.fsFile()));
+        // }
         return ValueInfo.builder()
                 .name(name)
-                .file(file)
                 .isGlobal(false)
                 .isMonomorphic(monomorphic)
                 .location(location)
@@ -818,16 +813,23 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(ComprehensionNode node) {
-        if (node.op != null) {
-            node.op.accept(this);
+        if (node.hasOperator()) {
+            throw new UnsupportedOperationException("Comprehension op must have been desugared!");
+            // node.op.accept(this);
         }
 
         SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+        node.table = table;
+        // node.file = this.file;
+
         valueTables.push(table);
+
         for (ComprehensionNode.Clause clause : node.clauses) {
             clause.accept(this);
         }
         node.expression.accept(this);
+
         valueTables.pop();
     }
 
@@ -866,15 +868,17 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(RecordDefinition node) {
-        pushTypeContext(TypeContext.fromQuantNodes(node.quantNodes), node.location());
-        for (QuantNode quantNode : node.quantNodes) {
-            quantNode.accept(this);
-        }
-        node.type.accept(this);
-        for (RecordDefinition.FieldDefinition field : node.fields) {
-            field.type.accept(this);
-        }
-        typeTables.pop();
+        throw new UnsupportedOperationException("RecordDefinition cannot be resolved. It must be desugared.");
+        // pushTypeContext(TypeContext.fromQuantNodes(node.quantNodes),
+        // node.location());
+        // for (QuantNode quantNode : node.quantNodes) {
+        // quantNode.accept(this);
+        // }
+        // node.type.accept(this);
+        // for (RecordDefinition.FieldDefinition field : node.fields) {
+        // field.type.accept(this);
+        // }
+        // typeTables.pop();
     }
 
     @Override

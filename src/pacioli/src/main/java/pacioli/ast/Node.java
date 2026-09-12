@@ -116,8 +116,8 @@ public interface Node extends Printable {
      * @param pacioliTable A table with the available identifiers to match each
      *                     identifiers againts
      */
-    default public void resolve(PacioliFile file, PacioliTable environment) {
-        accept(new ResolveVisitor(file, environment));
+    default public void resolve(PacioliTable environment) {
+        accept(new ResolveVisitor(environment));
     }
 
     /**

@@ -387,7 +387,7 @@ public class Pacioli {
         } else {
             log("Desugaring file '%s'", file);
             Program program = Program.load(file.get());
-            println("%s", program.desugar().lower().ast().pretty());
+            println("%s", program.desugar().ast().pretty());
         }
     }
 

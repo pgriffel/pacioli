@@ -23,6 +23,7 @@
 package pacioli.ast.visitors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import pacioli.ast.Node;
 import pacioli.ast.IdentityTransformation;
@@ -30,8 +31,19 @@ import pacioli.ast.ProgramNode;
 import pacioli.ast.definition.Declaration;
 import pacioli.ast.definition.Definition;
 import pacioli.ast.definition.MultiDeclaration;
+import pacioli.ast.expression.ApplicationNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdListNode;
 import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.LambdaNode;
+import pacioli.ast.expression.LetBindingNode;
+import pacioli.ast.expression.LetNode;
+import pacioli.ast.sugar.ComprehensionNode;
+import pacioli.ast.sugar.ComprehensionNode.Clause;
+import pacioli.ast.sugar.ExponentNode;
+import pacioli.ast.sugar.LetFunctionBindingNode;
+import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
 import pacioli.compiler.PacioliException;
 
 /**
@@ -44,6 +56,9 @@ import pacioli.compiler.PacioliException;
  * See the LoweringVisitor for further simplifications later on.
  */
 public class DesugarVisitor extends IdentityTransformation {
+
+    // Global to capture newly introduced definitions
+    List<Definition> desugared = new ArrayList<>();
 
     @Override
     public void visit(ProgramNode node) {
@@ -60,8 +75,6 @@ public class DesugarVisitor extends IdentityTransformation {
                 noMultis.add(def);
             }
         }
-
-        List<Definition> desugared = new ArrayList<>();
 
         // Desugar the definitions.
         for (Definition def : noMultis) {
@@ -85,6 +98,124 @@ public class DesugarVisitor extends IdentityTransformation {
             throw new RuntimeException("Visit error", new PacioliException(node.location(),
                     "Didn't expect tuple destructuring here. Did you mean tuple(...)? Destructuring a tuple is only possible in a let or comprehension, or by applying a function to the tuple."));
         }
+    }
+
+    @Override
+    public void visit(LetNode node) {
+
+        ExpressionNode desugaredBody = (ExpressionNode) nodeAccept(node.body);
+
+        if (node.binding instanceof LetTupleBindingNode tup) {
+            ExpressionNode fun = new LambdaNode(freshUnderscores(idNames(tup.vars)), desugaredBody, tup.location());
+
+            returnNode(new ApplicationNode(
+                    new IdentifierNode("apply", tup.location().collapse()),
+                    Arrays.asList(fun, expAccept(tup.value)),
+                    tup.location()));
+
+        } else if (node.binding instanceof LetFunctionBindingNode nd) {
+            List<String> eArgs = freshUnderscores(idNames(nd.args)); // remove fresh underscors
+            ExpressionNode eFun = new LambdaNode(eArgs, expAccept(nd.body), nd.location());
+            LetBindingNode bind = new LetBindingNode(nd.location(), nd.name.name(), eFun);
+
+            returnNode(new LetNode(bind, expAccept(node.body), node.location()));
+
+        } else if (node.binding instanceof LetBindingNode bind) {
+            LetBindingNode desugaredBinding = new LetBindingNode(
+                    node.binding.location(),
+                    bind.var,
+                    expAccept(bind.value));
+
+            returnNode(new LetNode(desugaredBinding, desugaredBody, node.location()));
+
+        } else {
+            throw new RuntimeException("Unexpected binding");
+        }
+
+    }
+
+    // Copied from grammar.cup. TODO: solve this at one place
+    private static List<String> freshUnderscores(List<String> names) {
+        List<String> fresh = new ArrayList<String>();
+        for (String name : names) {
+            if (name.equals("_")) {
+                fresh.add(freshUnderscore());
+            } else {
+                fresh.add(name);
+            }
+        }
+        return fresh;
+    }
+
+    private static String freshUnderscore() {
+        return "_" + counter++;
+    }
+
+    private static int counter = 0;
+
+    private static List<String> idNames(List<IdentifierNode> ids) {
+        List<String> names = new ArrayList<String>();
+        for (IdentifierNode id : ids) {
+            names.add(id.name());
+        }
+        return names;
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+
+        for (RecordDefinition.FieldDefinition binding : node.fields) {
+
+            this.desugared.add(node.getterDocumentation(binding));
+            this.desugared.add(node.getterDeclaration(binding));
+            this.desugared.add(node.getterDefinition(binding));
+
+            this.desugared.add(node.setterDocumentation(binding));
+            this.desugared.add(node.setterDeclaration(binding));
+            this.desugared.add(node.setterDefinition(binding));
+        }
+
+        this.desugared.add(node.constructorDocumentation());
+        this.desugared.add(node.constructorDeclaration());
+        this.desugared.add(node.constructorDefinition());
+
+        returnNode(node.typeDefinition());
+
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        // returnNode(node.asLambdas());
+
+        if (node.hasOperator()) {
+            ComprehensionNode comp = (ComprehensionNode) new ComprehensionNode(node.kind, node.expression,
+                    node.clauses, node.location())
+                    .desugar();
+
+            comp.table = node.table;
+
+            var app = new ApplicationNode(
+                    node.operatorFunction(),
+                    // new IdentifierNode(ComprehensionNode.opName(node.kind, node.op.name()),
+                    // node.op.location()),
+                    Arrays.asList((ExpressionNode) comp),
+                    node.location());
+
+            returnNode(app);
+
+        } else {
+            super.visit(node);
+        }
+    }
+
+    // @Override
+    // public void visit(ComprehensionNode node) {
+    // returnNode(node.asLambdas());
+    // }
+
+    @Override
+    public void visit(ExponentNode node) {
+        returnNode(node.asProducts());
     }
 
 }

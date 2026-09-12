@@ -136,7 +136,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(Toplevel node) {
         out.print("print ");
-        node.body.accept(this);
+        node.body.lower().accept(this);
         out.print(";\n");
         out.newline();
     }

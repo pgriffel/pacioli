@@ -644,14 +644,19 @@ public class IdentityTransformation implements Visitor {
 
         ExpressionNode expr = expAccept(node.expression);
 
-        List<ComprehensionNode.Clause> transformed = new ArrayList<>();
+        List<ComprehensionNode.Clause> clauses = new ArrayList<>();
+
         for (ComprehensionNode.Clause clause : node.clauses) {
             Node cl = nodeAccept(clause);
             assert (cl instanceof ComprehensionNode.Clause);
-            transformed.add((ComprehensionNode.Clause) cl);
+            clauses.add((ComprehensionNode.Clause) cl);
         }
 
-        returnNode(new ComprehensionNode(node.kind, expr, transformed, node.location()));
+        var transformed = new ComprehensionNode(node.kind, node.operator, expr, clauses, node.location());
+
+        transformed.table = node.table;
+
+        returnNode(transformed);
     }
 
     @Override

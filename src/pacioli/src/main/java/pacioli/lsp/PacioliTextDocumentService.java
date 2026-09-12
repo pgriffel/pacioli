@@ -327,7 +327,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
                 // the error.
                 Range range = new Range(new Position(0, 0), new Position(10000, 100));
                 var d = new Diagnostic(range, String.format("Error in file %s:%n%n%s",
-                        src.file().orElse(null),
+                        src.fsFile().orElse(null),
                         message));
 
                 errors.add(d);
@@ -354,7 +354,7 @@ public class PacioliTextDocumentService implements TextDocumentService {
 
     private boolean differentFile(Location errorSrc, String vsCodeUri) {
         try {
-            return !errorSrc.file().get().equals(new File(new URI(vsCodeUri)));
+            return !errorSrc.fsFile().get().equals(new File(new URI(vsCodeUri)));
         } catch (Exception e) {
             return false;
         }

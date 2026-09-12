@@ -151,7 +151,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         if (this.desugared || node.body instanceof MatrixLiteralNode) {
             node.body.accept(this);
         } else {
-            node.ast.accept(this);
+            // node.ast.accept(this);
+            node.body.accept(this);
         }
 
         out.newlineDown();
@@ -608,8 +609,13 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     @Override
-    public void visit(AssignmentClause assignmentClause) {
-        write("TODO: AssignmentClause");
+    public void visit(AssignmentClause node) {
+        write("let ");
+        node.id.accept(this);
+
+        write(" := ");
+
+        node.value.accept(this);
     }
 
     @Override

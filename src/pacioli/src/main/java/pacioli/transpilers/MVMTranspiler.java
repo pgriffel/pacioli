@@ -69,7 +69,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
         ValueDefinition def = info.definition().get();
-        def.body.accept(new MVMGenerator(out, settings));
+        def.body.lower().accept(new MVMGenerator(out, settings));
         out.print(";");
         out.newlineDown();
         out.newline();
@@ -88,7 +88,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
         if (definition.isDynamic()) {
             out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.definition().get().name());
-            info.definition().get().body().accept(new MVMGenerator(out, settings));
+            info.definition().get().body().lower().accept(new MVMGenerator(out, settings));
             out.format(";\n");
         } else {
             List<String> quotedItems = new ArrayList<String>();
