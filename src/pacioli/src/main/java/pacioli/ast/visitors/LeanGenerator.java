@@ -605,22 +605,26 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     @Override
-    public void visit(TupleGeneratorClause tupleGeneratorClause) {
-        write("TODO: TupleGeneratorClause");
+    public void visit(TupleGeneratorClause node) {
+        write("for (");
+        out.write(String.join(", ", node.varNames()));
+        write(") in ");
+        node.expression.accept(this);
     }
 
     @Override
     public void visit(AssignmentClause node) {
         write("let ");
         node.id.accept(this);
-
         write(" := ");
-
         node.value.accept(this);
     }
 
     @Override
-    public void visit(TupleAssignmentClause tupleAssignmentClause) {
-        write("TODO: TupleAssignmentClause");
+    public void visit(TupleAssignmentClause node) {
+        out.write("let (");
+        out.write(String.join(", ", node.varNames()));
+        out.write(") := ");
+        node.value.accept(this);
     }
 }

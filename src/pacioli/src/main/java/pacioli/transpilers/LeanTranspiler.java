@@ -99,13 +99,14 @@ public class LeanTranspiler implements SymbolTableVisitor {
             -- Comprehensions
             declare_syntax_cat compClause
             syntax "for " term " in " term : compClause
+            syntax "let " term " := " term : compClause
             syntax "if " term : compClause
-
             syntax "[" term " | " compClause,* "]" : term
 
             macro_rules
             | `([$t:term | ]) => `([$t])
             | `([$t:term | for $x in $xs]) => `(List.map (λ $x => $t) $xs)
+            | `([$t:term | let $x := $e]) => `([(λ $x => $t) $e])
             | `([$t:term | if $x]) => `(if $x then [$t] else [])
             | `([$t:term | $c, $cs,*]) => `(List.flatten [[$t | $cs,*] | $c])
 
