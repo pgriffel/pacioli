@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import pacioli.ast.DefaultVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.AssignmentNode;
@@ -59,12 +60,14 @@ import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.type.matrix.MatrixType;
 
-public class JSGenerator extends PrintVisitor implements CodeGenerator {
+public class JSGenerator extends DefaultVisitor implements CodeGenerator {
+
+    Printer out;
 
     CompilationSettings settings;
 
     public JSGenerator(Printer printWriter, CompilationSettings settings) {
-        super(printWriter);
+        out = printWriter;
         this.settings = settings;
     }
 
@@ -73,7 +76,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ApplicationNode node) {
 
-        mark();
+        out.mark();
 
         if (node.function instanceof IdentifierNode funId && funId.isGlobal()) {
             out.format("Pacioli.%s", funId.info().globalName());
@@ -84,19 +87,19 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         }
 
         out.write("(");
-        newlineUp();
+        out.newlineUp();
         Boolean sep = false;
         for (Node arg : node.arguments) {
             if (sep) {
                 out.write(", ");
-                newline();
+                out.newline();
             } else {
                 sep = true;
             }
             arg.accept(this);
         }
         out.write(")");
-        unmark();
+        out.unmark();
     }
 
     // private String escapeString(String in) {
@@ -169,20 +172,20 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(IfStatementNode node) {
-        mark();
+        out.mark();
         out.write("if (");
         node.test.accept(this);
         out.write(") {");
-        newlineUp();
+        out.newlineUp();
         node.positive.accept(this);
-        newlineDown();
+        out.newlineDown();
         out.write("} else {");
-        newlineUp();
+        out.newlineUp();
         node.negative.accept(this);
-        newlineDown();
+        out.newlineDown();
         out.write("}");
-        newline();
-        unmark();
+        out.newline();
+        out.unmark();
     }
 
     @Override
@@ -222,12 +225,12 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             }
         }
         String args = String.join(", ", quoted);
-        write("function (");
-        write(args);
-        write(") { return ");
+        out.write("function (");
+        out.write(args);
+        out.write(") { return ");
         node.expression.accept(this);
-        write(";");
-        write("}");
+        out.write(";");
+        out.write("}");
     }
 
     @Override
@@ -272,26 +275,26 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ProjectionNode node) {
         assert (node.type != null);
-        write("Pacioli.projectNumbers(");
+        out.write("Pacioli.projectNumbers(");
         node.body.accept(this);
-        write(", ");
+        out.write(", ");
         out.format("%s.param", node.type.compileToJS());
-        write(", ");
+        out.write(", ");
         out.format("[%s]", node.numString());
-        write(")");
+        out.write(")");
     }
 
     @Override
     public void visit(ReturnNode node) {
-        write("return ");
+        out.write("return ");
         node.value.accept(this);
-        write(";");
-        newline();
+        out.write(";");
+        out.newline();
     }
 
     @Override
     public void visit(ReturnVoidNode node) {
-        write("return;");
+        out.write("return;");
     }
 
     @Override
@@ -301,7 +304,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
 
         for (int i = 0; i < n; i++) {
             node.items.get(i).accept(this);
-            newline();
+            out.newline();
 
         }
     }
@@ -309,7 +312,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(StatementNode node) {
 
-        mark();
+        out.mark();
 
         // Find all assigned variables
         Set<String> assignedVariables = new HashSet<>();
@@ -329,27 +332,27 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         }
 
         // A lambda to bind the shadowed variables
-        write("((");
-        write(String.join(", ", shadowed));
-        write(") => {");
-        newline();
+        out.write("((");
+        out.write(String.join(", ", shadowed));
+        out.write(") => {");
+        out.newline();
 
         for (String id : nonShadowed) {
-            write("let " + id);
-            write(";");
-            newline();
+            out.write("let " + id);
+            out.write(";");
+            out.newline();
         }
 
         // The body
         node.body.accept(this);
-        newline();
+        out.newline();
 
         // Close the lambda application
-        write("})(");
-        write(String.join(", ", shadowed));
-        write(")");
+        out.write("})(");
+        out.write(String.join(", ", shadowed));
+        out.write(")");
 
-        unmark();
+        out.unmark();
     }
 
     @Override
@@ -369,42 +372,41 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             names.add("lcl_" + id.name());
         }
 
-        write("[");
-        write(String.join(",", names));
-        write("] = ");
+        out.write("[");
+        out.write(String.join(",", names));
+        out.write("] = ");
         node.tuple.accept(this);
-        write(";");
-        newline();
+        out.write(";");
+        out.newline();
     }
 
     @Override
     public void visit(WhileNode node) {
-        mark();
-        format("while (");
+        out.mark();
+        out.format("while (");
         node.test.accept(this);
-        write(") {");
-        newlineUp();
+        out.write(") {");
+        out.newlineUp();
         node.body.accept(this);
-        newlineDown();
-        write("}");
-        newline();
-        unmark();
+        out.newlineDown();
+        out.write("}");
+        out.newline();
+        out.unmark();
     }
 
     @Override
     public void visit(ForNode node) {
-
-        mark();
-        write("for (let ");
-        write("lcl_" + node.var.name());
-        write(" of ");
+        out.mark();
+        out.write("for (let ");
+        out.write("lcl_" + node.var.name());
+        out.write(" of ");
         node.items.accept(this);
-        write(") {");
-        newlineUp();
+        out.write(") {");
+        out.newlineUp();
         node.body.accept(this);
-        newlineDown();
-        write("}");
-        unmark();
+        out.newlineDown();
+        out.write("}");
+        out.unmark();
 
     }
 
@@ -416,17 +418,17 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
             names.add("lcl_" + id.name());
         }
 
-        mark();
-        write("for(const [");
-        write(String.join(",", names));
-        write("] of ");
+        out.mark();
+        out.write("for(const [");
+        out.write(String.join(",", names));
+        out.write("] of ");
         node.items.accept(this);
-        write(") {");
-        newlineUp();
+        out.write(") {");
+        out.newlineUp();
         node.body.accept(this);
-        newlineDown();
-        write("}");
-        unmark();
+        out.newlineDown();
+        out.write("}");
+        out.unmark();
     }
 
     @Override
@@ -441,7 +443,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (Node arg : node.elements) {
             if (sep) {
                 out.write(", ");
-                newline();
+                out.newline();
             } else {
                 sep = true;
             }
@@ -457,7 +459,7 @@ public class JSGenerator extends PrintVisitor implements CodeGenerator {
         for (Node arg : node.elements) {
             if (sep) {
                 out.write(", ");
-                newline();
+                out.newline();
             } else {
                 sep = true;
             }
