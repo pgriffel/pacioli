@@ -838,18 +838,18 @@ public class ResolveVisitor extends IdentityVisitor {
 
     @Override
     public void visit(ComprehensionNode.GeneratorClause node) {
-        node.list.accept(this);
+        node.expression.accept(this);
         node.id.setInfo(putLocal(valueTables.peek(), node.id.name(), node.id.location(), true));
     }
 
     @Override
     public void visit(ComprehensionNode.FilterClause node) {
-        node.list.accept(this);
+        node.expression.accept(this);
     }
 
     @Override
     public void visit(ComprehensionNode.TupleGeneratorClause node) {
-        node.list.accept(this);
+        node.expression.accept(this);
         for (IdentifierNode id : node.ids) {
             id.setInfo(putLocal(valueTables.peek(), id.name(), id.location(), true));
         }

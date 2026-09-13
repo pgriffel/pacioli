@@ -595,13 +595,13 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         write("for ");
         node.id.accept(this);
         write(" in ");
-        node.list.accept(this);
+        node.expression.accept(this);
     }
 
     @Override
     public void visit(FilterClause node) {
         write("if ");
-        node.list.accept(this);
+        node.expression.accept(this);
     }
 
     @Override

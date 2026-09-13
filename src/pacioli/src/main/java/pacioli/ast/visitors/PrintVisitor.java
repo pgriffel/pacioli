@@ -1028,12 +1028,12 @@ public class PrintVisitor implements Visitor {
 
         write(sym);
 
-        node.list.accept(this);
+        node.expression.accept(this);
     }
 
     @Override
     public void visit(FilterClause node) {
-        node.list.accept(this);
+        node.expression.accept(this);
     }
 
     @Override

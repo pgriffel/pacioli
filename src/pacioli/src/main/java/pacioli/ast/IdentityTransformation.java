@@ -662,14 +662,14 @@ public class IdentityTransformation implements Visitor {
     @Override
     public void visit(GeneratorClause clause) {
         Node id = nodeAccept(clause.id);
-        ExpressionNode cl = expAccept(clause.list);
+        ExpressionNode cl = expAccept(clause.expression);
         assert (id instanceof IdentifierNode);
         returnNode(new ComprehensionNode.GeneratorClause(clause.kind, (IdentifierNode) id, cl, clause.location()));
     }
 
     @Override
     public void visit(ComprehensionNode.FilterClause clause) {
-        ExpressionNode cl = expAccept(clause.list);
+        ExpressionNode cl = expAccept(clause.expression);
         returnNode(new ComprehensionNode.FilterClause(cl, clause.location()));
     }
 
@@ -682,9 +682,9 @@ public class IdentityTransformation implements Visitor {
             assert (tr instanceof IdentifierNode);
             transformed.add((IdentifierNode) tr);
         }
-        ExpressionNode cl = expAccept(clause.list);
+        ExpressionNode cl = expAccept(clause.expression);
 
-        returnNode(new ComprehensionNode.TupleGeneratorClause(transformed, cl, clause.location()));
+        returnNode(new ComprehensionNode.TupleGeneratorClause(clause.kind, transformed, cl, clause.location()));
     }
 
     @Override

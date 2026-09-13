@@ -136,20 +136,18 @@ public class TypeInference extends IdentityVisitor {
     }
 
     private ParametricType newCollectionType(ComprehensionNode.Kind kind, TypeObject element) {
-        switch (kind) {
-            case LIST:
-                return newListType(element);
-            case SET:
-                return newSetType(element);
-            case ARRAY:
-                return newArrayType(element);
-            default:
-                throw new RuntimeException("Unexpected comprehension kind: " + kind);
-        }
+        return switch (kind) {
+            case LIST -> newListType(element);
+            case SET -> newSetType(element);
+        };
     }
 
     private ParametricType newCollectionType(ComprehensionNode.GeneratorClause clause, TypeObject element) {
-        return newCollectionType(clause.kind, element);
+        return switch (clause.kind) {
+            case LIST -> newListType(element);
+            case SET -> newSetType(element);
+            case ARRAY -> newArrayType(element);
+        };
     }
 
     private void addBindingAssumptions(Typing typing, IdentifierNode id, TypeObject type, Location location) {
@@ -949,7 +947,7 @@ public class TypeInference extends IdentityVisitor {
 
         for (ComprehensionNode.Clause clause : node.clauses) {
             if (clause instanceof ComprehensionNode.GeneratorClause generator) {
-                Typing listTyping = typingAccept(generator.list);
+                Typing listTyping = typingAccept(generator.expression);
                 addTyping(typing, listTyping, localTypes);
 
                 TypeObject itemType = new TypeVar();
@@ -959,7 +957,7 @@ public class TypeInference extends IdentityVisitor {
                 addBindingAssumptions(typing, generator.id, itemType, generator.location());
                 localTypes.put(generator.id.name(), itemType);
             } else if (clause instanceof ComprehensionNode.TupleGeneratorClause generator) {
-                Typing listTyping = typingAccept(generator.list);
+                Typing listTyping = typingAccept(generator.expression);
                 addTyping(typing, listTyping, localTypes);
 
                 List<TypeObject> itemTypes = new ArrayList<>();
@@ -974,7 +972,7 @@ public class TypeInference extends IdentityVisitor {
                     localTypes.put(generator.ids.get(i).name(), itemTypes.get(i));
                 }
             } else if (clause instanceof ComprehensionNode.FilterClause filter) {
-                Typing filterTyping = typingAccept(filter.list);
+                Typing filterTyping = typingAccept(filter.expression);
                 addTyping(typing, filterTyping, localTypes);
                 typing.addConstraint(filterTyping.type(), newBooleType(),
                         "A comprehension filter must be Boolean", filter.location());

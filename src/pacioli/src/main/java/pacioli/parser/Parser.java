@@ -4831,12 +4831,12 @@ class CUP$Parser$actions {
 		ExpressionNode g = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location fxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xleft;
 		Location fxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xright;
-		ComprehensionNode.Kind f = (ComprehensionNode.Kind)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		ComprehensionNode.GeneratorKind f = (ComprehensionNode.GeneratorKind)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		  if (g instanceof IdListNode) {
-                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
+                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(f, ((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
                                                             RESULT = new ComprehensionNode.GeneratorClause(f, (IdentifierNode) g, e,  makeLoc(gxleft, exright));
                                                         } else {
@@ -4874,8 +4874,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 176: // from ::= FROM 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.LIST; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.LIST; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4883,8 +4883,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 177: // from ::= FROM_SET 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.SET; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.SET; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4892,8 +4892,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 178: // from ::= FROM_ARRAY 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.ARRAY; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.ARRAY; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4901,8 +4901,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 179: // from ::= FROM_LIST 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.LIST; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.LIST; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

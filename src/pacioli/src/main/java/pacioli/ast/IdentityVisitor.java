@@ -531,12 +531,12 @@ public class IdentityVisitor implements Visitor {
     @Override
     public void visit(ComprehensionNode.GeneratorClause clause) {
         clause.id.accept(this);
-        clause.list.accept(this);
+        clause.expression.accept(this);
     }
 
     @Override
     public void visit(ComprehensionNode.FilterClause clause) {
-        clause.list.accept(this);
+        clause.expression.accept(this);
     }
 
     @Override
@@ -544,7 +544,7 @@ public class IdentityVisitor implements Visitor {
         for (IdentifierNode id : clause.ids) {
             id.accept(this);
         }
-        clause.list.accept(this);
+        clause.expression.accept(this);
     }
 
     @Override

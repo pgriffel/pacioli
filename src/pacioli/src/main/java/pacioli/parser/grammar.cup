@@ -188,42 +188,42 @@ terminal EQL, APPR_EQL, NEQ, EQUIV, LE, GT, LEQ, GTQ, AND, OR, IMPLIES, FOLLOWSF
 terminal String BOOLEAN, NATURAL, DECIMAL, IDENTIFIER, STRING, QUESTIONMARKS, SELECT, QFROM, WHERE, AS;
 
 
-non terminal ProgramNode                     program;
-non terminal List<Node>                      includes;
-non terminal List<Definition>                definitions;
-non terminal Definition                      definition;
-non terminal ExpressionNode                  expr, expr_no_id, if_tail, lettail, letrest, listlit, setlit, comprehension, statement, stm_if_tail;
-non terminal List<ExpressionNode>            exprs, exprlist, statements;
-non terminal IdentifierNode                  id, name;
-non terminal TypeIdentifierNode              typeid, var;
-non terminal List<IdentifierNode>            ids, names, idlist, idlist_tail, exports;
-non terminal List<TypeIdentifierNode>        typeids, vars;
-non terminal UnitNode                        dimnum, unit, unit_term;
-non terminal String                          unsigned, number, integer;
-non terminal StringNode                      path;
-non terminal List<UnitDecl>                  unitvec, unitvec_parts;
-non terminal List<ValueDecl>                 matrix_parts, matrix;
-non terminal TypeNode                        type, type_app, function_type, matrix_type, dim_type;
-non terminal SchemaNode                      schema;
-non terminal List<QuantNode>                 vardecls;
-non terminal List<TypeNode>                  types, typelist;
-non terminal KeyNode                         indexkey;
-non terminal List<ComprehensionNode.Clause>  parts;
-non terminal ComprehensionNode.Clause        part;
-non terminal SequenceNode                    sequence;
-non terminal List<TypePredicateNode>         classcondition, conditions;
-non terminal TypePredicateNode               condition;
-non terminal List<TypeAssertion>             classmembers, typeassertion;
-non terminal List<ValueEquation>             classmemberdefs;
-non terminal ValueEquation                   valueeq;
-non terminal ExpressionNode                  query;
-non terminal DataDefinitionNode.Binding              data_binding;
-non terminal List<DataDefinitionNode.Binding>        data_bindings;
-non terminal RecordDefinition.FieldDefinition        field_definition;
-non terminal List<RecordDefinition.FieldDefinition>  field_definitions;
-non terminal List<ExpressionNode>            select_parts;
-non terminal ComprehensionNode.Kind          from;
-non terminal ForNode.Kind                    from_for;
+non terminal ProgramNode                              program;
+non terminal List<Node>                               includes;
+non terminal List<Definition>                         definitions;
+non terminal Definition                               definition;
+non terminal ExpressionNode                           expr, expr_no_id, if_tail, lettail, letrest, listlit, setlit, comprehension, statement, stm_if_tail;
+non terminal List<ExpressionNode>                     exprs, exprlist, statements;
+non terminal IdentifierNode                           id, name;
+non terminal TypeIdentifierNode                       typeid, var;
+non terminal List<IdentifierNode>                     ids, names, idlist, idlist_tail, exports;
+non terminal List<TypeIdentifierNode>                 typeids, vars;
+non terminal UnitNode                                 dimnum, unit, unit_term;
+non terminal String                                   unsigned, number, integer;
+non terminal StringNode                               path;
+non terminal List<UnitDecl>                           unitvec, unitvec_parts;
+non terminal List<ValueDecl>                          matrix_parts, matrix;
+non terminal TypeNode                                 type, type_app, function_type, matrix_type, dim_type;
+non terminal SchemaNode                               schema;
+non terminal List<QuantNode>                          vardecls;
+non terminal List<TypeNode>                           types, typelist;
+non terminal KeyNode                                  indexkey;
+non terminal List<ComprehensionNode.Clause>           parts;
+non terminal ComprehensionNode.Clause                 part;
+non terminal SequenceNode                             sequence;
+non terminal List<TypePredicateNode>                  classcondition, conditions;
+non terminal TypePredicateNode                        condition;
+non terminal List<TypeAssertion>                      classmembers, typeassertion;
+non terminal List<ValueEquation>                      classmemberdefs;
+non terminal ValueEquation                            valueeq;
+non terminal ExpressionNode                           query;
+non terminal DataDefinitionNode.Binding               data_binding;
+non terminal List<DataDefinitionNode.Binding>         data_bindings;
+non terminal RecordDefinition.FieldDefinition         field_definition;
+non terminal List<RecordDefinition.FieldDefinition>   field_definitions;
+non terminal List<ExpressionNode>                     select_parts;
+non terminal ComprehensionNode.GeneratorKind          from;
+non terminal ForNode.Kind                             from_for;
 
 precedence right        TO;
 precedence nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
@@ -675,7 +675,7 @@ parts ::=
 part ::= 
  | expr:f                                           {: RESULT = new ComprehensionNode.FilterClause(f, makeLoc(fxleft, fxright)); :}
  | expr:g from:f expr:e                               {:  if (g instanceof IdListNode) {
-                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
+                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(f, ((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
                                                             RESULT = new ComprehensionNode.GeneratorClause(f, (IdentifierNode) g, e,  makeLoc(gxleft, exright));
                                                         } else {
@@ -695,10 +695,10 @@ part ::=
  ;
 
 from ::= 
-    FROM                                                {: RESULT = ComprehensionNode.Kind.LIST; :}
- |  FROM_SET                                            {: RESULT = ComprehensionNode.Kind.SET; :}
- |  FROM_ARRAY                                          {: RESULT = ComprehensionNode.Kind.ARRAY; :}
- |  FROM_LIST                                           {: RESULT = ComprehensionNode.Kind.LIST; :}
+    FROM                                                {: RESULT = ComprehensionNode.GeneratorKind.LIST; :}
+ |  FROM_SET                                            {: RESULT = ComprehensionNode.GeneratorKind.SET; :}
+ |  FROM_ARRAY                                          {: RESULT = ComprehensionNode.GeneratorKind.ARRAY; :}
+ |  FROM_LIST                                           {: RESULT = ComprehensionNode.GeneratorKind.LIST; :}
  ;
 
 //------------------------------------------------------------------------------
