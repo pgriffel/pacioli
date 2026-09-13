@@ -815,19 +815,22 @@ public class ResolveVisitor extends IdentityVisitor {
     public void visit(ComprehensionNode node) {
         if (node.hasOperator()) {
             throw new UnsupportedOperationException("Comprehension op must have been desugared!");
-            // node.op.accept(this);
         }
 
-        SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+        var values = new SymbolTable<ValueInfo>(valueTables.peek());
+        var types = new SymbolTable<TypeInfo>(typeTables.peek());
 
-        node.table = table;
-        // node.file = this.file;
+        // Remember the current PacioliTable for lowering later
+        node.table = PacioliTable.initial(values, types);
 
-        valueTables.push(table);
+        valueTables.push(values);
 
+        // Resolve the comprehension clauses
         for (ComprehensionNode.Clause clause : node.clauses) {
             clause.accept(this);
         }
+
+        // Resolve the comprehension expression
         node.expression.accept(this);
 
         valueTables.pop();

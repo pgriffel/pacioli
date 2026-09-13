@@ -50,7 +50,9 @@ import pacioli.ast.sugar.RecordDefinition;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.PacioliFile;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.ValueInfo;
 
 /**
@@ -203,7 +205,7 @@ public class LoweringVisitor extends IdentityTransformation {
     private static IdentifierNode resolvedIdentifier(SymbolTable<ValueInfo> table, String name, Location location) {
         IdentifierNode id = new IdentifierNode(name, location);
 
-        id.info = table.lookup(name);
+        // id.info = table.lookup(name);
 
         return id;
     }
@@ -225,12 +227,12 @@ public class LoweringVisitor extends IdentityTransformation {
                     .isPublic(false)
                     .build();
 
-            table.put(argument, info);
+            // table.put(argument, info);
         }
 
         LambdaNode lambda = new LambdaNode(arguments, body, location);
 
-        lambda.table = table;
+        // lambda.table = table;
 
         return lambda;
     }
@@ -268,9 +270,9 @@ public class LoweringVisitor extends IdentityTransformation {
         ExpressionNode e = node.expression;
         List<Clause> ps = node.clauses;
 
-        ValueInfo loopInfo = node.table.lookup("loop_list");
-        ValueInfo appInfo = node.table.lookup("apply");
-        ValueInfo emptyInfo = node.table.lookup("empty_list");
+        // ValueInfo loopInfo = node.table.lookup("loop_list");
+        // ValueInfo appInfo = node.table.lookup("apply");
+        // ValueInfo emptyInfo = node.table.lookup("empty_list");
 
         String addMutName = ComprehensionNode.opName(kind, "add");
         String accuName = freshName("_c_accu");
@@ -287,12 +289,12 @@ public class LoweringVisitor extends IdentityTransformation {
 
         pacioli.compiler.Location dummyLoc = loc.collapse();
 
-        SymbolTable<ValueInfo> table = lambdaTable(Arrays.asList(accuName), file, dummyLoc, node.table);
+        SymbolTable<ValueInfo> table = lambdaTable(Arrays.asList(accuName), file, dummyLoc, node.table.values());
         // SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(node.table);
 
         // table.put(accuName, inf);
 
-        ExpressionNode addMut = resolvedIdentifier(node.table, addMutName, dummyLoc);
+        ExpressionNode addMut = resolvedIdentifier(node.table.values(), addMutName, dummyLoc);
         ExpressionNode accu = resolvedIdentifier(table, accuName, dummyLoc);
 
         ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), dummyLoc);
@@ -305,19 +307,24 @@ public class LoweringVisitor extends IdentityTransformation {
                 String loopName = ComprehensionNode.loopName(clause.kind, "loop");
                 IdentifierNode loopId = new IdentifierNode(loopName, dummyLoc);
 
-                loopId.info = node.table.lookup(loopName);
+                // loopId.info = node.table.values().lookup(loopName);
 
-                SymbolTable<ValueInfo> gtable = new SymbolTable<ValueInfo>(node.table);
+                // SymbolTable<ValueInfo> gtable = new SymbolTable<ValueInfo>(node.table);
+                // var tab = PacioliTable.initial(node.table, new SymbolTable<TypeInfo>());
+                var lab = new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2);
+
+                // lab.resolve(node.table);
 
                 body = new ApplicationNode(
                         loopId,
                         Arrays.asList(accu,
-                                // new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())),
-                                // body, loc2),
-                                resolvedLambda(file, freshUnderscores(Arrays.asList(accuName, clause.id.name())),
-                                        body, loc2, gtable),
+                                lab,
+                                // resolvedLambda(file, freshUnderscores(Arrays.asList(accuName,
+                                // clause.id.name())), body,
+                                // loc2, gtable),
                                 clause.list),
                         loc2);
+
             } else if (part instanceof TupleGeneratorClause clause) {
                 pacioli.compiler.Location loc2 = clause.list.location();
 
@@ -330,10 +337,11 @@ public class LoweringVisitor extends IdentityTransformation {
                 var restAppTable = lambdaTable(Arrays.asList(accuName, tupName), file, loc2, table);
 
                 // ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
-                ExpressionNode apply = resolvedIdentifier(node.table, "apply", dummyLoc);
+                ExpressionNode apply = resolvedIdentifier(node.table.values(), "apply", dummyLoc);
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2).withTable(restTable);
                 ExpressionNode tup = resolvedIdentifier(restAppTable, tupName, dummyLoc);
-                ExpressionNode loopList = resolvedIdentifier(node.table, ComprehensionNode.loopName(kind, "loop"),
+                ExpressionNode loopList = resolvedIdentifier(node.table.values(),
+                        ComprehensionNode.loopName(kind, "loop"),
                         dummyLoc);
                 ExpressionNode accuId = accu; // new IdentifierNode(accuName, dummyLoc);
                 ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
@@ -367,12 +375,19 @@ public class LoweringVisitor extends IdentityTransformation {
             }
         }
 
+        // body.resolve(node.table);
+
         ExpressionNode lambda = resolvedLambda(file, Arrays.asList(accuName), body, loc, table);
 
         // ExpressionNode lambda = new LambdaNode(Arrays.asList(accuName), body, loc);
-        ExpressionNode emptyListId = resolvedIdentifier(node.table, ComprehensionNode.opName(kind, "empty"), dummyLoc);
+        ExpressionNode emptyListId = resolvedIdentifier(node.table.values(), ComprehensionNode.opName(kind, "empty"),
+                dummyLoc);
         ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
 
-        return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
+        var app = new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
+
+        app.resolve(node.table);
+
+        return app;
     }
 }

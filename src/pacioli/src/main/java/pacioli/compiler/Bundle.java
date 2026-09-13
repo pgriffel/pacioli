@@ -488,7 +488,11 @@ public class Bundle {
                         || settings.target() == Target.LEANEST) {
                     printer.newline();
                     printer.write("#eval ");
-                    def.accept(generator);
+                    if (settings.target() == Target.LEAN) {
+                        def.body.lower().accept(generator);
+                    } else {
+                        def.body.accept(generator);
+                    }
                     printer.newline();
                 }
             }

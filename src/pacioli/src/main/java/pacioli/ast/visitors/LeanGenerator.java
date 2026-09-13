@@ -149,9 +149,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         // Recurse on the AST for the leaner case, recurse on the desugared and resolved
         // body otherwise
         if (this.desugared || node.body instanceof MatrixLiteralNode) {
-            node.body.accept(this);
+            node.body.lower().accept(this);
         } else {
-            // node.ast.accept(this);
             node.body.accept(this);
         }
 
@@ -286,6 +285,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(LambdaNode node) {
+        mark();
         if (!longNames) {
 
             String args;
@@ -309,7 +309,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             out.write(" := args; ");
             newline();
             node.expression.accept(this);
-            newlineDown();
+            // newlineDown();
             // unmark();
         } else {
 
@@ -332,6 +332,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             out.newline();
             node.expression.accept(this);
         }
+        unmark();
     }
 
     @Override

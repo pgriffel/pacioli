@@ -185,33 +185,27 @@ public class DesugarVisitor extends IdentityTransformation {
 
     @Override
     public void visit(ComprehensionNode node) {
+        // Replace the code below by this to completely desugar comprehensions with the
+        // old desugaring code.
         // returnNode(node.asLambdas());
 
         if (node.hasOperator()) {
-            ComprehensionNode comp = (ComprehensionNode) new ComprehensionNode(node.kind, node.expression,
-                    node.clauses, node.location())
-                    .desugar();
+            // Remove the operator
+            var withoutOp = new ComprehensionNode(node.kind, node.expression, node.clauses, node.location());
 
+            // Desugar the remainder
+            var comp = (ComprehensionNode) withoutOp.desugar();
+
+            // Don't forget a possible table
             comp.table = node.table;
 
-            var app = new ApplicationNode(
-                    node.operatorFunction(),
-                    // new IdentifierNode(ComprehensionNode.opName(node.kind, node.op.name()),
-                    // node.op.location()),
-                    Arrays.asList((ExpressionNode) comp),
-                    node.location());
-
-            returnNode(app);
+            // Add a function call that does the equivalent of the operator
+            returnNode(new ApplicationNode(node.operatorFunction(), Arrays.asList(comp), node.location()));
 
         } else {
             super.visit(node);
         }
     }
-
-    // @Override
-    // public void visit(ComprehensionNode node) {
-    // returnNode(node.asLambdas());
-    // }
 
     @Override
     public void visit(ExponentNode node) {

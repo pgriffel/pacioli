@@ -37,8 +37,7 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.symboltable.SymbolTable;
-import pacioli.symboltable.info.ValueInfo;
+import pacioli.symboltable.PacioliTable;
 
 public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
@@ -52,8 +51,11 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
     public final List<Clause> clauses;
 
     // Set during resolving and used during lowering
-    public SymbolTable<ValueInfo> table = null;
+    public PacioliTable table = null;
 
+    /**
+     * Complete constructor
+     */
     public ComprehensionNode(Kind kind, Operator op, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
         this.kind = kind;
@@ -62,6 +64,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         this.clauses = ps;
     }
 
+    /**
+     * Constructor for a comprehension without an operator
+     */
     public ComprehensionNode(Kind kind, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
         this.kind = kind;
@@ -70,6 +75,11 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         this.clauses = ps;
     }
 
+    /**
+     * Constructor for a comprehension with an operator. The operator is derived
+     * from the operation identifier. Throws an error if the operator is not
+     * valid.
+     */
     public ComprehensionNode(Kind kind, IdentifierNode id, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
         this.kind = kind;
@@ -81,6 +91,20 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+    }
+
+    public boolean hasOperator() {
+        return this.operator.kind() != Operator.Kind.NONE;
+    }
+
+    public IdentifierNode operatorFunction() {
+        String functionName = switch (this.kind) {
+            case LIST -> this.operator.functionForLists();
+            case SET -> this.operator.functionForSets();
+            case ARRAY -> this.operator.functionForLists();
+        };
+
+        return new IdentifierNode(functionName, this.operator.op.location());
     }
 
     // Obsolete. Is now done in the LoweringVisitor
@@ -101,46 +125,6 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         } else {
             return desugarComprehension(this.kind, this.location(), (ExpressionNode) ex, desugared);
         }
-    }
-
-    public boolean hasOperator() {
-        return this.operator.kind() != Operator.Kind.NONE;
-    }
-
-    public IdentifierNode operatorFunction() {
-        String functionName = switch (this.kind) {
-            case LIST -> this.operator.functionForLists();
-            case SET -> this.operator.functionForSets();
-            case ARRAY -> this.operator.functionForLists();
-        };
-
-        return new IdentifierNode(functionName, this.operator.op.location());
-    }
-
-    private static int counter = 0;
-
-    private static List<String> freshUnderscores(List<String> names) {
-        List<String> fresh = new ArrayList<String>();
-        for (String name : names) {
-            if (name.equals("_")) {
-                fresh.add(freshUnderscore());
-            } else {
-                fresh.add(name);
-            }
-        }
-        return fresh;
-    }
-
-    private static String freshUnderscore() {
-        return "_" + counter++;
-    }
-
-    private static String freshName(String prefix) {
-        return prefix + counter++;
-    }
-
-    public sealed interface Clause extends Node
-            permits GeneratorClause, TupleGeneratorClause, FilterClause, AssignmentClause, TupleAssignmentClause {
     }
 
     /**
@@ -216,11 +200,25 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             case "max" -> Operator.Kind.MAX;
             default -> throw new PacioliException(
                     id.location(),
-                    "Unknown comprehension operator: %s. Valid operators are sum, count, all, some, gcd, concat, min or max.",
+                    "Comprehension operator '%s' unknown. Valid operators are sum, count, all, some, gcd, concat, min and max.",
                     id.name());
         };
     }
 
+    /**
+     * Clause
+     */
+    public sealed interface Clause extends Node permits
+            GeneratorClause,
+            TupleGeneratorClause,
+            FilterClause,
+            AssignmentClause,
+            TupleAssignmentClause {
+    }
+
+    /**
+     * GeneratorClause
+     */
     public static final class GeneratorClause extends AbstractNode implements Clause {
         public final Kind kind;
         public final IdentifierNode id;
@@ -239,6 +237,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
+    /**
+     * FilterClause
+     */
     public static final class FilterClause extends AbstractNode implements Clause {
         public final ExpressionNode list;
 
@@ -253,6 +254,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
+    /**
+     * TupleGeneratorClause
+     */
     public static final class TupleGeneratorClause extends AbstractNode implements Clause {
         public final List<IdentifierNode> ids;
         public final ExpressionNode list;
@@ -268,6 +272,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
+    /**
+     * AssignmentClause
+     */
     public static final class AssignmentClause extends AbstractNode implements Clause {
         public final IdentifierNode id;
         public final ExpressionNode value;
@@ -283,6 +290,9 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
+    /**
+     * TupleAssignmentClause
+     */
     public static final class TupleAssignmentClause extends AbstractNode implements Clause {
         public final List<IdentifierNode> ids;
         public final ExpressionNode value;
@@ -297,6 +307,8 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             visitor.visit(this);
         }
     }
+
+    // Old desugaring code. Not used anymore. See LoweringVisitor.
 
     private static ExpressionNode desugarComprehension(ComprehensionNode.Kind kind, pacioli.compiler.Location loc,
             ExpressionNode e,
@@ -388,6 +400,28 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
         return new ApplicationNode((ExpressionNode) fun, Arrays.asList(body), opLoc);
 
+    }
+
+    private static int counter = 0;
+
+    private static List<String> freshUnderscores(List<String> names) {
+        List<String> fresh = new ArrayList<String>();
+        for (String name : names) {
+            if (name.equals("_")) {
+                fresh.add(freshUnderscore());
+            } else {
+                fresh.add(name);
+            }
+        }
+        return fresh;
+    }
+
+    private static String freshUnderscore() {
+        return "_" + counter++;
+    }
+
+    private static String freshName(String prefix) {
+        return prefix + counter++;
     }
 
     public static String loopName(ComprehensionNode.Kind kind, String op) {
