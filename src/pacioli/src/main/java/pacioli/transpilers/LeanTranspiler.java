@@ -313,6 +313,23 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             -- Primitives
 
+
+            -- Tmp
+            def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
+                (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
+
+            def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
+                let (A, B) := args
+                fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
+
+            instance {m n k : Nat} : HMul (Mat m k) (Mat k n) (Mat m n) where
+                hMul p s := _base_matrix_mmult (p, s)
+
+            def sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
+                let (x, y) := args
+                x + y
+
+
             def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
                 let (x, y) := args
                 fun i j => (x 1 1) * (y i j)
@@ -358,6 +375,19 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
                         x i j < y i j
+
+            def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j < y i j
+
+            def fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
+                let (f, lst) := args
+                match lst with
+                | [] => default
+                | [x] => x
+                | x :: xs => f (x, fold_list (f, xs))
 
             """;
 
@@ -416,6 +446,11 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     (List.finRange n).all fun j =>
                         x i j < y i j
 
+            noncomputable def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j < y i j
             """;
 
     @Override
