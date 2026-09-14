@@ -113,7 +113,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         } else {
             out.format("def %s := length %s -- TODO: proper Lean length function",
                     node.name(),
-                    node.asLean(settings));
+                    node.body().asLean(settings));
         }
 
         out.newline();
@@ -504,7 +504,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(ForNode node) {
         mark();
         out.write("List.map (fun ");
-        node.var.accept(this);
+        out.write(prefix + node.var.name());
         out.write(" => ");
         node.body.accept(this);
         out.write(") ");
@@ -515,13 +515,13 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ForTupleNode node) {
         mark();
-        out.write("List.map (fun x => ");
+        out.write("TODO: AI crap. List.map (fun x => ");
         out.write("let (");
         for (int i = 0; i < node.vars.size(); i++) {
             if (i > 0) {
                 out.write(", ");
             }
-            node.vars.get(i).accept(this);
+            out.write(node.vars.get(i).name());
         }
         out.write(") := x; ");
         node.body.accept(this);
