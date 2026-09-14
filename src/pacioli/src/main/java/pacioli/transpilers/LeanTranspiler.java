@@ -374,7 +374,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x, y) := args
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
-                        x i j < y i j
+                        x i j > y i j
 
             def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
                 let (x, y) := args
@@ -444,7 +444,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (x, y) := args
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
-                        x i j < y i j
+                        x i j > y i j
 
             noncomputable def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
                 let (x, y) := args
