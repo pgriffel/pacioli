@@ -110,7 +110,7 @@
         The cross product \(\v\times\w\) between vectors \(\v\) and \(\w\) is give by
 
         \[ \v\times\w = \Vert \v \Vert \Vert \w \Vert \sin(\theta)\,\mathbf{n} \]
-    <p> where
+        where
     <ul>
         <li>
             \(\theta\) is the angle between vectors \(\v\) and \(\w\)
@@ -360,21 +360,35 @@
         Gibb's text does only work for dimensionless vectors
 
     <p>
-        We can simply add step
+        As we wrote earlier we can choose to attach the unit to the scalars, or to the unit vectors. Gibb's derivation
+        corresponds
+        with dimensionless base vectors.
+
+    <p>
+        If we want the unit on the base vectors we would need to change the properties. For example
+
+        \( \i \times \j = -\j \times \i = \k\k \) where \( \k\k \) is the element wise product of \( \k \). This squares
+        the unit and yields the correct result.
+
+    <p>
+        Either way, since
         \[
-        \v \times \w =
+        (v_2w_3 - v_3w_2)\mathbf{i} + (v_3w_1 - v_1w_3)\mathbf{j} + (v_1w_2 - v_2w_1)\mathbf{k} =
         \left[ {\begin{array}{c}
         \v_2\w_3 - \v_3\w_2 \\
         \v_3\w_1 - \v_1\w_3 \\
         \v_1\w_2 - \v_2\w_1 \\
         \end{array} } \right]
         \]
+        we get the vectors that was announced in the opening with the correct units.
 
+        Both routes give the correct squared units of measurement.
+        <!-- 
         The alternative (2) is less clear. At first glance it seems to give a vector from the same space.
         This would be a closed cross product.
         A cross product of type \(\text{Vec}\ a \times \text{Vec}\ a \to \text{Vec}\ a \).
         However, this depends on how the units are attached to the coordinates \(v_i\) or the base
-        vectors \(\i\), \(\j\) and \(\k\).
+        vectors \(\i\), \(\j\) and \(\k\). -->
 
     <p>
         If we look at Gibb's definition we can arrive at the correct units. The unit of a vector's norm \(\Vert \v
@@ -403,7 +417,7 @@
 
 
 
-    <h2>Cross Product in Pacioli</h2>
+    <h2>Defining the Cross Product in Pacioli</h2>
 
     <p>
         We define the cross product as follows in Pacioli
