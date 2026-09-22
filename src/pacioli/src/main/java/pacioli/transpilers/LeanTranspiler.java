@@ -291,105 +291,129 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
     private static String PRIMITIVES_LEANER = """
 
-            -- Lean representation of Pacioli's matrix type
-            abbrev Mat (m n : Nat) :=
-                Matrix (Fin m) (Fin n) Float
+             -- Lean representation of Pacioli's matrix type
+             abbrev Mat (m n : Nat) :=
+                 Matrix (Fin m) (Fin n) Float
 
-            -- Constructor for coordinates. Used by generated code.
-            def coord (n : Nat) (i : Fin n) : Fin n := i
+             -- Constructor for coordinates. Used by generated code.
+             def coord (n : Nat) (i : Fin n) : Fin n := i
 
-            -- Allow scalars as one by one matrices
-            instance (x : Nat) : OfNat (Mat 1 1) x where
-                ofNat := fun _ _ => (OfNat.ofNat x : Float)
+             -- Allow scalars as one by one matrices
+             instance (x : Nat) : OfNat (Mat 1 1) x where
+                 ofNat := fun _ _ => (OfNat.ofNat x : Float)
 
-            instance : OfScientific (Mat 1 1) where
-                ofScientific mantissa exponentSign exponent :=
-                    fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
+             instance : OfScientific (Mat 1 1) where
+                 ofScientific mantissa exponentSign exponent :=
+                     fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
 
-            instance : Repr (Matrix (Fin 1) (Fin 1) Float) :=
-            {
-                reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
-            }
+             instance : Repr (Matrix (Fin 1) (Fin 1) Float) :=
+             {
+                 reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
+             }
 
-            -- Primitives
+             -- Primitives
 
 
-            -- Tmp
-            def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
-                (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
+             -- Tmp
+             def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
+                 (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
 
-            def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
-                let (A, B) := args
-                fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
+             def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
+                 let (A, B) := args
+                 fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
 
-            instance {m n k : Nat} : HMul (Mat m k) (Mat k n) (Mat m n) where
-                hMul p s := _base_matrix_mmult (p, s)
+             instance {m n k : Nat} : HMul (Mat m k) (Mat k n) (Mat m n) where
+                 hMul p s := _base_matrix_mmult (p, s)
 
-            def sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
+             def sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
+                 let (x, y) := args
+                 x + y
+
+             def divide {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
+                 let (A, B) := args
+                 fun i j => floatDotProduct (fun x => A i x) (fun x => 1 / B x j)
+
+             instance {m n k : Nat} : HDiv (Mat m k) (Mat k n) (Mat m n) where
+                 hDiv p s := divide (p, s)
+
+             def zip {s t : Type} (args: List s × List t) :=
                 let (x, y) := args
-                x + y
+                List.zip x y
 
-
-            def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
+            def concatenate (args: String × String) :=
                 let (x, y) := args
-                fun i j => (x 1 1) * (y i j)
+                x ++ y
 
-            def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
-                let (x, y) := args
-                fun i j => (x i j) / (y 1 1)
+            def mat11Equiv : Mat 1 1 ≃ Float where
+                 toFun A := A 0 0
+                 invFun x := Matrix.of (fun _ _ => x)
+                 left_inv A := by
+                     ext i j
+                     simp [Fin.eq_zero i, Fin.eq_zero j]
+                 right_inv x := by
+                     rfl
 
-            def neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
-                let (x) := args
-                scale (-1, x)
 
-            def sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
-                let (x) := args
-                fun i j => Float.sqrt (x i j)
+             def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
+                 let (x, y) := args
+                 fun i j => (x 1 1) * (y i j)
 
-            def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
-                let (x) := args
-                x.transpose
+             def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
+                 let (x, y) := args
+                 fun i j => (x i j) / (y 1 1)
 
-            def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
-                fun i j =>
-                    match triples.find? (fun (r, c, _) => r == i && c == j) with
-                    | some (_, _, v) => (v 0) 0
-                    | none => 0
+             def neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+                 let (x) := args
+                 scale (-1, x)
 
-            def tuple {a : Type} (x : a) : a := x
+             def sqrt {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
+                 let (x) := args
+                 fun i j => Float.sqrt (x i j)
 
-            def apply {a b : Type} (args : (a -> b) × a) : b :=
-                let (f, x) := args
-                f x
+             def transpose {m n : Nat} (args : (Mat m n)) : (Mat n m) :=
+                 let (x) := args
+                 x.transpose
 
-            def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
-                let (A, i, j) := args
-                Matrix.of (fun _ _ => (A i j))
+             def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+                 fun i j =>
+                     match triples.find? (fun (r, c, _) => r == i && c == j) with
+                     | some (_, _, v) => (v 0) 0
+                     | none => 0
 
-            def naturals (n : Mat 1 1) : List (Mat 1 1) :=
-                let m : Nat := (n 0 0).toUInt64.toNat
-                (List.finRange m).map fun i : Nat => OfNat.ofNat i
+             def tuple {a : Type} (x : a) : a := x
 
-            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
-                let (x, y) := args
-                (List.finRange m).all fun i =>
-                    (List.finRange n).all fun j =>
-                        x i j > y i j
+             def apply {a b : Type} (args : (a -> b) × a) : b :=
+                 let (f, x) := args
+                 f x
 
-            def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
-                let (x, y) := args
-                (List.finRange m).all fun i =>
-                    (List.finRange n).all fun j =>
-                        x i j < y i j
+             def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
+                 let (A, i, j) := args
+                 Matrix.of (fun _ _ => (A i j))
 
-            def fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
-                let (f, lst) := args
-                match lst with
-                | [] => default
-                | [x] => x
-                | x :: xs => f (x, fold_list (f, xs))
+             def naturals (n : Mat 1 1) : List (Mat 1 1) :=
+                 let m : Nat := (n 0 0).toUInt64.toNat
+                 (List.finRange m).map fun i : Nat => OfNat.ofNat i
 
-            """;
+             def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                 let (x, y) := args
+                 (List.finRange m).all fun i =>
+                     (List.finRange n).all fun j =>
+                         x i j > y i j
+
+             def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                 let (x, y) := args
+                 (List.finRange m).all fun i =>
+                     (List.finRange n).all fun j =>
+                         x i j < y i j
+
+             def fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
+                 let (f, lst) := args
+                 match lst with
+                 | [] => default
+                 | [x] => x
+                 | x :: xs => f (x, fold_list (f, xs))
+
+             """;
 
     private static String PRIMITIVES_LEANEST = """
 
