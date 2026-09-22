@@ -584,10 +584,27 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ComprehensionNode node) {
         write("[ ");
+
         node.expression.accept(this);
+
         write(" | ");
-        writeSeparated(node.clauses, ", ");
+
+        mark();
+
+        boolean first = true;
+
+        for (var clause : node.clauses) {
+            if (!first) {
+                write(", ");
+                newline();
+            }
+            clause.accept(this);
+            first = false;
+        }
+
         write(" ]");
+
+        unmark();
     }
 
     @Override
