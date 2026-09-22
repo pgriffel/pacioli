@@ -661,52 +661,56 @@ public class IdentityTransformation implements Visitor {
 
     @Override
     public void visit(GeneratorClause clause) {
-        Node id = nodeAccept(clause.id);
-        ExpressionNode cl = expAccept(clause.expression);
-        assert (id instanceof IdentifierNode);
-        returnNode(new ComprehensionNode.GeneratorClause(clause.kind, (IdentifierNode) id, cl, clause.location()));
+        IdentifierNode id = (IdentifierNode) nodeAccept(clause.id);
+
+        ExpressionNode expression = expAccept(clause.expression);
+
+        returnNode(clause.transform(id, expression));
     }
 
     @Override
     public void visit(ComprehensionNode.FilterClause clause) {
-        ExpressionNode cl = expAccept(clause.expression);
-        returnNode(new ComprehensionNode.FilterClause(cl, clause.location()));
+        ExpressionNode expression = expAccept(clause.expression);
+
+        returnNode(clause.transform(expression));
     }
 
     @Override
     public void visit(ComprehensionNode.TupleGeneratorClause clause) {
 
-        List<IdentifierNode> transformed = new ArrayList<>();
+        List<IdentifierNode> ids = new ArrayList<>();
+
         for (IdentifierNode id : clause.ids) {
             Node tr = nodeAccept(id);
             assert (tr instanceof IdentifierNode);
-            transformed.add((IdentifierNode) tr);
+            ids.add((IdentifierNode) tr);
         }
-        ExpressionNode cl = expAccept(clause.expression);
 
-        returnNode(new ComprehensionNode.TupleGeneratorClause(clause.kind, transformed, cl, clause.location()));
+        ExpressionNode expression = expAccept(clause.expression);
+
+        returnNode(clause.transform(ids, expression));
     }
 
     @Override
     public void visit(ComprehensionNode.AssignmentClause clause) {
-        Node id = nodeAccept(clause.id);
-        ExpressionNode cl = expAccept(clause.value);
-        assert (id instanceof IdentifierNode);
-        returnNode(new ComprehensionNode.AssignmentClause((IdentifierNode) id, cl, clause.location()));
+        IdentifierNode id = (IdentifierNode) nodeAccept(clause.id);
+
+        ExpressionNode value = expAccept(clause.value);
+
+        returnNode(clause.transform(id, value));
     }
 
     @Override
     public void visit(ComprehensionNode.TupleAssignmentClause clause) {
+        List<IdentifierNode> ids = new ArrayList<>();
 
-        List<IdentifierNode> transformed = new ArrayList<>();
         for (IdentifierNode id : clause.ids) {
-            Node tr = nodeAccept(id);
-            assert (tr instanceof IdentifierNode);
-            transformed.add((IdentifierNode) tr);
+            ids.add((IdentifierNode) nodeAccept(id));
         }
-        ExpressionNode cl = expAccept(clause.value);
 
-        returnNode(new ComprehensionNode.TupleAssignmentClause(transformed, cl, clause.location()));
+        ExpressionNode value = expAccept(clause.value);
+
+        returnNode(clause.transform(ids, value));
     }
 
     @Override

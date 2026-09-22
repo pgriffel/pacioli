@@ -61,6 +61,11 @@ import pacioli.ast.sugar.ExponentNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.sugar.RecordDefinition;
+import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.FilterClause;
+import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
+import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ReturnNode;
@@ -202,6 +207,7 @@ public class ResolveVisitor extends IdentityVisitor {
                 "Resolving class instances is part of type class resolving. This should not be called.");
     }
 
+    @Override
     public void visit(LambdaNode node) {
 
         // Create the node's symbol table
@@ -226,6 +232,7 @@ public class ResolveVisitor extends IdentityVisitor {
         valueTables.pop();
     }
 
+    @Override
     public void visit(ForTupleNode node) {
 
         node.items.accept(this);
@@ -253,6 +260,7 @@ public class ResolveVisitor extends IdentityVisitor {
         valueTables.pop();
     }
 
+    @Override
     public void visit(ForNode node) {
 
         node.items.accept(this);
@@ -294,7 +302,6 @@ public class ResolveVisitor extends IdentityVisitor {
             // Store the record in the identifier
             node.setInfo(info);
         }
-
     }
 
     @Override
@@ -345,30 +352,6 @@ public class ResolveVisitor extends IdentityVisitor {
             } else {
                 throw new PacioliException(node.location(), String.format("Index set '%s' unknown", name));
             }
-        }
-    }
-
-    public MatrixDimension compileTimeMatrixDimension(IndexType dimType) {
-        if (dimType.isVar()) {
-            return null;
-        } else {
-            List<IndexSet> sets = new ArrayList<IndexSet>();
-            for (TypeIdentifier id : dimType.getIndexSets()) {
-                TypeInfo symbolInfo = typeTables.peek().lookup(id.name());
-                if (symbolInfo instanceof IndexSetInfo) {
-                    IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
-                    assert (indexSetInfo != null); // exception throwen
-                    assert (indexSetInfo.definition().isPresent());
-                    if (indexSetInfo.definition().get().isDynamic()) {
-                        // Hack to handle dynamic index sets
-                        return null;
-                    }
-                    sets.add(indexSetInfo.definition().get().indexSet());
-                } else {
-                    throw new RuntimeException(String.format("%s", id.name()));
-                }
-            }
-            return new MatrixDimension(sets);
         }
     }
 
@@ -641,37 +624,6 @@ public class ResolveVisitor extends IdentityVisitor {
         typeTables.pop();
     }
 
-    private void pushTypeContext(TypeContext context, Location location) {
-
-        var file = location.file(); // todo: remove file from typevar info
-
-        // Create the node's symbol table
-        SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>(typeTables.peek());
-
-        // Add info records for all variables
-        for (String arg : context.typeVars()) {
-            table.put(arg, new TypeVarInfo(arg, false, false, location));
-        }
-        for (String arg : context.opVars()) {
-            table.put(arg, new ParametricInfo(arg, false, false, location));
-        }
-        for (String arg : context.indexVars()) {
-            table.put(arg, new IndexSetInfo(arg, false, false, location));
-        }
-        for (String arg : context.unitVars()) {
-            if (arg.contains("!")) {
-                table.put(arg, new VectorBaseInfo(arg, false, false, location));
-            } else {
-                table.put(arg, new ScalarBaseInfo(arg, false, false, location, ""));
-            }
-
-        }
-
-        // Store the table
-        typeTables.push(table);
-
-    }
-
     @Override
     public void visit(TypeApplicationNode node) {
         node.op.accept(this);
@@ -740,14 +692,14 @@ public class ResolveVisitor extends IdentityVisitor {
 
         if (node.binding instanceof LetBindingNode binding) {
             binding.accept(this);
-            node.table.put(binding.var, localValue(binding.var, node.location(), false));
+            node.table.put(binding.var, localValueInfo(binding.var, node.location(), false));
         } else if (node.binding instanceof LetTupleBindingNode binding) {
             binding.accept(this);
             for (IdentifierNode var : binding.vars) {
                 var.setInfo(putLocal(node.table, var.name(), var.location(), false));
             }
         } else if (node.binding instanceof LetFunctionBindingNode binding) {
-            node.table.put(binding.name.name(), localValue(binding.name.name(), node.location(), false));
+            node.table.put(binding.name.name(), localValueInfo(binding.name.name(), node.location(), false));
             binding.table = resolveLambdaBody(binding.args, binding.body);
         } else {
             throw new RuntimeException("Unexpected let binding");
@@ -774,38 +726,6 @@ public class ResolveVisitor extends IdentityVisitor {
         node.body.accept(this);
     }
 
-    private ValueInfo localValue(String name, Location location, boolean monomorphic) {
-        // if (!location.fsFile().get().equals(this.file.fsFile())) {
-        // throw new RuntimeException(String.format("Ai \n%s \n%s", this.file,
-        // location.fsFile()));
-        // }
-        return ValueInfo.builder()
-                .name(name)
-                .isGlobal(false)
-                .isMonomorphic(monomorphic)
-                .location(location)
-                .isPublic(false)
-                .build();
-    }
-
-    private ValueInfo putLocal(SymbolTable<ValueInfo> table, String name, Location location,
-            boolean monomorphic) {
-        ValueInfo info = localValue(name, location, monomorphic);
-        table.put(name, info);
-        return info;
-    }
-
-    private SymbolTable<ValueInfo> resolveLambdaBody(List<IdentifierNode> arguments, ExpressionNode body) {
-        SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
-        for (IdentifierNode argument : arguments) {
-            argument.setInfo(putLocal(table, argument.name(), argument.location(), true));
-        }
-        valueTables.push(table);
-        body.accept(this);
-        valueTables.pop();
-        return table;
-    }
-
     @Override
     public void visit(ExponentNode node) {
         node.base.accept(this);
@@ -823,23 +743,130 @@ public class ResolveVisitor extends IdentityVisitor {
         // Remember the current PacioliTable for lowering later
         node.table = PacioliTable.initial(values, types);
 
-        valueTables.push(values);
+        // valueTables.push(values);
+
+        int pushedTables = 0;
 
         // Resolve the comprehension clauses
         for (ComprehensionNode.Clause clause : node.clauses) {
-            clause.accept(this);
+            // clause.accept(this);
+            if (clause instanceof GeneratorClause generator) {
+                generator.expression.accept(this);
+
+                String name = generator.varName();
+
+                // Create an info for the generator variable
+                ValueInfo info = localValueInfo(name, generator.location(), true);
+
+                // Create a symbol table and add the info
+                generator.table = new SymbolTable<ValueInfo>(valueTables.peek());
+                generator.table.put(name, info);
+
+                // Link the generator variable to the info
+                generator.id.setInfo(info);
+
+                // Resolve the generator expression
+                valueTables.push(generator.table);
+                pushedTables++;
+
+            } else if (clause instanceof TupleGeneratorClause generator) {
+
+                generator.expression.accept(this);
+
+                // Create a symbol table
+                generator.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+                // and add the info
+                for (IdentifierNode id : generator.ids) {
+                    String name = id.name();
+                    // Create an info for the generator variable
+                    ValueInfo info = localValueInfo(name, generator.location(), true);
+
+                    generator.table.put(name, info);
+
+                    // Link the generator variable to the info
+                    id.setInfo(info);
+                }
+
+                // Resolve the generator expression
+                valueTables.push(generator.table);
+                pushedTables++;
+
+            } else if (clause instanceof AssignmentClause assignment) {
+                assignment.value.accept(this);
+
+                String name = assignment.varName();
+
+                // Create an info for the generator variable
+                ValueInfo info = localValueInfo(name, assignment.location(), true);
+
+                // Create a symbol table and add the info
+                assignment.table = new SymbolTable<ValueInfo>(valueTables.peek());
+                assignment.table.put(name, info);
+
+                // Link the generator variable to the info
+                assignment.id.setInfo(info);
+
+                // Resolve the generator expression
+                valueTables.push(assignment.table);
+                pushedTables++;
+
+            } else if (clause instanceof TupleAssignmentClause assignment) {
+                assignment.value.accept(this);
+
+                // Create a symbol table
+                assignment.table = new SymbolTable<ValueInfo>(valueTables.peek());
+
+                // and add the info
+                for (IdentifierNode id : assignment.ids) {
+                    String name = id.name();
+                    // Create an info for the generator variable
+                    ValueInfo info = localValueInfo(name, assignment.location(), true);
+
+                    assignment.table.put(name, info);
+
+                    // Link the generator variable to the info
+                    id.setInfo(info);
+                }
+
+                // Resolve the generator expression
+                valueTables.push(assignment.table);
+                pushedTables++;
+
+            } else if (clause instanceof FilterClause filter) {
+                filter.expression.accept(this);
+            } else {
+                throw new RuntimeException("Unknown comprehension case");
+            }
         }
 
         // Resolve the comprehension expression
         node.expression.accept(this);
 
-        valueTables.pop();
+        for (int i = 0; i < pushedTables; i++) {
+            valueTables.pop();
+        }
+
     }
 
     @Override
     public void visit(ComprehensionNode.GeneratorClause node) {
+        String name = node.varName();
+
+        // Create an info for the generator variable
+        ValueInfo info = localValueInfo(name, node.location(), true);
+
+        // Create a symbol table and add the info
+        node.table = new SymbolTable<ValueInfo>(valueTables.peek());
+        node.table.put(name, info);
+
+        // Link the generator variable to the info
+        node.id.setInfo(info);
+
+        // Resolve the generator expression
+        valueTables.push(node.table);
         node.expression.accept(this);
-        node.id.setInfo(putLocal(valueTables.peek(), node.id.name(), node.id.location(), true));
+        valueTables.pop();
     }
 
     @Override
@@ -899,5 +926,93 @@ public class ResolveVisitor extends IdentityVisitor {
         // expr.accept(this);
         // }
         // node.condition.accept(this);
+    }
+
+    // this is not visitor logic. move to IndexType!?
+    private MatrixDimension compileTimeMatrixDimension(IndexType dimType) {
+        if (dimType.isVar()) {
+            return null;
+        } else {
+            List<IndexSet> sets = new ArrayList<IndexSet>();
+            for (TypeIdentifier id : dimType.getIndexSets()) {
+                TypeInfo symbolInfo = typeTables.peek().lookup(id.name());
+                if (symbolInfo instanceof IndexSetInfo) {
+                    IndexSetInfo indexSetInfo = (IndexSetInfo) symbolInfo;
+                    assert (indexSetInfo != null); // exception throwen
+                    assert (indexSetInfo.definition().isPresent());
+                    if (indexSetInfo.definition().get().isDynamic()) {
+                        // Hack to handle dynamic index sets
+                        return null;
+                    }
+                    sets.add(indexSetInfo.definition().get().indexSet());
+                } else {
+                    throw new RuntimeException(String.format("%s", id.name()));
+                }
+            }
+            return new MatrixDimension(sets);
+        }
+    }
+
+    private void pushTypeContext(TypeContext context, Location location) {
+
+        var file = location.file(); // todo: remove file from typevar info
+
+        // Create the node's symbol table
+        SymbolTable<TypeInfo> table = new SymbolTable<TypeInfo>(typeTables.peek());
+
+        // Add info records for all variables
+        for (String arg : context.typeVars()) {
+            table.put(arg, new TypeVarInfo(arg, false, false, location));
+        }
+        for (String arg : context.opVars()) {
+            table.put(arg, new ParametricInfo(arg, false, false, location));
+        }
+        for (String arg : context.indexVars()) {
+            table.put(arg, new IndexSetInfo(arg, false, false, location));
+        }
+        for (String arg : context.unitVars()) {
+            if (arg.contains("!")) {
+                table.put(arg, new VectorBaseInfo(arg, false, false, location));
+            } else {
+                table.put(arg, new ScalarBaseInfo(arg, false, false, location, ""));
+            }
+
+        }
+
+        // Store the table
+        typeTables.push(table);
+
+    }
+
+    private ValueInfo localValueInfo(String name, Location location, boolean monomorphic) {
+        // if (!location.fsFile().get().equals(this.file.fsFile())) {
+        // throw new RuntimeException(String.format("Ai \n%s \n%s", this.file,
+        // location.fsFile()));
+        // }
+        return ValueInfo.builder()
+                .name(name)
+                .isGlobal(false)
+                .isMonomorphic(monomorphic)
+                .location(location)
+                .isPublic(false)
+                .build();
+    }
+
+    private ValueInfo putLocal(SymbolTable<ValueInfo> table, String name, Location location,
+            boolean monomorphic) {
+        ValueInfo info = localValueInfo(name, location, monomorphic);
+        table.put(name, info);
+        return info;
+    }
+
+    private SymbolTable<ValueInfo> resolveLambdaBody(List<IdentifierNode> arguments, ExpressionNode body) {
+        SymbolTable<ValueInfo> table = new SymbolTable<ValueInfo>(valueTables.peek());
+        for (IdentifierNode argument : arguments) {
+            argument.setInfo(putLocal(table, argument.name(), argument.location(), true));
+        }
+        valueTables.push(table);
+        body.accept(this);
+        valueTables.pop();
+        return table;
     }
 }

@@ -34,6 +34,8 @@ import pacioli.ast.expression.IdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
 import pacioli.symboltable.PacioliTable;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.ValueInfo;
 
 public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
@@ -183,6 +185,8 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         public final IdentifierNode id;
         public final ExpressionNode expression;
 
+        public SymbolTable<ValueInfo> table;
+
         public GeneratorClause(
                 GeneratorKind kind,
                 IdentifierNode id,
@@ -192,6 +196,12 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             this.kind = kind;
             this.id = id;
             this.expression = expression;
+        }
+
+        public GeneratorClause transform(IdentifierNode id, ExpressionNode value) {
+            var clause = new GeneratorClause(this.kind, id, value, this.location());
+            clause.table = this.table;
+            return clause;
         }
 
         @Override
@@ -220,6 +230,10 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             this.expression = expression;
         }
 
+        public FilterClause transform(ExpressionNode expression) {
+            return new FilterClause(expression, this.location());
+        }
+
         @Override
         public void accept(Visitor visitor) {
             visitor.visit(this);
@@ -235,6 +249,8 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         public final List<IdentifierNode> ids;
         public final ExpressionNode expression;
 
+        public SymbolTable<ValueInfo> table;
+
         public TupleGeneratorClause(
                 GeneratorKind kind,
                 List<IdentifierNode> ids,
@@ -244,6 +260,12 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             this.kind = kind;
             this.ids = ids;
             this.expression = expression;
+        }
+
+        public TupleGeneratorClause transform(List<IdentifierNode> ids, ExpressionNode expression) {
+            var clause = new TupleGeneratorClause(this.kind, ids, expression, this.location());
+            clause.table = this.table;
+            return clause;
         }
 
         public void accept(Visitor visitor) {
@@ -273,10 +295,18 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         public final IdentifierNode id;
         public final ExpressionNode value;
 
+        public SymbolTable<ValueInfo> table;
+
         public AssignmentClause(IdentifierNode id, ExpressionNode value, Location loc) {
             super(loc);
             this.id = id;
             this.value = value;
+        }
+
+        public AssignmentClause transform(IdentifierNode id, ExpressionNode value) {
+            var clause = new AssignmentClause(id, value, this.location());
+            clause.table = this.table;
+            return clause;
         }
 
         public void accept(Visitor visitor) {
@@ -296,10 +326,18 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         public final List<IdentifierNode> ids;
         public final ExpressionNode value;
 
+        public SymbolTable<ValueInfo> table;
+
         public TupleAssignmentClause(List<IdentifierNode> ids, ExpressionNode value, Location loc) {
             super(loc);
             this.ids = ids;
             this.value = value;
+        }
+
+        public TupleAssignmentClause transform(List<IdentifierNode> ids, ExpressionNode value) {
+            var clause = new TupleAssignmentClause(ids, value, this.location());
+            clause.table = this.table;
+            return clause;
         }
 
         public void accept(Visitor visitor) {
