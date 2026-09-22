@@ -23,7 +23,6 @@
 package pacioli.ast.visitors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -54,7 +53,6 @@ import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
 import pacioli.ast.sugar.RecordDefinition;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.PacioliFile;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -66,6 +64,7 @@ import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
 import pacioli.ast.expression.ForNode.Kind;
+import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
@@ -84,16 +83,14 @@ import pacioli.types.type.matrix.MatrixType;
 public class TypeInference extends IdentityVisitor {
 
     private Stack<Typing> typingStack = new Stack<Typing>();
-    private HashMap<String, ParametricInfo> defaultTypes;
-    private PacioliFile file;
+    private PacioliTable defaultTypes;
 
-    public TypeInference(HashMap<String, ParametricInfo> defaultTypes, PacioliFile file) {
+    public TypeInference(PacioliTable defaultTypes) {
         this.defaultTypes = defaultTypes;
-        this.file = file;
     }
 
     private ParametricInfo findInfo(String name) {
-        ParametricInfo type = this.defaultTypes.get(name);
+        ParametricInfo type = (ParametricInfo) this.defaultTypes.types().lookup(name);
         if (type == null) {
             throw new RuntimeException("Unknown type: " + name);
         }
@@ -379,7 +376,7 @@ public class TypeInference extends IdentityVisitor {
         if (info.declaredType().isPresent()) {
             returnNode(new Typing(
                     info.declaredType().get().evalType().instantiate()
-                            .reduce(i -> i.isFromFile(this.file))));
+                            .reduce(i -> i.isFromFile(node.location().file()))));
         } else {
             returnNode(new Typing(info.localType().instantiate()));
         }

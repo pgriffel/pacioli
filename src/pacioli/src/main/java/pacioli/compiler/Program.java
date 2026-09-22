@@ -751,7 +751,7 @@ public class Program {
      * Returns the inferred type.
      */
     private TypeObject inferExpressionTypeAndCommit(PacioliTable prog, ExpressionNode expression) {
-        Typing typing = expression.inferTyping(prog, this.file);
+        Typing typing = expression.inferTyping(prog);
 
         Substitution inferenceSolution = typing.solveSubstitution(false);
         TypeObject solvedType = inferenceSolution.apply(typing.type());
@@ -785,7 +785,7 @@ public class Program {
         }
 
         // 1. Infer the body's typing
-        Typing typing = def.body.inferTyping(env, this.file);
+        Typing typing = def.body.inferTyping(env);
 
         if (verbose) {
             Pacioli.log("Inferred typing of %s is %s", info.name(), typing.pretty());
@@ -839,7 +839,7 @@ public class Program {
 
                 TypeObject declaredType = declaredSchema
                         .instantiate()
-                        .reduce(i -> i.isFromFile(this.file));
+                        .reduce(i -> i.location().file().equals(info.location().file()));
 
                 TypeObject instantiatedType = solvedType.generalize().instantiate();
 
@@ -860,7 +860,8 @@ public class Program {
                 // 7.a Get the declared type with the code's variable names. We want to use
                 // these variable names so they match the declared type when showing hover
                 // messages.
-                TypeObject declaredTypeBody = declaredSchema.type().reduce(i -> i.isFromFile(this.file));
+                TypeObject declaredTypeBody = declaredSchema.type()
+                        .reduce(i -> i.location().file().equals(info.location().file()));
 
                 // 7.b Match the inferred type and the declared type.
                 Substitution unifSubs = solvedType.match(declaredTypeBody);
