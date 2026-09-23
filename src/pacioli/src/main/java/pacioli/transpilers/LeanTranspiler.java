@@ -360,7 +360,8 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
              def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
                  let (x, y) := args
-                 fun i j => (x i j) / (y 1 1)
+                 -- fun i j => (x i j) / (y 1 1)
+                 x.map fun i => i / (y 1 1)
 
              def neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                  let (x) := args
