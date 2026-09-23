@@ -108,12 +108,11 @@ public class Bundle {
         return fromProject(Project.fromFile(file, libs));
     }
 
-    // rename to fromProject
     static public Bundle fromProject(Project project) throws Exception {
 
         Pacioli.trace("Loading module '%s'", project.file.moduleName());
 
-        Bundle bundle = new Bundle(project, PacioliTable.empty());
+        Bundle bundle = new Bundle(project, PacioliTable.empty(project.file));
 
         addPrimitiveTypesToEnv(bundle.environment, project.libs);
 
@@ -129,6 +128,7 @@ public class Bundle {
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
             PacioliTable env = bundle.visibleInfos(
+                    current,
                     project.importedModules(current, program.ast()),
                     project.includedModules(current, program.ast()));
 
@@ -216,8 +216,9 @@ public class Bundle {
         return modules;
     }
 
-    public PacioliTable visibleInfos(List<String> importedModules, List<String> includedModules) {
+    public PacioliTable visibleInfos(PacioliFile file, List<String> importedModules, List<String> includedModules) {
         return PacioliTable.initial(
+                file,
                 visibleValueInfos(importedModules, includedModules),
                 visibleTypeInfos(importedModules, includedModules));
     }

@@ -75,6 +75,7 @@ import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.unit.UnitIdentifierNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.PacioliTable;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
@@ -105,6 +106,8 @@ public class ResolveVisitor extends IdentityVisitor {
 
     private Stack<String> statementResult = new Stack<String>();
 
+    private PacioliFile file;
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -112,6 +115,7 @@ public class ResolveVisitor extends IdentityVisitor {
     public ResolveVisitor(PacioliTable env) {
         typeTables.push(env.types());
         valueTables.push(env.values());
+        this.file = env.file();
     }
 
     // -------------------------------------------------------------------------
@@ -741,7 +745,7 @@ public class ResolveVisitor extends IdentityVisitor {
         var types = new SymbolTable<TypeInfo>(typeTables.peek());
 
         // Remember the current PacioliTable for lowering later
-        node.table = PacioliTable.initial(values, types);
+        node.table = PacioliTable.initial(this.file, values, types);
 
         // valueTables.push(values);
 
