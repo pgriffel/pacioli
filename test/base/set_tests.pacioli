@@ -1,0 +1,144 @@
+# Copyright 2026 Paul Griffioen
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import testing;
+# import random;
+# import si;
+# import testdata;
+# import geometry;
+
+declare set_suites :: List(TestSuite);
+
+define set_suites = [
+    set_equal_tests,
+    set_size_tests,
+    set_as_list_tests,
+    set_as_set_tests,
+    set_union_tests,
+    set_set_contains_tests
+];
+
+run_test_suites(set_suites); 
+
+# ------------------------------------------------------------------------------
+# General
+# ------------------------------------------------------------------------------
+
+# define is_upper_trianular(A) = 
+#     all[ get_num(A, i, j) = 0 |
+#         i <- row_domain(A),
+#         j <- column_domain(A),
+#         index_less(j, i)];
+
+# define is_lower_trianular(A) = 
+#     all[ get_num(A, i, j) = 0 |
+#         i <- row_domain(A),
+#         j <- column_domain(A),
+#         index_less(i, j)];
+
+
+# declare is_js :: Boole;
+
+# define is_js =
+#     _runtime_environment = "javascript";
+
+# ------------------------------------------------------------------------------
+# Sets
+# ------------------------------------------------------------------------------
+
+define set_equal_tests = test_suite("Set equal", [
+    test("should be true for equal sets", () ->
+        {1,2,3} = {1,2,3}),
+
+    test("should ignore order", () ->
+        {1,2,3} = {3,2,1}),
+
+    test("should ignore duplicates", () ->
+        {1,2,3,3,2,1} = {3,2,1}),
+
+    test("should ignore duplicates for nested sets", () ->
+        {{1,1,1}, {}, {2,3,3}, {2,1,2,1}} = {{}, {1}, {1,2}, {2,3}})
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_size_tests = test_suite("Set size", [
+    test("should be zero for the empty set", () ->
+        set_size({}) = 0),
+
+    test("should give 3 for {1,2,3}", () ->
+        set_size({1,2,3}) = 3),
+
+    test("should ignore duplicates", () ->
+        set_size({1,2,3,3,2,1}) = 3)
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_as_list_tests = test_suite("Set as_list", [
+    test("should be the empty list for the empty set", () ->
+        as_list({}) = []),
+
+    test("should give [1,2] or [2,1] for {1,2,1,2}", () ->
+        contains([[1,2], [2,1]], as_list({1,2,1,2}))),
+
+    test("should give [{1,2}] for {{1,2,1,2}}", () ->
+        [{1,2}] = as_list({{1,2,1,2}}))
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_as_set_tests = test_suite("Set as_set", [
+    test("should be the empty list for the empty set", () ->
+        as_set([]) = {}),
+
+    test("should give all elements", () ->
+        {1,2,3} = as_set([1,2,3])),
+
+    test("should remove duplicates", () ->
+        {1,2,3} = as_set([1,2,3,1,2,3]))
+]);
+
+# ------------------------------------------------------------------------------
+
+define set_union_tests = test_suite("Set union", [
+    test("should be the empty set for two empty et sets", () ->
+        union({}, {}) = {}),
+
+    test("should give all elements", () ->
+        union({1,2,3}, {4,5,6}) = {1,2,3,4,5,6}),
+
+    test("should remove duplicates", () ->
+        union({1,2,3}, {2,3,4,5}) = {1,2,3,4,5})
+]);
+
+
+# ------------------------------------------------------------------------------
+
+define set_set_contains_tests = test_suite("Set set_contains", [
+    test("should be true for {1,2,3} and 2", () ->
+        set_contains({1,2,3}, 2) = true),
+
+    test("should be true for {1,2,3} and 4", () ->
+        set_contains({1,2,3}, 4) = false),
+
+    test("should work for nested sets", () ->
+        set_contains({{1},{2},{3}}, {2,2}) = true)
+]);

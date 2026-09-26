@@ -27,6 +27,7 @@ import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 
 %%
 %public
@@ -39,13 +40,13 @@ import pacioli.compiler.PacioliException;
 
 %{
     StringBuffer string = new StringBuffer();
-    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, File file, String source){
+    public Lexer(java.io.Reader in, ComplexSymbolFactory sf, PacioliFile file, String source){
 	this(in);
 	symbolFactory = sf;
         this.file = file;
         this.source = source;
     }
-    File file;
+    PacioliFile file;
     String source;
     ComplexSymbolFactory symbolFactory;
 
@@ -132,7 +133,6 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "defdata"         { return symbol("defdata",DEFDATA); }
   "defrecord"       { return symbol("defrecord",DEFRECORD); }
   "doc"             { return symbol("doc",DOC); }
-  "public"          { return symbol("public", PUBLIC); }
   "export"          { return symbol("export", EXPORT); }
   "for_type"        { return symbol("for_type",FORTYPE); }
   "for_index"       { return symbol("for_index",FORINDEX); }
@@ -163,6 +163,9 @@ EndOfLineComment     = "#" {InputCharacter}* {LineTerminator}?
   "["               { return symbol("{",LBRACK); }
   "]"               { return symbol("}",RBRACK); }
   "|"               { return symbol("|",PIPE); }
+  "in list"         { return symbol("in list",FROM_LIST); }
+  "in set"          { return symbol("in set",FROM_SET); }
+  "in array"        { return symbol("in set",FROM_ARRAY); }
   "<-"              { return symbol("<-",FROM); }
   "@"               { return symbol("@", AT); }
 

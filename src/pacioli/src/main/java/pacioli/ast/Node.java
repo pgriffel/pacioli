@@ -26,7 +26,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import pacioli.ast.visitors.AllIdentifiersVisitor;
@@ -35,7 +34,9 @@ import pacioli.ast.visitors.CountNodes;
 import pacioli.ast.visitors.DesugarVisitor;
 import pacioli.ast.visitors.HideIdentifiersVisitor;
 import pacioli.ast.visitors.JSGenerator;
+import pacioli.ast.visitors.LeanGenerator;
 import pacioli.ast.visitors.LiftStatements;
+import pacioli.ast.visitors.LoweringVisitor;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PrintVisitor;
@@ -43,6 +44,7 @@ import pacioli.ast.visitors.ReferencesVisitor;
 import pacioli.ast.visitors.ResolveVisitor;
 import pacioli.ast.visitors.RewriteOverloads;
 import pacioli.ast.visitors.UsesVisitor;
+import pacioli.compiler.ReferencesTable;
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliFile;
@@ -67,6 +69,16 @@ public interface Node extends Printable {
         this.accept(new PrintVisitor(new Printer(out)));
     };
 
+    default public String prettyTyped() {
+        StringWriter out = new StringWriter();
+        printPrettyTyped(new PrintWriter(out));
+        return out.toString();
+    }
+
+    default public void printPrettyTyped(PrintWriter out) {
+        this.accept(new PrintVisitor(new Printer(out), true));
+    };
+
     /**
      * Desugars a node by calling the DesugarVisitor.
      * 
@@ -74,6 +86,15 @@ public interface Node extends Printable {
      */
     default public Node desugar() {
         return new DesugarVisitor().nodeAccept(this);
+    }
+
+    /**
+     * Desugars a node further by calling the LoweringVisitor.
+     * 
+     * @return A copy of node with all remaining syntactice sugar replaced
+     */
+    default public Node lower() {
+        return new LoweringVisitor().nodeAccept(this);
     }
 
     default public Node hideIdentifiers() {
@@ -95,23 +116,9 @@ public interface Node extends Printable {
      * @param pacioliTable A table with the available identifiers to match each
      *                     identifiers againts
      */
-    default public void resolve(PacioliFile file, PacioliTable environment) {
-        accept(new ResolveVisitor(file, environment));
+    default public void resolve(PacioliTable environment) {
+        accept(new ResolveVisitor(environment));
     }
-
-    /**
-     * For all nodes that refer to something (mainly identifier nodes) this gives
-     * the info of the node it refers to.
-     * 
-     * Only available after resolving.
-     * 
-     * Empty for nodes that are not a referencing node.
-     * 
-     * @return Info of the referenced node.
-     */
-    default public Optional<Info> getInfo() {
-        return Optional.empty();
-    };
 
     /**
      * All used identifiers. Calls the UsesVisitor. Returns the info for each
@@ -131,7 +138,7 @@ public interface Node extends Printable {
      * 
      * @return All referencing nodes
      */
-    default public List<Node> references() {
+    default public List<ReferencesTable.Entry> references() {
         return new ReferencesVisitor().idsAccept(this);
     }
 
@@ -156,6 +163,16 @@ public interface Node extends Printable {
 
     default public void compileToJS(Printer writer, CompilationSettings settings) {
         this.accept(new JSGenerator(writer, settings));
+    }
+
+    default public void compileToLean(Printer writer, CompilationSettings settings) {
+        this.accept(new LeanGenerator(writer, settings));
+    }
+
+    default public String asLean(CompilationSettings settings) {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new LeanGenerator(new Printer(new PrintWriter(outputStream)), settings));
+        return outputStream.toString();
     }
 
     default public String compileToMATLAB(CompilationSettings settings) {

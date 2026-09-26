@@ -23,6 +23,8 @@ import random;
 
 run_test_suites(random_sampling_suites);
 
+declare random_sampling_suites :: List(TestSuite);
+
 define random_sampling_suites = [
     shuffle_suite
 ];

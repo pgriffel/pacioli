@@ -27,44 +27,46 @@ import java.util.List;
 import java.util.Stack;
 
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Quant;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.UnitVar;
 import pacioli.types.type.Var;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorBase;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
 public class SimplificationParts implements TypeVisitor {
 
-    private Stack<List<Unit<TypeBase>>> nodeStack = new Stack<List<Unit<TypeBase>>>();
+    private Stack<List<Unit<MatrixBase>>> nodeStack = new Stack<List<Unit<MatrixBase>>>();
 
-    public List<Unit<TypeBase>> partsAccept(TypeObject child) {
+    public List<Unit<MatrixBase>> partsAccept(TypeObject child) {
         // Pacioli.logln("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
     }
 
-    public void returnParts(List<Unit<TypeBase>> value) {
+    public void returnParts(List<Unit<MatrixBase>> value) {
         // Pacioli.logln("return: %s", value.getClass());
         nodeStack.push(value);
     }
 
     @Override
     public void visit(FunctionType type) {
-        List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
+        List<Unit<MatrixBase>> all = new ArrayList<Unit<MatrixBase>>();
         all.addAll(partsAccept(type.domain()));
         all.addAll(partsAccept(type.range()));
         returnParts(all);
@@ -72,21 +74,20 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        List<Unit<TypeBase>> freeVars2 = new ArrayList<>();
-        // List<Var> freeVars = new ArrayList<>(type.type.typeVars());
+        List<Unit<MatrixBase>> unitVars = new ArrayList<>();
+
         for (Var var : type.type().typeVars()) {
-            UnitVar unitVar = (UnitVar) var;
-            if (!type.variables().contains(unitVar)) {
-                freeVars2.add(unitVar);
+            if (var instanceof UnitVar unitVar && !type.variables().contains(unitVar)) {
+                unitVars.add(Unit.from(unitVar));
             }
         }
-        // freeVars.removeAll(type.variables);
-        returnParts(freeVars2);
+
+        returnParts(unitVars);
     }
 
     @Override
     public void visit(IndexList type) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override
@@ -96,22 +97,22 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(MatrixType type) {
-        List<Unit<TypeBase>> parts = new ArrayList<Unit<TypeBase>>();
-        parts.add(type.factor());
+        List<Unit<MatrixBase>> parts = new ArrayList<Unit<MatrixBase>>();
+        parts.add(type.factor().map(x -> (ScalarBase) x));
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
-            parts.add(type.rowUnit());
+            parts.add(type.rowUnit().map(x -> (VectorBase) x));
         }
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
-            parts.add(type.columnUnit());
+            parts.add(type.columnUnit().map(x -> (VectorBase) x));
         }
         returnParts(parts);
     }
 
-    public static List<Unit<TypeBase>> unitVars(Unit<TypeBase> unit) {
-        List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
-        for (TypeBase base : unit.bases()) {
-            if (base instanceof UnitVar) {
-                all.add((UnitVar) base);
+    public static List<Unit<MatrixBase>> unitVars(Unit<MatrixBase> unit) {
+        List<Unit<MatrixBase>> all = new ArrayList<Unit<MatrixBase>>();
+        for (MatrixBase base : unit.bases()) {
+            if (base instanceof UnitVar var) {
+                all.add(Unit.from(var));
             }
         }
         return all;
@@ -119,12 +120,12 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(IndexSetVar type) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override
     public void visit(ParametricType type) {
-        List<Unit<TypeBase>> all = new ArrayList<Unit<TypeBase>>();
+        List<Unit<MatrixBase>> all = new ArrayList<Unit<MatrixBase>>();
         for (TypeObject arg : type.args()) {
             all.addAll(partsAccept(arg));
         }
@@ -133,27 +134,27 @@ public class SimplificationParts implements TypeVisitor {
 
     @Override
     public void visit(ScalarUnitVar type) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override
     public void visit(TypeVar type) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override
     public void visit(VectorUnitVar type) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override
     public void visit(OperatorConst operatorConst) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override
     public void visit(OperatorVar operatorVar) {
-        returnParts(new ArrayList<Unit<TypeBase>>());
+        returnParts(new ArrayList<Unit<MatrixBase>>());
     }
 
     @Override

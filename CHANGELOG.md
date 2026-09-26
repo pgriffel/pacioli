@@ -1,6 +1,15 @@
 # Changelog
 
-## [0.6.2] ?
+## [0.6.3] ?
+
+- Experimental translation to Lean
+- Added sets and the Set type
+- Improved types for local variables in vs-code hover.
+- Added BigNum
+
+### Changed
+
+## [0.6.2] 2026-05-23
 
 ### Changed
 

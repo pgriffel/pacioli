@@ -27,7 +27,6 @@ import java.util.Optional;
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
-import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.UnitInfo;
 import pacioli.types.ast.TypeIdentifierNode;
 
@@ -61,10 +60,5 @@ public class UnitIdentifierNode extends AbstractNode implements UnitNode {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
-    }
-
-    @Override
-    public Optional<Info> getInfo() {
-        return Optional.of(info);
     }
 }

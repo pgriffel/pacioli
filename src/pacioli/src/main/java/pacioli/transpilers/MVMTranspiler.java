@@ -43,7 +43,7 @@ import pacioli.symboltable.info.ScalarBaseInfo;
 import pacioli.symboltable.info.TypeVarInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.symboltable.info.VectorBaseInfo;
-import pacioli.types.type.TypeBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public class MVMTranspiler implements SymbolTableVisitor {
@@ -69,7 +69,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         out.format("store \"%s\" ", info.globalName());
         out.newlineUp();
         ValueDefinition def = info.definition().get();
-        def.body.accept(new MVMGenerator(out, settings));
+        def.body.lower().accept(new MVMGenerator(out, settings));
         out.print(";");
         out.newlineDown();
         out.newline();
@@ -88,7 +88,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
 
         if (definition.isDynamic()) {
             out.format("indexset \"%s\" \"%s\" ", info.globalName(), info.definition().get().name());
-            info.definition().get().body().accept(new MVMGenerator(out, settings));
+            info.definition().get().body().lower().accept(new MVMGenerator(out, settings));
             out.format(";\n");
         } else {
             List<String> quotedItems = new ArrayList<String>();
@@ -122,8 +122,8 @@ public class MVMTranspiler implements SymbolTableVisitor {
             if (!definition.get().body.isPresent()) {
                 out.format("baseunit \"%s\" \"%s\";\n", info.name(), MVMGenerator.escapeString(info.symbol()));
             } else {
-                DimensionedNumber<TypeBase> number = definition.get().body.get().evalUnit();
-                number = number.flat();
+                DimensionedNumber<ScalarBase> number = definition.get().body.get().evalUnit();
+                number = number.reduce(ScalarBase::flat);
                 out.format("unit \"%s\" \"%s\" %s %s;\n", info.name(), MVMGenerator.escapeString(info.symbol()),
                         number.factor(),
                         MVMGenerator.compileUnitToMVM(number.unit()));
@@ -146,7 +146,7 @@ public class MVMTranspiler implements SymbolTableVisitor {
         List<String> unitTexts = new ArrayList<String>();
         // for (Map.Entry<String, UnitNode> entry: items.entrySet()) {
         for (UnitDecl entry : info.items()) {
-            DimensionedNumber<TypeBase> number = entry.value.evalUnit();
+            DimensionedNumber<ScalarBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
             unitTexts.add("\"" + entry.key.name() + "\": " + MVMGenerator.compileUnitToMVM(number.unit()));
         }

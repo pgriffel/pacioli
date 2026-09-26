@@ -22,7 +22,6 @@
 
 package pacioli.ast.expression;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -30,25 +29,14 @@ import java.util.Set;
 import pacioli.ast.Node;
 import pacioli.ast.visitors.CollectStatementsVisitor;
 import pacioli.ast.visitors.TypeInference;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.PacioliTable;
-import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.Typing;
 
 public interface ExpressionNode extends Node {
 
-    default public Typing inferTyping(PacioliTable prog, PacioliFile file) {
-        HashMap<String, ParametricInfo> defaultTypes = new HashMap<String, ParametricInfo>();
+    default public Typing inferTyping(PacioliTable environment) {
+        TypeInference visitor = new TypeInference(environment);
 
-        defaultTypes.put("Void", (ParametricInfo) prog.types().lookup("Void"));
-        defaultTypes.put("Tuple", (ParametricInfo) prog.types().lookup("Tuple"));
-        defaultTypes.put("Maybe", (ParametricInfo) prog.types().lookup("Maybe"));
-        defaultTypes.put("String", (ParametricInfo) prog.types().lookup("String"));
-        defaultTypes.put("Boole", (ParametricInfo) prog.types().lookup("Boole"));
-        defaultTypes.put("Data", (ParametricInfo) prog.types().lookup("Data"));
-        defaultTypes.put("List", (ParametricInfo) prog.types().lookup("List"));
-
-        TypeInference visitor = new TypeInference(defaultTypes, file);
         return visitor.typingAccept(this);
     }
 

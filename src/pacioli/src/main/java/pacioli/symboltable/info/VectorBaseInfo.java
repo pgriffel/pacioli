@@ -30,9 +30,8 @@ import java.util.Optional;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
-import pacioli.types.type.TypeBase;
+import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public final class VectorBaseInfo extends UnitInfo {
@@ -41,8 +40,8 @@ public final class VectorBaseInfo extends UnitInfo {
     private final List<UnitDecl> items;
     private final Map<String, UnitDecl> units;
 
-    public VectorBaseInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location) {
-        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
+    public VectorBaseInfo(String name, boolean isGlobal, boolean isPublic, Location location) {
+        super(new GeneralInfo(name, isGlobal, isPublic, location));
         assert (name.contains("!"));
         this.definition = null;
         this.items = null;
@@ -63,12 +62,12 @@ public final class VectorBaseInfo extends UnitInfo {
         return items;
     }
 
-    public DimensionedNumber<TypeBase> lookupUnit(String name) {
+    public DimensionedNumber<ScalarBase> lookupUnit(String name) {
         // todo: handle ignored factor!!!
         // DimensionedNumber<TypeBase> stored = units.get(name);
         // DimensionedNumber<TypeBase> stored = units.get(name).value.evalUnit();
         UnitDecl stored = units.get(name);
-        return (stored == null) ? new DimensionedNumber<TypeBase>() : stored.value.evalUnit();
+        return (stored == null) ? new DimensionedNumber<ScalarBase>() : stored.value.evalUnit();
     }
 
     @Override

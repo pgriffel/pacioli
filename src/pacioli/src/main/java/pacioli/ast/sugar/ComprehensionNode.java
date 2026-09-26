@@ -23,36 +23,77 @@
 package pacioli.ast.sugar;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;
-import pacioli.ast.expression.ApplicationNode;
-import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
-import pacioli.ast.expression.LambdaNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.PacioliTable;
+import pacioli.symboltable.SymbolTable;
+import pacioli.symboltable.info.ValueInfo;
 
 public class ComprehensionNode extends AbstractNode implements ExpressionNode {
 
-    public final IdentifierNode op; // maybe null
+    /**
+     * The comprehension kind. Corresponds with the '[' ... ']' and '{' ... '}'
+     * syntax.
+     */
+    public enum Kind {
+        LIST, SET
+    }
+
+    /**
+     * A comprehension generator kind. Corresponds with the 'in list' (or '<-'), 'in
+     * set' and 'in array' syntax.
+     */
+    public enum GeneratorKind {
+        LIST, SET, ARRAY
+    }
+
+    public final Kind kind;
+    public final Operator operator;
     public final ExpressionNode expression;
     public final List<Clause> clauses;
 
-    public ComprehensionNode(ExpressionNode e, List<Clause> ps, Location location) {
+    // Set during resolving and used during lowering
+    public PacioliTable table = null;
+
+    /**
+     * Complete constructor
+     */
+    public ComprehensionNode(Kind kind, Operator op, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
-        this.op = null;
+        this.kind = kind;
+        this.operator = op;
         this.expression = e;
         this.clauses = ps;
     }
 
-    public ComprehensionNode(IdentifierNode op, ExpressionNode e, List<Clause> ps, Location location) {
+    /**
+     * Constructor for a comprehension without an operator
+     */
+    public ComprehensionNode(Kind kind, ExpressionNode e, List<Clause> ps, Location location) {
         super(location);
-        this.op = op;
+        this.kind = kind;
+        this.operator = Operator.none();
+        this.expression = e;
+        this.clauses = ps;
+    }
+
+    /**
+     * Constructor for a comprehension with an operator. The operator is derived
+     * from the operation identifier. Throws an error if the operator is not
+     * valid.
+     */
+    public ComprehensionNode(Kind kind, IdentifierNode id, ExpressionNode e, List<Clause> ps, Location location) {
+        super(location);
+        this.kind = kind;
+        this.operator = Operator.fromId(id);
         this.expression = e;
         this.clauses = ps;
     }
@@ -62,72 +103,135 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         visitor.visit(this);
     }
 
-    public ExpressionNode asLambdas() {
-        List<Clause> desugared = new ArrayList<>();
-        for (Clause clause : this.clauses) {
-            Node d = clause.desugar();
-            assert (d instanceof Clause);
-            desugared.add((Clause) d);
+    public boolean hasOperator() {
+        return this.operator.kind() != Operator.Kind.NONE;
+    }
+
+    public IdentifierNode operatorFunction() {
+        String functionName = switch (this.kind) {
+            case LIST -> this.operator.functionForLists();
+            case SET -> this.operator.functionForSets();
+        };
+
+        return new IdentifierNode(functionName, this.operator.op.location());
+    }
+
+    public String collectFunction() {
+        return collectFunction(this.kind);
+    }
+
+    public String emptyCollectionFunction() {
+        return emptyCollectionFunction(this.kind);
+    }
+
+    /**
+     * Operator
+     */
+    public static final class Operator {
+        public enum Kind {
+            SUM, COUNT, ALL, SOME, GCD, CONCAT, MIN, MAX, NONE
         }
 
-        Node ex = this.expression.desugar();
-        assert (ex instanceof ExpressionNode);
+        private final IdentifierNode op;
+        private final Kind kind;
 
-        if (this.op == null) {
-            return desugarComprehension(this.location(), (ExpressionNode) ex, desugared);
-        } else {
-            return desugarFoldComprehension(this.location(), this.op, (ExpressionNode) ex, desugared);
+        public Operator(IdentifierNode op, Kind kind) {
+            this.op = op;
+            this.kind = kind;
+        }
+
+        public Kind kind() {
+            return this.kind;
+        }
+
+        public Optional<IdentifierNode> id() {
+            return Optional.ofNullable(this.op);
+        }
+
+        public static Operator none() {
+            return new Operator(null, Kind.NONE);
+        }
+
+        public static Operator fromId(IdentifierNode id) {
+            return new Operator(id, kindFromId(id));
+        }
+
+        public String functionForLists() {
+            return ComprehensionNode.functionForLists(this.kind);
+        }
+
+        public String functionForSets() {
+            return ComprehensionNode.functionForSets(this.kind);
         }
     }
 
-    private static int counter = 0;
-
-    private static List<String> freshUnderscores(List<String> names) {
-        List<String> fresh = new ArrayList<String>();
-        for (String name : names) {
-            if (name.equals("_")) {
-                fresh.add(freshUnderscore());
-            } else {
-                fresh.add(name);
-            }
-        }
-        return fresh;
+    /**
+     * Clause
+     */
+    public sealed interface Clause extends Node permits
+            GeneratorClause,
+            TupleGeneratorClause,
+            FilterClause,
+            AssignmentClause,
+            TupleAssignmentClause {
     }
 
-    private static String freshUnderscore() {
-        return "_" + counter++;
-    }
-
-    private static String freshName(String prefix) {
-        return prefix + counter++;
-    }
-
-    public sealed interface Clause extends Node
-            permits GeneratorClause, TupleGeneratorClause, FilterClause, AssignmentClause, TupleAssignmentClause {
-    }
-
+    /**
+     * GeneratorClause
+     */
     public static final class GeneratorClause extends AbstractNode implements Clause {
+
+        public final GeneratorKind kind;
         public final IdentifierNode id;
-        public final ExpressionNode list;
+        public final ExpressionNode expression;
 
-        public GeneratorClause(IdentifierNode id, ExpressionNode list, Location loc) {
+        public SymbolTable<ValueInfo> table;
+
+        public GeneratorClause(
+                GeneratorKind kind,
+                IdentifierNode id,
+                ExpressionNode expression,
+                Location loc) {
             super(loc);
+            this.kind = kind;
             this.id = id;
-            this.list = list;
+            this.expression = expression;
+        }
+
+        public GeneratorClause transform(IdentifierNode id, ExpressionNode value) {
+            var clause = new GeneratorClause(this.kind, id, value, this.location());
+            clause.table = this.table;
+            return clause;
         }
 
         @Override
         public void accept(Visitor visitor) {
             visitor.visit(this);
         }
+
+        public String varName() {
+            return this.id.name();
+        }
+
+        public String loopFunction() {
+            return ComprehensionNode.loopFunction(this.kind);
+        }
     }
 
+    /**
+     * FilterClause
+     */
     public static final class FilterClause extends AbstractNode implements Clause {
-        public final ExpressionNode list;
 
-        public FilterClause(ExpressionNode list, Location loc) {
+        public final ExpressionNode expression;
+
+        public FilterClause(ExpressionNode expression, Location loc) {
             super(loc);
-            this.list = list;
+            this.expression = expression;
+        }
+
+        public FilterClause transform(ExpressionNode expression) {
+            return new FilterClause(expression, this.location());
         }
 
         @Override
@@ -136,24 +240,62 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
         }
     }
 
+    /**
+     * TupleGeneratorClause
+     */
     public static final class TupleGeneratorClause extends AbstractNode implements Clause {
-        public final List<IdentifierNode> ids;
-        public final ExpressionNode list;
 
-        public TupleGeneratorClause(List<IdentifierNode> ids, ExpressionNode list, Location loc) {
+        public final GeneratorKind kind;
+        public final List<IdentifierNode> ids;
+        public final ExpressionNode expression;
+
+        public SymbolTable<ValueInfo> table;
+
+        public TupleGeneratorClause(
+                GeneratorKind kind,
+                List<IdentifierNode> ids,
+                ExpressionNode expression,
+                Location loc) {
             super(loc);
+            this.kind = kind;
             this.ids = ids;
-            this.list = list;
+            this.expression = expression;
+        }
+
+        public TupleGeneratorClause transform(List<IdentifierNode> ids, ExpressionNode expression) {
+            var clause = new TupleGeneratorClause(this.kind, ids, expression, this.location());
+            clause.table = this.table;
+            return clause;
         }
 
         public void accept(Visitor visitor) {
             visitor.visit(this);
         }
+
+        public List<String> varNames() {
+            List<String> names = new ArrayList<String>();
+
+            for (IdentifierNode var : this.ids) {
+                names.add(var.name());
+            }
+
+            return names;
+        }
+
+        public String loopFunction() {
+            return ComprehensionNode.loopFunction(this.kind);
+        }
     }
 
+    /**
+     * AssignmentClause
+     */
     public static final class AssignmentClause extends AbstractNode implements Clause {
+
         public final IdentifierNode id;
         public final ExpressionNode value;
+
+        public SymbolTable<ValueInfo> table;
 
         public AssignmentClause(IdentifierNode id, ExpressionNode value, Location loc) {
             super(loc);
@@ -161,14 +303,30 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             this.value = value;
         }
 
+        public AssignmentClause transform(IdentifierNode id, ExpressionNode value) {
+            var clause = new AssignmentClause(id, value, this.location());
+            clause.table = this.table;
+            return clause;
+        }
+
         public void accept(Visitor visitor) {
             visitor.visit(this);
         }
+
+        public String varName() {
+            return this.id.name();
+        }
     }
 
+    /**
+     * TupleAssignmentClause
+     */
     public static final class TupleAssignmentClause extends AbstractNode implements Clause {
+
         public final List<IdentifierNode> ids;
         public final ExpressionNode value;
+
+        public SymbolTable<ValueInfo> table;
 
         public TupleAssignmentClause(List<IdentifierNode> ids, ExpressionNode value, Location loc) {
             super(loc);
@@ -176,118 +334,91 @@ public class ComprehensionNode extends AbstractNode implements ExpressionNode {
             this.value = value;
         }
 
+        public TupleAssignmentClause transform(List<IdentifierNode> ids, ExpressionNode value) {
+            var clause = new TupleAssignmentClause(ids, value, this.location());
+            clause.table = this.table;
+            return clause;
+        }
+
         public void accept(Visitor visitor) {
             visitor.visit(this);
         }
-    }
 
-    private static ExpressionNode desugarComprehension(pacioli.compiler.Location loc, ExpressionNode e,
-            List<Clause> ps)
-            throws PacioliException {
+        public List<String> varNames() {
+            List<String> names = new ArrayList<String>();
 
-        String accuName = freshName("_c_accu");
-        String tupName = freshName("_c_tup");
-
-        pacioli.compiler.Location dummyLoc = loc.collapse();
-
-        ExpressionNode addMut = new IdentifierNode("_add_mut", dummyLoc);
-        ExpressionNode accu = new IdentifierNode(accuName, dummyLoc);
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, e), dummyLoc);
-
-        for (int i = ps.size() - 1; 0 <= i; i--) {
-            Object part = ps.get(i);
-            if (part instanceof GeneratorClause) {
-                GeneratorClause clause = (GeneratorClause) part;
-                pacioli.compiler.Location loc2 = clause.list.location();
-                body = new ApplicationNode(
-                        new IdentifierNode("loop_list", dummyLoc),
-                        Arrays.asList((ExpressionNode) new IdentifierNode(accuName, dummyLoc),
-                                new LambdaNode(freshUnderscores(Arrays.asList(accuName, clause.id.name())), body, loc2),
-                                clause.list),
-                        loc2);
-            } else if (part instanceof TupleGeneratorClause) {
-                TupleGeneratorClause clause = (TupleGeneratorClause) part;
-                pacioli.compiler.Location loc2 = clause.list.location();
-
-                List<String> args = new ArrayList<String>();
-                for (IdentifierNode var : clause.ids) {
-                    args.add(var.name());
-                }
-
-                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
-                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc2);
-                ExpressionNode tup = new IdentifierNode(tupName, dummyLoc);
-                ExpressionNode loopList = new IdentifierNode("loop_list", dummyLoc);
-                ExpressionNode accuId = new IdentifierNode(accuName, dummyLoc);
-                ExpressionNode restApp = new ApplicationNode(apply, Arrays.asList(restLambda, tup), loc2);
-                ExpressionNode restAppLambda = new LambdaNode(Arrays.asList(accuName, tupName), restApp, loc2);
-
-                body = new ApplicationNode(loopList, Arrays.asList(accuId, restAppLambda, clause.list), loc2);
-            } else if (part instanceof AssignmentClause) {
-                AssignmentClause clause = (AssignmentClause) part;
-
-                body = new ApplicationNode(
-                        new LambdaNode(freshUnderscores(Arrays.asList(clause.id.name())), body, body.location()),
-                        Arrays.asList(clause.value), clause.value.location());
-            } else if (part instanceof TupleAssignmentClause) {
-
-                TupleAssignmentClause clause = (TupleAssignmentClause) part;
-
-                List<String> args = new ArrayList<String>();
-                for (IdentifierNode var : clause.ids) {
-                    args.add(var.name());
-                }
-
-                ExpressionNode apply = new IdentifierNode("apply", dummyLoc);
-                ExpressionNode restLambda = new LambdaNode(freshUnderscores(args), body, loc);
-
-                body = new ApplicationNode(apply, Arrays.asList(restLambda, clause.value), clause.value.location());
-            } else if (part instanceof FilterClause fc) {
-                body = new BranchNode(fc.list, body, new IdentifierNode(accuName, dummyLoc), loc);
-            } else {
-                throw new PacioliException(loc, "Unexpected clause %s", part);
+            for (IdentifierNode var : this.ids) {
+                names.add(var.name());
             }
+
+            return names;
         }
-
-        ExpressionNode lambda = new LambdaNode(Arrays.asList(accuName), body, loc);
-        ExpressionNode emptyListId = new IdentifierNode("empty_list", dummyLoc);
-        ExpressionNode emptyList = new ApplicationNode(emptyListId, new ArrayList<ExpressionNode>(), loc);
-
-        return new ApplicationNode(lambda, Arrays.asList(emptyList), loc);
     }
 
-    private static ExpressionNode desugarFoldComprehension(pacioli.compiler.Location loc, IdentifierNode op,
-            ExpressionNode e, List<Clause> ps) throws PacioliException {
-        pacioli.compiler.Location eLoc = e.location();
-        pacioli.compiler.Location opLoc = op.location();
-        pacioli.compiler.Location dummyLoc = op.location().collapse();
-        ExpressionNode body = desugarComprehension(loc, e, ps);
-        if (op.name().equals("sum")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_sum", dummyLoc), Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("count")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_count", dummyLoc),
-                    Arrays.asList(body), opLoc);
-        } else if (op.name().equals("all")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_all", dummyLoc), Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("some")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_some", dummyLoc), Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("gcd")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_gcd", dummyLoc), Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("concat")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_concat", dummyLoc),
-                    Arrays.asList(body), opLoc);
-        } else if (op.name().equals("min")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_min", dummyLoc), Arrays.asList(body),
-                    opLoc);
-        } else if (op.name().equals("max")) {
-            return new ApplicationNode((ExpressionNode) new IdentifierNode("_list_max", dummyLoc), Arrays.asList(body),
-                    opLoc);
-        } else {
-            throw new PacioliException(op.location(), "Comprehension operator '%s' unknown", op.name());
-        }
+    public static Operator.Kind kindFromId(IdentifierNode id) {
+        return switch (id.name()) {
+            case "sum" -> Operator.Kind.SUM;
+            case "count" -> Operator.Kind.COUNT;
+            case "all" -> Operator.Kind.ALL;
+            case "some" -> Operator.Kind.SOME;
+            case "gcd" -> Operator.Kind.GCD;
+            case "concat" -> Operator.Kind.CONCAT;
+            case "min" -> Operator.Kind.MIN;
+            case "max" -> Operator.Kind.MAX;
+            default -> throw new PacioliException(
+                    id.location(),
+                    "Comprehension operator '%s' unknown. Valid operators are sum, count, all, some, gcd, concat, min and max.",
+                    id.name());
+        };
+    }
+
+    private static String collectFunction(Kind kind) {
+        return switch (kind) {
+            case LIST -> "_add_mut";
+            case SET -> "_adjoin_mut";
+        };
+    }
+
+    private static String emptyCollectionFunction(Kind kind) {
+        return switch (kind) {
+            case LIST -> "empty_list";
+            case SET -> "empty_set";
+        };
+    }
+
+    private static String loopFunction(GeneratorKind kind) {
+        return switch (kind) {
+            case LIST -> "loop_list";
+            case SET -> "loop_set";
+            case ARRAY -> "loop_array";
+        };
+    }
+
+    private static String functionForLists(Operator.Kind kind) {
+        return switch (kind) {
+            case SUM -> "_list_sum";
+            case COUNT -> "_list_count";
+            case ALL -> "_list_all";
+            case SOME -> "_list_some";
+            case GCD -> "_list_gcd";
+            case CONCAT -> "_list_concat";
+            case MIN -> "_list_min";
+            case MAX -> "_list_max";
+            case NONE -> "identity";
+        };
+    }
+
+    private static String functionForSets(Operator.Kind kind) {
+        return switch (kind) {
+            case SUM -> "_set_sum";
+            case COUNT -> "_set_count";
+            case ALL -> "_set_all";
+            case SOME -> "_set_some";
+            case GCD -> "_set_gcd";
+            case CONCAT -> "_set_concat";
+            case MIN -> "_set_min";
+            case MAX -> "_set_max";
+            case NONE -> "identity";
+        };
     }
 }

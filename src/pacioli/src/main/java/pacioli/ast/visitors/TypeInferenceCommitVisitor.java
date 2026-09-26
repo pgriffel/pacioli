@@ -36,6 +36,7 @@ import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.Substitution;
 import pacioli.types.type.TypeObject;
@@ -62,8 +63,7 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
         if (info == null || info.inferredType().isEmpty() || info.isGlobal()) {
             return;
         }
-        TypeObject updatedType = info.inferredType().get().applySubstitution(substitution)
-                .simplify().normalizeMatrixTypes();
+        TypeObject updatedType = info.inferredType().get().applySubstitution(substitution).normalizeMatrixTypes();
         info.replaceInferredType(updatedType);
     }
 
@@ -111,6 +111,26 @@ public class TypeInferenceCommitVisitor extends IdentityVisitor {
         if (node.table != null) {
             for (var var : node.vars) {
                 commit(node.table.lookup(var.name()));
+            }
+        }
+        super.visit(node);
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+        for (var clause : node.clauses) {
+            if (clause instanceof ComprehensionNode.GeneratorClause generator) {
+                commit(generator.id.info());
+            } else if (clause instanceof ComprehensionNode.TupleGeneratorClause generator) {
+                for (var id : generator.ids) {
+                    commit(id.info());
+                }
+            } else if (clause instanceof ComprehensionNode.AssignmentClause assignment) {
+                commit(assignment.id.info());
+            } else if (clause instanceof ComprehensionNode.TupleAssignmentClause assignment) {
+                for (var id : assignment.ids) {
+                    commit(id.info());
+                }
             }
         }
         super.visit(node);

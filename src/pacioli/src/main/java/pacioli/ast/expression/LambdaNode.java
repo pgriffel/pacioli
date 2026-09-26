@@ -23,7 +23,6 @@
 package pacioli.ast.expression;
 
 import java.util.List;
-
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
@@ -73,4 +72,9 @@ public class LambdaNode extends AbstractNode implements ExpressionNode {
         visitor.visit(this);
     }
 
+    public LambdaNode withTable(SymbolTable<ValueInfo> table) {
+        var node = new LambdaNode(this.arguments, this.expression, this.location(), this.varArgs);
+        node.table = table;
+        return node;
+    }
 }

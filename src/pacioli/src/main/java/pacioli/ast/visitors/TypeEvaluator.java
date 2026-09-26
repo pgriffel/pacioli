@@ -56,25 +56,26 @@ import pacioli.types.ast.TypeNode;
 import pacioli.types.ast.TypePerNode;
 import pacioli.types.ast.TypePowerNode;
 import pacioli.types.ast.TypePredicateNode;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.matrix.ScalarBase;
-import pacioli.types.matrix.VectorBase;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.Operator;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarBase;
+import pacioli.types.type.matrix.ScalarBaseUnit;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorBase;
+import pacioli.types.type.matrix.VectorBaseUnit;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Fraction;
 import uom.Unit;
 
@@ -124,7 +125,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
         // The index type and row unit for the to be created matrix type
         IndexType indexType;
-        Unit<TypeBase> rowUnit;
+        Unit<VectorBase> rowUnit;
 
         // Find index set info. The node must have been resolved.
         IndexSetInfo indexInfo = (IndexSetInfo) node.indexSet().info;
@@ -140,7 +141,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
         // Create the row unit if it exists, otherwise the unit is 1.
         if (!node.unit().isPresent()) {
-            rowUnit = TypeBase.ONE;
+            rowUnit = VectorBase.ONE;
         } else {
 
             // Find the unit info. The node must have been resolved.
@@ -149,11 +150,15 @@ public class TypeEvaluator extends IdentityVisitor {
 
             // Create the unit. If it is a local then it is a variable.
             if (!unitInfo.isGlobal()) {
-                rowUnit = new VectorUnitVar(unitInfo);
+                rowUnit = Unit.from(new VectorUnitVar(unitInfo));
             } else {
                 String unitName = node.unitVecName();
-                rowUnit = new VectorBase(new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName),
-                        new TypeIdentifier(unitInfo.generalInfo().module(), unitName), 0, unitInfo);
+                rowUnit = Unit.from(
+                        new VectorBaseUnit(
+                                new TypeIdentifier(indexInfo.generalInfo().module(), indexSetName),
+                                new TypeIdentifier(unitInfo.generalInfo().module(), unitName),
+                                0,
+                                unitInfo));
             }
         }
 
@@ -170,7 +175,7 @@ public class TypeEvaluator extends IdentityVisitor {
         if (!new BigDecimal(node.number).equals(BigDecimal.ONE)) {
             visitorThrow(node.location(), "Didn't expect number, just a 1");
         }
-        returnType(new MatrixType(TypeBase.ONE));
+        returnType(new MatrixType(ScalarBase.ONE));
     }
 
     @Override
@@ -233,8 +238,8 @@ public class TypeEvaluator extends IdentityVisitor {
             if (info instanceof TypeVarInfo) {
                 returnType(new TypeVar((TypeVarInfo) info));
 
-            } else if (info instanceof ScalarBaseInfo) {
-                returnType(new MatrixType(new ScalarUnitVar((ScalarBaseInfo) info)));
+            } else if (info instanceof ScalarBaseInfo sInfo) {
+                returnType(new MatrixType(Unit.from(new ScalarUnitVar(sInfo))));
 
             } else if (info instanceof IndexSetInfo) {
                 returnType(new IndexSetVar((IndexSetInfo) info));
@@ -285,7 +290,7 @@ public class TypeEvaluator extends IdentityVisitor {
 
             // A scalar unit reference, e.g. metre
 
-            returnType(new MatrixType(new ScalarBase(scalarBaseInfo)));
+            returnType(new MatrixType(Unit.from(new ScalarBaseUnit(scalarBaseInfo))));
 
         } else {
             throw new RuntimeException("Unexpected Info type");
@@ -295,7 +300,7 @@ public class TypeEvaluator extends IdentityVisitor {
     @Override
     public void visit(PrefixUnitTypeNode node) {
         if (node.unit.info instanceof ScalarBaseInfo scalarBaseInfo) {
-            returnType(new MatrixType(new ScalarBase(node.prefix.name(), scalarBaseInfo)));
+            returnType(new MatrixType(Unit.from(new ScalarBaseUnit(node.prefix.name(), scalarBaseInfo))));
         } else {
             throw new PacioliException(node.unit.location(), "Expected a unit");
         }

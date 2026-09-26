@@ -22,5 +22,18 @@
 
 package uom;
 
-public interface Base<B> extends Unit<B> {
+/**
+ * A base for units of measurement.
+ * 
+ * A unit of measurement is build from bases, but a base itself is not a unit.
+ */
+public interface Base {
+
+    /**
+     * Representation of the base when a unit is printed. Typically the base's
+     * symbol, e.g. "m" for base metre.
+     * 
+     * @return A short string used in output
+     */
+    String pretty();
 }

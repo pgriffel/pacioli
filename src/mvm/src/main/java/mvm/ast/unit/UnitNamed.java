@@ -26,7 +26,9 @@ import java.io.PrintWriter;
 
 import mvm.MVMException;
 import mvm.Machine;
-import mvm.values.matrix.MatrixBase;
+import mvm.values.matrix.MVMBase;
+import mvm.values.matrix.ScalarBase;
+import uom.Prefix;
 import uom.Unit;
 
 public class UnitNamed implements UnitNode {
@@ -44,13 +46,33 @@ public class UnitNamed implements UnitNode {
     }
 
     @Override
-    public Unit<MatrixBase> eval(Machine machine) throws MVMException {
+    public Unit<MVMBase> eval(Machine machine) throws MVMException {
         if (name.isEmpty()) {
-            return MatrixBase.ONE;
-        } else if (machine.unitSystem.congtainsUnit(name)) {
-            return machine.unitSystem.lookupUnit(name);
+            return MVMBase.ONE;
         } else {
-            throw new MVMException("unit '%s' unknown", name);
+            var parts = name.split(":");
+
+            if (parts.length == 1) {
+                return machine.unitSystem.lookupBase(name)
+                        .map(Unit::from)
+                        .orElseThrow(() -> new MVMException(String.format("Unit base '%s' unknown", name)));
+            } else if (parts.length == 2) {
+                Prefix prefix = machine.unitSystem
+                        .lookupPrefix(parts[0])
+                        .orElseThrow(() -> new MVMException(String.format("Unit prefix '%s' unknown", parts[0])));
+
+                MVMBase base = machine.unitSystem
+                        .lookupBase(parts[1])
+                        .orElseThrow(() -> new MVMException(String.format("Unit base '%s' unknown", parts[1])));
+
+                if (base instanceof ScalarBase s) {
+                    return Unit.from(new ScalarBase(s.name(), s.symbol(), prefix));
+                } else {
+                    throw new MVMException("expected scalar base, but got '%s'", base);
+                }
+            } else {
+                throw new MVMException("invalid unit name '%s'", name);
+            }
         }
     }
 

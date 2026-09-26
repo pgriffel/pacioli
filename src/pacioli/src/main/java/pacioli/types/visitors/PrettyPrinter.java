@@ -25,25 +25,25 @@ package pacioli.types.visitors;
 import pacioli.compiler.Printer;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeVisitor;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.OperatorVar;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Quant;
-import pacioli.types.type.ScalarUnitVar;
 import pacioli.types.type.Schema;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypePredicate;
 import pacioli.types.type.TypeVar;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.ScalarUnitVar;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Fraction;
-import uom.UnitFold;
+import uom.Unit;
 
 /**
  * WIP. Alternative for pretty printing via the devaluator.
@@ -121,14 +121,12 @@ public class PrettyPrinter implements TypeVisitor {
     @Override
     public void visit(MatrixType type) {
 
-        MatrixType properType = type.properIndexSets();
-
         // Empty string or something
-        String left = properType.prettyDimensionUnitPair(properType.rowDimension(), properType.rowUnit());
-        String right = properType.prettyDimensionUnitPair(properType.columnDimension(), properType.columnUnit());
+        String left = type.prettyDimensionUnitPair(type.rowDimension(), type.rowUnit());
+        String right = type.prettyDimensionUnitPair(type.columnDimension(), type.columnUnit());
 
         // 1 or something
-        String factorString = properType.factor().pretty();
+        String factorString = type.factor().pretty();
 
         boolean hasFactor = !factorString.equals("1");
         boolean hasLeft = !left.isEmpty();
@@ -204,10 +202,10 @@ public class PrettyPrinter implements TypeVisitor {
     }
 
     // UNITTODO Not used. Replace pretty printing in UoM with this?
-    static public class UnitPrinter implements UnitFold<TypeBase, String> {
+    static public class UnitPrinter implements Unit.Fold<MatrixBase, String> {
 
         @Override
-        public String map(TypeBase base) {
+        public String map(MatrixBase base) {
             return base.pretty();
         }
 

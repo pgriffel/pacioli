@@ -22,12 +22,16 @@
 
 package pacioli.ast.definition;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import mvm.values.matrix.IndexSet;
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;
+import pacioli.ast.expression.IdentifierNode;
+import pacioli.ast.expression.SetLiteralNode;
+import pacioli.ast.expression.StringNode;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeIdentifierNode;
 
@@ -47,8 +51,31 @@ public class IndexSetDefinition extends AbstractNode implements Definition {
     public IndexSetDefinition(Location location, TypeIdentifierNode id, ExpressionNode body) {
         super(location);
         this.id = id;
-        this.items = null;
-        this.body = body;
+        boolean allLiteralString = false;
+        List<String> items = new ArrayList<>();
+
+        if (body instanceof SetLiteralNode setLiteral) {
+
+            allLiteralString = true;
+
+            for (ExpressionNode element : setLiteral.elements) {
+                if (element instanceof StringNode stringNode) {
+                    items.add(stringNode.valueString());
+                } else if (element instanceof IdentifierNode idNode) {
+                    items.add(idNode.name());
+                } else {
+                    allLiteralString = false;
+                }
+            }
+        }
+
+        if (allLiteralString) {
+            this.items = items;
+            this.body = null;
+        } else {
+            this.items = null;
+            this.body = body;
+        }
     }
 
     public List<String> items() {

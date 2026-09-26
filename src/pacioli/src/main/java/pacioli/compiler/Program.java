@@ -92,7 +92,6 @@ public class Program {
     private final ProgramNode ast;
 
     private Program(PacioliFile file, ProgramNode ast) {
-        assert (file != null);
         this.file = file;
         this.ast = ast;
     }
@@ -114,7 +113,7 @@ public class Program {
     // -------------------------------------------------------------------------
 
     public static Program load(PacioliFile file) throws Exception {
-        ProgramNode ast = Parser.parseFile(file.fsFile(), Pacioli.CHARSET);
+        ProgramNode ast = Parser.parseFile(file, Pacioli.CHARSET);
         return new Program(file, ast);
     }
 
@@ -127,25 +126,42 @@ public class Program {
         return new Program(this.file, desugared);
     }
 
+    public Program lower() throws PacioliException {
+        ProgramNode lowered = (ProgramNode) this.ast.lower();
+        return new Program(this.file, lowered);
+    }
+
     // -------------------------------------------------------------------------
     // Building symbol tables
     // -------------------------------------------------------------------------
 
     public PacioliTable generateInfos() throws Exception {
-        PacioliTable infos = fillTables();
-        rewriteClasses(infos);
-        return infos;
+        PacioliTable programTable = fillTables();
+
+        rewriteClasses(programTable);
+
+        return programTable;
     }
 
     public PacioliTable analyze(PacioliTable environment) throws Exception {
-        PacioliTable infos = this.generateInfos();
-        checkForDuplicates(infos, environment);
-        resolve(infos, environment);
+        PacioliTable programTable = this.generateInfos();
+
+        // Check for duplicates before setting the parent
+        checkForDuplicates(programTable, environment);
+
+        programTable.setParent(environment);
+
+        resolve(programTable);
+
+        // Was for MATLAB
         // liftStatements(infos, environment);
-        resolve(infos, environment);
-        transformConversions(infos);
-        inferTypes(infos, environment);
-        return infos;
+        // resolve(infos, environment);
+
+        transformConversions(programTable);
+
+        inferTypes(programTable);
+
+        return programTable;
     }
 
     // -------------------------------------------------------------------------
@@ -177,7 +193,6 @@ public class Program {
             if (definition instanceof ClassDefinition def) {
                 ClassInfo.Builder builder = ClassInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .definition(def)
                         .isGlobal(true)
                         .location(def.location());
@@ -186,14 +201,12 @@ public class Program {
                 AliasInfo.Builder builder = AliasInfo.builder();
                 builder.name(def.name())
                         .definition(def)
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location());
                 putTypeBuilder(typeBuilders, def.name(), builder);
             } else if (definition instanceof IndexSetDefinition def) {
                 IndexSetInfo.Builder builder = IndexSetInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .definition(def);
@@ -201,7 +214,6 @@ public class Program {
             } else if (definition instanceof TypeDefinition def) {
                 ParametricInfo.Builder builder = ParametricInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .definition(def);
@@ -209,7 +221,6 @@ public class Program {
             } else if (definition instanceof UnitDefinition def) {
                 ScalarBaseInfo.Builder builder = ScalarBaseInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .symbol(def.symbol)
@@ -218,7 +229,6 @@ public class Program {
             } else if (definition instanceof UnitVectorDefinition def) {
                 VectorBaseInfo.Builder builder = VectorBaseInfo.builder();
                 builder.name(def.name())
-                        .file(file)
                         .isGlobal(true)
                         .location(def.location())
                         .items(def.items)
@@ -236,7 +246,6 @@ public class Program {
                         .name(def.name())
                         .location(def.location())
                         .isMonomorphic(false)
-                        .file(this.file)
                         .isGlobal(true)
                         .declaredType(def)
                         .isPublic(false)
@@ -251,7 +260,7 @@ public class Program {
                 if (builder == null) {
                     throw new PacioliException(def.location(), "No class found for instance %s", def.name());
                 }
-                builder.instance(new InstanceInfo(def, file, genclassInstanceName()));
+                builder.instance(new InstanceInfo(def, genclassInstanceName()));
             } else if (definition instanceof ValueDefinition def) {
                 // This overwrites any properties set by the declaration above. This is
                 // desirable for the location. We prefer the definition location, otherwise we
@@ -266,7 +275,6 @@ public class Program {
                 builder
                         .definition(def)
                         .name(def.name())
-                        .file(this.file)
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .isPublic(false)
@@ -345,7 +353,7 @@ public class Program {
         }
 
         // Create a new table to fill
-        PacioliTable env = PacioliTable.empty();
+        PacioliTable env = PacioliTable.empty(this.file);
 
         // Build the value infos and add them to the table
         for (ValueInfo.Builder builder : valueBuilders.values()) {
@@ -406,7 +414,7 @@ public class Program {
     // Resolving
     // -------------------------------------------------------------------------
 
-    private void checkForDuplicates(PacioliTable prog, PacioliTable environment) throws Exception {
+    static private void checkForDuplicates(PacioliTable prog, PacioliTable environment) throws Exception {
 
         for (ValueInfo info : prog.values().allInfos()) {
             if (environment.values().contains(info.name())) {
@@ -439,13 +447,11 @@ public class Program {
      * @param environment
      * @throws Exception
      */
-    private void resolve(PacioliTable prog, PacioliTable environment) throws Exception {
+    static private void resolve(PacioliTable prog) throws Exception {
 
-        Pacioli.trace("Resolving module '%s'", this.file.module());
+        Pacioli.trace("Resolving module '%s'", prog.file().module());
 
-        prog.setParent(environment);
-
-        List<TypeInfo> localTypeInfos = prog.types().allInfos(info -> info.isFromFile(this.file));
+        List<TypeInfo> localTypeInfos = prog.types().allInfos(info -> info.isFromFile(prog.file()));
 
         for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof IndexSetInfo && nfo.definition().isPresent()) {
@@ -454,7 +460,7 @@ public class Program {
                     Pacioli.log("Resolving index set %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
         }
 
@@ -465,7 +471,7 @@ public class Program {
                     Pacioli.log("Resolving unit %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
         }
 
@@ -477,16 +483,17 @@ public class Program {
                 }
 
                 // Resolve the class definition itself
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
 
                 // Resolve all class instances
                 for (InstanceInfo instanceInfo : classInfo.instances()) {
                     for (ValueEquation member : instanceInfo.definition().get().members) {
-                        member.body.resolve(this.file, prog);
+                        member.body.resolve(prog);
                     }
                 }
             }
         }
+
         for (TypeInfo nfo : localTypeInfos) {
             if (nfo instanceof ParametricInfo && nfo.definition().isPresent()) {
 
@@ -494,24 +501,24 @@ public class Program {
                     Pacioli.log("Resolving type %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
 
             // This would be needed for hover info etc. How is resolving the doc identifier
             // done? It can be a value or a type!
             // if (nfo.generalInfo().documentation().isPresent()) {
-            // nfo.generalInfo().documentation().get().resolve(this.file, prog);
+            // nfo.generalInfo().documentation().get().resolve(prog);
             // }
         }
 
-        for (ValueInfo nfo : prog.values().allInfos(info -> info.isFromFile(this.file))) {
+        for (ValueInfo nfo : prog.values().allInfos(info -> info.isFromFile(prog.file()))) {
             if (nfo.definition().isPresent()) {
 
                 if (Pacioli.Options.showResolvingDetails) {
                     Pacioli.log("Resolving value or function %s", nfo.globalName());
                 }
 
-                nfo.definition().get().resolve(this.file, prog);
+                nfo.definition().get().resolve(prog);
             }
 
             if (nfo.declaration().isPresent()) {
@@ -520,13 +527,13 @@ public class Program {
                     Pacioli.log("Resolving declaration %s", nfo.globalName());
                 }
 
-                nfo.declaration().get().resolve(this.file, prog);
+                nfo.declaration().get().resolve(prog);
             }
 
             // This would be needed for hover info etc. How is resolving the doc identifier
             // done? It can be a value or a type!
             // if (nfo.generalInfo().documentation().isPresent()) {
-            // nfo.generalInfo().documentation().get().resolve(this.file, prog);
+            // nfo.generalInfo().documentation().get().resolve(prog);
             // }
 
         }
@@ -537,10 +544,8 @@ public class Program {
                 Pacioli.log("Resolving toplevel %s", definition.name());
             }
 
-            definition.resolve(this.file, prog);
+            definition.resolve(prog);
         }
-
-        prog.popParent();
     }
 
     // -------------------------------------------------------------------------
@@ -557,13 +562,13 @@ public class Program {
      * @param pacioliTable
      * @throws Exception
      */
-    private void rewriteClasses(PacioliTable env) throws Exception {
+    static private void rewriteClasses(PacioliTable prog) throws Exception {
 
-        Pacioli.trace("Rewriting classes in in module '%s'", this.file.module());
+        Pacioli.trace("Rewriting classes in in module '%s'", prog.file().module());
 
-        for (TypeInfo typeInfo : env.types().allInfos()) {
+        for (TypeInfo typeInfo : prog.types().allInfos()) {
             if (typeInfo instanceof ClassInfo classInfo) {
-                rewriteClass(env, classInfo);
+                rewriteClass(prog, classInfo);
             }
         }
     }
@@ -574,15 +579,15 @@ public class Program {
      * 
      * @param classInfo
      */
-    private void rewriteClass(PacioliTable env, ClassInfo classInfo) {
+    static private void rewriteClass(PacioliTable prog, ClassInfo classInfo) {
 
         if (Pacioli.Options.showClassRewriting) {
             Pacioli.log("\n\nRewriting class %s in module '%s'",
-                    classInfo.globalName(), this.file.module());
+                    classInfo.globalName(), prog.file().module());
         }
 
         // Rewrite the class definition itself if it is from this program
-        if (classInfo.isFromFile(this.file)) {
+        if (classInfo.isFromFile(prog.file())) {
 
             // Create class constructor
             ParametricInfo typeInfo = classInfo.generateDictionaryDefinition();
@@ -603,8 +608,8 @@ public class Program {
                 Pacioli.log("\n%s", constructorInfo.definition().get().pretty());
             }
 
-            env.addInfo(constructorInfo);
-            env.addInfo(typeInfo);
+            prog.addInfo(constructorInfo);
+            prog.addInfo(typeInfo);
 
             for (ValueInfo memberInfo : classInfo.generateMemberDefinitions()) {
                 Declaration memberDeclaration = new Declaration(
@@ -619,7 +624,7 @@ public class Program {
                     }
                 }
 
-                env.addInfo(memberInfo);
+                prog.addInfo(memberInfo);
             }
 
         }
@@ -632,7 +637,7 @@ public class Program {
             if (Pacioli.Options.showClassRewriting) {
                 Pacioli.log("\n%s", info.definition().get().pretty());
             }
-            env.addInfo(info);
+            prog.addInfo(info);
         }
     }
 
@@ -657,12 +662,12 @@ public class Program {
     // Transforming conversions
     // -------------------------------------------------------------------------
 
-    private void transformConversions(PacioliTable pacioliTable) {
+    static private void transformConversions(PacioliTable prog) {
 
-        Pacioli.trace("Transforming conversions in module '%s'", this.file.module());
+        Pacioli.trace("Transforming conversions in module '%s'", prog.file().module());
 
-        for (ValueInfo info : pacioliTable.values().allInfos()) {
-            if (info.definition().isPresent() && info.isFromFile(this.file)) {
+        for (ValueInfo info : prog.values().allInfos()) {
+            if (info.definition().isPresent() && info.isFromFile(prog.file())) {
                 ValueDefinition definition = info.definition().get();
                 ExpressionNode newBody = new TransformConversions().expAccept(definition.body);
                 definition.body = newBody;
@@ -679,25 +684,23 @@ public class Program {
      * Infers the type for all infos in the given PacioliTable and updates the
      * infos with it. Also updates the types of the local variables.
      */
-    private void inferTypes(PacioliTable prog, PacioliTable env) {
+    static private void inferTypes(PacioliTable prog) {
 
-        Pacioli.trace("Inferring types in module '%s'", this.file.module());
-
-        prog.setParent(env);
+        Pacioli.trace("Inferring types in module '%s'", prog.file().module());
 
         Set<Info> discovered = new HashSet<Info>();
         Set<Info> finished = new HashSet<Info>();
 
         for (ValueInfo info : prog.values().localInfos()) {
             if (info.definition().isPresent()) {
-                inferValueDefinitionTypeRec(info, discovered, finished, prog);
+                inferValueDefinitionTypeRec(prog, info, discovered, finished);
             }
         }
 
         int i = 0;
         for (Toplevel toplevel : prog.toplevels()) {
 
-            inferUsedTypes(toplevel, discovered, finished, prog);
+            inferUsedTypes(prog, toplevel, discovered, finished);
 
             if (Pacioli.Options.showTypeInference) {
                 Pacioli.log("\nInferring typing of toplevel %s", i++);
@@ -711,16 +714,19 @@ public class Program {
     /**
      * Helper for inferTypes.
      */
-    private void inferValueDefinitionTypeRec(ValueInfo info, Set<Info> discovered, Set<Info> finished,
-            PacioliTable env) {
+    static private void inferValueDefinitionTypeRec(
+            PacioliTable prog,
+            ValueInfo info,
+            Set<Info> discovered,
+            Set<Info> finished) {
 
         if (!finished.contains(info)) {
             if (discovered.contains(info)) {
                 // Pacioli.warn("Cycle in definition of %s", info.name());
             } else {
                 discovered.add(info);
-                inferUsedTypes(info.definition().get(), discovered, finished, env);
-                inferValueDefinitionTypeAndCommit(info, env);
+                inferUsedTypes(prog, info.definition().get(), discovered, finished);
+                inferValueDefinitionTypeAndCommit(prog, info);
                 finished.add(info);
             }
         }
@@ -729,11 +735,15 @@ public class Program {
     /**
      * Helper for inferTypes.
      */
-    private void inferUsedTypes(Definition definition, Set<Info> discovered, Set<Info> finished, PacioliTable env) {
+    static private void inferUsedTypes(
+            PacioliTable prog,
+            Definition definition,
+            Set<Info> discovered,
+            Set<Info> finished) {
         for (Info pre : definition.uses()) {
             if (pre.isGlobal() && pre instanceof ValueInfo) {
-                if (pre.isFromFile(this.file) && pre.definition().isPresent()) {
-                    inferValueDefinitionTypeRec((ValueInfo) pre, discovered, finished, env);
+                if (pre.isFromFile(prog.file()) && pre.definition().isPresent()) {
+                    inferValueDefinitionTypeRec(prog, (ValueInfo) pre, discovered, finished);
                 } else {
                     ValueInfo vinfo = (ValueInfo) pre;
                     if (!vinfo.declaredType().isPresent() && !vinfo.name().equals("nmode")) {
@@ -753,8 +763,8 @@ public class Program {
      * 
      * Returns the inferred type.
      */
-    private TypeObject inferExpressionTypeAndCommit(PacioliTable prog, ExpressionNode expression) {
-        Typing typing = expression.inferTyping(prog, this.file);
+    static private TypeObject inferExpressionTypeAndCommit(PacioliTable prog, ExpressionNode expression) {
+        Typing typing = expression.inferTyping(prog);
 
         Substitution inferenceSolution = typing.solveSubstitution(false);
         TypeObject solvedType = inferenceSolution.apply(typing.type());
@@ -766,7 +776,7 @@ public class Program {
 
         expression.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
 
-        return solved.simplify().normalizeMatrixTypes();
+        return solved.simplify();
     }
 
     /**
@@ -777,7 +787,7 @@ public class Program {
      * 
      * Uses the declared type if it exists.
      */
-    private void inferValueDefinitionTypeAndCommit(ValueInfo info, PacioliTable env) {
+    static private void inferValueDefinitionTypeAndCommit(PacioliTable prog, ValueInfo info) {
 
         ValueDefinition def = info.definition().get();
 
@@ -788,7 +798,7 @@ public class Program {
         }
 
         // 1. Infer the body's typing
-        Typing typing = def.body.inferTyping(env, this.file);
+        Typing typing = def.body.inferTyping(prog);
 
         if (verbose) {
             Pacioli.log("Inferred typing of %s is %s", info.name(), typing.pretty());
@@ -798,13 +808,20 @@ public class Program {
 
             Optional<TypeNode> declared = info.declaredType();
 
-            // 2. Solve the typing
+            // 2. Solve the typing. Don't simplify, because that might remove
+            // type variables that are assigned to local variables. They are
+            // needed to commit local variable types.
             Substitution inferenceSolution = typing.solveSubstitution(verbose);
             TypeObject solvedType = inferenceSolution.apply(typing.type());
 
             // 3. Rename to user friendly variable names
             Substitution unfreshSubst = solvedType.unfreshSubstitution();
-            TypeObject solved = unfreshSubst.apply(solvedType);
+
+            // 4. Simplify the type. Remember the simplification substitution for
+            // the local variables commit later.
+            Substitution simplification = solvedType.simplification();
+            TypeObject simplified = solvedType.applySubstitution(simplification);
+            TypeObject solved = unfreshSubst.apply(simplified);
 
             if (verbose) {
                 Pacioli.log("Solved type of %s is\n    %s",
@@ -822,54 +839,60 @@ public class Program {
                 }
             }
 
-            // 4. Determine the substitution to update the local variables and the
-            // type to store as the inferred type.
-            Substitution finalLocalsSubs = unfreshSubst.compose(inferenceSolution);
-            TypeObject inferredType = solved.simplify().normalizeMatrixTypes();
+            // 5. Determine the substitution to update the local variables and the type to
+            // store as the inferred type. Local variables are updated with the same
+            // solution, simplification and renaming as the definition type.
+            Substitution finalLocalsSubs = unfreshSubst.compose(simplification).compose(inferenceSolution);
+            TypeObject inferredType = solved.normalizeMatrixTypes();
 
-            // 5. Check the validity of the declared type
-            if (info.isFromFile(this.file) && declared.isPresent()) {
+            // 6. Check the validity of the declared type
+            if (info.isFromFile(prog.file()) && declared.isPresent()) {
 
-                TypeObject declaredType = declared.get().evalType().instantiate()
-                        .reduce(i -> i.isFromFile(this.file));
-                TypeObject inferredType2 = inferredType.generalize().instantiate();
+                Schema declaredSchema = (Schema) declared.get().evalType();
+
+                TypeObject declaredType = declaredSchema
+                        .instantiate()
+                        .reduce(i -> i.location().file().equals(info.location().file()));
+
+                TypeObject instantiatedType = solvedType.generalize().instantiate();
 
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(
                             "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                            inferredType2.unfresh().pretty(), declaredType.unfresh().pretty());
+                            instantiatedType.unfresh().pretty(), declaredType.unfresh().pretty());
                 }
 
-                if (!declaredType.isInstanceOf(inferredType2)) {
+                if (!declaredType.isInstanceOf(instantiatedType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
                                     "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                    declaredType.unfresh().normalizeMatrixTypes().pretty(),
-                                    inferredType2.unfresh().normalizeMatrixTypes().pretty()));
+                                    declaredType.unfresh().pretty(),
+                                    instantiatedType.unfresh().pretty()));
                 }
-            }
 
-            // 6. See if there is a type declaration.
-            if (info.isFromFile(this.file) && declared.isPresent()) {
-                // 6.a Get the declared type with the code's variable names. We want to use
+                // 7.a Get the declared type with the code's variable names. We want to use
                 // these variable names so they match the declared type when showing hover
                 // messages.
-                TypeObject decld = ((Schema) declared.get().evalType()).type().reduce(i -> i.isFromFile(this.file));
+                TypeObject declaredTypeBody = declaredSchema.type()
+                        .reduce(i -> i.location().file().equals(info.location().file()));
 
-                // 6.b Match the inferred type and the declared type.
-                Substitution unifSubs = solvedType.match(decld);
+                // 7.b Match the inferred type and the declared type.
+                Substitution unifSubs = solvedType.match(declaredTypeBody);
 
-                // 6.c Update finalLocalsSubs and inferredType for the type declaration case
+                // 7.c Update finalLocalsSubs and inferredType for the type declaration case
                 finalLocalsSubs = unifSubs.compose(inferenceSolution);
                 inferredType = unifSubs.apply(solvedType);
             }
 
-            // 7. Update the local variable types and store the inferred type
+            // 8. Update the local variable types and store the inferred type
+            // The commit visitor does the normalizeMatrixTypes that is done
+            // for the infered type above!
             def.body.accept(new TypeInferenceCommitVisitor(finalLocalsSubs));
             info.setinferredType(inferredType.generalize());
 
         } catch (PacioliException e) {
-            throw new RuntimeException("Type error", e);
+            throw new RuntimeException("Type error",
+                    e.location() == null ? new PacioliException(info.location(), e.getMessage()) : e);
         }
 
     }

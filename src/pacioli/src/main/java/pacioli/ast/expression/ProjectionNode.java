@@ -29,7 +29,7 @@ import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.types.ast.TypeNode;
-import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.matrix.MatrixType;
 
 public class ProjectionNode extends AbstractNode implements ExpressionNode {
 

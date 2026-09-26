@@ -58,4 +58,8 @@ public class PacioliString implements PacioliValue {
         PacioliString otherString = (PacioliString) other;
         return this.value.equals(otherString.value);
     }
+
+    public String value() {
+        return value;
+    }
 }

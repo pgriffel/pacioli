@@ -92,7 +92,8 @@ define unit_quaternion_suite = test_suite("Function unit_quaternion", [
     ),
 
     test("should  correctly normalize 4i + 3k", () ->
-        unit_quaternion(make_quaternion(0, 4, 0, 3)) = make_quaternion(0,4/5,0,3/5)
+        # Without the 1/5 constant the test fails on precision in js
+        unit_quaternion(make_quaternion(0, 4, 0, 3)) = let c = 1/5 in make_quaternion(0,4*c,0,3*c) end
     ),
 
     test("should correctly normalize and drop the unit of measurement", () ->

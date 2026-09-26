@@ -72,6 +72,7 @@ import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.ComprehensionNode.AssignmentClause;
 import pacioli.ast.sugar.ComprehensionNode.FilterClause;
 import pacioli.ast.sugar.ComprehensionNode.GeneratorClause;
+import pacioli.ast.sugar.ComprehensionNode.Kind;
 import pacioli.ast.sugar.ComprehensionNode.TupleAssignmentClause;
 import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
 import pacioli.ast.sugar.ExponentNode;
@@ -83,6 +84,7 @@ import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
@@ -113,11 +115,15 @@ public class PrintVisitor implements Visitor {
 
     Printer out;
 
-    // WIP
     boolean printVariableTypes = false;
 
     public PrintVisitor(Printer printer) {
         out = printer;
+    }
+
+    public PrintVisitor(Printer printer, boolean printVariableTypes) {
+        out = printer;
+        this.printVariableTypes = printVariableTypes;
     }
 
     public void write(String text) {
@@ -450,12 +456,14 @@ public class PrintVisitor implements Visitor {
 
             if (node.table != null) {
                 ValueInfo info = node.table.lookup(arg);
-                write(":");
-                Optional<TypeObject> type = info.inferredType();
-                if (type.isPresent()) {
-                    write(type.get().pretty());
-                } else {
-                    write("?");
+                if (printVariableTypes) {
+                    write(": ");
+                    Optional<TypeObject> type = info.inferredType();
+                    if (type.isPresent()) {
+                        write(type.get().pretty());
+                    } else {
+                        write("?");
+                    }
                 }
             }
             ;
@@ -748,15 +756,26 @@ public class PrintVisitor implements Visitor {
     @Override
     public void visit(LetNode node) {
 
+        mark();
         write("let ");
 
         newlineUp();
 
+        // See remark below
+        List<String> suff = new ArrayList<>();
         if (node.binding instanceof LetBindingNode binding) {
             out.write(binding.var);
             if (printVariableTypes) {
-                out.write(":");
-                write(node.table.lookup(binding.var).inferredType().map(x -> x.pretty()).orElse("?"));
+                write(node.table
+                        .lookup(binding.var)
+                        .inferredType()
+                        .map(x -> ": " + x.pretty())
+                        .orElse(": ?"));
+            }
+            out.write(" = ");
+            binding.value.accept(this);
+            if (suff.size() > 0) {
+                out.write(suff.get(0));
             }
         } else {
             node.binding.accept(this);
@@ -772,10 +791,14 @@ public class PrintVisitor implements Visitor {
         newlineDown();
 
         write("end");
+        unmark();
     }
 
     @Override
     public void visit(LetBindingNode node) {
+        // Overuled above because the variable is stored as a string, and to print the
+        // type we need the info and that is in the table on the let node. The other
+        // let bindings find the info via the identifierNode.
         out.write(node.var);
         out.write(" = ");
         node.value.accept(this);
@@ -973,18 +996,44 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(ComprehensionNode comprehensionNode) {
-        write("TODO: comprehensionNode");
+    public void visit(ComprehensionNode node) {
+
+        // Write the leading op if it exists
+        if (node.hasOperator()) {
+            write(node.operator.id().get().name());
+        }
+
+        write("[ ");
+
+        node.expression.accept(this);
+
+        write(" | ");
+
+        out.writeCommaSeparated(node.clauses, x -> {
+            x.accept(this);
+        });
+
+        write(" ]");
     }
 
     @Override
-    public void visit(GeneratorClause generatorClause) {
-        write("TODO: comprehensionNode");
+    public void visit(GeneratorClause node) {
+        node.id.accept(this);
+
+        String sym = switch (node.kind) {
+            case LIST -> " <- ";
+            case ARRAY -> " in array ";
+            case SET -> " in set ";
+        };
+
+        write(sym);
+
+        node.expression.accept(this);
     }
 
     @Override
-    public void visit(FilterClause filterClause) {
-        write("TODO: comprehensionNode");
+    public void visit(FilterClause node) {
+        node.expression.accept(this);
     }
 
     @Override
@@ -993,8 +1042,12 @@ public class PrintVisitor implements Visitor {
     }
 
     @Override
-    public void visit(AssignmentClause assignmentClause) {
-        write("TODO: comprehensionNode");
+    public void visit(AssignmentClause node) {
+        node.id.accept(this);
+
+        write(" := ");
+
+        node.value.accept(this);
     }
 
     @Override
@@ -1007,6 +1060,13 @@ public class PrintVisitor implements Visitor {
         write("[");
         writeCommaSeparated(node.elements);
         write("]");
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        write("{");
+        writeCommaSeparated(node.elements);
+        write("}");
     }
 
 }

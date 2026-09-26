@@ -32,16 +32,22 @@ import pacioli.symboltable.info.ValueInfo;
 
 public class ForNode extends AbstractNode implements ExpressionNode {
 
+    public enum Kind {
+        LIST, SET, ARRAY
+    }
+
     public final IdentifierNode var;
     public final ExpressionNode items;
     public final ExpressionNode body;
+    public final Kind kind;
 
     public ExpressionNode lambdaBody;
 
     public SymbolTable<ValueInfo> table;
 
-    public ForNode(Location location, IdentifierNode var, ExpressionNode items, ExpressionNode body) {
+    public ForNode(Location location, Kind kind, IdentifierNode var, ExpressionNode items, ExpressionNode body) {
         super(location);
+        this.kind = kind;
         this.var = var;
         this.items = items;
         this.body = body;
@@ -50,7 +56,7 @@ public class ForNode extends AbstractNode implements ExpressionNode {
     }
 
     public ForNode transform(IdentifierNode var, ExpressionNode items, ExpressionNode body) {
-        return new ForNode(location(), var, items, body);
+        return new ForNode(location(), this.kind, var, items, body);
     }
 
     static LambdaNode forLambda(IdentifierNode id, ExpressionNode items, ExpressionNode body) {

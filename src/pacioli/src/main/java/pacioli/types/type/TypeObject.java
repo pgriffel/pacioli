@@ -38,9 +38,12 @@ import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
 import pacioli.types.UnitUnification;
-import pacioli.types.matrix.MatrixType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.VectorUnitVar;
 import pacioli.types.visitors.VectorVarNames;
 import pacioli.types.visitors.JSGenerator;
+import pacioli.types.visitors.LeanPrinter;
 import pacioli.types.visitors.MVMGenerator;
 import pacioli.types.visitors.MatrixNormalizeVisitor;
 import pacioli.types.visitors.PrettyPrinter;
@@ -102,19 +105,23 @@ public interface TypeObject extends Printable {
         // that case the more specific IndexSetVar is prefered. Always substituting
         // typevars first is an attempt to force this. Is this sufficient?
         if (x instanceof TypeVar v && !v.isGround()) {
-            return new Substitution((Var) x, y);
+            return new Substitution(v, y);
         }
 
         if (y instanceof TypeVar v && !v.isGround()) {
-            return new Substitution((Var) y, x);
+            return new Substitution(v, x);
         }
 
         if (x instanceof Var v && !v.isGround()) {
-            return new Substitution((Var) x, y);
+            return new Substitution(v, y);
         }
 
         if (y instanceof Var v && !v.isGround()) {
-            return new Substitution((Var) y, x);
+            return new Substitution(v, x);
+        }
+
+        if (x instanceof Var || y instanceof Var) {
+            throw new PacioliException("Cannot unify %s and %s", x.pretty(), y.pretty());
         }
 
         if (x.getClass().equals(y.getClass())) {
@@ -129,7 +136,13 @@ public interface TypeObject extends Printable {
     }
 
     public default Substitution match(TypeObject other) throws PacioliException {
-        return unify(this, other.groundAll(), false);
+        var revertGrounding = new Substitution();
+
+        for (var var : other.typeVars()) {
+            revertGrounding = revertGrounding.compose(new Substitution(var.setGround(true), var));
+        }
+
+        return revertGrounding.compose(unify(this, other.groundAll(), false));
     }
 
     public default boolean matches(TypeObject other) {
@@ -157,33 +170,46 @@ public interface TypeObject extends Printable {
         return new ReduceTypes(reduceCallback).typeNodeAccept(this);
     };
 
-    public default List<Unit<TypeBase>> simplificationParts() {
+    public default List<Unit<MatrixBase>> simplificationParts() {
         return new SimplificationParts().partsAccept(this);
     };
 
-    public default TypeObject simplify() {
+    public default Substitution simplification() {
+        List<Unit<MatrixBase>> parts = simplificationParts();
+
         Substitution mgu = new Substitution();
-        List<Unit<TypeBase>> parts = simplificationParts();
         Set<UnitVar> ignore = new HashSet<>();
+
         for (int i = 0; i < parts.size(); i++) {
-            Unit<TypeBase> part = mgu.apply(parts.get(i));
+            Unit<MatrixBase> part = mgu.apply(parts.get(i));
+
             Substitution simplified = UnitUnification.unitSimplify(part, ignore);
-            for (TypeBase base : simplified.apply(part).bases()) {
-                if (base instanceof Var) {
-                    ignore.add((UnitVar) base);
+
+            for (MatrixBase base : simplified.apply(part).bases()) {
+                if (base instanceof UnitVar var) {
+                    ignore.add(var);
                 }
             }
+
             mgu = simplified.compose(mgu);
         }
-        TypeObject result = applySubstitution(mgu);
-        return result;
+
+        return mgu;
+    }
+
+    public default TypeObject simplify() {
+        return applySubstitution(simplification());
     }
 
     /**
      * Return a copy of this type with all variable occurrences marked as grounded.
      */
     public default TypeObject groundAll() {
-        return new GroundVarsVisitor().typeNodeAccept(this);
+        return new GroundVarsVisitor(true).typeNodeAccept(this);
+    }
+
+    public default TypeObject ungroundAll() {
+        return new GroundVarsVisitor(false).typeNodeAccept(this);
     }
 
     public default boolean isInstanceOf(TypeObject other) {
@@ -218,8 +244,8 @@ public interface TypeObject extends Printable {
             // TypeVar var = (TypeVar) gvar; //fixme
             if (var instanceof VectorUnitVar) {
                 char ch = (char) character++;
-                // Results in weird types like b!b. Is that okay? Yes: output in quantifiers etc
-                // is fixed by MatrixNormalizeVisitor
+                // Results in weird types like b!b. Is corrected by properIndexSets on
+                // MatrixType. See normalizeMatrixTypes and MatrixNormalizeVisitor.
                 map = map.compose(new Substitution(var, var.rename(String.format("%s!%s", ch, ch))));
             } else if (var instanceof IndexSetVar) {
                 map = map.compose(
@@ -234,7 +260,7 @@ public interface TypeObject extends Printable {
         // Replace all unit vector variables by its name prefixed by the index set name.
         Substitution map2 = new Substitution();
         Set<String> names = new VectorVarNames().acceptTypeObject(unfreshType);
-        // Set<String> names = unfreshType.unitVecVarCompoundNames();
+
         for (String name : names) {
             String[] parts = name.split("!");
             assert (parts.length == 2);
@@ -265,8 +291,9 @@ public interface TypeObject extends Printable {
         return outputStream.toString();
     }
 
-    // Hack to print proper compound unit vector in schema's
-    default public Set<String> unitVecVarCompoundNames() {
-        return new VectorVarNames().acceptTypeObject(this);
-    }
+    public default String printAsLean() {
+        StringWriter outputStream = new StringWriter();
+        this.accept(new LeanPrinter(new Printer(new PrintWriter(outputStream))));
+        return outputStream.toString();
+    };
 }

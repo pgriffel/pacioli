@@ -25,11 +25,12 @@ package pacioli.types.visitors;
 import java.util.HashSet;
 import java.util.Set;
 
-import pacioli.types.matrix.IndexType;
-import pacioli.types.matrix.MatrixType;
-import pacioli.types.type.TypeBase;
 import pacioli.types.type.TypeObject;
-import pacioli.types.type.VectorUnitVar;
+import pacioli.types.type.matrix.IndexType;
+import pacioli.types.type.matrix.MatrixBase;
+import pacioli.types.type.matrix.MatrixType;
+import pacioli.types.type.matrix.VectorBase;
+import pacioli.types.type.matrix.VectorUnitVar;
 import uom.Unit;
 
 public class VectorVarNames extends Collector<String> {
@@ -53,10 +54,10 @@ public class VectorVarNames extends Collector<String> {
         }
     }
 
-    private Set<String> unitVecVarNames(IndexType dimension, Unit<TypeBase> unit) {
+    private Set<String> unitVecVarNames(IndexType dimension, Unit<VectorBase> unit) {
         Set<String> names = new HashSet<String>();
         if (dimension.isVar()) {
-            for (TypeBase base : unit.bases()) {
+            for (MatrixBase base : unit.bases()) {
                 if (base instanceof VectorUnitVar vbase) {
                     names.add(dimension.varName() + "!" + vbase.unitPart());
                 } else {

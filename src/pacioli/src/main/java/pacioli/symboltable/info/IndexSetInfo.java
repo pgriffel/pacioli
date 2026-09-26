@@ -26,7 +26,6 @@ import java.util.Optional;
 
 import pacioli.ast.definition.IndexSetDefinition;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
 public final class IndexSetInfo extends AbstractInfo implements TypeInfo {
@@ -43,8 +42,8 @@ public final class IndexSetInfo extends AbstractInfo implements TypeInfo {
         this.definition = definition;
     }
 
-    public IndexSetInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location) {
-        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
+    public IndexSetInfo(String name, boolean isGlobal, boolean isPublic, Location location) {
+        super(new GeneralInfo(name, isGlobal, isPublic, location));
         this.definition = null;
     }
 

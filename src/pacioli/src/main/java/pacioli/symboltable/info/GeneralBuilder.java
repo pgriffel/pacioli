@@ -25,12 +25,10 @@ package pacioli.symboltable.info;
 import pacioli.ast.definition.Documentation;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.PacioliFile;
 
 public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
 
     private String name;
-    private PacioliFile file;
     private Boolean isGlobal;
     private Location location;
     private Documentation documentation;
@@ -40,11 +38,6 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
 
     public S name(String name) {
         this.name = name;
-        return self();
-    }
-
-    public S file(PacioliFile file) {
-        this.file = file;
         return self();
     }
 
@@ -76,11 +69,11 @@ public abstract class GeneralBuilder<S, T> implements InfoBuilder<S, T> {
 
     GeneralInfo buildGeneralInfo() {
         if (name == null ||
-                file == null ||
                 isGlobal == null ||
                 location == null) {
             throw new RuntimeException("Field missing");
         }
-        return new GeneralInfo(name, file, isGlobal, isPublic, location, this.documentation);
+
+        return new GeneralInfo(name, isGlobal, isPublic, location, this.documentation);
     }
 }

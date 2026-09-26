@@ -27,6 +27,7 @@ export
     _atan,
     _atan2,
     _add_mut,
+    _adjoin_mut,
     _precision,
     _set_precision,
     _nr_decimals,
@@ -34,7 +35,9 @@ export
     _num2string,
     _show_zeros,
     _set_show_zeros,
-    _runtime_environment;
+    _runtime_environment,
+    _bignum_precision,
+    _set_bignum_precision;
 
 # ----------------------------------------------------------------------------
 # System functions
@@ -78,6 +81,10 @@ declare_primitive _atan2(A) ::
 
 declare_primitive _add_mut(list, element) ::
     for_type a: (List(a), a) -> List(a);
+# ----------------------------------------------------------------------------
+
+declare_primitive _adjoin_mut(set, element) ::
+    for_type a: (Set(a), a) -> Set(a);
 
 # ----------------------------------------------------------------------------
 
@@ -122,3 +129,13 @@ doc _runtime_environment
      'javascript'.";
 
 declare_primitive _runtime_environment :: String;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _set_bignum_precision(n) ::
+    (1) -> Void;
+
+# ----------------------------------------------------------------------------
+
+declare_primitive _bignum_precision() ::
+    () -> 1;

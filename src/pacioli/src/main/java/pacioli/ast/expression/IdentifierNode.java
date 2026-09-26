@@ -28,10 +28,11 @@ import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
-import pacioli.symboltable.info.Info;
 import pacioli.symboltable.info.ValueInfo;
 
 public class IdentifierNode extends AbstractNode implements ExpressionNode {
+
+    private static int counter = 0;
 
     public enum Kind {
         VALUE, TYPE
@@ -76,6 +77,12 @@ public class IdentifierNode extends AbstractNode implements ExpressionNode {
         return node;
     }
 
+    // move all freshUnderscore code from parser etc. to desugar and use this
+    // function or some variant. See tuplegenerator as example.
+    public IdentifierNode freshIfUnderscore() {
+        return this.name.equals("_") ? new IdentifierNode("_" + counter++, kind, this.location()) : this;
+    }
+
     public Optional<Kind> kind() {
         return Optional.ofNullable(this.kind);
     }
@@ -92,20 +99,6 @@ public class IdentifierNode extends AbstractNode implements ExpressionNode {
         return this.info != null;
     }
 
-    @Override
-    public Optional<Info> getInfo() {
-        // This node should have been resolved and have an info.
-        if (this.info == null) {
-            throw new RuntimeException(
-                    new PacioliException(location(), "Cannot get info, identifier '%s' has not been resolved.",
-                            name));
-        }
-
-        // Never empty, an identifier always refers to something
-        return Optional.of(this.info);
-    }
-
-    // TODO: remove. Use getInfo instead
     public ValueInfo info() {
         if (this.info != null) {
             return this.info;

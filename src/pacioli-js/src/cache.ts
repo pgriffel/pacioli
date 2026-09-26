@@ -92,14 +92,21 @@ export function oneNumbers(m: number, n: number): RawMatrix {
   return numbers;
 }
 
+/**
+ * Runtime function used for literal unit nodes. The compiler generates type information for literal
+ * unit nodes (class MatrixTypeNode). This is done for num2string and unit2string. These functions
+ * require a literal unit as argument. In this way we can print units.
+ *
+ * @param type
+ * @param context
+ * @returns
+ */
 export function oneNumbersFromShape(
   type: MatrixType,
   context: PacioliContext = defaultContext,
 ): RawMatrix {
   const shape = matrixShapeFromType(type, context);
   const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
-  // TODO: check this. Was always in the code, but typing seems to show it is not necessary. Is it not used? Time wil tell.
-  // THIS IS USED!!!
   numbers.shape = shape;
   return numbers;
 }

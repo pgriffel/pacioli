@@ -101,6 +101,13 @@ public class PacioliFile implements Printable {
         return get(new File(file), version);
     }
 
+    /**
+     * Used in tests
+     */
+    public static PacioliFile dummy() {
+        return new PacioliFile(new File("dummy.pacioli"), "", "", 0, false, false);
+    };
+
     public String moduleName() {
         return moduleName;
     }
@@ -139,6 +146,12 @@ public class PacioliFile implements Printable {
                 return "m";
             case PYTHON:
                 return "py";
+            case LEAN:
+                return "lean";
+            case LEANER:
+                return "lean";
+            case LEANEST:
+                return "lean";
             default:
                 throw new RuntimeException("Unknown target");
         }
@@ -232,11 +245,14 @@ public class PacioliFile implements Printable {
 
         }
 
+        String LIB_PREFIX = "_";
+
         if (theFile == null) {
             return Optional.empty();
         } else {
             return Optional.of(
-                    new PacioliFile(theFile, "$" + name.replace("/", "_"), name.replace("/", "_"), 0, false, true));
+                    new PacioliFile(theFile, LIB_PREFIX + name.replace("/", "_"), name.replace("/", "_"), 0, false,
+                            true));
         }
     }
 

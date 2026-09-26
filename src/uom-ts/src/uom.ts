@@ -151,7 +151,7 @@ export class UOM<T extends UOMBase> {
     for (const term of other.termMap.values()) {
       result.set(
         term.getName(),
-        term.withPower(term.power + this.power(term.base))
+        term.withPower(term.power + this.power(term.base)),
       );
     }
     return new UOM(result);
@@ -224,7 +224,7 @@ export class UOM<T extends UOMBase> {
         text += sep + term.withPower(-term.power).toText();
       }
     }
-    return text;
+    return text === "" ? "1" : text;
   }
 
   map<U extends UOMBase>(fun: (base: T) => UOM<U>): UOM<U> {
@@ -239,7 +239,7 @@ export class UOM<T extends UOMBase> {
   fold<U>(
     base: (base: T, power: number) => U,
     mult: (x: U, y: U) => U,
-    init?: U
+    init?: U,
   ): U {
     const terms = Array.from(this.termMap.values());
     if (terms.length === 0) {

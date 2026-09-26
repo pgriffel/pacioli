@@ -23,6 +23,9 @@
 package mvm.values.matrix;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
+
 import mvm.Printable;
 import uom.Unit;
 
@@ -30,20 +33,20 @@ public class UnitVector implements Printable {
 
     public final String name;
     public final IndexSet indexSet;
-    private final Unit<MatrixBase>[] elements;
+    private final List<Unit<ScalarBase>> elements;
 
-    public UnitVector(IndexSet set, String name, Unit<MatrixBase>[] units) {
+    public UnitVector(IndexSet set, String name, ArrayList<Unit<ScalarBase>> units) {
         this.indexSet = set;
         this.name = name;
         elements = units;
     }
 
     public int size() {
-        return elements.length;
+        return elements.size();
     }
 
-    public Unit<MatrixBase> get(int position) {
-        return elements[position];
+    public Unit<ScalarBase> get(int position) {
+        return elements.get(position);
     }
 
     @Override

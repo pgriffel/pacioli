@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 public class Location {
 
-    private final File file;
+    private final PacioliFile file;
 
     public final Integer fromLine;
     public final Integer fromColumn;
@@ -46,17 +46,17 @@ public class Location {
     private final Integer toOffset;
 
     /**
-     * Constructs a Location that represents a position in a file. Join two position
-     * locations to create a range. It is the caller's responsibility that the
-     * numbers
-     * for this constructor are consistent and denote a real file position.
+     * Constructs a Location that represents a position in a Pacioli file. Join two
+     * position locations to create a range. It is the caller's responsibility
+     * that the numbers for this constructor are consistent and denote a real file
+     * position.
      * 
      * @param file   The file
      * @param line   Zero based line of the position in the file
      * @param column Zero based offset on the line of the position in the file
      * @param offset Zero based position in the file
      */
-    public Location(File file) {
+    public Location(PacioliFile file) {
         this.file = file;
         this.fromOffset = 0;
         this.toOffset = 0;
@@ -127,7 +127,7 @@ public class Location {
         return true;
     }
 
-    public Location(File file, int line, int column, int offset) {
+    public Location(PacioliFile file, int line, int column, int offset) {
         this.file = file;
         this.fromOffset = offset;
         this.toOffset = offset;
@@ -137,7 +137,8 @@ public class Location {
         this.toColumn = column;
     }
 
-    private Location(File file, int fromLine, int fromColumn, int fromOffset, int toLine, int toColumn, int toOffset) {
+    private Location(PacioliFile file, int fromLine, int fromColumn, int fromOffset, int toLine, int toColumn,
+            int toOffset) {
         this.file = file;
         this.fromOffset = fromOffset;
         this.toOffset = toOffset;
@@ -179,13 +180,17 @@ public class Location {
         }
     }
 
-    public Optional<File> file() {
-        return Optional.ofNullable(file);
+    public PacioliFile file() {
+        return file;
+    }
+
+    public Optional<File> fsFile() {
+        return Optional.ofNullable(file.fsFile());
     }
 
     public String fragment() {
         try {
-            return Files.readString(file.toPath()).substring(fromOffset, toOffset);
+            return Files.readString(file.fsFile().toPath()).substring(fromOffset, toOffset);
         } catch (IOException e) {
             return "No source for file" + file + ": " + e.getMessage();
         }
@@ -199,7 +204,7 @@ public class Location {
 
         String source;
         try {
-            source = Files.readString(file.toPath());
+            source = Files.readString(file.fsFile().toPath());
         } catch (IOException e) {
             return "No source for file" + file + ": " + e.getMessage();
         }

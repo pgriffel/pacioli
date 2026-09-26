@@ -8,108 +8,109 @@ package pacioli.parser;
 /** CUP generated interface containing symbol constants. */
 public interface sym {
   /* terminals */
-  public static final int AT = 42;
-  public static final int AS = 94;
-  public static final int IDENTIFIER = 88;
-  public static final int DEFRECORD = 19;
-  public static final int FROM = 31;
-  public static final int GT = 78;
-  public static final int APPEND = 65;
-  public static final int FOROP = 41;
-  public static final int MMULT = 58;
-  public static final int NATURAL = 86;
-  public static final int MEXPT = 63;
+  public static final int AT = 44;
+  public static final int AS = 96;
+  public static final int IDENTIFIER = 90;
+  public static final int DEFRECORD = 18;
+  public static final int FROM = 30;
+  public static final int GT = 80;
+  public static final int APPEND = 67;
+  public static final int FOROP = 43;
+  public static final int MMULT = 60;
+  public static final int NATURAL = 88;
+  public static final int MEXPT = 65;
   public static final int EXPORT = 4;
-  public static final int LAMBDA = 32;
-  public static final int RSCALE = 67;
-  public static final int EQUIV = 76;
-  public static final int RBRACK = 52;
-  public static final int DEFDATA = 18;
-  public static final int TRANS = 70;
-  public static final int COMMA = 46;
-  public static final int LSCALE = 69;
-  public static final int DEFINE = 6;
-  public static final int LBRACK = 51;
-  public static final int DECLARE = 7;
-  public static final int DECLARE_PRIMITIVE = 8;
-  public static final int LBRC = 49;
-  public static final int EQL = 73;
-  public static final int LE = 77;
-  public static final int ELSEIF = 22;
-  public static final int THEN = 36;
-  public static final int DBLCLN = 45;
-  public static final int FORTYPE = 38;
-  public static final int LSCALEDOWN = 68;
-  public static final int MOD = 57;
-  public static final int FOLLOWSFROM = 84;
-  public static final int RBRC = 50;
+  public static final int LAMBDA = 34;
+  public static final int FROM_SET = 31;
+  public static final int RSCALE = 69;
+  public static final int EQUIV = 78;
+  public static final int RBRACK = 54;
+  public static final int DEFDATA = 17;
+  public static final int TRANS = 72;
+  public static final int COMMA = 48;
+  public static final int LSCALE = 71;
+  public static final int DEFINE = 5;
+  public static final int LBRACK = 53;
+  public static final int DECLARE = 6;
+  public static final int DECLARE_PRIMITIVE = 7;
+  public static final int LBRC = 51;
+  public static final int EQL = 75;
+  public static final int LE = 79;
+  public static final int ELSEIF = 21;
+  public static final int THEN = 38;
+  public static final int DBLCLN = 47;
+  public static final int FORTYPE = 40;
+  public static final int LSCALEDOWN = 70;
+  public static final int MOD = 59;
+  public static final int FOLLOWSFROM = 86;
+  public static final int RBRC = 52;
   public static final int INCLUDE = 2;
-  public static final int SELECT = 91;
-  public static final int DEFINSTANCE = 16;
-  public static final int PIPE = 53;
-  public static final int DEFTYPE = 10;
-  public static final int PLUS = 54;
-  public static final int LPAR = 47;
-  public static final int WHILE = 25;
-  public static final int DECIMAL = 87;
-  public static final int ASSIGN = 28;
-  public static final int BOOLEAN = 85;
-  public static final int DIMINV = 71;
-  public static final int DO = 27;
-  public static final int FOR = 26;
-  public static final int QUESTIONMARKS = 90;
-  public static final int DEFCONV = 14;
-  public static final int DIV = 56;
-  public static final int PUBLIC = 5;
-  public static final int RETURN = 37;
-  public static final int MULT = 55;
-  public static final int MDIV = 62;
-  public static final int ELSE = 21;
-  public static final int RSCALEDOWN = 66;
+  public static final int SELECT = 93;
+  public static final int DEFINSTANCE = 15;
+  public static final int PIPE = 55;
+  public static final int DEFTYPE = 9;
+  public static final int PLUS = 56;
+  public static final int LPAR = 49;
+  public static final int WHILE = 24;
+  public static final int DECIMAL = 89;
+  public static final int ASSIGN = 27;
+  public static final int BOOLEAN = 87;
+  public static final int DIMINV = 73;
+  public static final int DO = 26;
+  public static final int FOR = 25;
+  public static final int QUESTIONMARKS = 92;
+  public static final int DEFCONV = 13;
+  public static final int DIV = 58;
+  public static final int RETURN = 39;
+  public static final int MULT = 57;
+  public static final int MDIV = 64;
+  public static final int ELSE = 20;
+  public static final int RSCALEDOWN = 68;
   public static final int EOF = 0;
-  public static final int SEMICOLON = 44;
-  public static final int WHERE = 93;
-  public static final int RPAR = 48;
-  public static final int DOC = 17;
-  public static final int DEFMATRIX = 12;
+  public static final int SEMICOLON = 46;
+  public static final int WHERE = 95;
+  public static final int RPAR = 50;
+  public static final int DOC = 16;
+  public static final int DEFMATRIX = 11;
   public static final int IMPORT = 3;
-  public static final int GTQ = 80;
-  public static final int RECI = 72;
-  public static final int IN = 33;
-  public static final int OR = 82;
-  public static final int HAT = 59;
+  public static final int GTQ = 82;
+  public static final int RECI = 74;
+  public static final int IN = 35;
+  public static final int OR = 84;
+  public static final int HAT = 61;
+  public static final int FROM_ARRAY = 33;
   public static final int error = 1;
-  public static final int QFROM = 92;
-  public static final int MLEFTDIV = 64;
-  public static final int EXCL = 29;
-  public static final int LEFTDIV = 61;
-  public static final int IF = 20;
-  public static final int DEFCLASS = 15;
-  public static final int END = 24;
-  public static final int COLON = 43;
-  public static final int FORUNIT = 39;
-  public static final int DEFALIAS = 13;
-  public static final int PER = 35;
-  public static final int DEFINDEX = 9;
-  public static final int FORINDEX = 40;
-  public static final int BEGIN = 23;
-  public static final int DEFUNIT = 11;
-  public static final int STRING = 89;
-  public static final int APPR_EQL = 74;
-  public static final int NEQ = 75;
-  public static final int AND = 81;
-  public static final int IMPLIES = 83;
-  public static final int TO = 30;
-  public static final int LET = 34;
-  public static final int NEG = 60;
-  public static final int LEQ = 79;
+  public static final int QFROM = 94;
+  public static final int MLEFTDIV = 66;
+  public static final int EXCL = 28;
+  public static final int LEFTDIV = 63;
+  public static final int IF = 19;
+  public static final int DEFCLASS = 14;
+  public static final int END = 23;
+  public static final int COLON = 45;
+  public static final int FORUNIT = 41;
+  public static final int DEFALIAS = 12;
+  public static final int PER = 37;
+  public static final int FROM_LIST = 32;
+  public static final int DEFINDEX = 8;
+  public static final int FORINDEX = 42;
+  public static final int BEGIN = 22;
+  public static final int DEFUNIT = 10;
+  public static final int STRING = 91;
+  public static final int APPR_EQL = 76;
+  public static final int NEQ = 77;
+  public static final int AND = 83;
+  public static final int IMPLIES = 85;
+  public static final int TO = 29;
+  public static final int LET = 36;
+  public static final int NEG = 62;
+  public static final int LEQ = 81;
   public static final String[] terminalNames = new String[] {
   "EOF",
   "error",
   "INCLUDE",
   "IMPORT",
   "EXPORT",
-  "PUBLIC",
   "DEFINE",
   "DECLARE",
   "DECLARE_PRIMITIVE",
@@ -136,6 +137,9 @@ public interface sym {
   "EXCL",
   "TO",
   "FROM",
+  "FROM_SET",
+  "FROM_LIST",
+  "FROM_ARRAY",
   "LAMBDA",
   "IN",
   "LET",

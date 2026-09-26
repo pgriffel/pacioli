@@ -24,19 +24,26 @@ package uom;
 
 import java.math.BigDecimal;
 
+/**
+ * SI prefix for units of measurement.
+ * 
+ * A Prefix scales an SIBase.
+ */
 public class Prefix {
 
-    private final String symbols;
+    private final String symbol;
     private final BigDecimal factor;
 
-    public Prefix(String symbols, BigDecimal factor) {
-        this.symbols = symbols;
+    static final Prefix ONE = new Prefix("", BigDecimal.ONE);
+
+    public Prefix(String symbol, BigDecimal factor) {
+        this.symbol = symbol;
         this.factor = factor;
     }
 
     @Override
     public int hashCode() {
-        return symbols.hashCode();
+        return symbol.hashCode();
     }
 
     @Override
@@ -48,14 +55,14 @@ public class Prefix {
             return false;
         }
         Prefix otherPrefix = (Prefix) other;
-        if (!symbols.equals(otherPrefix.symbols)) {
+        if (!symbol.equals(otherPrefix.symbol)) {
             return false;
         }
         return true;
     }
 
-    public String prefixName() {
-        return symbols;
+    public String symbol() {
+        return symbol;
     }
 
     public BigDecimal prefixFactor() {

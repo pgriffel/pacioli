@@ -58,10 +58,10 @@ public class TypeObjectMatchTest {
 
     // @Test
     // public void shouldFailMatchGroundedTypeVarAgainstOtherTypeVar() {
-    //     TypeObject grounded = new TypeVar("a").setGround(true);
-    //     TypeObject other = new TypeVar("b");
+    // TypeObject grounded = new TypeVar("a").setGround(true);
+    // TypeObject other = new TypeVar("b");
 
-    //     assertThrows(PacioliException.class, () -> grounded.match(other));
+    // assertThrows(PacioliException.class, () -> grounded.match(other));
     // }
 
     @Test

@@ -23,7 +23,6 @@
 package pacioli.ast.visitors;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,10 +47,12 @@ import pacioli.ast.expression.LambdaNode;
 import pacioli.ast.expression.LetBindingNode;
 import pacioli.ast.expression.LetNode;
 import pacioli.ast.expression.ListLiteralNode;
+import pacioli.ast.expression.SetLiteralNode;
+import pacioli.ast.sugar.ComprehensionNode;
 import pacioli.ast.sugar.LetFunctionBindingNode;
 import pacioli.ast.sugar.LetTupleBindingNode;
+import pacioli.ast.sugar.RecordDefinition;
 import pacioli.compiler.PacioliException;
-import pacioli.compiler.PacioliFile;
 import pacioli.ast.expression.MatrixLiteralNode;
 import pacioli.ast.expression.MatrixTypeNode;
 import pacioli.ast.expression.ProjectionNode;
@@ -62,12 +63,13 @@ import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
 import pacioli.ast.expression.WhileNode;
+import pacioli.ast.expression.ForNode.Kind;
+import pacioli.symboltable.PacioliTable;
+import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.IndexSetInfo;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.Typing;
-import pacioli.types.matrix.IndexList;
-import pacioli.types.matrix.MatrixType;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.OperatorConst;
 import pacioli.types.type.ParametricType;
@@ -75,20 +77,20 @@ import pacioli.types.type.TypeIdentifier;
 import pacioli.types.type.TypeObject;
 import pacioli.types.type.TypeVar;
 import pacioli.types.type.Var;
+import pacioli.types.type.matrix.IndexList;
+import pacioli.types.type.matrix.MatrixType;
 
 public class TypeInference extends IdentityVisitor {
 
     private Stack<Typing> typingStack = new Stack<Typing>();
-    private HashMap<String, ParametricInfo> defaultTypes;
-    private PacioliFile file;
+    private PacioliTable defaultTypes;
 
-    public TypeInference(HashMap<String, ParametricInfo> defaultTypes, PacioliFile file) {
+    public TypeInference(PacioliTable defaultTypes) {
         this.defaultTypes = defaultTypes;
-        this.file = file;
     }
 
     private ParametricInfo findInfo(String name) {
-        ParametricInfo type = this.defaultTypes.get(name);
+        ParametricInfo type = (ParametricInfo) this.defaultTypes.types().lookup(name);
         if (type == null) {
             throw new RuntimeException("Unknown type: " + name);
         }
@@ -118,6 +120,39 @@ public class TypeInference extends IdentityVisitor {
     private ParametricType newListType(TypeObject arg) {
         return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
                 List.of(arg));
+    }
+
+    private ParametricType newSetType(TypeObject arg) {
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Set"), findInfo("Set")),
+                List.of(arg));
+    }
+
+    private ParametricType newArrayType(TypeObject arg) {
+        return new ParametricType(null, new OperatorConst(new TypeIdentifier("base", "Array"), findInfo("Array")),
+                List.of(arg));
+    }
+
+    private ParametricType newCollectionType(ComprehensionNode.Kind kind, TypeObject element) {
+        return switch (kind) {
+            case LIST -> newListType(element);
+            case SET -> newSetType(element);
+        };
+    }
+
+    private ParametricType newCollectionType(ComprehensionNode.GeneratorClause clause, TypeObject element) {
+        return switch (clause.kind) {
+            case LIST -> newListType(element);
+            case SET -> newSetType(element);
+            case ARRAY -> newArrayType(element);
+        };
+    }
+
+    private ParametricType newCollectionType(ComprehensionNode.TupleGeneratorClause clause, TypeObject element) {
+        return switch (clause.kind) {
+            case LIST -> newListType(element);
+            case SET -> newSetType(element);
+            case ARRAY -> newArrayType(element);
+        };
     }
 
     public Typing typingAccept(Node node) {
@@ -338,22 +373,13 @@ public class TypeInference extends IdentityVisitor {
 
         ValueInfo info = node.info();
 
-        if (info.isGlobal()) {
-            // Move instantiate to proper place.
-            if (node.info().declaredType().isPresent()) {
-                returnNode(new Typing(
-                        node.info().declaredType().get().evalType().instantiate()
-                                .reduce(i -> i.isFromFile(this.file))));
-            } else {
-                returnNode(new Typing(node.info().localType().instantiate()));
-            }
+        if (info.declaredType().isPresent()) {
+            returnNode(new Typing(
+                    info.declaredType().get().evalType().instantiate()
+                            .reduce(i -> i.isFromFile(node.location().file()))));
         } else {
-            TypeVar var = new TypeVar();
-            Typing typing = new Typing(var);
-            typing.addAssumption(node.name(), var);
-            returnNode(typing);
+            returnNode(new Typing(info.localType().instantiate()));
         }
-
     }
 
     @Override
@@ -424,12 +450,14 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
+        String kind = node.kind.equals(Kind.LIST) ? "List" : (node.kind.equals(Kind.SET) ? "Set" : "Array");
+
         var itemsType = new ParametricType(
                 null,
-                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                new OperatorConst(new TypeIdentifier("base", kind), findInfo(kind)),
                 List.of(argType));
         typing.addConstraint(itemsType, itemsTyping.type(),
-                "the variables in a for loop must match the list items", node.location());
+                "the variables in a for loop must match the traversed items", node.location());
 
         typing.addConstraint(bodyTyping.type(), newVoidType(),
                 "the body of a for loop must be a statement", node.location());
@@ -489,9 +517,11 @@ public class TypeInference extends IdentityVisitor {
 
         typing.addConstraintsAndAssumptions(itemsTyping);
 
+        String kind = node.kind.equals(Kind.LIST) ? "List" : (node.kind.equals(Kind.SET) ? "Set" : "Array");
+
         var itemsType = new ParametricType(
                 null,
-                new OperatorConst(new TypeIdentifier("base", "List"), findInfo("List")),
+                new OperatorConst(new TypeIdentifier("base", kind), findInfo(kind)),
                 List.of(newTupleType(argTypes)));
         typing.addConstraint(itemsType, itemsTyping.type(),
                 "the variables in a for loop must match the list items", node.location());
@@ -851,5 +881,135 @@ public class TypeInference extends IdentityVisitor {
         }
 
         returnNode(typing);
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+
+        TypeObject resultType = new TypeVar();
+
+        Typing typing = new Typing(newSetType(resultType));
+
+        for (ExpressionNode element : node.elements) {
+            Typing elementTyping = typingAccept(element);
+            typing.addConstraint(
+                    resultType,
+                    elementTyping.type(), "All set elements must have the same type",
+                    node.location());
+            typing.addConstraintsAndAssumptions(elementTyping);
+        }
+
+        returnNode(typing);
+    }
+
+    @Override
+    public void visit(ComprehensionNode node) {
+
+        if (node.hasOperator()) {
+            throw new UnsupportedOperationException("Comprehension op must have been desugared!");
+        }
+
+        // Create a typing for the comprehension. The constraints from type inference of
+        // the clauses are collected in this comprehension typing.
+        TypeObject elementType = new TypeVar();
+        TypeObject collectionType = newCollectionType(node.kind, elementType);
+        Typing typing = new Typing(collectionType);
+
+        for (ComprehensionNode.Clause clause : node.clauses) {
+            if (clause instanceof ComprehensionNode.GeneratorClause generator) {
+                Typing bodyTyping = typingAccept(generator.expression);
+
+                TypeVar var = setFreshVariableType(generator.table, generator.varName());
+
+                TypeObject varType = newCollectionType(generator, var);
+
+                typing.addConstraints(bodyTyping);
+
+                typing.addConstraint(varType, bodyTyping.type(),
+                        "The generator source must have the proper collection type", generator.location());
+
+            } else if (clause instanceof ComprehensionNode.TupleGeneratorClause generator) {
+                Typing bodyTyping = typingAccept(generator.expression);
+
+                List<TypeObject> itemTypes = new ArrayList<>();
+
+                for (String name : generator.varNames()) {
+                    TypeVar var = setFreshVariableType(generator.table, name);
+                    itemTypes.add(var);
+                }
+
+                TypeObject varsType = newCollectionType(generator, newTupleType(itemTypes));
+
+                typing.addConstraints(bodyTyping);
+
+                typing.addConstraint(varsType, bodyTyping.type(),
+                        "The tuple generator source must have the proper list type", generator.location());
+
+            } else if (clause instanceof ComprehensionNode.FilterClause filter) {
+                Typing filterTyping = typingAccept(filter.expression);
+
+                typing.addConstraints(filterTyping);
+
+                typing.addConstraint(filterTyping.type(), newBooleType(),
+                        "A comprehension filter must be Boolean", filter.location());
+
+            } else if (clause instanceof ComprehensionNode.AssignmentClause assignment) {
+                Typing valueTyping = typingAccept(assignment.value);
+
+                TypeVar var = setFreshVariableType(assignment.table, assignment.varName());
+
+                typing.addConstraints(valueTyping);
+
+                typing.addConstraint(valueTyping.type(), var,
+                        "A comprehension assignment variable must have correct type", assignment.location());
+
+            } else if (clause instanceof ComprehensionNode.TupleAssignmentClause assignment) {
+                Typing bodyTyping = typingAccept(assignment.value);
+
+                List<TypeObject> itemTypes = new ArrayList<>();
+                for (String name : assignment.varNames()) {
+                    itemTypes.add(setFreshVariableType(assignment.table, name));
+                }
+
+                TypeObject varsType = newTupleType(itemTypes);
+
+                typing.addConstraints(bodyTyping);
+
+                typing.addConstraint(varsType, bodyTyping.type(),
+                        "The tuple assignment source must have the proper list type", assignment.location());
+            }
+        }
+
+        Typing expressionTyping = typingAccept(node.expression);
+
+        typing.addConstraints(expressionTyping);
+
+        typing.addConstraint(elementType, expressionTyping.type(),
+                "The comprehension expression must have the element type", node.expression.location());
+
+        returnNode(typing);
+    }
+
+    @Override
+    public void visit(RecordDefinition node) {
+        node.type.evalType();
+        for (RecordDefinition.FieldDefinition field : node.fields) {
+            field.type.evalType();
+        }
+    }
+
+    private TypeVar setFreshVariableType(SymbolTable<ValueInfo> table, String name) {
+        // Create the type variable and add it to the list
+        String freshName = table.freshSymbolName();
+        TypeVar freshType = new TypeVar(freshName);
+
+        // Also store the type in the lambda's symbol table
+        ValueInfo info = table.lookup(name);
+        if (info.inferredType().isPresent()) {
+            throw new PacioliException(info.location(), "%s alread has type", name);
+        }
+        info.setinferredType(freshType);
+
+        return freshType;
     }
 }

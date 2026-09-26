@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import pacioli.Pacioli;
 import pacioli.ast.definition.AliasDefinition;
 import pacioli.ast.definition.ClassDefinition;
 import pacioli.ast.definition.Declaration;
@@ -72,6 +73,7 @@ import pacioli.ast.expression.ProjectionNode;
 import pacioli.ast.expression.ReturnNode;
 import pacioli.ast.expression.ReturnVoidNode;
 import pacioli.ast.expression.SequenceNode;
+import pacioli.ast.expression.SetLiteralNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.expression.StringNode;
 import pacioli.ast.expression.TupleAssignmentNode;
@@ -99,6 +101,9 @@ import pacioli.types.ast.TypePredicateNode;
 
 public class IdentityTransformation implements Visitor {
 
+    // Dev tool
+    private static boolean LOG_CALLS = false;
+
     private Stack<Node> stack;
 
     public IdentityTransformation() {
@@ -106,13 +111,13 @@ public class IdentityTransformation implements Visitor {
     }
 
     public Node nodeAccept(Node child) {
-        // Pacioli.logln("accept: %s", child.getClass());
+        Pacioli.logIf(LOG_CALLS, "accept: %s", child.getClass());
         child.accept(this);
         return stack.pop();
     }
 
     public void returnNode(Node value) {
-        // Pacioli.logln("return: %s", value.getClass());
+        Pacioli.logIf(LOG_CALLS, "return: %s", value.getClass());
         stack.push(value);
     }
 
@@ -147,24 +152,26 @@ public class IdentityTransformation implements Visitor {
             assert (node instanceof IncludeNode);
             includes.add((IncludeNode) node);
         }
-        for (IncludeNode def : program.includes()) {
+
+        for (ImportNode def : program.imports()) {
             Node node = nodeAccept(def);
-            assert (node instanceof IncludeNode);
-            includes.add((IncludeNode) node);
+            assert (node instanceof ImportNode);
+            imports.add((ImportNode) node);
         }
+
+        for (ExportNode def : program.exports()) {
+            Node node = nodeAccept(def);
+            assert (node instanceof ExportNode);
+            exports.add((ExportNode) node);
+        }
+
         for (Definition def : program.definitions()) {
             Node node = nodeAccept(def);
             assert (node instanceof Definition);
             defs.add((Definition) node);
-
         }
-        for (Definition def : program.definitions()) {
-            Node node = nodeAccept(def);
-            assert (node instanceof Definition);
-            defs.add((Definition) node);
 
-        }
-        returnNode(new ProgramNode(null, includes, imports, exports, defs));
+        returnNode(new ProgramNode(program.location(), includes, imports, exports, defs));
     }
 
     @Override
@@ -637,64 +644,73 @@ public class IdentityTransformation implements Visitor {
 
         ExpressionNode expr = expAccept(node.expression);
 
-        List<ComprehensionNode.Clause> transformed = new ArrayList<>();
+        List<ComprehensionNode.Clause> clauses = new ArrayList<>();
+
         for (ComprehensionNode.Clause clause : node.clauses) {
             Node cl = nodeAccept(clause);
             assert (cl instanceof ComprehensionNode.Clause);
-            transformed.add((ComprehensionNode.Clause) cl);
+            clauses.add((ComprehensionNode.Clause) cl);
         }
 
-        returnNode(new ComprehensionNode(expr, transformed, node.location()));
+        var transformed = new ComprehensionNode(node.kind, node.operator, expr, clauses, node.location());
+
+        transformed.table = node.table;
+
+        returnNode(transformed);
     }
 
     @Override
     public void visit(GeneratorClause clause) {
-        Node id = nodeAccept(clause.id);
-        ExpressionNode cl = expAccept(clause.list);
-        assert (id instanceof IdentifierNode);
-        returnNode(new ComprehensionNode.GeneratorClause((IdentifierNode) id, cl, clause.location()));
+        IdentifierNode id = (IdentifierNode) nodeAccept(clause.id);
+
+        ExpressionNode expression = expAccept(clause.expression);
+
+        returnNode(clause.transform(id, expression));
     }
 
     @Override
     public void visit(ComprehensionNode.FilterClause clause) {
-        ExpressionNode cl = expAccept(clause.list);
-        returnNode(new ComprehensionNode.FilterClause(cl, clause.location()));
+        ExpressionNode expression = expAccept(clause.expression);
+
+        returnNode(clause.transform(expression));
     }
 
     @Override
     public void visit(ComprehensionNode.TupleGeneratorClause clause) {
 
-        List<IdentifierNode> transformed = new ArrayList<>();
+        List<IdentifierNode> ids = new ArrayList<>();
+
         for (IdentifierNode id : clause.ids) {
             Node tr = nodeAccept(id);
             assert (tr instanceof IdentifierNode);
-            transformed.add((IdentifierNode) tr);
+            ids.add((IdentifierNode) tr);
         }
-        ExpressionNode cl = expAccept(clause.list);
 
-        returnNode(new ComprehensionNode.TupleGeneratorClause(transformed, cl, clause.location()));
+        ExpressionNode expression = expAccept(clause.expression);
+
+        returnNode(clause.transform(ids, expression));
     }
 
     @Override
     public void visit(ComprehensionNode.AssignmentClause clause) {
-        Node id = nodeAccept(clause.id);
-        ExpressionNode cl = expAccept(clause.value);
-        assert (id instanceof IdentifierNode);
-        returnNode(new ComprehensionNode.AssignmentClause((IdentifierNode) id, cl, clause.location()));
+        IdentifierNode id = (IdentifierNode) nodeAccept(clause.id);
+
+        ExpressionNode value = expAccept(clause.value);
+
+        returnNode(clause.transform(id, value));
     }
 
     @Override
     public void visit(ComprehensionNode.TupleAssignmentClause clause) {
+        List<IdentifierNode> ids = new ArrayList<>();
 
-        List<IdentifierNode> transformed = new ArrayList<>();
         for (IdentifierNode id : clause.ids) {
-            Node tr = nodeAccept(id);
-            assert (tr instanceof IdentifierNode);
-            transformed.add((IdentifierNode) tr);
+            ids.add((IdentifierNode) nodeAccept(id));
         }
-        ExpressionNode cl = expAccept(clause.value);
 
-        returnNode(new ComprehensionNode.TupleAssignmentClause(transformed, cl, clause.location()));
+        ExpressionNode value = expAccept(clause.value);
+
+        returnNode(clause.transform(ids, value));
     }
 
     @Override
@@ -708,6 +724,18 @@ public class IdentityTransformation implements Visitor {
         }
 
         returnNode(new ListLiteralNode(node.location(), transformed));
+    }
+
+    @Override
+    public void visit(SetLiteralNode node) {
+        List<ExpressionNode> transformed = new ArrayList<>();
+        for (ExpressionNode element : node.elements) {
+            Node tr = nodeAccept(element);
+            assert (tr instanceof ExpressionNode);
+            transformed.add((ExpressionNode) tr);
+        }
+
+        returnNode(new SetLiteralNode(node.location(), transformed));
     }
 
 }

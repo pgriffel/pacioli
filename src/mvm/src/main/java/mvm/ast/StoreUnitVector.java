@@ -23,13 +23,14 @@
 package mvm.ast;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import mvm.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
 import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.MatrixBase;
+import mvm.values.matrix.ScalarBase;
 import mvm.values.matrix.UnitVector;
 import uom.Unit;
 
@@ -65,9 +66,9 @@ public class StoreUnitVector implements Instruction {
 
         // Create a unit array for the index set and fill it with ones
         int n = indexSet.size();
-        Unit<MatrixBase>[] unitArray = new Unit[n];
+        ArrayList<Unit<ScalarBase>> unitArray = new ArrayList<Unit<ScalarBase>>(n);
         for (int i = 0; i < n; i++) {
-            unitArray[i] = MatrixBase.ONE;
+            unitArray.add(ScalarBase.ONE);
         }
 
         // Fill the unit array with the units
@@ -76,7 +77,13 @@ public class StoreUnitVector implements Instruction {
             if (row < 0) {
                 throw new MVMException("Element " + names.get(i) + " unknown");
             }
-            unitArray[row] = units.get(i).eval(machine);
+
+            Unit<ScalarBase> unit = this.units
+                    .get(i)
+                    .eval(machine)
+                    .map(x -> (ScalarBase) x);
+
+            unitArray.set(row, unit);
         }
 
         // Store the unit array as unit vector in the machine

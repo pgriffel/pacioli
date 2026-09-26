@@ -27,6 +27,7 @@ import java.util.List;
 
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
+import pacioli.ast.expression.ForNode.Kind;
 import pacioli.compiler.Location;
 import pacioli.parser.Parser;
 import pacioli.symboltable.SymbolTable;
@@ -37,13 +38,16 @@ public class ForTupleNode extends AbstractNode implements ExpressionNode {
     public final List<IdentifierNode> vars;
     public final ExpressionNode items;
     public final ExpressionNode body;
+    public final Kind kind;
 
     public ExpressionNode lambdaBody;
 
     public SymbolTable<ValueInfo> table;
 
-    public ForTupleNode(Location location, List<IdentifierNode> vars, ExpressionNode items, ExpressionNode body) {
+    public ForTupleNode(Location location, ForNode.Kind kind, List<IdentifierNode> vars, ExpressionNode items,
+            ExpressionNode body) {
         super(location);
+        this.kind = kind;
         this.vars = vars;
         this.items = items;
         this.body = body;
@@ -52,7 +56,7 @@ public class ForTupleNode extends AbstractNode implements ExpressionNode {
     }
 
     public ForTupleNode transform(List<IdentifierNode> vars, ExpressionNode items, ExpressionNode body) {
-        return new ForTupleNode(location(), vars, items, body);
+        return new ForTupleNode(location(), this.kind, vars, items, body);
     }
 
     static LambdaNode forLambda(IdentifierNode id, ExpressionNode items, ExpressionNode body) {
