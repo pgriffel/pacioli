@@ -140,7 +140,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         write(" ");
 
         // The type schema prints the ':'
-        write(info.inferredType().get().printAsLean());
+        write(info.inferredType().get().printAsLean(this.settings.target()));
 
         write(" := ");
 
@@ -180,6 +180,14 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                 }
                 case "equal": {
                     writeSeparated(node.arguments, " = ");
+                    break;
+                }
+                case "less": {
+                    writeSeparated(node.arguments, " < ");
+                    break;
+                }
+                case "greater": {
+                    writeSeparated(node.arguments, " > ");
                     break;
                 }
                 // case "norm": {

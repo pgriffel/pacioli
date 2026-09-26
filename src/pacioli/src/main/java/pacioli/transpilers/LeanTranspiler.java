@@ -295,6 +295,8 @@ public class LeanTranspiler implements SymbolTableVisitor {
              abbrev Mat (m n : Nat) :=
                  Matrix (Fin m) (Fin n) Float
 
+            abbrev Scalar := Float
+
              -- Constructor for coordinates. Used by generated code.
              def coord (n : Nat) (i : Fin n) : Fin n := i
 
@@ -311,7 +313,19 @@ public class LeanTranspiler implements SymbolTableVisitor {
                  reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
              }
 
-             -- Primitives
+            -- instance {α : Type*} : CoeOut (Matrix (Fin 1) (Fin 1) α) α where
+            --     coe M := M 0 0
+
+            -- instance : CoeOut Float (Matrix (Fin 1) (Fin 1) Float) where
+            --     coe M := fun i j => M
+
+            instance : Coe (Mat 1 1) Float where
+                coe M := M 0 0
+
+            instance : Coe Float (Mat 1 1) where
+                coe M := !![M]
+
+            -- Primitives
 
 
              -- Tmp
@@ -353,15 +367,37 @@ public class LeanTranspiler implements SymbolTableVisitor {
                  right_inv x := by
                      rfl
 
+            --class PacVal (α β: Type) where
+            --     psqrt : α → β
 
-             def scale {m n : Nat} (args : (Mat 1 1) × (Mat m n)) : (Mat m n) :=
+            -- class PacVal2 (α β γ: Type) where
+            --     mult : α → β → γ
+
+            -- -- Recursion over vararg tuple
+
+
+            -- instance : PacVal Float Float where
+            --     psqrt M := Float.sqrt M
+
+            -- instance {m n : Nat} : PacVal (Mat m n) (Mat m n) where
+            --     psqrt M := fun i j => Float.sqrt (M i j)
+
+            -- instance {m k n : Nat} : PacVal2 (Mat m k) (Mat k n) (Mat m n) where
+            --     mult A B := _base_matrix_mmult (A, B)
+
+            -- open PacVal
+
+
+
+
+             def scale {m n : Nat} (args : Float × (Mat m n)) : (Mat m n) :=
                  let (x, y) := args
-                 fun i j => (x 1 1) * (y i j)
+                 fun i j => x * (y i j)
 
-             def scale_down {m n : Nat} (args : (Mat m n) × (Mat 1 1)) : (Mat m n) :=
+             def scale_down {m n : Nat} (args : (Mat m n) × Float) : (Mat m n) :=
                  let (x, y) := args
                  -- fun i j => (x i j) / (y 1 1)
-                 x.map fun i => i / (y 1 1)
+                 x.map fun i => i / y
 
              def neg {m n : Nat} (args : (Mat m n)) : (Mat m n) :=
                  let (x) := args
@@ -375,10 +411,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
                  let (x) := args
                  x.transpose
 
-             def make_matrix (triples : List ((Fin m) × (Fin n) × (Mat 1 1))) : (Mat m n) :=
+             def make_matrix (triples : List ((Fin m) × (Fin n) × Float)) : (Mat m n) :=
                  fun i j =>
                      match triples.find? (fun (r, c, _) => r == i && c == j) with
-                     | some (_, _, v) => (v 0) 0
+                     | some (_, _, v) => v
                      | none => 0
 
              def tuple {a : Type} (x : a) : a := x
@@ -387,11 +423,12 @@ public class LeanTranspiler implements SymbolTableVisitor {
                  let (f, x) := args
                  f x
 
-             def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
+             def get (args : (Mat m n) × (Fin m) × (Fin n)) : Float :=
                  let (A, i, j) := args
-                 Matrix.of (fun _ _ => (A i j))
+                 -- Matrix.of (fun _ _ => (A i j))
+                 A i j
 
-             def naturals (n : Mat 1 1) : List (Mat 1 1) :=
+             def naturals (n : Float) : List Float :=
                  let m : Nat := (n 0 0).toUInt64.toNat
                  (List.finRange m).map fun i : Nat => OfNat.ofNat i
 

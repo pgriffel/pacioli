@@ -33,6 +33,7 @@ import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
 import pacioli.compiler.Printer;
+import pacioli.compiler.CompilationSettings.Target;
 import pacioli.symboltable.info.ParametricInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
@@ -291,9 +292,9 @@ public interface TypeObject extends Printable {
         return outputStream.toString();
     }
 
-    public default String printAsLean() {
+    public default String printAsLean(Target target) {
         StringWriter outputStream = new StringWriter();
-        this.accept(new LeanPrinter(new Printer(new PrintWriter(outputStream))));
+        this.accept(new LeanPrinter(new Printer(new PrintWriter(outputStream)), target));
         return outputStream.toString();
     };
 }

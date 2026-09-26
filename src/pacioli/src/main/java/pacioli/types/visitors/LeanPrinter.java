@@ -25,6 +25,7 @@ package pacioli.types.visitors;
 import java.util.stream.Collectors;
 
 import pacioli.compiler.Printer;
+import pacioli.compiler.CompilationSettings.Target;
 import pacioli.types.TypeContext;
 import pacioli.types.TypeVisitor;
 import pacioli.types.type.FunctionType;
@@ -53,9 +54,11 @@ import uom.Unit;
 public class LeanPrinter implements TypeVisitor {
 
     Printer out;
+    private Target target;
 
-    public LeanPrinter(Printer printer) {
+    public LeanPrinter(Printer printer, Target target) {
         this.out = printer;
+        this.target = target;
     }
 
     @Override
@@ -153,14 +156,18 @@ public class LeanPrinter implements TypeVisitor {
         String left = prettyDimensionUnitPair(type.rowDimension());
         String right = prettyDimensionUnitPair(type.columnDimension());
 
-        out.format("Mat %s %s", left, right);
+        if (left.equals("1") && right.equals("1")) {
+            out.print("Float");
+        } else {
+            out.format("Mat %s %s", left, right);
+        }
     }
 
     @Override
     public void visit(ParametricType type) {
         if (type.op().name().equals("Tuple")) {
             String argsText = type.args().stream()
-                    .map(x -> x.printAsLean())
+                    .map(x -> x.printAsLean(this.target))
                     .collect(Collectors.joining(" × "));
 
             out.write(argsText.isEmpty() ? "Unit" : "(" + argsText + ")");
