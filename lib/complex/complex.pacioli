@@ -46,11 +46,13 @@ export
     map_matrix_complex,
     scale_complex_matrix,
     complex_inverse,
+    complex_inverse_matrix,
     complex2str,
     complex2string,
     get_scalar_tuple,
     make_scalar_complex,
-    unit_complex;
+    unit_complex,
+    complex_approximates;
 
 
 deftype for_index P,Q: for_unit a, P!u, Q!v:
@@ -365,6 +367,18 @@ define complex_inverse(c) =
         tuple(r / denominator, -i / denominator)
     end;
 
+declare complex_inverse_matrix ::
+  for_index P,Q: for_unit a,P!u,Q!v: (ComplexMatrix(a, P!u, Q!v)) -> ComplexMatrix(a^-1, Q!v, P!u);
+
+define complex_inverse_matrix(c) =
+    let
+        (r, i) = c,
+        inv_r = inverse(r),
+        x = inverse(r + i '*' inv_r '*' i)
+    in
+        tuple(x, -inv_r '*' i '*' x)
+    end;
+
 doc complex2str
     "String representation of a complex number with nr_decimals() decimals.";
 
@@ -432,3 +446,17 @@ declare unit_complex ::
 
 define unit_complex(c) =
     scale_complex_matrix(1 / norm_complex(c), c);
+
+
+declare complex_approximates ::
+    for_index P,Q: for_unit a,P!u,Q!v:
+       (ComplexMatrix(a, P!u, Q!v), ComplexMatrix(a, P!u, Q!v), decimals) -> Boole;
+
+define complex_approximates(A, B, precision) =
+    let
+        (Ar, Ai) = A,
+        (Br, Bi) = B
+    in
+        approximates(Ar, Br, precision) and
+        approximates(Ai, Bi, precision)
+    end;
