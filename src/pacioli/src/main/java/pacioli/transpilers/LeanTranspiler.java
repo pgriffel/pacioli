@@ -53,6 +53,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
         out.print("-- START LEAN PRELUDE");
         out.newline();
         out.print(PRIMITIVES_LEAN);
+        out.print(PRELUDE_FORMATTING);
         out.print("-- END LEAN PRELUDE");
         out.newline();
         out.newline();
@@ -169,10 +170,15 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     let a := n.map (fun x => (Repr.reprPrec x 0))
                     toString a
 
+            instance {α : Type} [LinearOrder α] [Repr α] : FrmtElt (Finset α) where
+                frmtElt _ s :=
+                    let a := (s.sort (· ≤ ·)).map (fun x => Repr.reprPrec x 0)
+                    toString a
+
             instance {m n : Nat} : FrmtElt (Mat m n) where
                 frmtElt _ x := toString (Repr.reprPrec x 1)
 
-            def format {t : Type} [Frmt t] (ps : List FrmtPart) (args : t) : String :=
+            def _formatted {t : Type} [Frmt t] (ps : List FrmtPart) (args : t) : String :=
                 (Frmt.frmt ps args)
 
             def splitFrmt : List Char -> List FrmtPart
@@ -189,7 +195,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     let (first, rest) := args
                     let frm := splitFrmt first.toList
                     do
-                        IO.print (format frm rest)
+                        IO.print (_formatted frm rest)
 
             """;
 
@@ -215,7 +221,14 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
             }
 
+            -- for number literals
+            instance : Coe Float (Mat 1 1) where
+                coe M := !![M]
+
             -- Primitives
+            def _base_base_equal {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                let (x, y) := args
+                x = y
 
             def _base_matrix_sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
@@ -272,21 +285,58 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (A, i, j) := args
                 Matrix.of (fun _ _ => (A i j))
 
-            def naturals (n : Mat 1 1) : List (Mat 1 1) :=
+            def _base_list_naturals (n : Mat 1 1) : List (Mat 1 1) :=
                 let m : Nat := (n 0 0).toUInt64.toNat
                 (List.finRange m).map fun i : Nat => OfNat.ofNat i
 
-            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+            def _base_matrix_greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
                 let (x, y) := args
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
                         x i j > y i j
 
-            def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+            def _base_matrix_less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
                 let (x, y) := args
                 (List.finRange m).all fun i =>
                     (List.finRange n).all fun j =>
                         x i j < y i j
+
+            def _base_list_fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
+                 let (f, lst) := args
+                 match lst with
+                 | [] => default
+                 | [x] => x
+                 | x :: xs => f (x, _base_list_fold_list (f, xs))
+
+            def _base_list_empty_list {t : Type} : Unit -> List t := fun()  => []
+
+            def _base_list_loop_list {a t : Type} [Inhabited a] (args: a × (a × t → a) × List t) : a :=
+                let (a, f, lst) := args
+                match lst with
+                | [] => a
+                | [x] => f (a, x)
+                | x :: xs => f (_base_list_loop_list (a, f, xs), x)
+
+            def _base_system__add_mut (args: (List t × t)) : List t :=
+                let (xs, x) := args
+                x :: xs
+
+            def _base_string_concatenate (args: String × String) :=
+                let (x, y) := args
+                x ++ y
+
+            def _base_string_format {a : Type} (_ : a) := "todo format"
+
+            def _base_set_empty_set {t : Type} : Unit -> Finset t := fun()  => {}
+
+            def _base_system__adjoin_mut [DecidableEq t] (args: (Finset t × t)) : Finset t :=
+                let (xs, x) := args
+                insert x xs
+
+            def _base_list_zip {s t : Type} (args: List s × List t) :=
+                let (x, y) := args
+                List.zip x y
+
             """;
 
     private static String PRIMITIVES_LEANER = """
@@ -387,6 +437,18 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             -- open PacVal
 
+            def matLT {m n : Nat} (x y : Mat m n) : Bool :=
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                    x i j < y i j
+
+            instance {m n : Nat} : LT (Mat m n) where
+                lt x y := matLT x y
+
+            instance {m n : Nat} (x y : Mat m n) : Decidable (x < y) :=
+                inferInstanceAs (Decidable (matLT x y = true))
+
+            def format {a : Type} (_ : a) := "todo format"
 
 
 
@@ -428,8 +490,8 @@ public class LeanTranspiler implements SymbolTableVisitor {
                  -- Matrix.of (fun _ _ => (A i j))
                  A i j
 
-             def naturals (n : Float) : List Float :=
-                 let m : Nat := (n 0 0).toUInt64.toNat
+             def naturals (n : Float) : List (Mat 1 1) :=
+                 let m : Nat := n.toUInt64.toNat
                  (List.finRange m).map fun i : Nat => OfNat.ofNat i
 
              def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
@@ -451,7 +513,20 @@ public class LeanTranspiler implements SymbolTableVisitor {
                  | [x] => x
                  | x :: xs => f (x, fold_list (f, xs))
 
-             """;
+            def empty_list {t : Type} : Unit -> List t := fun()  => []
+
+            def loop_list {a t : Type} [Inhabited a] (args: a × (a × t → a) × List t) : a :=
+                let (a, f, lst) := args
+                match lst with
+                | [] => a
+                | [x] => f (a, x)
+                | x :: xs => f (loop_list (a, f, xs), x)
+
+            def _add_mut (args: (List t × t)) : List t :=
+                let (xs, x) := args
+                x :: xs
+
+            """;
 
     private static String PRIMITIVES_LEANEST = """
 

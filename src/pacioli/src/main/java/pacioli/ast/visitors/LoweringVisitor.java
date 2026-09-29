@@ -44,6 +44,11 @@ import pacioli.ast.sugar.ComprehensionNode.TupleGeneratorClause;
 import pacioli.ast.sugar.ExponentNode;
 import pacioli.compiler.Location;
 import pacioli.compiler.PacioliException;
+import pacioli.symboltable.info.ValueInfo;
+import pacioli.types.Substitution;
+import pacioli.types.Typing;
+import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypeVar;
 
 /**
  * Simplifies the AST by loweromg several language constructs to other
@@ -89,9 +94,12 @@ public class LoweringVisitor extends IdentityTransformation {
         String accuName = freshName("_c_accu");
 
         // Build the initial body
-        IdentifierNode addMut = new IdentifierNode(node.collectFunction(), dummyLoc);
-        IdentifierNode accu = new IdentifierNode(accuName, dummyLoc);
-        ExpressionNode body = new ApplicationNode(addMut, Arrays.asList(accu, node.expression), dummyLoc);
+        ExpressionNode body = new ApplicationNode(
+                new IdentifierNode(node.collectFunction(), dummyLoc),
+                Arrays.asList(new IdentifierNode(accuName, dummyLoc), node.expression),
+                dummyLoc);
+
+        // body is an expression that builds a collection
 
         // Build the rest of the body from the clauses in reverse order.
         for (int i = node.clauses.size() - 1; 0 <= i; i--) {
@@ -102,14 +110,18 @@ public class LoweringVisitor extends IdentityTransformation {
 
                 Location clauseLocaction = clause.expression.location();
 
+                var lambda = new LambdaNode(
+                        freshUnderscores(Arrays.asList(accuName, clause.varName())),
+                        body,
+                        clauseLocaction);
+
+                accuName = freshName("_c_accu");
+
                 body = new ApplicationNode(
                         new IdentifierNode(clause.loopFunction(), dummyLoc),
                         Arrays.asList(
-                                accu,
-                                new LambdaNode(
-                                        freshUnderscores(Arrays.asList(accuName, clause.varName())),
-                                        body,
-                                        clauseLocaction),
+                                new IdentifierNode(accuName, dummyLoc),
+                                lambda,
                                 clause.expression),
                         clauseLocaction);
 
@@ -121,7 +133,6 @@ public class LoweringVisitor extends IdentityTransformation {
 
                 IdentifierNode apply = new IdentifierNode("apply", dummyLoc);
                 IdentifierNode tup = new IdentifierNode(tupName, dummyLoc);
-                IdentifierNode accuId = new IdentifierNode(accuName, dummyLoc);
 
                 ExpressionNode restLambda = new LambdaNode(freshUnderscores(clause.varNames()), body, clauseLocation);
 
@@ -129,6 +140,10 @@ public class LoweringVisitor extends IdentityTransformation {
                         Arrays.asList(accuName, tupName),
                         new ApplicationNode(apply, Arrays.asList(restLambda, tup), clauseLocation),
                         clauseLocation);
+
+                accuName = freshName("_c_accu");
+
+                IdentifierNode accuId = new IdentifierNode(accuName, dummyLoc);
 
                 body = new ApplicationNode(
                         new IdentifierNode(clause.loopFunction(), dummyLoc),
@@ -152,6 +167,8 @@ public class LoweringVisitor extends IdentityTransformation {
 
             } else if (part instanceof FilterClause fc) {
 
+                IdentifierNode accu = new IdentifierNode(accuName, dummyLoc);
+
                 body = new BranchNode(fc.expression, body, accu, loc);
 
             } else {
@@ -170,8 +187,11 @@ public class LoweringVisitor extends IdentityTransformation {
                 Arrays.asList(emptyCollection),
                 loc);
 
-        // Resolve the created code
+        // Resolve the created code and infer types. See Program.java.
         lowered.resolve(node.table);
+        Typing typing = lowered.inferTyping(node.table);
+        Substitution inferenceSolution = typing.solveSubstitution(false);
+        lowered.accept(new TypeInferenceCommitVisitor(inferenceSolution));
 
         return lowered;
     }

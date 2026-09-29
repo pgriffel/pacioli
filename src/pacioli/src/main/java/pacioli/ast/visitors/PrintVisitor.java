@@ -331,7 +331,13 @@ public class PrintVisitor implements Visitor {
 
         boolean wrap = node.countNodes() > 10;
         // Write the function name
-        node.function.accept(this);
+        if (node.function instanceof LambdaNode) {
+            write("(");
+            node.function.accept(this);
+            write(")");
+        } else {
+            node.function.accept(this);
+        }
 
         // Write the arguments
         write("(");

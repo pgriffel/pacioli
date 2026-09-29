@@ -157,7 +157,7 @@ public class LeanPrinter implements TypeVisitor {
         String right = prettyDimensionUnitPair(type.columnDimension());
 
         if (left.equals("1") && right.equals("1")) {
-            out.print("Float");
+            out.print("Mat 1 1");
         } else {
             out.format("Mat %s %s", left, right);
         }
@@ -176,7 +176,11 @@ public class LeanPrinter implements TypeVisitor {
         } else if (type.op().name().equals("Boole")) {
             out.write("Bool");
         } else {
-            type.op().accept(this);
+            if (type.op().name().equals("Set")) {
+                out.write("Finset");
+            } else {
+                type.op().accept(this);
+            }
 
             if (!type.args().isEmpty()) {
                 out.write(" (");

@@ -26,6 +26,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,6 +71,7 @@ import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.type.TypeObject;
 
 public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
@@ -293,53 +295,57 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(LambdaNode node) {
-        mark();
-        if (!longNames) {
-
-            String args;
-
-            if (node.varArgs) {
-                if (node.arguments.size() == 1) {
-                    args = node.arguments.get(0);
-                } else {
-                    throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
-                }
-                // throw new PacioliException("Var args are not implemented for Lean");
-            } else {
-                args = "(" + String.join(", ", node.arguments) + ")";
-            }
-
-            // mark();
-            write("fun args =>");
-            newlineUp();
-            write("let ");
-            out.write(args);
-            out.write(" := args; ");
-            newline();
-            node.expression.accept(this);
-            // newlineDown();
-            // unmark();
-        } else {
-
-            List<String> quoted = new ArrayList<String>();
-            if (node.varArgs) {
-                if (node.arguments.size() == 1) {
-                    quoted.add("..." + this.prefix + node.arguments.get(0));
-                } else {
-                    throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
-                }
-            } else {
-                for (String arg : node.arguments) {
-                    quoted.add(this.prefix + arg);
-                }
-            }
-            String args = String.join(", ", quoted);
-            write("fun args => ");
-            out.newlineUp();
-            write("let (" + args + ") := args; ");
-            out.newline();
-            node.expression.accept(this);
+        if (node.table == null) {
+            throw new RuntimeException("LambdaNode does not have a table");
         }
+
+        mark();
+
+        String prefix = this.longNames ? this.prefix : "";
+
+        List<String> quoted = new ArrayList<String>();
+
+        if (node.varArgs) {
+            if (node.arguments.size() == 1) {
+                quoted.add("..." + prefix + node.arguments.get(0));
+            } else {
+                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
+            }
+        } else {
+            for (String arg : node.arguments) {
+                quoted.add(prefix + arg);
+            }
+        }
+
+        String args = String.join(", ", quoted);
+
+        write("fun (args : ");
+
+        Boolean first = true;
+        for (String arg : node.arguments) {
+            if (!first) {
+                out.format(" × ");
+            }
+
+            ValueInfo info = node.table.lookup(arg);
+            Optional<TypeObject> type = info.inferredType();
+
+            if (type.isPresent()) {
+                write(type.get().printAsLean(settings.target()));
+            } else {
+                write("?");
+            }
+
+            first = false;
+        }
+
+        out.write(" ) => ");
+
+        out.newlineUp();
+        write("let (" + args + ") := args; ");
+        out.newline();
+        node.expression.accept(this);
+
         unmark();
     }
 
