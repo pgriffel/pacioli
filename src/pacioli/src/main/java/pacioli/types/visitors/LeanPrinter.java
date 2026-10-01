@@ -157,7 +157,11 @@ public class LeanPrinter implements TypeVisitor {
         String right = prettyDimensionUnitPair(type.columnDimension());
 
         if (left.equals("1") && right.equals("1")) {
-            out.print("Mat 1 1");
+            if (false && this.target.equals(Target.LEANEST)) {
+                out.print("ℝ");
+            } else {
+                out.print("Mat 1 1");
+            }
         } else {
             out.format("Mat %s %s", left, right);
         }
