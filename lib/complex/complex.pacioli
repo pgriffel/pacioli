@@ -52,11 +52,21 @@ export
     get_scalar_tuple,
     make_scalar_complex,
     unit_complex,
-    complex_approximates;
+    complex_approximates,
+    complex_singular_value_list;
 
 
 deftype for_index P,Q: for_unit a, P!u, Q!v:
     ComplexMatrix(a, P!u, Q!v)  = Tuple(a*P!u per Q!v, a*P!u per Q!v);
+
+doc complex_singular_value_list
+    "List form of the singular value decomposition of a complex matrix.
+
+    Returns tuples (s, v, w) such that M = sum[s .* v * hermitian(w)].";
+
+declare_primitive complex_singular_value_list(A) ::
+    for_index P, Q: for_unit a, P!u, Q!v:
+        (ComplexMatrix(a, P!u, Q!v)) -> List(Tuple(a, ComplexMatrix(1, P!u, 1), ComplexMatrix(1, Q!v^-1, 1)));
 
 # declare make_matrix_complex :: for_type a, b: (a, b) -> ComplexMatrix(a, b);
 
