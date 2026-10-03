@@ -153,4 +153,9 @@ define inverse_suite(description, matrix_generator, precision) = test_suite(desc
 
 ]);
 
-
+let A = random_complex_4_by_4_matrix() in
+    printf("\nA=\n%s\n\ncomplex_singular_value_list(A)=\n%s",
+    random_complex_4_by_4_matrix(),
+    complex_singular_value_list(A))
+end;
+                                     
