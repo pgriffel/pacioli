@@ -310,7 +310,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     (List.finRange n).all fun j =>
                         x i j < y i j
 
-            def _base_list_fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
+            def _base_list_fold_list {a : Type} [Inhabited a] (args : (a × a → a) × List a) : a :=
                  let (f, lst) := args
                  match lst with
                  | [] => default
@@ -319,18 +319,18 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_list_empty_list {t : Type} : Unit -> List t := fun()  => []
 
-            def _base_list_loop_list {a t : Type} [Inhabited a] (args: a × (a × t → a) × List t) : a :=
+            def _base_list_loop_list {a t : Type} [Inhabited a] (args : a × (a × t → a) × List t) : a :=
                 let (a, f, lst) := args
                 match lst with
                 | [] => a
                 | [x] => f (a, x)
                 | x :: xs => f (_base_list_loop_list (a, f, xs), x)
 
-            def _base_system__add_mut (args: (List t × t)) : List t :=
+            def _base_system__add_mut (args : (List t × t)) : List t :=
                 let (xs, x) := args
                 x :: xs
 
-            def _base_string_concatenate (args: String × String) :=
+            def _base_string_concatenate (args : String × String) :=
                 let (x, y) := args
                 x ++ y
 
@@ -338,11 +338,11 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             def _base_set_empty_set {t : Type} : Unit -> Finset t := fun()  => {}
 
-            def _base_system__adjoin_mut [DecidableEq t] (args: (Finset t × t)) : Finset t :=
+            def _base_system__adjoin_mut [DecidableEq t] (args : (Finset t × t)) : Finset t :=
                 let (xs, x) := args
                 insert x xs
 
-            def _base_list_zip {s t : Type} (args: List s × List t) :=
+            def _base_list_zip {s t : Type} (args : List s × List t) :=
                 let (x, y) := args
                 List.zip x y
 
@@ -352,8 +352,8 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
              -- Lean representation of Pacioli's matrix type
 
-             abbrev Mat (m n : Nat) :=
-                 Matrix (Fin m) (Fin n) Float
+            abbrev Mat (m n : Nat) :=
+                Matrix (Fin m) (Fin n) Float
 
             instance {m n : Nat} : FrmtElt (Mat m n) where
                 frmtElt _ x := toString (Repr.reprPrec x 1)
@@ -368,17 +368,17 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
              -- Allow scalars as one by one matrices
 
-             instance (x : Nat) : OfNat (Mat 1 1) x where
-                 ofNat := fun _ _ => (OfNat.ofNat x : Float)
+            instance (x : Nat) : OfNat (Mat 1 1) x where
+                ofNat := fun _ _ => (OfNat.ofNat x : Float)
 
-             instance : OfScientific (Mat 1 1) where
-                 ofScientific mantissa exponentSign exponent :=
-                     fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
+            instance : OfScientific (Mat 1 1) where
+                ofScientific mantissa exponentSign exponent :=
+                    fun _ _ => OfScientific.ofScientific mantissa exponentSign exponent
 
-             instance : Repr (Matrix (Fin 1) (Fin 1) Float) :=
-             {
-                 reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
-             }
+            instance : Repr (Matrix (Fin 1) (Fin 1) Float) :=
+            {
+                reprPrec := fun x => fun i => (reprPrec (x 0 0) i)
+            }
 
             -- instance {α : Type*} : CoeOut (Matrix (Fin 1) (Fin 1) α) α where
             --     coe M := M 0 0
@@ -396,32 +396,32 @@ public class LeanTranspiler implements SymbolTableVisitor {
             -- Primitives
 
              -- Tmp
-             def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
-                 (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
+            def floatDotProduct {n : Nat} (v1 : Fin n → Float) (v2 : Fin n → Float) : Float :=
+                (List.finRange n).map (fun i => v1 i * v2 i) |>.foldl (· + ·) 0.0
 
-             def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
-                 let (A, B) := args
-                 fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
+            def _base_matrix_mmult {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
+                let (A, B) := args
+                fun i j => floatDotProduct (fun x => A i x) (fun x => B x j)
 
-             instance {m n k : Nat} : HMul (Mat m k) (Mat k n) (Mat m n) where
-                 hMul p s := _base_matrix_mmult (p, s)
+            instance {m n k : Nat} : HMul (Mat m k) (Mat k n) (Mat m n) where
+                hMul p s := _base_matrix_mmult (p, s)
 
-             def sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
-                 let (x, y) := args
-                 x + y
+            def sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
+                let (x, y) := args
+                x + y
 
-             def divide {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
-                 let (A, B) := args
-                 fun i j => floatDotProduct (fun x => A i x) (fun x => 1 / B x j)
+            def divide {m k n : Nat} := fun (args : (Mat m k) × (Mat k n)) =>
+                let (A, B) := args
+                fun i j => floatDotProduct (fun x => A i x) (fun x => 1 / B x j)
 
-             instance {m n k : Nat} : HDiv (Mat m k) (Mat k n) (Mat m n) where
-                 hDiv p s := divide (p, s)
+            instance {m n k : Nat} : HDiv (Mat m k) (Mat k n) (Mat m n) where
+                hDiv p s := divide (p, s)
 
-             def zip {s t : Type} (args: List s × List t) :=
+            def zip {s t : Type} (args : List s × List t) :=
                 let (x, y) := args
                 List.zip x y
 
-            def concatenate (args: String × String) :=
+            def concatenate (args : String × String) :=
                 let (x, y) := args
                 x ++ y
 
@@ -473,21 +473,21 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (c, A) := args
                 A.map fun x => c * x
 
-             def scale_down {m n : Nat} (args : Mat m n × Mat 1 1) : Mat m n :=
-                 let (A, c) := args
-                 A.map fun x => x / c
+            def scale_down {m n : Nat} (args : Mat m n × Mat 1 1) : Mat m n :=
+                let (A, c) := args
+                A.map fun x => x / c
 
-             def neg {m n : Nat} (args : Mat m n) : Mat m n :=
-                 let (x) := args
-                 scale (-1, x)
+            def neg {m n : Nat} (args : Mat m n) : Mat m n :=
+                let (x) := args
+                scale (-1, x)
 
-             def sqrt {m n : Nat} (args : Mat m n) : Mat m n :=
-                 let (x) := args
-                 fun i j => Float.sqrt (x i j)
+            def sqrt {m n : Nat} (args : Mat m n) : Mat m n :=
+                let (x) := args
+                fun i j => Float.sqrt (x i j)
 
-             def transpose {m n : Nat} (args : Mat m n) : Mat n m :=
-                 let (x) := args
-                 x.transpose
+            def transpose {m n : Nat} (args : Mat m n) : Mat n m :=
+                let (x) := args
+                x.transpose
 
             def make_matrix (triples : List (Fin m × Fin n × Mat 1 1)) : Mat m n :=
                 fun i j =>
@@ -501,7 +501,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let (f, x) := args
                 f x
 
-             def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
+            def get (args : (Mat m n) × (Fin m) × (Fin n)) : Mat 1 1 :=
                 let (A, i, j) := args
                 A i j
 
@@ -509,35 +509,35 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 let m : Nat := (n 0 0).toUInt64.toNat
                 (List.finRange m).map fun i : Nat => OfNat.ofNat i
 
-             def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
-                 let (x, y) := args
-                 (List.finRange m).all fun i =>
-                     (List.finRange n).all fun j =>
-                         x i j > y i j
+            def greater {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j > y i j
 
-             def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
-                 let (x, y) := args
-                 (List.finRange m).all fun i =>
-                     (List.finRange n).all fun j =>
-                         x i j < y i j
+            def less {m n : Nat} (args : (Mat m n) × (Mat m n)) : Bool :=
+                let (x, y) := args
+                (List.finRange m).all fun i =>
+                    (List.finRange n).all fun j =>
+                        x i j < y i j
 
-             def fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
-                 let (f, lst) := args
-                 match lst with
-                 | [] => default
-                 | [x] => x
-                 | x :: xs => f (x, fold_list (f, xs))
+            def fold_list {a : Type} [Inhabited a] (args : (a × a → a) × List a) : a :=
+                let (f, lst) := args
+                match lst with
+                | [] => default
+                | [x] => x
+                | x :: xs => f (x, fold_list (f, xs))
 
             def empty_list {t : Type} : Unit -> List t := fun()  => []
 
-            def loop_list {a t : Type} [Inhabited a] (args: a × (a × t → a) × List t) : a :=
+            def loop_list {a t : Type} [Inhabited a] (args : a × (a × t → a) × List t) : a :=
                 let (a, f, lst) := args
                 match lst with
                 | [] => a
                 | [x] => f (a, x)
                 | x :: xs => f (loop_list (a, f, xs), x)
 
-            def _add_mut (args: (List t × t)) : List t :=
+            def _add_mut (args : (List t × t)) : List t :=
                 let (xs, x) := args
                 x :: xs
 
@@ -662,7 +662,7 @@ public class LeanTranspiler implements SymbolTableVisitor {
                     (List.finRange n).all fun j =>
                         x i j < y i j
 
-             noncomputable def fold_list {a : Type} [Inhabited a] (args: (a × a → a) × List a) : a :=
+             noncomputable def fold_list {a : Type} [Inhabited a] (args : (a × a → a) × List a) : a :=
                  let (f, lst) := args
                  match lst with
                  | [] => default
@@ -671,22 +671,22 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
             noncomputable def empty_list {t : Type} : Unit -> List t := fun()  => []
 
-            noncomputable def loop_list {a t : Type} [Inhabited a] (args: a × (a × t → a) × List t) : a :=
+            noncomputable def loop_list {a t : Type} [Inhabited a] (args : a × (a × t → a) × List t) : a :=
                 let (a, f, lst) := args
                 match lst with
                 | [] => a
                 | [x] => f (a, x)
                 | x :: xs => f (loop_list (a, f, xs), x)
 
-            noncomputable def _add_mut (args: (List t × t)) : List t :=
+            noncomputable def _add_mut (args : (List t × t)) : List t :=
                 let (xs, x) := args
                 x :: xs
 
-            noncomputable def zip {s t : Type} (args: List s × List t) :=
+            noncomputable def zip {s t : Type} (args : List s × List t) :=
                 let (x, y) := args
                 List.zip x y
 
-            noncomputable def concatenate (args: String × String) :=
+            noncomputable def concatenate (args : String × String) :=
                 let (x, y) := args
                 x ++ y
 

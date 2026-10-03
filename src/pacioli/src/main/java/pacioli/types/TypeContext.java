@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import pacioli.Pacioli;
 import pacioli.compiler.Printable;
@@ -197,24 +199,18 @@ public class TypeContext implements Printable {
         }
     }
 
-    public void asLean(PrintWriter out) {
-        String quant = leanImplicit("Type", typeVars)
-                + leanImplicit("Nat", indexVars)
-        // + quantified("for_unit", unitVars)
-        ;
-        out.print(quant);
-        if (quant.length() > 30 && Pacioli.Options.wrapTypes) {
-            out.println();
-            out.print("    ");
-        }
-        // out.print(quantified("for_type", typeVars));
-        // out.print(quantified("for_index", indexVars));
-        // out.print(quantified("for_unit", unitVars));
+    public String asLean() {
+        return Stream.of(
+                // No Lean counterpart for quantified("for_unit", unitVars)
+                leanImplicit("Type", typeVars),
+                leanImplicit("Nat", indexVars))
+                .filter(x -> !x.isEmpty())
+                .collect(Collectors.joining(" "));
     }
 
     private static String leanImplicit(String quantifier, List<String> names) {
         if (!names.isEmpty()) {
-            return " {" + String.join(" ", names) + " : " + quantifier + "} ";
+            return "{" + String.join(" ", names) + " : " + quantifier + "}";
         } else {
             return "";
         }
