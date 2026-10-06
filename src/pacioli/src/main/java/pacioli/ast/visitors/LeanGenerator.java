@@ -184,12 +184,18 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                 fun.range() instanceof ParametricType p &&
                 p.op().name().equals("Boole")) {
 
-            // Write the name
+            // Write the name. The prefix including the underscore is stripped.
             write(prefix);
 
             write(" ");
 
-            node.id.accept(this);
+            String name = node.id.name().substring(prefix.length() + 1);
+
+            if (name.isEmpty()) {
+                throw new PacioliException(node.location(), "Cannot have an empty name.");
+            }
+
+            write(name);
 
             // Write implicits for type variables.
             String implicits = schema.generateContext().asLean();
@@ -201,11 +207,15 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             write(implicits);
 
             // Write the arguments
-            write(" (args : ");
+            if (lambda.arguments.isEmpty()) {
+                write(" : ");
+            } else {
+                write(" (args : ");
 
-            this.writeLambdaArgs(lambda);
+                this.writeLambdaArgs(lambda);
 
-            write(") : ");
+                write(") : ");
+            }
 
             out.newlineUp();
 
