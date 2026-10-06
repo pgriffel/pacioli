@@ -37,6 +37,7 @@ import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.BranchNode;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ConversionNode;
+import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.ForNode;
 import pacioli.ast.expression.ForTupleNode;
 import pacioli.ast.expression.IdentifierNode;
@@ -89,6 +90,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     private boolean preferNative;
     private boolean noncomputable;
     private boolean lemmasTheoremsAndAxioms;
+    private boolean rewriteBranchNode;
 
     String prefix = "";
     // private String prefix = "lcl_";
@@ -105,6 +107,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         this.preferNative = !target.equals(Target.LEAN);
         this.noncomputable = target.equals(Target.LEANEST);
         this.lemmasTheoremsAndAxioms = target.equals(Target.LEANEST);
+        this.rewriteBranchNode = target.equals(Target.LEANEST);
     }
 
     protected void writeTodo(String feature) {
@@ -337,12 +340,35 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(BranchNode node) {
-        out.write("if ");
-        node.test.accept(this);
-        out.write(" then ");
-        node.positive.accept(this);
-        out.write(" else ");
-        node.negative.accept(this);
+        // Reverse of grammar rules
+        // x ==> y - if x then y else true
+        // x <== y - if y then x else true (follows_from becomes implies)
+        // x and y - if x then y else false
+        // x or y - if x then true else y
+        if (rewriteBranchNode && isBoole(node.negative, "true")) {
+            node.test.accept(this);
+            out.write(" → ");
+            node.positive.accept(this);
+        } else if (rewriteBranchNode && isBoole(node.negative, "false")) {
+            node.test.accept(this);
+            out.write(" ∧ ");
+            node.positive.accept(this);
+        } else if (rewriteBranchNode && isBoole(node.positive, "true")) {
+            node.test.accept(this);
+            out.write(" ∨ ");
+            node.negative.accept(this);
+        } else {
+            out.write("if ");
+            node.test.accept(this);
+            out.write(" then ");
+            node.positive.accept(this);
+            out.write(" else ");
+            node.negative.accept(this);
+        }
+    }
+
+    private boolean isBoole(ExpressionNode node, String value) {
+        return node instanceof ConstNode neg && neg.valueString().equals(value);
     }
 
     @Override
