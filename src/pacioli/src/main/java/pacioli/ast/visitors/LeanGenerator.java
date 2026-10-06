@@ -71,6 +71,9 @@ import pacioli.compiler.Printer;
 import pacioli.symboltable.info.ValueInfo;
 import pacioli.types.ast.FunctionTypeNode;
 import pacioli.types.ast.TypeApplicationNode;
+import pacioli.types.type.FunctionType;
+import pacioli.types.type.ParametricType;
+import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
 
 public class LeanGenerator extends PrintVisitor implements CodeGenerator {
@@ -85,6 +88,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     private boolean desugared;
     private boolean preferNative;
     private boolean noncomputable;
+    private boolean lemmasTheoremsAndAxioms;
 
     String prefix = "";
     // private String prefix = "lcl_";
@@ -100,6 +104,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         this.desugared = target.equals(Target.LEAN);
         this.preferNative = !target.equals(Target.LEAN);
         this.noncomputable = target.equals(Target.LEANEST);
+        this.lemmasTheoremsAndAxioms = target.equals(Target.LEANEST);
     }
 
     protected void writeTodo(String feature) {
@@ -124,11 +129,20 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     @Override
     public void visit(ValueDefinition node) {
 
-        // This info should always be present, even if leaner is true. We always
-        // get called with an analyzed (resolved, desugared, etc.) definition.
-        // In the leaner case we recurse here on the ast instead of the body. This
-        // means the rest of the code cannot assume that infos are present in the
-        // leaner case.
+        String name = node.id.name();
+
+        if (lemmasTheoremsAndAxioms && name.startsWith("lemma_")) {
+            this.generateLemmaTheoremOrAxiom(node, "lemma");
+        } else if (lemmasTheoremsAndAxioms && name.startsWith("theorem_")) {
+            this.generateLemmaTheoremOrAxiom(node, "theorem");
+        } else if (lemmasTheoremsAndAxioms && name.startsWith("axiom_")) {
+            this.generateLemmaTheoremOrAxiom(node, "axiom");
+        } else {
+            this.generateDef(node);
+        }
+    }
+
+    private void generateDef(ValueDefinition node) {
         ValueInfo info = node.getInfo();
 
         if (this.noncomputable) {
@@ -157,6 +171,67 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         }
 
         out.newlineDown();
+    }
+
+    private void generateLemmaTheoremOrAxiom(ValueDefinition node, String prefix) {
+        ValueInfo info = node.getInfo();
+
+        TypeObject type = info.inferredType().get();
+
+        if (node.body instanceof LambdaNode lambda &&
+                type instanceof Schema schema &&
+                schema.type() instanceof FunctionType fun &&
+                fun.range() instanceof ParametricType p &&
+                p.op().name().equals("Boole")) {
+
+            // Write the name
+            write(prefix);
+
+            write(" ");
+
+            node.id.accept(this);
+
+            // Write implicits for type variables.
+            String implicits = schema.generateContext().asLean();
+
+            if (!implicits.isEmpty()) {
+                write(" ");
+            }
+
+            write(implicits);
+
+            // Write the arguments
+            write(" (args : ");
+
+            this.writeLambdaArgs(lambda);
+
+            write(") : ");
+
+            out.newlineUp();
+
+            // Write the body
+            var body = lambda.expression;
+
+            if (this.desugared || body instanceof MatrixLiteralNode) {
+                body.lower().accept(this);
+            } else {
+                body.accept(this);
+            }
+
+            // Write the proof by sorry if not an axiom
+            if (!prefix.equals("axiom")) {
+                write(" :=");
+                out.newline();
+                write("by sorry");
+            }
+
+            out.newlineDown();
+
+        } else {
+            throw new PacioliException(node.location(),
+                    "Expected a predicate since it is a lemma. A lemma must be a function of type Boole.");
+        }
+
     }
 
     @Override
@@ -192,6 +267,11 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                     writeSeparated(node.arguments, " > ");
                     break;
                 }
+                case "not_equal": {
+                    writeSeparated(node.arguments, " ≠ ");
+                    break;
+                }
+
                 // case "norm": {
                 // write("‖");
                 // writeSeparated(node.arguments, "");
@@ -321,6 +401,20 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         write("fun (args : ");
 
+        writeLambdaArgs(node);
+
+        out.write(" ) => ");
+
+        out.newlineUp();
+        write("let (" + args + ") := args; ");
+        out.newline();
+        node.expression.accept(this);
+
+        unmark();
+    }
+
+    private void writeLambdaArgs(LambdaNode node) {
+
         Boolean first = true;
         for (String arg : node.arguments) {
             if (!first) {
@@ -338,15 +432,6 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
             first = false;
         }
-
-        out.write(" ) => ");
-
-        out.newlineUp();
-        write("let (" + args + ") := args; ");
-        out.newline();
-        node.expression.accept(this);
-
-        unmark();
     }
 
     @Override

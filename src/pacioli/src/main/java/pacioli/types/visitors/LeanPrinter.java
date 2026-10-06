@@ -72,9 +72,7 @@ public class LeanPrinter implements TypeVisitor {
 
     @Override
     public void visit(Schema type) {
-        TypeContext tc = new TypeContext(type.variables());
-
-        String tcString = tc.asLean();
+        String tcString = type.generateContext().asLean();
 
         out.write(tcString);
 
