@@ -283,6 +283,45 @@ public class Bundle {
     }
 
     public void generateCode(PrintWriter writer, CompilationSettings settings) {
+        this.generatePrelude(writer, settings);
+        this.doGenerateCode(writer, settings, false, true);
+        writer.println("-- local code");
+        writer.println();
+        this.doGenerateCode(writer, settings, true, false);
+    }
+
+    public void generateLocalCode(PrintWriter writer, CompilationSettings settings) {
+        this.doGenerateCode(writer, settings, true, false);
+    }
+
+    public void generateNonLocalCode(PrintWriter writer, CompilationSettings settings) {
+        this.doGenerateCode(writer, settings, false, true);
+    }
+
+    private void generatePrelude(PrintWriter writer, CompilationSettings settings) {
+        Target target = settings.target();
+
+        Printer printer = new Printer(writer);
+
+        // Write preludes if necessary
+        if (target.equals(Target.PYTHON)) {
+            PythonTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEAN)) {
+            LeanTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEANER)) {
+            LeanTranspiler.writePreludeLeaner(printer);
+        }
+
+        if (target.equals(Target.LEANEST)) {
+            LeanTranspiler.writePreludeLeanest(printer);
+        }
+    }
+
+    private void doGenerateCode(PrintWriter writer, CompilationSettings settings, boolean locals, boolean nonLocals) {
 
         Pacioli.trace("Generating code for %s", this.project.file.module());
 
@@ -331,23 +370,6 @@ public class Bundle {
                 break;
             default:
                 throw new RuntimeException("Unknown target");
-        }
-
-        // Write preludes if necessary
-        if (target.equals(Target.PYTHON)) {
-            PythonTranspiler.writePrelude(printer);
-        }
-
-        if (target.equals(Target.LEAN)) {
-            LeanTranspiler.writePrelude(printer);
-        }
-
-        if (target.equals(Target.LEANER)) {
-            LeanTranspiler.writePreludeLeaner(printer);
-        }
-
-        if (target.equals(Target.LEANEST)) {
-            LeanTranspiler.writePreludeLeanest(printer);
         }
 
         // Lists of infos we will compile below. Functions are always compiled first.
@@ -446,13 +468,17 @@ public class Bundle {
         if (functionsFirst) {
             // Generate code for the functions
             for (ValueInfo info : orderedInfos(functionsToCompile)) {
-                info.accept(transpiler);
+                if (include(info, locals, nonLocals)) {
+                    info.accept(transpiler);
+                }
             }
 
             // Generate code for the rest. This is done in the proper order
             infosToCompile = orderedInfos(infosToCompile);
             for (Info info : infosToCompile) {
-                info.accept(transpiler);
+                if (include(info, locals, nonLocals)) {
+                    info.accept(transpiler);
+                }
             }
 
         } else {
@@ -462,7 +488,9 @@ public class Bundle {
             all.addAll(infosToCompile);
 
             for (Info info : orderedInfos(all)) {
-                info.accept(transpiler);
+                if (include(info, locals, nonLocals)) {
+                    info.accept(transpiler);
+                }
             }
 
         }
@@ -470,7 +498,7 @@ public class Bundle {
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels()) {
             assert (def.location().fsFile().isPresent());
-            if (def.location().fsFile().get().equals(this.project.file.fsFile())) {
+            if (locals && def.location().fsFile().get().equals(this.project.file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
@@ -499,6 +527,11 @@ public class Bundle {
             }
         }
 
+    }
+
+    private boolean include(Info info, boolean locals, boolean nonLocals) {
+        boolean isFromFile = info.location().fsFile().get().equals(this.project.file.fsFile());
+        return isFromFile ? locals : nonLocals;
     }
 
     public void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
