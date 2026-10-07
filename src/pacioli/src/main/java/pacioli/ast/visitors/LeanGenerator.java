@@ -177,6 +177,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     private void generateLemmaTheoremOrAxiom(ValueDefinition node, String prefix) {
+        boolean tupleTypes = false; // feature flag
+
         ValueInfo info = node.getInfo();
 
         TypeObject type = info.inferredType().get();
@@ -213,14 +215,30 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             if (lambda.arguments.isEmpty()) {
                 write(" : ");
             } else {
-                write(" (args : ");
+                if (tupleTypes) {
+                    write(" (args : ");
 
-                this.writeLambdaArgs(lambda);
+                    this.writeLambdaArgs(lambda);
 
-                write(") : ");
+                    write(") : ");
+                } else {
+                    write(" ");
+
+                    write(typedLambdaArgs(lambda));
+
+                    write(" : ");
+                }
             }
 
             out.newlineUp();
+
+            if (tupleTypes) {
+                write("let (");
+                write(String.join(", ", lambda.arguments));
+                write(") := args");
+
+                newline();
+            }
 
             // Write the body
             var body = lambda.expression;
@@ -468,6 +486,19 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
             first = false;
         }
+    }
+
+    private String typedLambdaArgs(LambdaNode node) {
+        return node.arguments
+                .stream()
+                .map(arg -> String.format("(%s : %s)",
+                        arg,
+                        node.table
+                                .lookup(arg)
+                                .inferredType()
+                                .map(type -> type.printAsLean(settings.target()))
+                                .orElse("?")))
+                .collect(Collectors.joining(" "));
     }
 
     @Override
