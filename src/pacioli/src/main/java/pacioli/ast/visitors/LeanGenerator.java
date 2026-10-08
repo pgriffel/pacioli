@@ -24,10 +24,12 @@ package pacioli.ast.visitors;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 import pacioli.ast.Node;
@@ -95,6 +97,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     String prefix = "";
     // private String prefix = "lcl_";
 
+    private Stack<Integer> precedenceStack = new Stack<Integer>();
+
     public LeanGenerator(Printer printWriter, CompilationSettings settings) {
         super(printWriter);
 
@@ -108,6 +112,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         this.noncomputable = target.equals(Target.LEANEST);
         this.lemmasTheoremsAndAxioms = target.equals(Target.LEANEST);
         this.rewriteBranchNode = target.equals(Target.LEANEST);
+
+        precedenceStack.push(0);
     }
 
     protected void writeTodo(String feature) {
@@ -265,52 +271,144 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     }
 
+    // These are Pacioli numbers. Lean numbers below!!!
+    String yo = """
+             1 right        TO;
+             2 nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
+             3 left         AND, OR;
+             4 nonassoc     EQL, APPR_EQL, LEQ, GTQ, NEQ, LE, GT;
+             5 left         APPEND;
+             6 left         PLUS, NEG;
+             7 left         MOD;
+             8 left         MULT, MMULT, DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALE, RSCALE, LSCALEDOWN, RSCALEDOWN;
+             9 left         PER;
+            10 left         HAT, MEXPT;
+            11 right        TRANS, RECI, DIMINV;
+            12 left         LPAR;
+            """;
+
+    // These are Lean numbers.
+    String yo2 = """
+             1 right        TO;
+             2 nonassoc     EQUIV, FOLLOWSFROM, IMPLIES;
+             3 left         AND, OR;
+             4 nonassoc     EQL, APPR_EQL, LEQ, GTQ, NEQ, LE, GT;
+             5 left         APPEND;
+             6 left         PLUS, NEG;
+             7 left         MOD;
+             8 left         DIV, MDIV, LEFTDIV, MLEFTDIV, LSCALEDOWN, RSCALEDOWN;
+             9 left         MULT, MMULT,
+            10 left         LSCALE, RSCALE
+            11 left         PER;
+            12 left         HAT, MEXPT;
+            13 right        TRANS, RECI, DIMINV;
+            14 left         LPAR;
+            """;
+
+    private void writeOperation(
+            List<ExpressionNode> arguments,
+            String operator,
+            Integer operatorPrecedence,
+            Integer parentPrecedence) {
+
+        // the leftIsApp and rightIsApp checks ensure that the precedence
+        // only works when operations occur DIRECTLY in other operations.
+        // Any other nodes push 0 on the stack to reset the precedence.
+        // This solves the unnecessary parenethesis in e.g. expression
+        // 1 / sqrt ((norm (v) ⊙ norm (w)))
+
+        if (parentPrecedence >= operatorPrecedence) {
+            write("(");
+        }
+
+        boolean leftIsApp = arguments.get(0) instanceof ApplicationNode;
+        this.precedenceStack.push(leftIsApp ? operatorPrecedence - 1 : 0);
+        arguments.get(0).accept(this);
+        this.precedenceStack.pop();
+
+        write(" ");
+        write(operator);
+        write(" ");
+
+        boolean rightIsApp = arguments.get(1) instanceof ApplicationNode;
+        this.precedenceStack.push(rightIsApp ? operatorPrecedence : 0);
+        arguments.get(1).accept(this);
+        this.precedenceStack.pop();
+
+        if (parentPrecedence >= operatorPrecedence) {
+            write(")");
+        }
+    }
+
     @Override
     public void visit(ApplicationNode node) {
         if (this.preferNative) {
             String fun = node.function.asLean(settings);
+            Integer prec = this.precedenceStack.lastElement();
+
             switch (fun) {
                 case "mmult": {
-                    writeSeparated(node.arguments, " * ");
+                    writeOperation(node.arguments, "*", 9, prec);
                     break;
                 }
                 case "sum": {
-                    writeSeparated(node.arguments, " + ");
+                    writeOperation(node.arguments, "+", 6, prec);
                     break;
                 }
                 case "minus": {
-                    writeSeparated(node.arguments, " - ");
+                    writeOperation(node.arguments, "-", 6, prec);
                     break;
                 }
                 case "multiply": {
-                    writeSeparated(node.arguments, " ⊙ ");
+                    writeOperation(node.arguments, "⊙", 9, prec);
+                    break;
+                }
+                case "divide": {
+                    writeOperation(node.arguments, "/", 8, prec);
                     break;
                 }
                 case "equal": {
-                    writeSeparated(node.arguments, " = ");
+                    writeOperation(node.arguments, "=", 4, prec);
                     break;
                 }
                 case "less": {
-                    writeSeparated(node.arguments, " < ");
+                    writeOperation(node.arguments, "<", 4, prec);
                     break;
                 }
                 case "greater": {
-                    writeSeparated(node.arguments, " > ");
+                    writeOperation(node.arguments, ">", 4, prec);
                     break;
                 }
                 case "not_equal": {
-                    writeSeparated(node.arguments, " ≠ ");
+                    writeOperation(node.arguments, "≠", 4, prec);
+                    break;
+                }
+                case "scale": {
+                    writeOperation(node.arguments, "•", 10, prec);
                     break;
                 }
 
-                // case "norm": {
-                // write("‖");
-                // writeSeparated(node.arguments, "");
-                // write("‖");
-                // break;
-                // }
+                case "scale_down": {
+                    ExpressionNode app = new ApplicationNode(
+                            new IdentifierNode("scale", node.location()),
+                            Arrays.asList(
+                                    new ApplicationNode(
+                                            new IdentifierNode("divide", node.location()),
+                                            Arrays.asList(
+                                                    new ConstNode("1", node.location()),
+                                                    node.arguments.get(1)),
+                                            node.location()),
+                                    node.arguments.get(0)),
+                            node.location());
+
+                    app.accept(this);
+                    break;
+                }
+
                 default: {
+                    this.precedenceStack.push(0);
                     this.printApplication(node);
+                    this.precedenceStack.pop();
                 }
             }
         } else {

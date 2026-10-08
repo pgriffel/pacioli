@@ -610,6 +610,12 @@ public class LeanTranspiler implements SymbolTableVisitor {
 
 
             -- Primitives
+            noncomputable def divide {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
+                let (A, B) := args
+                fun i j => (A i j) / (B i j)
+
+            noncomputable instance {m n : Nat} : HDiv (Mat m n) (Mat m n) (Mat m n) where
+                hDiv p s := divide (p, s)
 
             noncomputable def sum {m n : Nat} := fun (args : (Mat m n) × (Mat m n)) =>
                 let (x, y) := args
@@ -618,6 +624,9 @@ public class LeanTranspiler implements SymbolTableVisitor {
             noncomputable def scale {m n : Nat} (args : Mat 1 1 × Mat m n) : Mat m n :=
                 let (c, A) := args
                 A.map fun x => c * x
+
+            noncomputable instance {m n : Nat} : HSMul (Mat 1 1) (Mat m n) (Mat m n) where
+                hSMul p s := scale (p, s)
 
             noncomputable def scale_down {m n : Nat} (args : Mat m n × Mat 1 1) : Mat m n :=
                 let (A, c) := args
