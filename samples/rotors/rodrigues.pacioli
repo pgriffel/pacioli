@@ -1,0 +1,311 @@
+# 
+#
+# ## Vraag
+#
+# De blog https://iquilezles.org/articles/noacos/ gaat in op rotaties waar acos niet 
+# nodig is. Dit lijkt een aardige uitbreiding van de geometry library, maar direct
+# overnemen van de code geeft een ongewenst type:
+#
+#     rotation_align :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+#
+# In plaats van unit 1/a in het tweede argument zou je unit a willen.
+#
+# De vraag is waar de 1/a vandaan komt en hoe het gefixed kan worden.
+#
+# Een gerelateerde vraag is hoe dit zit voor andere representaties van rotaties:
+# - Euler rotattions
+# - axis-and-angle
+# - Rodrigues rotations
+# - Geometric algebra
+# - Quaternions
+# - ...
+#
+
+# Er is al veel (Euler, geometric algebra, quaternions).
+#
+# Links:
+#
+# - https://en.wikipedia.org/wiki/Rotation_matrix
+# - https://github.com/pgriffel/pacioli/blob/ga/lib/geometric_algebra/multivector_layer.pacioli
+
+import geometry;
+import testing;
+
+#
+# We maken onderscheid tussen angle en align functies; de eerste gebruikt een vector en een angle als input, de tweede gebruikt twee vectoren als input.
+# (In de align variant kan de angle worden berekend uit de twee vectoren).
+# We maken ook onderscheid tussen functies die direct de rotatie uitvoeren en functies die een rotatie matrix produceren.
+# 
+#
+
+
+declare rotation_align ::
+    for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+# Can the units be fixed?
+
+define rotation_align(d, z) =
+    let
+        v = cross(z, d),
+        c = inner(z, d),
+        k = 1 / (1 + c),
+        k_x = get(v, Geom3@x, _),
+        k_y = get(v, Geom3@y, _),
+        k_z = get(v, Geom3@z, _)
+    in
+        matrix3d(
+            k_x*k_x*k + c,     k_y*k_x*k - k_z,    k_z*k_x*k + k_y,
+            k_x*k_y*k + k_z,   k_y*k_y*k + c,      k_z*k_y*k - k_x,
+            k_x*k_z*k - k_y,   k_y*k_z*k + k_x,    k_z*k_z*k + c)
+    end;
+
+# Correct units! Can we make a rodrigues_align variant? (rodrigues without cos and sin)
+# Ja, we hebben rodrigues_align o.b.v. twee vectoren toegevoegd.
+# De rodrigues_rotation komt van de wikipedia pagina https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+
+declare rodrigues_rotation ::
+    for_unit a: (Geom3!, radian) -> (a*Geom3!) -> a*Geom3!;
+
+define rodrigues_rotation(k, angle) =
+    (v) -> 
+        let 
+            c = cos(angle),
+            s = sin(angle)
+        in
+            v '*.' c + cross(k, v) '*.' s + k '*' inner(k, v) '*.' (1 - c)
+        end;
+
+# Rodrigues_align is een variant van rodrigues_rotation waarbij de angle wordt berekend uit de twee vectoren.
+define rodrigues_align(d, z) =
+    let
+        cr = cross(z, d),
+        k = cr '/.' norm(cr),
+        angle = acos(inner(z, d) / (norm(z) * norm(d)))
+    in
+        rodrigues_rotation(k, angle)
+    end;
+
+# Rodrigues_align_matrix is een variant van rodrigues_align waarbij de rotatie matrix direct wordt berekend, o.b.v. de blog https://iquilezles.org/articles/noacos/
+define rodrigues_align_matrix(d, z) =
+    let
+        cr = cross(z, d),
+        k = cr '/.' norm(cr),
+        angle = acos(inner(z, d) / (norm(z) * norm(d)))
+    in
+        rotation_align_iquilezles1(k, angle)
+    end;
+
+# rotation_align_iquilezles1 komt uit de blog https://iquilezles.org/articles/noacos/
+# Deze blog herschrijft rotation_align_iquilezles1 naar een vorm zonder sinus en cosinus. De blog vertrekt van de volgende functie.
+
+declare rotation_align_iquilezles1 :: (Geom3!, radian) -> Geom3! per Geom3!;
+
+define rotation_align_iquilezles1(k, a) = 
+    let
+        si = sin(a),
+        co = cos(a),
+        ic = 1 - co,
+        (k_x, k_y, k_z) = values3d(k)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
+
+#
+# De functies rodrigues_rotation en rotation_align_iquilezles1 zitten net wat anders in elkaar. De rodrigues_rotation geeft een functie die de rotatie uitvoert,
+# terwijl rotation_align_iquilezles1 direct de rotatie matrix geeft.
+# We maken een intermediate functie die de rodrigues_rotation functie in de vorm schrijft van rotation_align_iquilezles1.
+#
+
+declare rotation_align_curried :: for_index C: for_unit a: (Geom3!, radian) -> (a*Geom3!) -> a*Geom3!;
+
+define rotation_align_curried(k, a) =
+    let
+        si = sin(a),
+        co = cos(a),
+        ic = 1 - co,
+        (k_x, k_y, k_z) = values3d(k),
+        M =  matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co) 
+    in
+        (v) -> M '*' v
+    end;
+
+
+#
+# De blogpost werkt de rotation_align_iquilezles1 functie om naar een variant zonder cosinus en sinus op basis van de angle a.
+# De eerste tussenstap is een functie die werkt obv cross en inner product, maar nog steeds met sin en cos. Cross wordt ook normalized.
+# Deze versie krijgt twee vectoren als input. De units a en 1/a zijn ongewenst, je zou twee keer a willen hebben.
+#
+# We wijken in de code iets af van het origineel; gebruik van de vaiabele 'k' ipv 'axi' en we gebruiken geen 'clamp' functie
+# voor de acosinus berekening.
+#
+
+declare rotation_align_iquilezles2 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+define rotation_align_iquilezles2(d, z) =
+    let
+        k = normalized(cross(z, d)),
+        # cr = cross(z, d),
+        # k = cr '/.' norm(cr),
+
+        ang = acos(cos_from_vectors(z, d)),
+        co = cos(ang),
+        si = sin(ang),
+        ic = 1 - co,
+        (k_x, k_y, k_z) = values3d(k)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
+
+
+
+
+#
+# Deze functies naar voren in de file?
+#
+
+doc sin_from_vectors
+    "Is a function to calculate the angle between two vectors without trigonometric functions. 
+     
+     Uses the relation sin(θ) = |a × b| / (|a| |b|).";
+
+declare sin_from_vectors :: for_unit a, b: (a*Geom3!, b*Geom3!) -> 1;
+
+define sin_from_vectors(a, b) =
+        norm(cross(a, b)) / (norm(a) * norm(b));
+
+doc cos_from_vectors
+    "Is a function to calculate the angle between two vectors without trigonometric functions. 
+     
+     Uses the relation cos(θ) = (a · b) / (|a| |b|).";
+
+declare cos_from_vectors :: for_index C: for_unit a, b: (a*C!, b*C!) -> 1;
+
+define cos_from_vectors(a, b) =
+        inner(a, b) / (norm(a) * norm(b));
+
+
+# rotation_align_iquilezles3 op basis van de blog https://iquilezles.org/articles/noacos/ 
+# De cosinus wordt direct o.b.v. de inner berekend en niet o.b.v. cos_from_vectors, daardoor krijgen d en z units a en 1/a.
+# 
+declare rotation_align_iquilezles3 :: for_unit a: (a*Geom3!, 1/a*Geom3!) -> Geom3! per Geom3!;
+
+define rotation_align_iquilezles3(d, z) =
+    let
+        ax = cross(z, d),
+        # n  = normalized(z),
+        co = inner(z, d),
+        si = norm(ax),
+        k  = ax '/.' si,
+        ic = 1 - co,
+        (k_x, k_y, k_z) = values3d(k)
+    in
+        matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    end;
+
+
+
+# declare rotation_align_no_acos :: for_index D: for_unit a, b: (a*Geom3!, a*Geom3!) -> (b*Geom3!) -> b*Geom3!;
+# declare rotation_align_no_acos :: for_index E: for_unit c, b, a: (a*Geom3!, b*Geom3!) -> (c*Geom3!) -> c*Geom3!;
+
+#
+# We maken een intermediate functie, rotation_align_no_acos, om de ongewenste units te fixen.
+# Er is een verschil tussen het gebruik van normalized(cross...), en het delen door de norm van cross. In het eerste geval is het nodig om
+# nog 'ergens' (kan op meerdere plekken zijn) de units te corrigeren door het aanroepen van magnitide(), in het tweede geval is dat niet nodig.
+# Het delen door de norm lijkt een nettere oplossing te zijn dan het gebruik van de magnitude - dat in feite een soort type cast is.
+#
+
+define rotation_align_no_acos(d, z) =
+    let
+        cr = cross(z, d),
+        k = cr '/.' norm(cr),
+        # k = normalized(cross(z, d)),
+        co = cos_from_vectors(z, d),
+        si = sin_from_vectors(z, d),
+        ic = 1 - co,
+        (k_x, k_y, k_z) = values3d(k),
+        M = matrix3d(
+            k_x*k_x*ic + co,      k_y*k_x*ic - si*k_z,  k_z*k_x*ic + si*k_y,
+            k_x*k_y*ic + si*k_z,  k_y*k_y*ic + co,      k_z*k_y*ic - si*k_x,
+            k_x*k_z*ic - si*k_y,  k_y*k_z*ic + si*k_x,  k_z*k_z*ic + co)
+    in
+        (v) -> M '*' v
+    end;
+
+
+# What is a unit vector?
+#
+# Consider the following two statements:
+#
+# 1) A unit vector is a vector with length one
+#
+# 2) A unit vector is computed as v/|v|
+#
+# These two statements give a conflict when units of measurement are considered. In a normed
+# vector space with unit of measurement 'metre', does a unit vector have norm 1 or norm 1m?
+#
+# If the norm |v| has unit metre, then it cancels v's unit in v/|v| and the result is a
+# dimensionless unit vector. If norm |v| is dimensionless it does not cancel v's unit and
+# the result is a dimensioned vector with unit metre. Either way we have a contradiction.
+#
+# An alternative viewpoint is that a unit vector can be obtained from a vector in two ways.
+# When vector v is split into scalar c and unit vector u such that v = cu and |u| has length one,
+# then we can couple the unit with the scalar or with the unit vector, but not with both.
+# We have to pick one.
+
+# The following snippets illustrate the difference.
+
+declare split_dimensioned ::
+    for_index B: for_unit a: (a*B!) -> Tuple(1, a*B!);
+
+define split_dimensioned(v) =
+    let nrm = magnitude(norm(v)) in
+        tuple(nrm, v '/.' nrm)
+    end;
+
+declare split_dimensionless ::
+    for_index B: for_unit a: (a*B!) -> Tuple(a, B!);
+
+define split_dimensionless(v) =
+    let nrm = norm(v) in
+        tuple(nrm, v '/.' nrm)
+    end;
+
+
+define rotation_align_suite =
+    test_suite("Function 'rotation_align_iquilezles2'", [
+
+        test("rotation_align_no_acos should produce the same result as rotation_align_iquilezles2", () ->
+            let
+                d = vector3d(3, 4, 5) '*.' |metre|,
+                z = vector3d(1, 4, 7) '*.' |metre|,
+                v = vector3d(3, 1, 5) '*.' |metre|,
+                r1 = rotation_align_iquilezles2(magnitude(d), magnitude(z)) '*' v,
+                r2 = rotation_align_no_acos(d, z)(v)
+            in
+                begin
+                    printf("r1: %s", r1);
+                    printf("r2: %s", r2);
+                    return magnitude(r1) ~= magnitude(r2);
+                end
+            end  
+        )
+
+        # test("should produce the first 5 naturals", () ->
+        #     naturals(5) = [0, 1, 2, 3, 4]
+        # )
+    ]);
+
+
+run_test_suites([rotation_align_suite]);
