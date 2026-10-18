@@ -581,6 +581,10 @@ public class LeanTranspiler implements SymbolTableVisitor {
                 coe M := !![M]
 
 
+            inductive Maybe (x : Type) where
+                | nothing : Maybe x
+                | just (a : x) : Maybe x
+
             -- Less than
 
             noncomputable def matLT {m n : Nat} (x y : Mat m n) : Bool :=
@@ -708,6 +712,17 @@ public class LeanTranspiler implements SymbolTableVisitor {
             noncomputable def concatenate (args : String × String) :=
                 let (x, y) := args
                 x ++ y
+
+            noncomputable def abs {m n : Nat} (A : Mat m n) : Mat m n :=
+                A.map (fun x => |x|)
+
+            noncomputable def is_nothing (x : Maybe t) :=
+                match x with
+                | .nothing => true
+                | _ => false
+
+            noncomputable def error {t : Type} [Inhabited t] (x : String) : t :=
+                default
 
             """;
 

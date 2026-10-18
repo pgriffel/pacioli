@@ -160,7 +160,11 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             write("def ");
         }
 
-        node.id.accept(this);
+        if (node.id.name().equals("_")) {
+            write("_one_");
+        } else {
+            write(safeIdentifierName(node.id));
+        }
 
         write(" ");
 
@@ -420,7 +424,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         mark();
 
         if (node.function instanceof IdentifierNode funId) {
-            out.format("%s", this.longNames ? funId.info().globalName() : funId.name());
+            out.format("%s", this.longNames ? funId.info().globalName() : safeIdentifierName(funId));
         } else {
             out.print("(");
             node.function.accept(this);
@@ -510,8 +514,27 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                     : this.prefix + node.name();
             out.format("%s", full);
         } else {
-            String name = node.name();
+            String name = safeIdentifierName(node);
             write(name.equals("_") ? "_one_" : name);
+        }
+    }
+
+    private static String safeIdentifierName(IdentifierNode node) {
+        var INVALID = Arrays.asList("fun", "catch");
+        String name = node.name();
+        if (INVALID.contains(name)) {
+            return "_" + name + "_";
+        } else {
+            return name;
+        }
+    }
+
+    private static String safeIdentifierNameForLet(String name) {
+        var INVALID = Arrays.asList("fun", "catch");
+        if (INVALID.contains(name)) {
+            return "_" + name + "_";
+        } else {
+            return name;
         }
     }
 
@@ -545,7 +568,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             }
         } else {
             for (String arg : node.arguments) {
-                quoted.add(prefix + arg);
+                quoted.add(prefix + safeIdentifierNameForLet(arg));
             }
         }
 
@@ -603,7 +626,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(LetNode node) {
         write("let ");
         if (node.binding instanceof LetBindingNode binding) {
-            write(this.prefix + binding.var);
+            write(this.prefix + safeIdentifierNameForLet(binding.var));
             write(" := ");
             binding.value.accept(this);
         } else {
@@ -622,7 +645,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             if (!first)
                 write(",");
             first = false;
-            out.write(var.name());
+            out.write(safeIdentifierName(var));
         }
         write(") := ");
         node.value.accept(this);
@@ -687,7 +710,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         mark();
         Set<String> assignedVariables = new HashSet<>();
         for (IdentifierNode id : node.body.locallyAssignedVariables()) {
-            assignedVariables.add(id.name());
+            assignedVariables.add(safeIdentifierName(id));
         }
 
         List<String> shadowed = new ArrayList<>();
@@ -701,9 +724,9 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             }
         }
 
-        write("(fun ");
+        write("(fun (");
         write(String.join(" ", shadowed));
-        write(" => ");
+        write(") => ");
         newlineUp();
         write("Id.run do");
         newline();
@@ -742,7 +765,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(TupleAssignmentNode node) {
         final List<String> names = new ArrayList<String>();
         for (IdentifierNode id : node.vars) {
-            names.add(this.prefix + id.name());
+            names.add(this.prefix + safeIdentifierName(id));
         }
 
         write("(");
@@ -768,7 +791,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     public void visit(ForNode node) {
         mark();
         out.write("List.map (fun ");
-        out.write(prefix + node.var.name());
+        out.write(prefix + safeIdentifierName(node.var));
         out.write(" => ");
         node.body.accept(this);
         out.write(") ");
@@ -785,7 +808,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
             if (i > 0) {
                 out.write(", ");
             }
-            out.write(node.vars.get(i).name());
+            out.write(safeIdentifierName(node.vars.get(i)));
         }
         out.write(") := x; ");
         node.body.accept(this);

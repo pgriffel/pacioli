@@ -63,11 +63,13 @@ public class LeanPrinter implements TypeVisitor {
 
     @Override
     public void visit(FunctionType type) {
+        out.write("(");
         type.domain().accept(this);
 
         out.write(" -> ");
 
         type.range().accept(this);
+        out.write(")");
     }
 
     @Override
@@ -107,6 +109,7 @@ public class LeanPrinter implements TypeVisitor {
         String sep = "";
         for (TypeIdentifier id : type.indexSets()) {
             out.print(sep);
+            out.print("Fin ");
             out.print(id.name());
             sep = " % ";
         }
@@ -122,6 +125,7 @@ public class LeanPrinter implements TypeVisitor {
         // Update. This seems to no longer be used outside a matrix type
 
         // out.print("Index(");
+        // out.write("Fin ");
         type.indexSet().accept(this);
         // out.print(")");
     }
