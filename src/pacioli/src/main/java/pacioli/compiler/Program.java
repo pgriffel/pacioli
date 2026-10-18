@@ -843,7 +843,7 @@ public class Program {
             // store as the inferred type. Local variables are updated with the same
             // solution, simplification and renaming as the definition type.
             Substitution finalLocalsSubs = unfreshSubst.compose(simplification).compose(inferenceSolution);
-            TypeObject inferredType = solved.normalizeMatrixTypes();
+            TypeObject inferredType = solved.properIndexSets();
 
             // 6. Check the validity of the declared type
             if (info.isFromFile(prog.file()) && declared.isPresent()) {
@@ -859,15 +859,16 @@ public class Program {
                 if (Pacioli.Options.showTypeInference || verbose) {
                     Pacioli.log(
                             "Checking inferred type\n  %s\nagainst declared type\n  %s",
-                            instantiatedType.unfresh().pretty(), declaredType.unfresh().pretty());
+                            instantiatedType.unfresh().properIndexSets().pretty(),
+                            declaredType.unfresh().properIndexSets().pretty());
                 }
 
                 if (!declaredType.isInstanceOf(instantiatedType)) {
                     throw new RuntimeException("Type error",
                             new PacioliException(info.location(),
                                     "Declared type\n\n  %s\n\ndoes not specialize the inferred type\n\n  %s\n",
-                                    declaredType.unfresh().pretty(),
-                                    instantiatedType.unfresh().pretty()));
+                                    declaredType.unfresh().properIndexSets().pretty(),
+                                    instantiatedType.unfresh().properIndexSets().pretty()));
                 }
 
                 // 7.a Get the declared type with the code's variable names. We want to use
