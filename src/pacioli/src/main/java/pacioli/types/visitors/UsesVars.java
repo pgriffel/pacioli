@@ -53,13 +53,13 @@ public class UsesVars implements TypeVisitor {
     private Stack<Set<Var>> nodeStack = new Stack<Set<Var>>();
 
     public Set<Var> varSetAccept(TypeObject child) {
-        // Pacioli.logln("accept: %s", child.getClass());
+        // Pacioli.println("accept: %s", child.getClass());
         child.accept(this);
         return nodeStack.pop();
     }
 
     public void returnTypeNode(Set<Var> value) {
-        // Pacioli.logln("return: %s", value.getClass());
+        // Pacioli.println("return: %s", value);
         nodeStack.push(value);
     }
 

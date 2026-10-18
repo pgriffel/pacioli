@@ -35,6 +35,7 @@ import pacioli.compiler.Printable;
 import pacioli.compiler.Printer;
 import pacioli.compiler.CompilationSettings.Target;
 import pacioli.symboltable.info.ParametricInfo;
+import pacioli.symboltable.info.TypeInfo;
 import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
@@ -51,6 +52,7 @@ import pacioli.types.visitors.PrettyPrinter;
 import pacioli.types.visitors.ReduceTypes;
 import pacioli.types.visitors.SimplificationParts;
 import pacioli.types.visitors.SubstituteVisitor;
+import pacioli.types.visitors.Uses;
 import pacioli.types.visitors.UsesVars;
 import pacioli.types.visitors.GroundVarsVisitor;
 import uom.Unit;
@@ -79,11 +81,15 @@ public interface TypeObject extends Printable {
         return new UsesVars().varSetAccept(this);
     };
 
+    public default Set<TypeInfo> uses() {
+        return new Uses().run(this);
+    };
+
     public default TypeObject applySubstitution(Substitution subs) {
         return new SubstituteVisitor(subs).typeNodeAccept(this);
     };
 
-    public default TypeObject normalizeMatrixTypes() {
+    public default TypeObject properIndexSets() {
         return new MatrixNormalizeVisitor().typeNodeAccept(this);
     };
 

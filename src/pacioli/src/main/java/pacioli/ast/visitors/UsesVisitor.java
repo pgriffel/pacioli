@@ -28,6 +28,7 @@ import java.util.Set;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.definition.UnitDefinition;
+import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.StatementNode;
 import pacioli.ast.unit.UnitIdentifierNode;
@@ -44,6 +45,15 @@ public class UsesVisitor extends IdentityVisitor {
     public Set<Info> idsAccept(Node node) {
         node.accept(this);
         return infos;
+    }
+
+    @Override
+    public void visit(ValueDefinition node) {
+        if (node.getInfo().inferredType().isPresent()) {
+            infos.addAll(node.getInfo().inferredType().get().uses());
+        }
+        node.id.accept(this);
+        node.body.accept(this);
     }
 
     @Override

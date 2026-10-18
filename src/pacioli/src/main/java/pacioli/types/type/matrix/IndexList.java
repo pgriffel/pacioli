@@ -103,6 +103,10 @@ public class IndexList implements TypeObject {
         return indexSets;
     }
 
+    public List<IndexSetInfo> indexSetInfos() {
+        return indexSetInfos;
+    }
+
     public int width() {
         return indexSets.size();
     }

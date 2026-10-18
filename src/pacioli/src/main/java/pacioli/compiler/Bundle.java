@@ -285,8 +285,6 @@ public class Bundle {
     public void generateCode(PrintWriter writer, CompilationSettings settings) {
         this.generatePrelude(writer, settings);
         this.doGenerateCode(writer, settings, false, true);
-        writer.println("-- local code");
-        writer.println();
         this.doGenerateCode(writer, settings, true, false);
     }
 
@@ -461,38 +459,16 @@ public class Bundle {
             }
         }
 
-        boolean functionsFirst = !(target.equals(Target.LEAN)
-                || target.equals(Target.LEANER)
-                || target.equals(Target.LEANEST));
+        // split is obsolete!?
+        List<Info> all = new ArrayList<>();
 
-        if (functionsFirst) {
-            // Generate code for the functions
-            for (ValueInfo info : orderedInfos(functionsToCompile)) {
-                if (include(info, locals, nonLocals)) {
-                    info.accept(transpiler);
-                }
+        all.addAll(functionsToCompile);
+        all.addAll(infosToCompile);
+
+        for (Info info : orderedInfos(all)) {
+            if (include(info, locals, nonLocals)) {
+                info.accept(transpiler);
             }
-
-            // Generate code for the rest. This is done in the proper order
-            infosToCompile = orderedInfos(infosToCompile);
-            for (Info info : infosToCompile) {
-                if (include(info, locals, nonLocals)) {
-                    info.accept(transpiler);
-                }
-            }
-
-        } else {
-            List<Info> all = new ArrayList<>();
-
-            all.addAll(functionsToCompile);
-            all.addAll(infosToCompile);
-
-            for (Info info : orderedInfos(all)) {
-                if (include(info, locals, nonLocals)) {
-                    info.accept(transpiler);
-                }
-            }
-
         }
 
         // Generate code for the toplevels
