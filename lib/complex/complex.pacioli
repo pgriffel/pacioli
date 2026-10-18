@@ -45,15 +45,18 @@ export
     columns_complex,
     map_matrix_complex,
     scale_complex_matrix,
+    list_sum_complex,
     complex_inverse,
     complex_inverse_matrix,
+    complex_inverse_matrix_frobenius,
     complex2str,
     complex2string,
     get_scalar_tuple,
     make_scalar_complex,
     unit_complex,
     complex_approximates,
-    complex_singular_value_list;
+    complex_singular_value_list,
+    complex_magnitude;
 
 
 deftype for_index P,Q: for_unit a, P!u, Q!v:
@@ -377,10 +380,42 @@ define complex_inverse(c) =
         tuple(r / denominator, -i / denominator)
     end;
 
+# declare list_sum_complex :: for_index E, D: for_unit E!c, a, D!b: (List(Tuple(a*D!b per E!c, a*D!b per E!c))) -> Tuple(a*D!b per E!c, a*D!b per E!c);
+declare list_sum_complex :: for_index E, D: for_unit E!c, a, D!b: (List(ComplexMatrix(a, E!c, D!b))) -> ComplexMatrix(a, E!c, D!b);
+
+define list_sum_complex(xs) = fold_list((x, y) -> sum_complex(x, y), xs);
+
 declare complex_inverse_matrix ::
   for_index P,Q: for_unit a,P!u,Q!v: (ComplexMatrix(a, P!u, Q!v)) -> ComplexMatrix(a^-1, Q!v, P!u);
 
+# declare complex_inverse_matrix :: for_index E, D: for_unit E!c, a, D!b:
+#     (Tuple(a*D!b per E!c, a*D!b per E!c)) -> Tuple(1/a/E!c per 1/D!b, 1/a/E!c per 1/D!b);
+
 define complex_inverse_matrix(c) =
+    let
+        parts = [multiply_matrix_complex(scale_complex_matrix(1/a, huh_complex(w)), hermitian(huh_complex(v))) |
+                    (a,v,w) <- complex_singular_value_list(c), magnitude(a) > 0.00001],
+        (re, im) = c
+    in
+        if parts = [] then 
+            make_matrix_complex(0 '.*' re^D, 0 '.*' im^D)
+        else
+            list_sum_complex(parts)
+        end
+    end;
+
+define huh_complex(v) = 
+    let (re, im) = v
+    in
+        tuple(huh(re), huh(im))
+    end;
+
+define huh(v) = magnitude(v) * unit(v)^R;
+
+declare complex_inverse_matrix_frobenius ::
+  for_index P,Q: for_unit a,P!u,Q!v: (ComplexMatrix(a, P!u, Q!v)) -> ComplexMatrix(a^-1, Q!v, P!u);
+
+define complex_inverse_matrix_frobenius(c) =
     let
         (r, i) = c,
         inv_r = inverse(r),
@@ -470,3 +505,12 @@ define complex_approximates(A, B, precision) =
         approximates(Ar, Br, precision) and
         approximates(Ai, Bi, precision)
     end;
+
+declare complex_magnitude ::
+    for_index P,Q: for_unit a, P!u, Q!v: (ComplexMatrix(a, P!u, Q!v)) -> ComplexMatrix(1, P!, Q!);
+
+define complex_magnitude(x) = 
+    let (re, im) = x
+    in
+        tuple(magnitude(re), magnitude(im))
+    end;    

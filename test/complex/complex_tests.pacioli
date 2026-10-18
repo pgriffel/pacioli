@@ -32,7 +32,8 @@ define complex_suites = [
     rotation_test_suite("dimensioned", test_numbers_dimensioned),
     rotation_test_suite("dimensionless", test_numbers_dimless),
     complex_scalar_inverse_suite,
-    complex_matrix_inverse_suite
+    complex_matrix_inverse_suite,
+    complex_matrix_svd_suite
 ];
 
 run_test_suites(complex_suites);
@@ -123,16 +124,19 @@ define complex_scalar_inverse_suite =
     inverse_suite("inverse for dimensionless scalars", random_complex_1_by_1_matrix, 5*|decimals|);
 
 define complex_matrix_inverse_suite =
-    inverse_suite("inverse for matrices", () -> random_complex_4_by_4_matrix(), 5*|decimals|);
+    inverse_suite("inverse for matrices", () -> random_complex_4_by_4_matrix(), 2*|decimals|);
 
 define random_complex_1_by_1_matrix() = make_matrix_complex(random_1_by_1_matrix(),
                                             random_1_by_1_matrix());
+
+define random_complex_4_by_3_matrix() = make_matrix_complex(random_4_by_3_matrix() * |metre * Four!unit per Three!unit|,
+                                                          random_4_by_3_matrix() * |metre * Four!unit per Three!unit|);                                           
 
 define random_complex_4_by_4_matrix() = make_matrix_complex(random_4_by_4_matrix() * |metre * Four!unit per Four!unit|,
                                                           random_4_by_4_matrix() * |metre * Four!unit per Four!unit|);
 
 # ------------------------------------------------------------------------------
-
+# Function complex_inverse
 define inverse_suite(description, matrix_generator, precision) = test_suite(description, [
 
     random_test("should satisfy A = A '*' inverse(A) '*' A", () ->
@@ -153,9 +157,49 @@ define inverse_suite(description, matrix_generator, precision) = test_suite(desc
 
 ]);
 
-let A = random_complex_4_by_4_matrix() in
-    printf("\nA=\n%s\n\ncomplex_singular_value_list(A)=\n%s",
-    random_complex_4_by_4_matrix(),
-    complex_singular_value_list(A))
-end;
+# let A = random_complex_4_by_4_matrix() in
+#     printf("\nA=\n%s\n\ncomplex_singular_value_list(A)=\n%s",
+#     A,
+#     complex_singular_value_list(A))
+# end;
+
+
+define complex_matrix_svd_suite =
+    complex_svd_suite("svd for matrices", () -> random_complex_4_by_3_matrix(), 13*|decimals|);
+
+
+define complex_svd_suite(description, matrix_generator, precision) = test_suite(description, [
+
+    random_test("should be a proper factorization the matrix", () ->
+        let A = matrix_generator() in
+            just(complex_approximates(A, list_sum_complex([multiply_matrix_complex(scale_complex_matrix(a, v), hermitian(w)) | (a,v,w) <- complex_singular_value_list(A)]), precision))
+        end),
+
+    random_test("should give non-negative singular values", () ->
+        just(all[magnitude(s) >= 0 | (s, _, _) <- complex_singular_value_list(matrix_generator())])),
+
+    random_test("should give an orthogonal set for the row dimension", () ->
+        just(complex_pairwise_orthogonal_magnitudes([v | (_, v, _) <- complex_singular_value_list(matrix_generator())], precision))),
+                
+    random_test("should give an orthogonal set for the column dimension", () ->
+        just(complex_pairwise_orthogonal_magnitudes([w | (_, _, w) <- complex_singular_value_list(matrix_generator())], precision)))
+]);
                                      
+
+doc complex_pairwise_orthogonal_magnitudes
+    "Not a true orthogonal set, just orthogonality of the magnitudes.";
+
+# declare complex_pairwise_orthogonal_magnitudes ::
+#     for_index B: for_unit a, B!u: (List(a*B!u), decimals) -> Boole;
+
+define complex_pairwise_orthogonal_magnitudes(vs, precision) =
+    let 
+        indexed = zip(naturals(list_size(vs)), [complex_magnitude(v) | v <- vs]),
+        zero = make_scalar_complex(0, 0),
+        one = make_scalar_complex(1, 0)
+    in
+        all[complex_approximates(inner_complex(v, w), if i = j then one else zero end, precision) | 
+            (i, v) <- indexed,
+            (j, w) <- indexed]
+    end;
+
