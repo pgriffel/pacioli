@@ -1,7 +1,8 @@
 **/*.mvm
-lib/**/*.js
 samples/**/*.js
 test/**/*.js
+samples/**/*.lean
+test/**/*.lean
 !/samples/shells/parameters.js
 !/samples/viz-standalone.js
 **/*.pacioli~
