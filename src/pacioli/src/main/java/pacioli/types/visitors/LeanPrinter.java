@@ -22,11 +22,10 @@
 
 package pacioli.types.visitors;
 
-import java.util.stream.Collectors;
-
+import java.util.List;
+import java.util.Stack;
 import pacioli.compiler.Printer;
 import pacioli.compiler.CompilationSettings.Target;
-import pacioli.types.TypeContext;
 import pacioli.types.TypeVisitor;
 import pacioli.types.type.FunctionType;
 import pacioli.types.type.IndexSetVar;
@@ -56,20 +55,51 @@ public class LeanPrinter implements TypeVisitor {
     Printer out;
     private Target target;
 
+    private Stack<Integer> precedenceStack = new Stack<Integer>();
+
     public LeanPrinter(Printer printer, Target target) {
         this.out = printer;
         this.target = target;
+
+        precedenceStack.push(0);
+    }
+
+    // Operators:
+    // 1 ->
+    // 2 ×
+    // 3 * /
+    // 4 %
+    private void writeOperation(
+            TypeObject left,
+            TypeObject right,
+            String operator,
+            Integer operatorPrecedence,
+            Integer parentPrecedence) {
+
+        if (parentPrecedence >= operatorPrecedence) {
+            out.write("(");
+        }
+
+        this.precedenceStack.push(operatorPrecedence - 1);
+        left.accept(this);
+        this.precedenceStack.pop();
+
+        out.write(" ");
+        out.write(operator);
+        out.write(" ");
+
+        this.precedenceStack.push(operatorPrecedence);
+        right.accept(this);
+        this.precedenceStack.pop();
+
+        if (parentPrecedence >= operatorPrecedence) {
+            out.write(")");
+        }
     }
 
     @Override
     public void visit(FunctionType type) {
-        out.write("(");
-        type.domain().accept(this);
-
-        out.write(" -> ");
-
-        type.range().accept(this);
-        out.write(")");
+        writeOperation(type.domain(), type.range(), "->", 1, this.precedenceStack.lastElement());
     }
 
     @Override
@@ -80,7 +110,9 @@ public class LeanPrinter implements TypeVisitor {
 
         out.print(tcString.isEmpty() ? ": " : " : ");
 
+        this.precedenceStack.push(0);
         type.type().accept(this);
+        this.precedenceStack.pop();
 
         // TODO
         if (type.conditions().size() > 0) {
@@ -171,14 +203,43 @@ public class LeanPrinter implements TypeVisitor {
         }
     }
 
+    static public void writeTupleArguments(Printer out, Target target, List<TypeObject> args) {
+        var visitor = new LeanPrinter(out, target);
+        Integer operatorPrecedence = 2;
+
+        visitor.precedenceStack.push(operatorPrecedence);
+
+        boolean first = true;
+        for (var typ : args) {
+            if (first) {
+                first = false;
+            } else {
+                out.write(" × ");
+            }
+            typ.accept(visitor);
+        }
+        visitor.precedenceStack.pop();
+    }
+
     @Override
     public void visit(ParametricType type) {
         if (type.op().name().equals("Tuple")) {
-            String argsText = type.args().stream()
-                    .map(x -> x.printAsLean(this.target))
-                    .collect(Collectors.joining(" × "));
+            if (type.args().isEmpty()) {
+                out.write("Unit");
+            } else {
+                Integer operatorPrecedence = 2;
+                boolean needsParenthesis = this.precedenceStack.lastElement() >= operatorPrecedence;
 
-            out.write(argsText.isEmpty() ? "Unit" : "(" + argsText + ")");
+                if (needsParenthesis) {
+                    out.write("(");
+                }
+
+                writeTupleArguments(out, target, type.args());
+
+                if (needsParenthesis) {
+                    out.write(")");
+                }
+            }
         } else if (type.op().name().equals("Void")) {
             out.write("IO Unit");
         } else if (type.op().name().equals("Boole")) {
@@ -192,7 +253,9 @@ public class LeanPrinter implements TypeVisitor {
 
             if (!type.args().isEmpty()) {
                 out.write(" (");
+                this.precedenceStack.push(0);
                 out.writeCommaSeparated(type.args(), arg -> arg.accept(this));
+                this.precedenceStack.pop();
                 out.write(")");
             }
         }
@@ -200,6 +263,7 @@ public class LeanPrinter implements TypeVisitor {
 
     @Override
     public void visit(IndexSetVar type) {
+        out.write("Fin ");
         out.write(type.name());
     }
 
@@ -259,7 +323,9 @@ public class LeanPrinter implements TypeVisitor {
         String sep = "";
         for (TypeObject id : type.arguments()) {
             out.print(sep);
+            this.precedenceStack.push(0);
             id.accept(this);
+            this.precedenceStack.pop();
             sep = ", ";
         }
         out.print(")");

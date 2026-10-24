@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
@@ -78,6 +77,8 @@ import pacioli.types.type.FunctionType;
 import pacioli.types.type.ParametricType;
 import pacioli.types.type.Schema;
 import pacioli.types.type.TypeObject;
+import pacioli.types.type.TypeVar;
+import pacioli.types.visitors.LeanPrinter;
 
 public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
@@ -154,36 +155,57 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     private void generateDef(ValueDefinition node) {
         ValueInfo info = node.getInfo();
 
-        if (this.noncomputable) {
-            write("noncomputable def ");
-        } else {
-            write("def ");
-        }
+        write(this.noncomputable ? "noncomputable def " : "def ");
 
-        if (node.id.name().equals("_")) {
-            write("_one_");
-        } else {
-            write(safeIdentifierName(node.id));
-        }
-
-        write(" ");
-
-        // The type schema prints the ':'
-        write(info.inferredType().get().printAsLean(this.settings.target()));
-
-        write(" := ");
-
-        out.newlineUp();
+        node.id.accept(this);
 
         // Recurse on the AST for the leaner case, recurse on the desugared and resolved
-        // body otherwise
-        if (this.desugared || node.body instanceof MatrixLiteralNode) {
-            node.body.lower().accept(this);
+        // body otherwise. A matrix literal must always be desugared
+        var body = this.desugared || node.body instanceof MatrixLiteralNode
+                ? node.body.lower()
+                : node.body;
+
+        if (body instanceof LambdaNode lam && // todo: and lambda is not a varargs lambda!
+                info.inferredType().get() instanceof Schema schema &&
+                schema.type() instanceof FunctionType ft) {
+            String tcString = schema.generateContext().asLean();
+
+            out.print(tcString.isEmpty() ? "" : " ");
+            out.write(tcString);
+
+            this.generateLambdaDef(lam, ft);
         } else {
-            node.body.accept(this);
+
+            // The type schema prints the ':'
+            write(" ");
+            write(info.inferredType().get().printAsLean(this.settings.target()));
+            write(" := ");
+
+            out.newlineUp();
+
+            body.accept(this);
         }
 
         out.newlineDown();
+    }
+
+    private void generateLambdaDef(LambdaNode node, FunctionType typeObject) {
+
+        write(" (args : ");
+        writeLambdaTupleType(node);
+        out.write(") : ");
+        out.write(typeObject.range().printAsLean(this.settings.target()));
+        out.write(" := ");
+
+        out.newlineUp();
+
+        write("let (");
+        writeLambdaArgs(node);
+        write(") := args; ");
+
+        out.newline();
+
+        node.expression.accept(this);
     }
 
     private void generateLemmaTheoremOrAxiom(ValueDefinition node, String prefix) {
@@ -228,7 +250,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                 if (tupleTypes) {
                     write(" (args : ");
 
-                    this.writeLambdaArgs(lambda);
+                    this.writeLambdaTupleType(lambda);
 
                     write(") : ");
                 } else {
@@ -556,56 +578,45 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         mark();
 
-        String prefix = this.longNames ? this.prefix : "";
-
-        List<String> quoted = new ArrayList<String>();
-
-        if (node.varArgs) {
-            if (node.arguments.size() == 1) {
-                quoted.add("..." + prefix + node.arguments.get(0));
-            } else {
-                throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
-            }
-        } else {
-            for (String arg : node.arguments) {
-                quoted.add(prefix + safeIdentifierNameForLet(arg));
-            }
-        }
-
-        String args = String.join(", ", quoted);
-
         write("fun (args : ");
-
-        writeLambdaArgs(node);
-
-        out.write(" ) => ");
+        writeLambdaTupleType(node);
+        out.write(") => ");
 
         out.newlineUp();
-        write("let (" + args + ") := args; ");
+
+        write("let (");
+        writeLambdaArgs(node);
+        write(") := args; ");
+
         out.newline();
+
         node.expression.accept(this);
 
         unmark();
     }
 
     private void writeLambdaArgs(LambdaNode node) {
+        out.write(node.arguments.stream()
+                .map(arg -> prefix + safeIdentifierNameForLet(arg))
+                .collect(Collectors.joining(", ")));
+    }
 
-        Boolean first = true;
+    private void writeLambdaTupleType(LambdaNode node) {
+
+        var args = new ArrayList<TypeObject>();
+
         for (String arg : node.arguments) {
-            if (!first) {
-                out.format(" × ");
-            }
+            TypeObject type = node
+                    .argumentType(arg)
+                    .orElse(new TypeVar("?"));
 
-            ValueInfo info = node.table.lookup(arg);
-            Optional<TypeObject> type = info.inferredType();
+            args.add(type);
+        }
 
-            if (type.isPresent()) {
-                write(type.get().printAsLean(settings.target()));
-            } else {
-                write("?");
-            }
-
-            first = false;
+        if (args.isEmpty()) {
+            write("Unit");
+        } else {
+            LeanPrinter.writeTupleArguments(out, this.settings.target(), args);
         }
     }
 

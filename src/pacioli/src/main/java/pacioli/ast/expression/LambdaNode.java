@@ -23,11 +23,14 @@
 package pacioli.ast.expression;
 
 import java.util.List;
+import java.util.Optional;
+
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.compiler.Location;
 import pacioli.symboltable.SymbolTable;
 import pacioli.symboltable.info.ValueInfo;
+import pacioli.types.type.TypeObject;
 
 public class LambdaNode extends AbstractNode implements ExpressionNode {
 
@@ -76,5 +79,9 @@ public class LambdaNode extends AbstractNode implements ExpressionNode {
         var node = new LambdaNode(this.arguments, this.expression, this.location(), this.varArgs);
         node.table = table;
         return node;
+    }
+
+    public Optional<TypeObject> argumentType(String name) {
+        return this.table.lookup(name).inferredType();
     }
 }
