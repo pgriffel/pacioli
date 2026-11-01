@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import pacioli.ast.Node;
 import pacioli.ast.definition.IndexSetDefinition;
+import pacioli.ast.definition.TypeDefinition;
 import pacioli.ast.definition.ValueDefinition;
 import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.BranchNode;
@@ -123,12 +124,35 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
     }
 
     @Override
+    public void visit(TypeDefinition node) {
+
+        // For now types are reduced, so no translation needed for type definitions
+
+        // out.format("-- def %s %s := %s -- TODO ytpe",
+        // node.name(),
+        // node.lhs.evalType().printAsLean(settings.target()),
+        // node.rhs.evalType().reduce(info -> true).printAsLean(settings.target()));
+        // out.newline();
+
+        // write("deftype ");
+        // write(node.createContext().asLean());
+        // node.lhs.accept(this);
+        // write(" = ");
+        // newline();
+        // write(" ");
+        // node.rhs.accept(this);
+        // write(";");
+
+        // out.newline();
+    }
+
+    @Override
     public void visit(IndexSetDefinition node) {
 
         if (!node.isDynamic()) {
-            out.format("def %s := %s", node.name(), node.items().size());
+            out.format("def %s : Nat := %s", node.name(), node.items().size());
         } else {
-            out.format("def %s := length %s -- TODO: proper Lean length function",
+            out.format("def %s : Nat := length %s -- TODO: proper Lean length function",
                     node.name(),
                     node.body().asLean(settings));
         }
@@ -178,7 +202,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
             // The type schema prints the ':'
             write(" ");
-            write(info.inferredType().get().printAsLean(this.settings.target()));
+            write(info.inferredType().get().reduce(i -> true).printAsLean(this.settings.target()));
             write(" := ");
 
             out.newlineUp();
@@ -194,7 +218,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         write(" (args : ");
         writeLambdaTupleType(node);
         out.write(") : ");
-        out.write(typeObject.range().printAsLean(this.settings.target()));
+        out.write(typeObject.range().reduce(info -> true).printAsLean(this.settings.target()));
         out.write(" := ");
 
         out.newlineUp();
@@ -213,7 +237,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
         ValueInfo info = node.getInfo();
 
-        TypeObject type = info.inferredType().get();
+        TypeObject type = info.inferredType().get().reduce(i -> true);
 
         if (node.body instanceof LambdaNode lambda &&
                 type instanceof Schema schema &&
@@ -401,8 +425,16 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                     writeOperation(node.arguments, "<", 4, prec);
                     break;
                 }
+                case "less_eq": {
+                    writeOperation(node.arguments, "≤", 4, prec);
+                    break;
+                }
                 case "greater": {
                     writeOperation(node.arguments, ">", 4, prec);
+                    break;
+                }
+                case "greater_eq": {
+                    writeOperation(node.arguments, "≥", 4, prec);
                     break;
                 }
                 case "not_equal": {
@@ -413,7 +445,15 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
                     writeOperation(node.arguments, "•", 10, prec);
                     break;
                 }
-
+                case "negative": {
+                    write("-");
+                    node.arguments.get(0).accept(this);
+                    break;
+                }
+                // case "expt": {
+                // writeOperation(node.arguments, "^", 12, prec);
+                // break;
+                // }
                 case "scale_down": {
                     ExpressionNode app = new ApplicationNode(
                             new IdentifierNode("scale", node.location()),
@@ -519,7 +559,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         if (value.equals("true") || value.equals("false")) {
             out.format("%s", value);
         } else {
-            out.format("%s", value);
+            out.format("(%s : Mat 1 1)", value);
         }
     }
 
@@ -608,7 +648,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
         for (String arg : node.arguments) {
             TypeObject type = node
                     .argumentType(arg)
-                    .orElse(new TypeVar("?"));
+                    .orElse(new TypeVar("?"))
+                    .reduce(info -> true);
 
             args.add(type);
         }
@@ -688,7 +729,8 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(MatrixTypeNode node) {
-        out.format("-- TODO: matrix type %s", node.evalType().compileToJS());
+        // create matrix of right size containing 1 everywhere
+        out.format("%s", node.evalType().printAsLean(settings.target()).replace("Mat", "_unit"));
     }
 
     @Override

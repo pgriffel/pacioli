@@ -203,7 +203,10 @@ public class TypeContext implements Printable {
         return Stream.of(
                 // No Lean counterpart for quantified("for_unit", unitVars)
                 leanImplicit("Type", typeVars),
-                leanImplicit("Nat", indexVars))
+                leanImplicit("Nat", indexVars),
+                typeVars.stream()
+                        .map(var -> String.format("[Inhabited %s]", var))
+                        .collect(Collectors.joining(" ")))
                 .filter(x -> !x.isEmpty())
                 .collect(Collectors.joining(" "));
     }

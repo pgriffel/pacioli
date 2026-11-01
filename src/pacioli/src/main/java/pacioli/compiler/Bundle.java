@@ -388,6 +388,14 @@ public class Bundle {
                     infosToCompile.add(unitInfo);
                 }
             }
+
+            // Added for Lean, but it is not really used. For now all
+            // user defined types are reduced to primitive types.
+            if (info instanceof ParametricInfo i) {
+                if (info.definition().isPresent()) {
+                    infosToCompile.add(i);
+                }
+            }
         }
 
         // Collect all functions and values with a definition from the value table
