@@ -4,117 +4,24 @@ import graphics/parametric_plots;
 
 define NORMAL_COLOR = make_color("green");
 define DELTA_COLOR = make_color("red");
-define PATH_COLOR = make_color("red");
 define LINE_COLOR = make_color("steelblue");
-
 define MATERIAL = "Normal";
 
+define PATH_COLOR = make_color("cyan");
+define PATH2_COLOR = make_color("orange");  
 
-#
-# 2026-01-03
-# Research vraag: wat is het probleem met units in verschillende parametrische oppervlakken?
-# Kunnen we operaties op oppervlakken tekenen en berekenen met Pacioli?
-#
-# Setting/introductie: 
-# We zijn bezig met parametrische oppervlakken in een 3-D euclidische/metrische ruimte.
-# Het ligt voor de hand dat we in een metrische ruimte units of measurement kunnen toekennen
-# aan de assen en punten in de ruimte. Er ontstaat dan de mogelijkheid dat er verschillende
-# units of measurement worden gebruikt in de verschillende assen. De vraag is dan of we te maken
-# hebben met verschillende soorten metrische ruimtes, of dat we in één metrische ruimte blijven.
-# We willen daarbij de units of measurement correct representeren in berekening en tekening.
-# Deze vraag treedt op bij verschillende parametrische oppervlakken. Als we bijvoorbeeld een
-# paraboloide unit correct willen krijgen, dan moeten we de z-as een kwadratische unit geven
-# ten opzichte van de lineaire units van x- en y-as.
-# Vragen
-# 1. Is dit dan een andere metrische ruimte dan een ruimte waarin x-, y- en z-as
-# dezelfde unit hebben?
-# 2. Kunnen we oppervlakken met verschillende units in 1 figuur tekenen?
-# 3. Kunnen we de doorsnijdingen van oppervlakken met verschillende units berekenen?
-# 4. Wat gebeurt er bij isometrische transformaties van oppervlakken waarin verschillende
-# units voor de assen worden gebruikt? Zowel tekenen als berekenen.
-# 
-# Het vertrekpunt zijn de niet-gedimensioneerde definities van parametrische oppervlakken.
-# Vervolgens hebben we uitbreiding van lineaire algebra volgens Hart gevolgd om tot 
-# wel gedimensioneerde parametrische oppervlakken te komen.
-# 5. Wat mogen we hier verwachten? Zijn er wezenlijk andere manieren om tot gedimensioneerde
-# parametrische oppervlakken te komen?
-#
-# Als we verwachten dat het verschillende metrische ruimtes zijn dan is de vraag hoe je
-# de doorsnijding van een zadel en een plat vlak kunt berekenen en tekenen. En hoe je een
-# isometrische transformatie kunt berekenen en tekenen. Wat is uberhaupt de betekenis van
-# een bijvoorbeeld een rotatie in een niet uniforme ruimte?
-# Als het dezelfde ruimte moet zijn, betekent dit dan dat we alleen met dimensieloze ruimtes
-# kunnen werken?
-#
-# Als experimenten gaan we
-# A. een doorsnijding van een zadel en een plat vlak tekenen en berekenen.
-# B. een rotatie van een zadel tekenen en berekenen.
-#
-
-#
-# Bevinding: pacioli vindt een oplossing waarin de dimensieloze parameters van de
-# geparametriseerde formules voor zadel en plat vlak wel gedimensioneerd zijn.
-# Type inference op Doorsnijding_test levert het volgende type op:
-# Doorsnijding_test :: for_type d: for_unit a, b, c: (a, b, c, c/a, c/b, d, c/a^2, c/b^2) -> Boole
-# Is dit een wenselijke oplossing?
-# Het delen door de parameters a en b lijkt een dubieuze oplossing; mag je voor een
-# schalingsfactor zoals a en b een dimensieloze waarde verwachten?
-# 
-# @@@TODO Rotatie / isometrie nog uitwerken.
-# 
-define Doorsnijding_test(u,v,a,b,c,d,e,f) = 
-    1*a + b*u + c*v = e*u^2 + f*v^2;
-
-# 2026-01-10
-# Kunnen we praktische voorbeelden vinden waarin parameters a en b een rol spelen?
-# - een Minkowski ruimte met verschillende units per as?
-# - een schotelantenne die een paraboloide is?
-# - een reflecterende parabolische spiegel?
-# - een parabolische microfoon?
-# - een parabolische zonnecollector?
-# - een parabolische satellietschotel?
-#
-# Een tweede aanknopingspunt zijn de isometrieen. Kunnen we onze eerdere constatering
-# dat Euclidische ruimtes alleen zinnig zijn met commensurate units goed formuleren en
-# onderbouwen? Bij Curiosity dat we geen metriek konden maken waar een zinnige afstandsmaat
-# met Euro's uit kwam.
-# Bij reflecties en rotaties hebben we ook al geconstateerd dat verschillende units niet werken.
-# Het hoogst haalbare lijken dimensies in commensurate units zoals meters en kilometers te zijn
-# Wat kunnen we in Gauss teksten hierover vinden? Wat kunnen we vanuit de wiskunde theorie
-# beredeneren?
-#
-# Plan van aanpak:
-# - twee voorbeelden van parabolische surfaces?
-#    Zie https://en.wikipedia.org/wiki/Parabolic_reflector
-#    ZIe ook parabolic leaf spring
-# - een derde machts surface erbij maken?
-# - wat zegt Hart over dit onderwerp?
-# - wat zeggen de parallelle ruimtes van Hart over dit onderwerp?
-# - wat zeggen de hoofdstukken van Roman hierover? En andere moderne literatuur over meetkunde?
-# - we gaan mathjax gebruiken
-#
-# ------------------------------------------------------------------------------
-# The scenes
-# ------------------------------------------------------------------------------
-
-define paraboloid_scene_squared(a, n, m, d, grid, surface, wireframe, parts, total, normals) =
-    let 
-        f(u, v) =
-            make_zsquared(u*cos(v), u*sin(v), a * u^2),
-            
-        range = 
-            make_range(
-                0*|metre|, 5*|metre|,
-                0*|radian|, 2*pi*|radian|),
-
-        options =
-            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
-    in
-        build_example_scene(f, range, options)
-    end;
 
 # ------------------------------------------------------------------------------
+# This file defines a scene of a parabolic microphone, based upon the parabolic reflector.
+# See https://en.wikipedia.org/wiki/Parabolic_reflector for more information.
+# ------------------------------------------------------------------------------
 
+
+# ------------------------------------------------------------------------------
+# The formula used for the surface ( z = \frac{d}{r^2} (x^2 + y^2) ) (where ( r ) is the radius and ( d ) is the depth) is derived from the
+# standard equation of a paraboloid of revolution: ( z = \frac{x^2 + y^2}{4f} ).
+# ------------------------------------------------------------------------------
+declare microphone_surface :: for_unit a: (a, a) -> (a, radian) -> a*Geom3!;
 define microphone_surface(radius, depth) =
     let
         a = depth / (radius^2)
@@ -123,11 +30,21 @@ define microphone_surface(radius, depth) =
             vector3d(u*cos(v), u*sin(v), a * u^2)
     end;
 
-# 
-# The formula used for the focal point ( f = \frac{r^2}{4d} ) (where ( r ) is the radius and ( d ) is the depth) is derived from the standard equation of a paraboloid of revolution: ( z = \frac{x^2 + y^2}{4f} ).
-# At the rim where ( x^2 + y^2 = r^2 ) and ( z = d ), substituting gives ( d = \frac{r^2}{4f} ), which rearranges to ( f = \frac{r^2}{4d} ).
-# For reference, this is consistent with the geometry of parabolic reflectors, as described in sources like Wikipedia: Parabolic Reflector (noting the focal length formula for a paraboloid). The file already references this page in its comments.
+# ------------------------------------------------------------------------------
+# The formula used for the focal point ( f = \frac{r^2}{4d} ) (where ( r ) is the radius and ( d )
+# is the depth) is derived from the standard equation of a paraboloid of revolution: ( z = \frac{x^2 + y^2}{4f} ).
+# At the rim where ( x^2 + y^2 = r^2 ) and ( z = d ),
+# substituting gives ( d = \frac{r^2}{4f} ), which rearranges to ( f = \frac{r^2}{4d} ).
+# ------------------------------------------------------------------------------
+declare focal_point :: for_unit a: (a, a) -> a;
 define focal_point(radius, depth) = radius^2 / (4 * depth);
+
+
+# ------------------------------------------------------------------------------
+# The scene
+# ------------------------------------------------------------------------------
+declare paraboloid_scene :: for_type a, b: (centi:metre, centi:metre, centi:metre, radian, centi:metre, radian, 1, 1, 1, Boole, Boole, Boole, Boole, Boole, Boole) ->
+    Scene(centi:metre, Geom3!);
 
 define paraboloid_scene(radius, depth, x1, y1, x2, y2, n, m, d, grid, surface, wireframe, parts, total, normals) =
     let            
@@ -137,11 +54,26 @@ define paraboloid_scene(radius, depth, x1, y1, x2, y2, n, m, d, grid, surface, w
                 0*|radian|, 2*pi*|radian|),
 
         options =
-            tuple(n, m, d, grid, surface, wireframe, parts, total, normals)
-    in
-        build_example_scene(microphone_surface(radius, depth), range, options)
+            tuple(n, m, d, grid, surface, wireframe, parts, total, normals),
+        scene = build_example_scene(microphone_surface(radius, depth), range, options),
+        z1 = microphone_surface(radius, depth)(x1, y1),
+        z2 = microphone_surface(radius, depth)(x2, y2)
+    in 
+        add_lines(radius, depth, depth, z1, z2, scene)
     end;
 
+declare add_lines :: for_unit a: (a, a, a, a*Geom3!, a*Geom3!, Scene(a, Geom3!)) -> Scene(a, Geom3!);
+
+define add_lines(radius, depth, length, z1, z2  , scene) = 
+    let
+        f = focal_point(radius, depth),
+        line_1 = make_line(f '.*' vector3d(0, 0, 1), z1, PATH_COLOR),
+        line_2 = make_line(z1, z1 + length '.*' vector3d(0, 0, 1), PATH_COLOR),
+        line_3 = make_line(f '.*' vector3d(0, 0, 1), z2, PATH2_COLOR),
+        line_4 = make_line(z2, z2 + length '.*' vector3d(0, 0, 1), PATH2_COLOR)        
+    in
+        add_paths([line_1, line_2, line_3, line_4], scene)
+    end;
 
 # ------------------------------------------------------------------------------
 # Computing the scene
@@ -196,18 +128,3 @@ declare make_center_spot_light ::
 define make_center_spot_light(position, intensity) =
     make_spotlight(position, 0 '.*' position, make_color("white"), intensity);
 
-# ------------------------------------------------------------------------------
-# Unit Geom3!zsquared
-# ------------------------------------------------------------------------------
-
-defunit Geom3!zsquared = {
-    x: metre,
-    y: metre,
-    z: metre^2
-};
-
-declare make_zsquared ::
-    for_unit a, b, c: (metre, metre, metre^2) -> Geom3!zsquared;
-
-define make_zsquared(a, b, c) = 
-    vector3d(magnitude(a), magnitude(b), magnitude(c)) * |Geom3!zsquared|;

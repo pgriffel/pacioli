@@ -7,12 +7,12 @@
 
     <title>Paraboloid microphone scene</title>
 
-    <script type="text/javascript" src="../../js/pacioli-0.5.1.bundle.js"></script>
+    <script type="text/javascript" src="../../js/pacioli.bundle.js"></script>
     <link rel="stylesheet" href="../scene.css">
 
     <!-- Include each compiled example script here and add the examples to the list below -->
     <script type="text/javascript" src="./microphone.js"></script>
-<script type="text/x-mathjax-config">
+    <script type="text/x-mathjax-config">
   MathJax.Hub.Config({
     TeX: {
       equationNumbers: { autoNumber: "all" },
@@ -25,7 +25,8 @@
     }
   });
 </script>
-<script src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/mathjax/MathJax@legacy-v2-develop/unpacked/MathJax.js?config=TeX-AMS_CHTML"></script>
 
 </head>
 
@@ -34,21 +35,25 @@
 
     <h1>Paraboloid microphone scene</h1>
     <p>
-        Plot of a paraboloid microphone scene based upon the parabolic reflector.
-
+        Plot of a paraboloid microphone scene based upon the parabolic reflector,
+        see <a
+            href="https://en.wikipedia.org/wiki/Parabolic_reflector">https://en.wikipedia.org/wiki/Parabolic_reflector</a>
+        for more information.
+    </p>
     <p>
-    \( \mathbb{U} = 1 \)
-    \( \textbf{A}_{ij} \)
-
-    Given some bilinear form \(f \) the norm of a vector \(v\) is \(\sqrt{(f(v,v))}\)
-    Een metrische ruimte is een paar \( ( \mathbb{U}, d ) \) waarbij \( \mathbb{U} \) een verzameling is en \( d \) een metriek op \( \mathbb{U} \).
- <dl>
-  <dt>Definition norm</dt>
-  <dd>Given some bilinear form \(f \) the norm of a vector \(v\) is \(\sqrt{(f(v,v))}\)</dd>
-  <dt>Milk</dt>
-  <dd>White cold drink</dd>
-</dl> 
-  <dd>Given some bilinear form \(f \) the norm of a vector \(v\) is \(\sqrt{(f(v,v))}\)</dd>
+        The microphone paraboloid is defined as a surface of revolution of a parabola.
+        The parabola is defined by its radius and depth.
+        The focal point of the parabola is the point at which sound waves are focused,
+        and is given by the formula $f = \frac{r^2}{4d}$ where $r$ is the radius and $d$ is the depth of the parabola.
+    </p>
+    <p>
+        Using polar coordinates (x1, y1) and (x2, y2) we can define the paths of two sound waves; both paths start as a
+        line parallel to the z-axis
+        to the points (x1, y1) and (x2, y2) respectively on the surface of the paraboloid, and then continue as a line
+        from those points to the focal point.
+        The reflection is illustrated by showing the reflecting lines in the same colour.
+        The focal point is shown in the scene as the point at which the two paths intersect.
+    </p>
 
     <div class="example">
         <pacioli-scene width="900" height="600" id="paraboloid_scene" definition="microphone:paraboloid_scene"
@@ -56,9 +61,9 @@
             <parameter label="radius" unit="centi:metre">10</parameter>
             <parameter label="depth" unit="centi:metre">5</parameter>
             <parameter label="x1" unit="centi:metre">1</parameter>
-            <parameter label="y1" unit="centi:metre">2</parameter>
+            <parameter label="y1" unit="radian">2</parameter>
             <parameter label="x2" unit="centi:metre">2</parameter>
-            <parameter label="y2" unit="centi:metre">1</parameter>
+            <parameter label="y2" unit="radian">1</parameter>
 
             <parameter label="n" unit="1">30</parameter>
             <parameter label="m" unit="1">1</parameter>

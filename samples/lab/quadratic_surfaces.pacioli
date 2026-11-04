@@ -1,5 +1,6 @@
 import geometry;
 import graphics;
+import graphics/parametric_plots;
 import metrics;
 
 define NORMAL_COLOR = make_color("green");
