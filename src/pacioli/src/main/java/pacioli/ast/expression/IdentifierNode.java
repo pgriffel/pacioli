@@ -32,6 +32,8 @@ import pacioli.symboltable.info.ValueInfo;
 
 public class IdentifierNode extends AbstractNode implements ExpressionNode {
 
+    private static int counter = 0;
+
     public enum Kind {
         VALUE, TYPE
     };
@@ -73,6 +75,12 @@ public class IdentifierNode extends AbstractNode implements ExpressionNode {
         IdentifierNode node = new IdentifierNode(this.name, kind, this.location());
         node.info = this.info;
         return node;
+    }
+
+    // move all freshUnderscore code from parser etc. to desugar and use this
+    // function or some variant. See tuplegenerator as example.
+    public IdentifierNode freshIfUnderscore() {
+        return this.name.equals("_") ? new IdentifierNode("_" + counter++, kind, this.location()) : this;
     }
 
     public Optional<Kind> kind() {

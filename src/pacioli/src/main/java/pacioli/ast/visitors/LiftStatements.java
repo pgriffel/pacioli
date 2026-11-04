@@ -84,7 +84,7 @@ public class LiftStatements extends IdentityTransformation {
         // Pacioli.logln("RESOLVING IN LIFTS:\n%s", rec.pretty());
 
         // TODO:
-        rec.resolve(this.file, this.environment);
+        rec.resolve(this.environment);
 
         // // Determine the used local ids
         // Set<SymbolInfo> uses = new HashSet<SymbolInfo>();
@@ -130,7 +130,6 @@ public class LiftStatements extends IdentityTransformation {
         try {
             ValueInfo info = ValueInfo.builder()
                     .name(vd.name())
-                    .file(this.file)
                     .isGlobal(true)
                     .isMonomorphic(false)
                     .location(nodeLocation)

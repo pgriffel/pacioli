@@ -77,7 +77,7 @@ public class LocateReferencesTool {
 
                 JsonObject s = new JsonObject();
 
-                s.addProperty("file", loc.file().get().getCanonicalFile().toString());
+                s.addProperty("file", loc.fsFile().get().getCanonicalFile().toString());
                 s.addProperty("startLine", loc.fromLine);
                 s.addProperty("startColumn", loc.fromColumn);
                 s.addProperty("kind", "value");
@@ -92,7 +92,7 @@ public class LocateReferencesTool {
 
                 JsonObject s = new JsonObject();
 
-                s.addProperty("file", loc.file().get().getCanonicalFile().toString());
+                s.addProperty("file", loc.fsFile().get().getCanonicalFile().toString());
                 s.addProperty("startLine", loc.fromLine);
                 s.addProperty("startColumn", loc.fromColumn);
                 s.addProperty("kind", "type");

@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import pacioli.ast.IdentityVisitor;
+import pacioli.ast.DefaultVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.definition.Toplevel;
 import pacioli.ast.expression.ApplicationNode;
@@ -84,7 +84,7 @@ import pacioli.types.type.matrix.MatrixType;
 import uom.Fraction;
 import uom.Unit;
 
-public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
+public class MVMGenerator extends DefaultVisitor implements CodeGenerator {
 
     // Members
     CompilationSettings settings;
@@ -136,7 +136,7 @@ public class MVMGenerator extends IdentityVisitor implements CodeGenerator {
     @Override
     public void visit(Toplevel node) {
         out.print("print ");
-        node.body.accept(this);
+        node.body.lower().accept(this);
         out.print(";\n");
         out.newline();
     }

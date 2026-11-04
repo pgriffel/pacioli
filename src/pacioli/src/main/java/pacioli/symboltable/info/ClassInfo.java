@@ -86,7 +86,6 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
         return ParametricInfo.builder()
                 .name(this.dictionaryName())
-                .file(this.generalInfo().file())
                 .isGlobal(true)
                 .location(defLocation)
                 .definition(new TypeDefinition(
@@ -104,7 +103,6 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
         // A builder for the ValueInfo we will return
         ValueInfo.Builder builder = ValueInfo.builder()
                 .name(this.constructorName())
-                .file(this.generalInfo().file())
                 .isGlobal(true)
                 .isMonomorphic(false)
                 .location(defLocation)
@@ -154,7 +152,6 @@ public final class ClassInfo extends AbstractInfo implements TypeInfo {
 
                 ValueInfo.Builder builder = ValueInfo.builder()
                         .name(member.id.name())
-                        .file(this.generalInfo().file())
                         .isGlobal(true)
                         .isMonomorphic(false)
                         .location(this.definition.location())

@@ -406,6 +406,22 @@ public class Primitives {
             }
         });
 
+        store.put("_complex_complex_complex_singular_value_list",
+                new Primitive("_complex_complex_complex_singular_value_list") {
+                    public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                        PacioliTuple complexMatrix = (PacioliTuple) params.get(0);
+                        List<PacioliValue> components = complexMatrix.items();
+                        if (components.size() != 2 || !(components.get(0) instanceof Matrix)
+                                || !(components.get(1) instanceof Matrix)) {
+                            throw new MVMException(
+                                    "Expected a complex matrix represented by real and imaginary matrices");
+                        }
+                        Matrix real = (Matrix) components.get(0);
+                        Matrix imaginary = (Matrix) components.get(1);
+                        return real.svdComplex(imaginary);
+                    }
+                });
+
         storePrimitive(store, new Primitive("matrix_qr_decomposition") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);

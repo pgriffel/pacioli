@@ -26,7 +26,6 @@ import java.util.Optional;
 
 import pacioli.ast.definition.UnitDefinition;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
 public final class ScalarBaseInfo extends UnitInfo {
@@ -34,9 +33,8 @@ public final class ScalarBaseInfo extends UnitInfo {
     private final String symbol;
     private final UnitDefinition definition;
 
-    public ScalarBaseInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location,
-            String symbol) {
-        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
+    public ScalarBaseInfo(String name, boolean isGlobal, boolean isPublic, Location location, String symbol) {
+        super(new GeneralInfo(name, isGlobal, isPublic, location));
         this.symbol = symbol;
         this.definition = null;
     }

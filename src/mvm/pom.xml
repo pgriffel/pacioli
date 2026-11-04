@@ -33,6 +33,11 @@
 			<artifactId>commons-math3</artifactId>
 			<version>3.6.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.ojalgo</groupId>
+			<artifactId>ojalgo</artifactId>
+			<version>57.3.1</version>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/de.jflex/cup_runtime -->
 		<dependency>
 			<groupId>de.jflex</groupId>

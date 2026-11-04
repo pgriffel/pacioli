@@ -101,6 +101,13 @@ public class PacioliFile implements Printable {
         return get(new File(file), version);
     }
 
+    /**
+     * Used in tests
+     */
+    public static PacioliFile dummy() {
+        return new PacioliFile(new File("dummy.pacioli"), "", "", 0, false, false);
+    };
+
     public String moduleName() {
         return moduleName;
     }

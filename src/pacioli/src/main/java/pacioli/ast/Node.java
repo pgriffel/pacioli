@@ -36,6 +36,7 @@ import pacioli.ast.visitors.HideIdentifiersVisitor;
 import pacioli.ast.visitors.JSGenerator;
 import pacioli.ast.visitors.LeanGenerator;
 import pacioli.ast.visitors.LiftStatements;
+import pacioli.ast.visitors.LoweringVisitor;
 import pacioli.ast.visitors.MVMGenerator;
 import pacioli.ast.visitors.MatlabGenerator;
 import pacioli.ast.visitors.PrintVisitor;
@@ -87,6 +88,15 @@ public interface Node extends Printable {
         return new DesugarVisitor().nodeAccept(this);
     }
 
+    /**
+     * Desugars a node further by calling the LoweringVisitor.
+     * 
+     * @return A copy of node with all remaining syntactice sugar replaced
+     */
+    default public Node lower() {
+        return new LoweringVisitor().nodeAccept(this);
+    }
+
     default public Node hideIdentifiers() {
         return new HideIdentifiersVisitor().nodeAccept(this);
     }
@@ -106,8 +116,8 @@ public interface Node extends Printable {
      * @param pacioliTable A table with the available identifiers to match each
      *                     identifiers againts
      */
-    default public void resolve(PacioliFile file, PacioliTable environment) {
-        accept(new ResolveVisitor(file, environment));
+    default public void resolve(PacioliTable environment) {
+        accept(new ResolveVisitor(environment));
     }
 
     /**

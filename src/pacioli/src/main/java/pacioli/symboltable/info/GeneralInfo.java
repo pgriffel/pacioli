@@ -32,27 +32,32 @@ import pacioli.compiler.PacioliFile;
 public class GeneralInfo {
 
     private final String name;
-    private final PacioliFile file;
     private final Location location;
     private final boolean isGlobal;
     private final boolean isPublic;
     private final Documentation documentation;
 
-    public GeneralInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location,
+    public GeneralInfo(
+            String name,
+            boolean isGlobal,
+            boolean isPublic,
+            Location location,
             Documentation documentation) {
         assert (location != null);
         this.name = name;
-        this.file = file;
         this.isGlobal = isGlobal;
         this.isPublic = isPublic;
         this.location = location;
         this.documentation = documentation;
     }
 
-    public GeneralInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location) {
+    public GeneralInfo(
+            String name,
+            boolean isGlobal,
+            boolean isPublic,
+            Location location) {
         assert (location != null);
         this.name = name;
-        this.file = file;
         this.isGlobal = isGlobal;
         this.isPublic = isPublic;
         this.location = location;
@@ -64,7 +69,7 @@ public class GeneralInfo {
     }
 
     public PacioliFile file() {
-        return file;
+        return this.location.file();
     }
 
     public Location location() {
@@ -72,11 +77,11 @@ public class GeneralInfo {
     }
 
     public File fsFile() {
-        return file.fsFile();
+        return this.location.file().fsFile();
     }
 
     public String module() {
-        return file.module();
+        return this.location.file().module();
     }
 
     public boolean isGlobal() {
@@ -92,7 +97,7 @@ public class GeneralInfo {
     }
 
     public GeneralInfo withDocumentation(Documentation documentation) {
-        return new GeneralInfo(this.name, this.file, this.isGlobal, this.isPublic, this.location, documentation);
+        return new GeneralInfo(this.name, this.isGlobal, this.isPublic, this.location, documentation);
     }
 
     public Optional<Documentation> documentation() {

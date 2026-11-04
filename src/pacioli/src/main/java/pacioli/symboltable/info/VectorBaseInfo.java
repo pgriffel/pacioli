@@ -30,7 +30,6 @@ import java.util.Optional;
 import pacioli.ast.definition.UnitVectorDefinition;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.type.matrix.ScalarBase;
 import uom.DimensionedNumber;
@@ -41,8 +40,8 @@ public final class VectorBaseInfo extends UnitInfo {
     private final List<UnitDecl> items;
     private final Map<String, UnitDecl> units;
 
-    public VectorBaseInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location) {
-        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
+    public VectorBaseInfo(String name, boolean isGlobal, boolean isPublic, Location location) {
+        super(new GeneralInfo(name, isGlobal, isPublic, location));
         assert (name.contains("!"));
         this.definition = null;
         this.items = null;

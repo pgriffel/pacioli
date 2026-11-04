@@ -27,32 +27,56 @@ import java.util.List;
 
 import pacioli.ast.definition.Toplevel;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.info.TypeInfo;
 import pacioli.symboltable.info.ValueInfo;
 
+/**
+ * A PacioliTable stores info for all visible symbols in a file. It has a
+ * symbol table for the value namespace and a table for the type namespace.
+ * In addition it stores the file's toplevels.
+ * 
+ * The visible infos are the locally defined symbols and the included and
+ * imported ones. The Bundle class creates a PacioliTable by iterating the
+ * project graph in the proper order.
+ * 
+ */
 public class PacioliTable {
+
+    private final PacioliFile file;
 
     private final SymbolTable<ValueInfo> values;
     private final SymbolTable<TypeInfo> types;
     private final List<Toplevel> toplevels;
 
     private PacioliTable(
+            PacioliFile file,
             SymbolTable<ValueInfo> values,
             SymbolTable<TypeInfo> types,
             List<Toplevel> toplevels) {
         this.values = values;
         this.types = types;
         this.toplevels = toplevels;
+        this.file = file;
     }
 
     public static PacioliTable initial(
+            PacioliFile file,
             SymbolTable<ValueInfo> values,
             SymbolTable<TypeInfo> types) {
-        return new PacioliTable(values, types, new ArrayList<>());
+        return new PacioliTable(file, values, types, new ArrayList<>());
     }
 
-    public static PacioliTable empty() {
-        return new PacioliTable(new SymbolTable<ValueInfo>(), new SymbolTable<TypeInfo>(), new ArrayList<>());
+    public static PacioliTable empty(PacioliFile file) {
+        return new PacioliTable(
+                file,
+                new SymbolTable<ValueInfo>(),
+                new SymbolTable<TypeInfo>(),
+                new ArrayList<>());
+    }
+
+    public PacioliFile file() {
+        return this.file;
     }
 
     public SymbolTable<ValueInfo> values() {
@@ -85,7 +109,7 @@ public class PacioliTable {
     }
 
     public PacioliTable popParent() {
-        PacioliTable top = new PacioliTable(this.values, this.types, this.toplevels);
+        PacioliTable top = new PacioliTable(this.file, this.values, this.types, this.toplevels);
         this.values.setParent(null);
         this.types.setParent(null);
         return top;

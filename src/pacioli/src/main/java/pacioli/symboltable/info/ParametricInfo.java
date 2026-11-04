@@ -26,15 +26,14 @@ import java.util.Optional;
 
 import pacioli.ast.definition.TypeDefinition;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 
 public final class ParametricInfo extends AbstractInfo implements TypeInfo {
 
     private final TypeDefinition definition;
 
-    public ParametricInfo(String name, PacioliFile file, boolean isGlobal, boolean isPublic, Location location) {
-        super(new GeneralInfo(name, file, isGlobal, isPublic, location));
+    public ParametricInfo(String name, boolean isGlobal, boolean isPublic, Location location) {
+        super(new GeneralInfo(name, isGlobal, isPublic, location));
         this.definition = null;
     }
 

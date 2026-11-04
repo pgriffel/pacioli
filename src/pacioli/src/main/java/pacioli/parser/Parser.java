@@ -19,6 +19,7 @@ import java_cup.runtime.ComplexSymbolFactory.ComplexSymbol;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java_cup.runtime.Symbol;
 import pacioli.compiler.PacioliException;
+import pacioli.compiler.PacioliFile;
 import pacioli.ast.*;
 import pacioli.ast.definition.*;
 import pacioli.ast.definition.UnitVectorDefinition.UnitDecl;
@@ -1932,7 +1933,7 @@ public class Parser extends java_cup.runtime.lr_parser {
 
 
     /* The file being parsed. Only needed for location info. */
-    File file;                   
+    PacioliFile file;     
 
     /* Buffer to get syntax error ino from message and location info
        from CUP's syntax_error to CUP's report_fatal_error
@@ -1941,19 +1942,21 @@ public class Parser extends java_cup.runtime.lr_parser {
     pacioli.compiler.Location errorLocation;
 
     /* Public interface */
-    public Parser(Lexer lex, ComplexSymbolFactory sf, File file) {
-        super(lex,sf);
+    public Parser(Lexer lex, ComplexSymbolFactory sf, PacioliFile file) {
+        super(lex, sf);
         this.file = file;
     }
    
-    public static ProgramNode parseFile(File file, Charset charset) throws Exception {
+    public static ProgramNode parseFile(PacioliFile pacioliFile, Charset charset) throws Exception {
       ProgramNode node;
+
+      File file = pacioliFile.fsFile();
 
       try (var fileReader = new FileReader(file, charset);
           var reader = new BufferedReader(fileReader)) {
         var csf = new ComplexSymbolFactory();
-        var lexer = new Lexer(reader, csf, file, null);
-        var parser = new Parser(lexer, csf, file);
+        var lexer = new Lexer(reader, csf, pacioliFile, null);
+        var parser = new Parser(lexer, csf, pacioliFile);
         node = (ProgramNode) parser.parse().value;
       }
 
@@ -4828,12 +4831,12 @@ class CUP$Parser$actions {
 		ExpressionNode g = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-2)).value;
 		Location fxleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xleft;
 		Location fxright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.elementAt(CUP$Parser$top-1)).xright;
-		ComprehensionNode.Kind f = (ComprehensionNode.Kind)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
+		ComprehensionNode.GeneratorKind f = (ComprehensionNode.GeneratorKind)((java_cup.runtime.Symbol) CUP$Parser$stack.elementAt(CUP$Parser$top-1)).value;
 		Location exleft = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xleft;
 		Location exright = ((java_cup.runtime.ComplexSymbolFactory.ComplexSymbol)CUP$Parser$stack.peek()).xright;
 		ExpressionNode e = (ExpressionNode)((java_cup.runtime.Symbol) CUP$Parser$stack.peek()).value;
 		  if (g instanceof IdListNode) {
-                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(((IdListNode)g).ids, e, makeLoc(gxleft, exright));
+                                                           RESULT = new ComprehensionNode.TupleGeneratorClause(f, ((IdListNode)g).ids, e, makeLoc(gxleft, exright));
                                                         } else if (g instanceof IdentifierNode) {
                                                             RESULT = new ComprehensionNode.GeneratorClause(f, (IdentifierNode) g, e,  makeLoc(gxleft, exright));
                                                         } else {
@@ -4871,8 +4874,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 176: // from ::= FROM 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.LIST; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.LIST; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4880,8 +4883,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 177: // from ::= FROM_SET 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.SET; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.SET; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4889,8 +4892,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 178: // from ::= FROM_ARRAY 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.ARRAY; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.ARRAY; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;
@@ -4898,8 +4901,8 @@ class CUP$Parser$actions {
           /*. . . . . . . . . . . . . . . . . . . .*/
           case 179: // from ::= FROM_LIST 
             {
-              ComprehensionNode.Kind RESULT =null;
-		 RESULT = ComprehensionNode.Kind.LIST; 
+              ComprehensionNode.GeneratorKind RESULT =null;
+		 RESULT = ComprehensionNode.GeneratorKind.LIST; 
               CUP$Parser$result = parser.getSymbolFactory().newSymbol("from",65, ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), ((java_cup.runtime.Symbol)CUP$Parser$stack.peek()), RESULT);
             }
           return CUP$Parser$result;

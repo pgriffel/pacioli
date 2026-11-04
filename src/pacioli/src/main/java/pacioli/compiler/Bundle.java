@@ -108,12 +108,11 @@ public class Bundle {
         return fromProject(Project.fromFile(file, libs));
     }
 
-    // rename to fromProject
     static public Bundle fromProject(Project project) throws Exception {
 
         Pacioli.trace("Loading module '%s'", project.file.moduleName());
 
-        Bundle bundle = new Bundle(project, PacioliTable.empty());
+        Bundle bundle = new Bundle(project, PacioliTable.empty(project.file));
 
         addPrimitiveTypesToEnv(bundle.environment, project.libs);
 
@@ -124,11 +123,12 @@ public class Bundle {
             }
 
             // Parse the file
-            Program program = Program.load(current).desugar();
+            Program program = Program.load(current).desugar(); // .lower();
 
             // Filter the bundle's total symbol tables for the directly used modules of the
             // program
             PacioliTable env = bundle.visibleInfos(
+                    current,
                     project.importedModules(current, program.ast()),
                     project.includedModules(current, program.ast()));
 
@@ -186,7 +186,7 @@ public class Bundle {
         for (String type : PRIMITIVE_TYPES) {
             // GeneralInfo info = new GeneralInfo(type, file, true, new Location());
             // environment.types.put(type, new ParametricInfo(info));
-            environment.types().put(type, new ParametricInfo(type, file, true, true, new Location(file.fsFile())));
+            environment.types().put(type, new ParametricInfo(type, true, true, new Location(file)));
         }
         // Makes generating docs crash. Uncomment when nmode experiment continues.
         // ValueInfo nmodeInfo = ValueInfo.builder()
@@ -216,8 +216,9 @@ public class Bundle {
         return modules;
     }
 
-    public PacioliTable visibleInfos(List<String> importedModules, List<String> includedModules) {
+    public PacioliTable visibleInfos(PacioliFile file, List<String> importedModules, List<String> includedModules) {
         return PacioliTable.initial(
+                file,
                 visibleValueInfos(importedModules, includedModules),
                 visibleTypeInfos(importedModules, includedModules));
     }
@@ -282,6 +283,43 @@ public class Bundle {
     }
 
     public void generateCode(PrintWriter writer, CompilationSettings settings) {
+        this.generatePrelude(writer, settings);
+        this.doGenerateCode(writer, settings, false, true);
+        this.doGenerateCode(writer, settings, true, false);
+    }
+
+    public void generateLocalCode(PrintWriter writer, CompilationSettings settings) {
+        this.doGenerateCode(writer, settings, true, false);
+    }
+
+    public void generateNonLocalCode(PrintWriter writer, CompilationSettings settings) {
+        this.doGenerateCode(writer, settings, false, true);
+    }
+
+    private void generatePrelude(PrintWriter writer, CompilationSettings settings) {
+        Target target = settings.target();
+
+        Printer printer = new Printer(writer);
+
+        // Write preludes if necessary
+        if (target.equals(Target.PYTHON)) {
+            PythonTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEAN)) {
+            LeanTranspiler.writePrelude(printer);
+        }
+
+        if (target.equals(Target.LEANER)) {
+            LeanTranspiler.writePreludeLeaner(printer);
+        }
+
+        if (target.equals(Target.LEANEST)) {
+            LeanTranspiler.writePreludeLeanest(printer);
+        }
+    }
+
+    private void doGenerateCode(PrintWriter writer, CompilationSettings settings, boolean locals, boolean nonLocals) {
 
         Pacioli.trace("Generating code for %s", this.project.file.module());
 
@@ -332,23 +370,6 @@ public class Bundle {
                 throw new RuntimeException("Unknown target");
         }
 
-        // Write preludes if necessary
-        if (target.equals(Target.PYTHON)) {
-            PythonTranspiler.writePrelude(printer);
-        }
-
-        if (target.equals(Target.LEAN)) {
-            LeanTranspiler.writePrelude(printer);
-        }
-
-        if (target.equals(Target.LEANER)) {
-            LeanTranspiler.writePreludeLeaner(printer);
-        }
-
-        if (target.equals(Target.LEANEST)) {
-            LeanTranspiler.writePreludeLeanest(printer);
-        }
-
         // Lists of infos we will compile below. Functions are always compiled first.
         List<ValueInfo> functionsToCompile = new ArrayList<>();
         List<Info> infosToCompile = new ArrayList<>();
@@ -365,6 +386,14 @@ public class Bundle {
                 UnitInfo unitInfo = (UnitInfo) info;
                 if (!unitInfo.isAlias()) {
                     infosToCompile.add(unitInfo);
+                }
+            }
+
+            // Added for Lean, but it is not really used. For now all
+            // user defined types are reduced to primitive types.
+            if (info instanceof ParametricInfo i) {
+                if (info.definition().isPresent()) {
+                    infosToCompile.add(i);
                 }
             }
         }
@@ -438,38 +467,22 @@ public class Bundle {
             }
         }
 
-        boolean functionsFirst = !(target.equals(Target.LEAN)
-                || target.equals(Target.LEANER)
-                || target.equals(Target.LEANEST));
+        // split is obsolete!?
+        List<Info> all = new ArrayList<>();
 
-        if (functionsFirst) {
-            // Generate code for the functions
-            for (ValueInfo info : orderedInfos(functionsToCompile)) {
+        all.addAll(functionsToCompile);
+        all.addAll(infosToCompile);
+
+        for (Info info : orderedInfos(all)) {
+            if (include(info, locals, nonLocals)) {
                 info.accept(transpiler);
             }
-
-            // Generate code for the rest. This is done in the proper order
-            infosToCompile = orderedInfos(infosToCompile);
-            for (Info info : infosToCompile) {
-                info.accept(transpiler);
-            }
-
-        } else {
-            List<Info> all = new ArrayList<>();
-
-            all.addAll(functionsToCompile);
-            all.addAll(infosToCompile);
-
-            for (Info info : orderedInfos(all)) {
-                info.accept(transpiler);
-            }
-
         }
 
         // Generate code for the toplevels
         for (Toplevel def : environment.toplevels()) {
-            assert (def.location().file().isPresent());
-            if (def.location().file().get().equals(this.project.file.fsFile())) {
+            assert (def.location().fsFile().isPresent());
+            if (locals && def.location().fsFile().get().equals(this.project.file.fsFile())) {
                 if (settings.target() == Target.MVM ||
                         settings.target() == Target.MATLAB) {
                     printer.newline();
@@ -483,9 +496,26 @@ public class Bundle {
                     printer.write(")");
                     printer.newline();
                 }
+                if (settings.target() == Target.LEAN
+                        || settings.target() == Target.LEANER
+                        || settings.target() == Target.LEANEST) {
+                    printer.newline();
+                    printer.write("#eval ");
+                    if (settings.target() == Target.LEAN) {
+                        def.body.lower().accept(generator);
+                    } else {
+                        def.body.accept(generator);
+                    }
+                    printer.newline();
+                }
             }
         }
 
+    }
+
+    private boolean include(Info info, boolean locals, boolean nonLocals) {
+        boolean isFromFile = info.location().fsFile().get().equals(this.project.file.fsFile());
+        return isFromFile ? locals : nonLocals;
     }
 
     public void printCode(boolean rewriteTypes, boolean includePrivate, boolean showDocs) throws PacioliException {
@@ -532,7 +562,7 @@ public class Bundle {
             }
 
             if (showBodies) {
-                Pacioli.println("\n%s\n", info.definition().map(x -> x.prettyTyped()).orElse("null"));
+                Pacioli.println("\n%s\n", info.definition().map(x -> x.lower().prettyTyped()).orElse("null"));
             }
         }
 
@@ -652,8 +682,8 @@ public class Bundle {
         for (String name : environment.values().allNames()) {
             ValueInfo info = environment.values().lookup(name);
             if (info.isPublic()
-                    && info.location().file().isPresent()
-                    && includes.contains(info.location().file().get())) {
+                    && info.location().fsFile().isPresent()
+                    && includes.contains(info.location().fsFile().get())) {
                 PrimitivesDocumentation.addInfo(info, generator);
 
             }
@@ -661,7 +691,7 @@ public class Bundle {
 
         for (String name : environment.types().allNames()) {
             TypeInfo info = environment.types().lookup(name);
-            if (info.location().file().isPresent() && includes.contains(info.location().file().get())
+            if (info.location().fsFile().isPresent() && includes.contains(info.location().fsFile().get())
                     && info.definition().isPresent() && info.isPublic()) {
                 if (info instanceof ParametricInfo def) {
                     generator.addType(info.name(),

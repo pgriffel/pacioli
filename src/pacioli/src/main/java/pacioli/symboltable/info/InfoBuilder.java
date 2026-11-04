@@ -26,13 +26,10 @@ import java.util.Optional;
 
 import pacioli.ast.definition.Documentation;
 import pacioli.compiler.Location;
-import pacioli.compiler.PacioliFile;
 
 public interface InfoBuilder<S, T> {
 
     public S name(String name);
-
-    public S file(PacioliFile file);
 
     public S location(Location location);
 

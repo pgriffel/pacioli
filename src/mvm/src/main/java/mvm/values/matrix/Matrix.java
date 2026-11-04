@@ -45,6 +45,11 @@ import org.apache.commons.math3.linear.QRDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularValueDecomposition;
 import org.apache.commons.math3.linear.EigenDecomposition;
+import org.ojalgo.array.Array1D;
+import org.ojalgo.matrix.decomposition.SingularValue;
+import org.ojalgo.matrix.store.GenericStore;
+import org.ojalgo.matrix.store.MatrixStore;
+import org.ojalgo.scalar.ComplexNumber;
 
 // import pacioli.Pacioli;
 import uom.DimensionedNumber;
@@ -1184,6 +1189,69 @@ public class Matrix implements PacioliValue {
         }
 
         return new PacioliList(svs);
+    }
+
+    public PacioliList svdComplex(Matrix imaginary) throws MVMException {
+
+        int m = nrRows();
+        int n = nrColumns();
+        if (imaginary.nrRows() != m || imaginary.nrColumns() != n) {
+            throw new MVMException("Real and imaginary matrix dimensions must match");
+        }
+
+        GenericStore<ComplexNumber> values = GenericStore.C128.make(m, n);
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                values.set(i, j, ComplexNumber.of(numbers.getEntry(i, j), imaginary.numbers.getEntry(i, j)));
+            }
+        }
+
+        SingularValue<ComplexNumber> decomposition = SingularValue.C128.make(values);
+        if (!decomposition.decompose(values)) {
+            throw new MVMException("Complex singular value decomposition failed");
+        }
+
+        MatrixStore<ComplexNumber> vectorsU = decomposition.getU();
+        MatrixStore<ComplexNumber> vectorsV = decomposition.getV();
+        Array1D<Double> singularValues = decomposition.getSingularValues();
+        int p = Math.min(m, n);
+
+        List<PacioliValue> result = new ArrayList<PacioliValue>();
+        for (int k = 0; k < p; k++) {
+            Matrix singularValue = new Matrix(shape.factor());
+            singularValue.numbers.setEntry(0, 0, singularValues.doubleValue(k));
+
+            Matrix leftReal = new Matrix(shape.rowUnits());
+            Matrix leftImaginary = new Matrix(shape.rowUnits());
+            for (int i = 0; i < m; i++) {
+                ComplexNumber value = vectorsU.get(i, k);
+                leftReal.numbers.setEntry(i, 0, value.getReal());
+                leftImaginary.numbers.setEntry(i, 0, value.getImaginary());
+            }
+
+            Matrix rightReal = new Matrix(shape.columnUnits().reciprocal());
+            Matrix rightImaginary = new Matrix(shape.columnUnits().reciprocal());
+            for (int j = 0; j < n; j++) {
+                ComplexNumber value = vectorsV.get(j, k);
+                rightReal.numbers.setEntry(j, 0, value.getReal());
+                rightImaginary.numbers.setEntry(j, 0, value.getImaginary());
+            }
+
+            List<PacioliValue> left = new ArrayList<PacioliValue>();
+            left.add(leftReal);
+            left.add(leftImaginary);
+            List<PacioliValue> right = new ArrayList<PacioliValue>();
+            right.add(rightReal);
+            right.add(rightImaginary);
+
+            List<PacioliValue> item = new ArrayList<PacioliValue>();
+            item.add(singularValue);
+            item.add(new PacioliTuple(left));
+            item.add(new PacioliTuple(right));
+            result.add(new PacioliTuple(item));
+        }
+
+        return new PacioliList(result);
     }
 
     public PacioliTuple plu() throws MVMException {

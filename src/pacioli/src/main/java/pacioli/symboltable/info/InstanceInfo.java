@@ -32,7 +32,6 @@ import pacioli.ast.expression.ApplicationNode;
 import pacioli.ast.expression.ExpressionNode;
 import pacioli.ast.expression.IdentifierNode;
 import pacioli.ast.expression.LambdaNode;
-import pacioli.compiler.PacioliFile;
 import pacioli.symboltable.SymbolTableVisitor;
 import pacioli.types.ast.QuantNode;
 import pacioli.types.ast.TypePredicateNode;
@@ -46,9 +45,8 @@ public final class InstanceInfo extends AbstractInfo {
 
     public InstanceInfo(
             InstanceDefinition definition,
-            PacioliFile file,
             String uniqueSuffix) {
-        super(new GeneralInfo(definition.name() + uniqueSuffix, file, true, true, definition.location()));
+        super(new GeneralInfo(definition.name() + uniqueSuffix, true, true, definition.location()));
         this.definition = definition;
     }
 
@@ -72,7 +70,6 @@ public final class InstanceInfo extends AbstractInfo {
 
         return ValueInfo.builder()
                 .name(this.globalName())
-                .file(this.generalInfo().file())
                 .isGlobal(true)
                 .isMonomorphic(false)
                 .location(this.location())

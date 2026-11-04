@@ -28,6 +28,7 @@ import java.util.Set;
 import pacioli.compiler.PacioliException;
 import pacioli.types.ConstraintSet;
 import pacioli.types.Substitution;
+import pacioli.types.TypeContext;
 import pacioli.types.TypeVisitor;
 
 public class Schema implements TypeObject {
@@ -67,6 +68,10 @@ public class Schema implements TypeObject {
 
     public TypeObject type() {
         return type;
+    }
+
+    public TypeContext generateContext() {
+        return new TypeContext(this.variables());
     }
 
     @Override
