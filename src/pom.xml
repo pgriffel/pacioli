@@ -22,9 +22,11 @@
   <!-- The children we are aggregating -->
   <modules>
     <module>uom</module>
+    <module>mvm-api</module>
     <module>mvm</module>
     <module>pacioli</module>
     <module>vscode</module>
+    <module>bignum</module>
   </modules>
 
   <build>

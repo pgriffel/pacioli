@@ -10,6 +10,8 @@ test/**/*.lean
 /src/uom/target/
 /src/pacioli/target/
 /src/mvm/target/
+/src/mvm-api/target/
+/src/bignum/target/
 .vscode/**
 !.vscode/launch.json
 /src/pacioli-js/node_modules/
