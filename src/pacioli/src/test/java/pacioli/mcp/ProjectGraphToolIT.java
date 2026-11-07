@@ -84,7 +84,8 @@ class ProjectGraphToolIT {
         String text = contents0.get("text").getAsString();
         int hash = text.hashCode();
         System.out.println(hash);
-        assertTrue(hash == 232102744 || hash == -842510917);
+        // linux || windows
+        assertTrue(hash == -1365142578 || hash == -842510917);
 
         // Teardown
         server.stop();

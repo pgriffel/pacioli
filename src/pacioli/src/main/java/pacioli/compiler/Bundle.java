@@ -319,11 +319,16 @@ public class Bundle {
         }
 
         if (target.equals(Target.MVM)) {
-            for (String module : project.importedModules(null, null)) {
 
+            // Load the library jar file plugins. Check for all used libraries whether a jar
+            // file exists or not. If so, generate a 'require' instruction that loads that
+            // jar file.
+            for (PacioliFile module : project.dependencies()) {
+                if (module.jarFile().toFile().exists()) {
+                    writer.format("require %s \"v%s\";", module.moduleName(), module.version());
+                    writer.format("\n");
+                }
             }
-            writer.write("require bignum \"0.0.1\";");
-            writer.format("\n");
         }
 
     }

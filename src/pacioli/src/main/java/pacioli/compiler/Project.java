@@ -189,6 +189,11 @@ public class Project {
         return iter;
     }
 
+    List<PacioliFile> dependencies() {
+        return graph.vertexSet().stream()
+                .collect(Collectors.filtering(x -> x.isLibrary() && !x.isInclude(), Collectors.toList()));
+    }
+
     /**
      * Print the project graph. For debugging.
      */

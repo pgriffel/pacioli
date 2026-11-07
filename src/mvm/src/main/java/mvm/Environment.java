@@ -214,7 +214,7 @@ public class Environment {
     }
 
     private static String jarFileName(String library, String version) {
-        return library + "-" + version + ".jar";
+        return library + "_" + version + ".jar";
     }
 
     public static Optional<Path> findLibrary(String name, List<File> libs) {

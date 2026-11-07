@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -126,6 +127,10 @@ public class PacioliFile implements Printable {
 
     public File fsFile() {
         return fsFile;
+    }
+
+    public Path jarFile() {
+        return fsFile.toPath().resolveSibling(moduleName + "_v" + version + ".jar");
     }
 
     public Boolean isInclude() {
