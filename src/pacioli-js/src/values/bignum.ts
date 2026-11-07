@@ -20,9 +20,27 @@
  * SOFTWARE.
  */
 import BigNumber from "bignumber.js";
+import { CustomValue } from "../raw-values/raw-value";
 
-export class PacioliBigNum {
-  readonly kind = "bignum";
+export class PacioliBigNum implements CustomValue {
+  readonly kind = "custom";
+  readonly subkind = "bignum";
 
   constructor(public value: BigNumber) {}
+
+  compare(other: CustomValue): number {
+    if (other instanceof PacioliBigNum) {
+      return this.value.comparedTo(other.value) ?? NaN;
+    } else {
+      throw Error("oeps");
+    }
+  }
+
+  format(_: "e" | "f" | "d", decimals: number): string {
+    return this.value.toFormat(decimals);
+  }
+
+  stringify(): string {
+    throw new Error("Method not implemented.");
+  }
 }

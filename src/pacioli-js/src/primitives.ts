@@ -32,7 +32,6 @@ import {
 import { RawMap, tagSet } from "./raw-values/raw-value";
 import type {
   RawArray,
-  RawBigNum,
   RawBoole,
   RawCoordinates,
   RawFunction,
@@ -72,8 +71,6 @@ import {
   unaryNumbers,
 } from "./raw-values/raw-matrix";
 import { PacioliError } from "./pacioli-error";
-import { PacioliBigNum } from "./values/bignum";
-import { BigNumber } from "bignumber.js";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -228,8 +225,8 @@ export function _base_base_equal(x: RawValue, y: RawValue): RawBoole {
       },
       false,
     );
-  } else if (x.kind === "bignum" && y.kind === "bignum") {
-    return x.value.comparedTo(y.value) === 0;
+  } else if (x.kind === "custom" && y.kind === "custom") {
+    return x.compare(y) === 0;
   } else if (x.kind === "set" && y.kind === "set") {
     for (const itemX of x) {
       let inY = false;
@@ -1566,8 +1563,11 @@ export function _base_string_format(formatter: RawValue, ...args: RawValue[]) {
                   // }
                   out += stringifyRawValue(mat);
                 }
-              } else if (mat.kind === "bignum") {
-                const txt = mat.value.toFormat(nrDecs);
+                // } else if (mat.kind === "bignum") {
+                //   const txt = mat.value.toFormat(nrDecs);
+                //   out += size === null ? txt : txt.padStart(size, " ");
+              } else if (mat.kind === "custom") {
+                const txt = mat.format("f", nrDecs);
                 out += size === null ? txt : txt.padStart(size, " ");
               } else {
                 throw new Error(
@@ -1603,12 +1603,12 @@ export function _base_string_format(formatter: RawValue, ...args: RawValue[]) {
 
 export let NR_DECIMALS = 2;
 let PRECISION = 14;
-let BIGNUM_PRECISION = initializeBigNum(14);
+// let BIGNUM_PRECISION = initializeBigNum(14);
 
-function initializeBigNum(precision: number) {
-  BigNumber.config({ DECIMAL_PLACES: precision });
-  return precision;
-}
+// function initializeBigNum(precision: number) {
+//   BigNumber.config({ DECIMAL_PLACES: precision });
+//   return precision;
+// }
 
 export function _base_system__nr_decimals(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
@@ -1771,71 +1771,71 @@ export function _base_map_keys(map: RawMap): RawList {
   return map.keys();
 }
 
-export function _bignum_bignum_make_bignum(x: RawString): RawBigNum {
-  return new PacioliBigNum(new BigNumber(x));
-}
+// export function _bignum_bignum_make_bignum(x: RawString): RawBigNum {
+//   return new PacioliBigNum(new BigNumber(x));
+// }
 
-export function _bignum_bignum_bignum_add(
-  x: RawBigNum,
-  y: RawBigNum,
-): RawBigNum {
-  return new PacioliBigNum(new BigNumber(x.value.plus(y.value)));
-}
+// export function _bignum_bignum_bignum_add(
+//   x: RawBigNum,
+//   y: RawBigNum,
+// ): RawBigNum {
+//   return new PacioliBigNum(new BigNumber(x.value.plus(y.value)));
+// }
 
-export function _bignum_bignum_bignum_subtract(
-  x: RawBigNum,
-  y: RawBigNum,
-): RawBigNum {
-  return new PacioliBigNum(new BigNumber(x.value.minus(y.value)));
-}
+// export function _bignum_bignum_bignum_subtract(
+//   x: RawBigNum,
+//   y: RawBigNum,
+// ): RawBigNum {
+//   return new PacioliBigNum(new BigNumber(x.value.minus(y.value)));
+// }
 
-export function _bignum_bignum_bignum_multiply(
-  x: RawBigNum,
-  y: RawBigNum,
-): RawBigNum {
-  return new PacioliBigNum(new BigNumber(x.value.multipliedBy(y.value)));
-}
+// export function _bignum_bignum_bignum_multiply(
+//   x: RawBigNum,
+//   y: RawBigNum,
+// ): RawBigNum {
+//   return new PacioliBigNum(new BigNumber(x.value.multipliedBy(y.value)));
+// }
 
-export function _bignum_bignum_bignum_divide(
-  x: RawBigNum,
-  y: RawBigNum,
-): RawBigNum {
-  return new PacioliBigNum(new BigNumber(x.value.dividedBy(y.value)));
-}
+// export function _bignum_bignum_bignum_divide(
+//   x: RawBigNum,
+//   y: RawBigNum,
+// ): RawBigNum {
+//   return new PacioliBigNum(new BigNumber(x.value.dividedBy(y.value)));
+// }
 
-export function _bignum_bignum_bignum_sqrt(x: RawBigNum): RawBigNum {
-  return new PacioliBigNum(new BigNumber(x.value.sqrt()));
-}
+// export function _bignum_bignum_bignum_sqrt(x: RawBigNum): RawBigNum {
+//   return new PacioliBigNum(new BigNumber(x.value.sqrt()));
+// }
 
-export function _bignum_bignum_bignum_power(
-  x: RawBigNum,
-  p: RawMatrix,
-): RawBigNum {
-  // BigNumber.config({ DECIMAL_PLACES: getNumber(dp, 0, 0) });
-  return new PacioliBigNum(
-    new BigNumber(x.value.exponentiatedBy(getNumber(p, 0, 0))),
-  );
-}
+// export function _bignum_bignum_bignum_power(
+//   x: RawBigNum,
+//   p: RawMatrix,
+// ): RawBigNum {
+//   // BigNumber.config({ DECIMAL_PLACES: getNumber(dp, 0, 0) });
+//   return new PacioliBigNum(
+//     new BigNumber(x.value.exponentiatedBy(getNumber(p, 0, 0))),
+//   );
+// }
 
-export function _bignum_bignum_bignum_compare(
-  x: RawBigNum,
-  y: RawBigNum,
-): RawMatrix {
-  const comparison = x.value.comparedTo(y.value) as number;
-  return initialNumbers(1, 1, [[0, 0, comparison]]);
-}
+// export function _bignum_bignum_bignum_compare(
+//   x: RawBigNum,
+//   y: RawBigNum,
+// ): RawMatrix {
+//   const comparison = x.value.comparedTo(y.value) as number;
+//   return initialNumbers(1, 1, [[0, 0, comparison]]);
+// }
 
-export function _bignum_bignum__bignum_precision(): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, BIGNUM_PRECISION]]);
-}
+// export function _bignum_bignum__bignum_precision(): RawMatrix {
+//   return initialNumbers(1, 1, [[0, 0, BIGNUM_PRECISION]]);
+// }
 
-export function _bignum_bignum__set_bignum_precision(
-  precision: RawMatrix,
-): PacioliVoid {
-  BIGNUM_PRECISION = getNumber(precision, 0, 0);
-  BigNumber.config({ DECIMAL_PLACES: BIGNUM_PRECISION });
-  return VOID;
-}
+// export function _bignum_bignum__set_bignum_precision(
+//   precision: RawMatrix,
+// ): PacioliVoid {
+//   BIGNUM_PRECISION = getNumber(precision, 0, 0);
+//   BigNumber.config({ DECIMAL_PLACES: BIGNUM_PRECISION });
+//   return VOID;
+// }
 
 // Abandoned experiment
 

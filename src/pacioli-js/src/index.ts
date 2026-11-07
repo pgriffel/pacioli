@@ -251,6 +251,10 @@ export {
   _base_set_set_size,
   _base_system__adjoin_mut,
   _base_set_loop_set,
+  ONE,
+} from "./primitives";
+
+export {
   _bignum_bignum_make_bignum,
   _bignum_bignum_bignum_add,
   _bignum_bignum_bignum_subtract,
@@ -261,8 +265,7 @@ export {
   _bignum_bignum_bignum_compare,
   _bignum_bignum__bignum_precision,
   _bignum_bignum__set_bignum_precision,
-  ONE,
-} from "./primitives";
+} from "./bignum";
 
 export { PacioliSceneComponent } from "./web-components/components/pacioli-scene";
 export { PacioliControlsComponent } from "./web-components/components/pacioli-controls";

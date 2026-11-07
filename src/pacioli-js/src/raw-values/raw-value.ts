@@ -50,7 +50,16 @@ export type RawValue =
   | RawMap
   | RawMaybe
   | RawVoid
+  | CustomValue
   | RawBigNum;
+
+export interface CustomValue {
+  kind: "custom";
+  subkind: string;
+  compare(other: CustomValue): number;
+  format(kind: "e" | "f" | "d", decimals: number): string;
+  stringify(): string;
+}
 
 /**
  * Type of an unboxed Pacioli tuple. A javascript array tagged with kind 'tuple'.
@@ -206,7 +215,8 @@ export function rawValueLabel(
   | "string"
   | "boolean"
   | "function"
-  | "bignum" {
+  | "bignum"
+  | "custom" {
   if (typeof value === "string") {
     return "string";
   } else if (typeof value === "boolean") {
@@ -309,8 +319,11 @@ export function stringifyRawValue(value: RawValue): string {
         ? "Nothing"
         : `just<${stringifyRawValue(value.value)}>`;
     }
-    case "bignum": {
-      return `${value.value.toString()}`;
+    // case "bignum": {
+    //   return `${value.value.toString()}`;
+    // }
+    case "custom": {
+      return value.stringify();
     }
   }
 }
