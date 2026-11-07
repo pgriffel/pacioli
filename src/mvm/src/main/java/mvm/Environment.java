@@ -22,14 +22,27 @@
 
 package mvm;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.ServiceLoader;
 import java.util.Set;
 
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.PrimitiveProvider;
+import com.github.pgriffel.mvm_api.values.Primitive;
+
 import mvm.ast.expression.Expression;
-import mvm.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
 
 public class Environment {
 
@@ -153,4 +166,90 @@ public class Environment {
         return machine;
     }
 
+    public void loadLibrary(String library, String version, List<File> libs) throws MVMException {
+
+        boolean verbose = false;
+
+        try {
+            Path lib = findLibrary(library, libs)
+                    .orElseThrow(() -> new FileNotFoundException(String.format("Library '%s' not found", library)));
+
+            Path jar = lib.resolve(jarFileName(library, version));
+
+            if (jar.toFile().exists()) {
+
+                if (verbose) {
+                    Machine.logln("Jar file '%s' found, loading primitive providers...", jar);
+                }
+
+                URLClassLoader loader = new URLClassLoader(
+                        new URL[] { jar.toUri().toURL() },
+                        PrimitiveProvider.class.getClassLoader());
+
+                ServiceLoader<PrimitiveProvider> providers = ServiceLoader.load(PrimitiveProvider.class, loader);
+
+                for (PrimitiveProvider provider : providers) {
+                    if (verbose) {
+                        Machine.logln("Primitive provider found, loading primitive...");
+                    }
+
+                    for (Primitive primitive : provider.primitives()) {
+                        String name = "_" + library + "_" + library + "_" + primitive.name();
+
+                        if (verbose) {
+                            Machine.logln("Loading primitive '%s'", name);
+                        }
+
+                        store.put(name, primitive);
+                    }
+                }
+            } else {
+                Machine.logln("Warning: jar file '%s' not found in library '%s' (%s). No primitives loaded!",
+                        jar.toString(), library, version);
+            }
+
+        } catch (Exception e) {
+            Machine.logln("Failed to find library '%s' when looking for jar, %s" + e.getMessage());
+        }
+    }
+
+    private static String jarFileName(String library, String version) {
+        return library + "-" + version + ".jar";
+    }
+
+    public static Optional<Path> findLibrary(String name, List<File> libs) {
+
+        boolean verbose = false;
+
+        Path theLibDir = null;
+
+        for (File dir : libs) {
+            File libdir = new File(dir, name);
+
+            File mainFile = new File(libdir, name + ".pacioli");
+
+            if (mainFile.exists()) {
+
+                if (verbose) {
+                    Machine.logln("Library '%s' found in file '%s'", name, mainFile);
+                }
+
+                if (theLibDir == null) {
+                    theLibDir = libdir.toPath();
+                } else {
+                    if (verbose) {
+                        Machine.logln("Shadowed '%s' library '%s' is ignored", name, mainFile);
+                    }
+                }
+            } else if (verbose) {
+                Machine.logln("Library candidate '%s' does not exist", mainFile);
+            }
+        }
+
+        if (theLibDir == null) {
+            return Optional.empty();
+        } else {
+            return Optional.of(theLibDir);
+        }
+    }
 }

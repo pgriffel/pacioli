@@ -22,7 +22,7 @@
 
 package pacioli.ast.expression;
 
-import mvm.values.matrix.MatrixDimension;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixDimension;
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Node;
 import pacioli.ast.Visitor;

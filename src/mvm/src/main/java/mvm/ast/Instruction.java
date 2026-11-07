@@ -22,9 +22,10 @@
 
 package mvm.ast;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.Printable;
+
 import mvm.Machine;
-import mvm.Printable;
 
 public interface Instruction extends Printable {
 

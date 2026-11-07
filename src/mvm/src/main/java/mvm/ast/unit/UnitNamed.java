@@ -24,10 +24,10 @@ package mvm.ast.unit;
 
 import java.io.PrintWriter;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
-import mvm.values.matrix.MVMBase;
-import mvm.values.matrix.ScalarBase;
+import com.github.pgriffel.mvm_api.values.matrix.MVMBase;
+import com.github.pgriffel.mvm_api.values.matrix.ScalarBase;
 import uom.Prefix;
 import uom.Unit;
 

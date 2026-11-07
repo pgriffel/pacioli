@@ -24,13 +24,13 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
-import mvm.values.matrix.VectorBase;
-import mvm.values.matrix.MatrixDimension;
-import mvm.values.matrix.MatrixShape;
-import mvm.values.matrix.ScalarBase;
-import mvm.values.matrix.UnitVector;
+import com.github.pgriffel.mvm_api.values.matrix.VectorBase;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixDimension;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixShape;
+import com.github.pgriffel.mvm_api.values.matrix.ScalarBase;
+import com.github.pgriffel.mvm_api.values.matrix.UnitVector;
 import uom.Unit;
 
 public class BangShape implements ShapeNode {

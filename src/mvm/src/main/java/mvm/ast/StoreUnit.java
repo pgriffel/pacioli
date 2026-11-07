@@ -25,10 +25,10 @@ package mvm.ast;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
-import mvm.values.matrix.ScalarBase;
+import com.github.pgriffel.mvm_api.values.matrix.ScalarBase;
 import uom.DimensionedNumber;
 
 public class StoreUnit implements Instruction {

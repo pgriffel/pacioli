@@ -25,8 +25,13 @@ package mvm.values;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.Callable;
+import com.github.pgriffel.mvm_api.values.PacioliTuple;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+
 import mvm.Environment;
-import mvm.MVMException;
 import mvm.ast.expression.Expression;
 
 public class VarArgsClosure implements PacioliValue, Callable {

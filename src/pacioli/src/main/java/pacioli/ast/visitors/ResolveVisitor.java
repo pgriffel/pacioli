@@ -28,8 +28,8 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Stack;
 
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.MatrixDimension;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixDimension;
 import pacioli.ast.IdentityVisitor;
 import pacioli.ast.Node;
 import pacioli.ast.definition.AliasDefinition;

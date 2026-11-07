@@ -24,9 +24,9 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
-import mvm.values.matrix.MatrixShape;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixShape;
 import uom.Fraction;
 
 public class ShapeExpt implements ShapeNode {

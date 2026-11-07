@@ -24,7 +24,7 @@ package mvm.ast;
 
 import java.io.PrintWriter;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
 

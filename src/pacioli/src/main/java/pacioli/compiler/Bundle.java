@@ -317,6 +317,15 @@ public class Bundle {
         if (target.equals(Target.LEANEST)) {
             LeanTranspiler.writePreludeLeanest(printer);
         }
+
+        if (target.equals(Target.MVM)) {
+            for (String module : project.importedModules(null, null)) {
+
+            }
+            writer.write("require bignum \"0.0.1\";");
+            writer.format("\n");
+        }
+
     }
 
     private void doGenerateCode(PrintWriter writer, CompilationSettings settings, boolean locals, boolean nonLocals) {
@@ -391,11 +400,11 @@ public class Bundle {
 
             // Added for Lean, but it is not really used. For now all
             // user defined types are reduced to primitive types.
-            if (info instanceof ParametricInfo i) {
-                if (info.definition().isPresent()) {
-                    infosToCompile.add(i);
-                }
-            }
+            // if (info instanceof ParametricInfo i) {
+            // if (info.definition().isPresent()) {
+            // infosToCompile.add(i);
+            // }
+            // }
         }
 
         // Collect all functions and values with a definition from the value table

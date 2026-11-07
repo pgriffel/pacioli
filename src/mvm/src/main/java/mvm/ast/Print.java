@@ -23,11 +23,11 @@
 package mvm.ast;
 
 import java.io.PrintWriter;
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
-import mvm.values.PacioliValue;
-import mvm.values.TheVoid;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.TheVoid;
 
 public class Print implements Instruction {
 

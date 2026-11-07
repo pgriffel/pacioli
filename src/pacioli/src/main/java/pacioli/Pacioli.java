@@ -45,7 +45,7 @@ import org.apache.commons.io.FilenameUtils;
 import pacioli.mcp.MPCContainer;
 import pacioli.mcp.PacioliMCPServer;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import pacioli.compiler.Bundle;
 import pacioli.compiler.CompilationSettings;

@@ -24,7 +24,7 @@ import java_cup.runtime.Symbol;
 import java_cup.runtime.ComplexSymbolFactory;
 import java_cup.runtime.ComplexSymbolFactory.Location;
 import java.io.File;
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 
 %%
 %public

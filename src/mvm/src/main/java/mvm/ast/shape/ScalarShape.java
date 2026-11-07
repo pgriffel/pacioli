@@ -24,11 +24,11 @@ package mvm.ast.shape;
 
 import java.io.PrintWriter;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
-import mvm.values.matrix.MatrixShape;
-import mvm.values.matrix.ScalarBase;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixShape;
+import com.github.pgriffel.mvm_api.values.matrix.ScalarBase;
 import uom.Unit;
 
 public class ScalarShape implements ShapeNode {

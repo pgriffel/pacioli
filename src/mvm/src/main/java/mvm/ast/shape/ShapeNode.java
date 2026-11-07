@@ -22,10 +22,11 @@
 
 package mvm.ast.shape;
 
-import mvm.MVMException;
 import mvm.Machine;
-import mvm.Printable;
-import mvm.values.matrix.MatrixShape;
+
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.Printable;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixShape;
 
 public interface ShapeNode extends Printable {
 

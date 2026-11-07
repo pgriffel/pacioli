@@ -26,12 +26,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import mvm.ast.unit.UnitNode;
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.ScalarBase;
-import mvm.values.matrix.UnitVector;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.matrix.ScalarBase;
+import com.github.pgriffel.mvm_api.values.matrix.UnitVector;
 import uom.Unit;
 
 public class StoreUnitVector implements Instruction {

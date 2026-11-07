@@ -47,9 +47,9 @@ public interface sym {
   public static final int INDEX = 31;
   public static final int MATRIX_CONSTRUCTOR = 41;
   public static final int LIST = 29;
-  public static final int LPAR = 6;
   public static final int STRING = 26;
   public static final int KEY = 25;
+  public static final int LPAR = 6;
   public static final int UNIT_DIV = 36;
   public static final int SHAPE_EXPT = 40;
   public static final int UNIT_MULT = 35;

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import mvm.values.matrix.MatrixDimension;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixDimension;
 import pacioli.Pacioli;
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;

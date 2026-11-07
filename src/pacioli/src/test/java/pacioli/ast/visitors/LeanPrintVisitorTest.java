@@ -9,8 +9,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.MatrixDimension;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixDimension;
 import pacioli.ast.expression.ConstNode;
 import pacioli.ast.expression.ForNode;
 import pacioli.ast.expression.IdentifierNode;

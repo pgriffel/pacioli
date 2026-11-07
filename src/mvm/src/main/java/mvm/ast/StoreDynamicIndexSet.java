@@ -26,13 +26,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.Machine;
 import mvm.ast.expression.Expression;
-import mvm.values.PacioliList;
-import mvm.values.PacioliString;
-import mvm.values.PacioliValue;
-import mvm.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.PacioliList;
+import com.github.pgriffel.mvm_api.values.PacioliString;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
 
 public class StoreDynamicIndexSet implements Instruction {
 

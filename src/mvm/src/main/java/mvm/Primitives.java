@@ -30,24 +30,25 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import mvm.values.Boole;
-import mvm.values.Callable;
-import mvm.values.FileHandle;
-import mvm.values.Maybe;
-import mvm.values.PacioliArray;
-import mvm.values.PacioliBigNum;
-import mvm.values.PacioliList;
-import mvm.values.PacioliMap;
-import mvm.values.PacioliSet;
-import mvm.values.PacioliString;
-import mvm.values.PacioliTuple;
-import mvm.values.PacioliValue;
-import mvm.values.Primitive;
-import mvm.values.Reference;
-import mvm.values.TheVoid;
-import mvm.values.matrix.Key;
-import mvm.values.matrix.Matrix;
-import mvm.values.matrix.MatrixShape;
+import com.github.pgriffel.mvm_api.MVMException;
+
+import com.github.pgriffel.mvm_api.values.Boole;
+import com.github.pgriffel.mvm_api.values.Callable;
+import com.github.pgriffel.mvm_api.values.FileHandle;
+import com.github.pgriffel.mvm_api.values.Maybe;
+import com.github.pgriffel.mvm_api.values.PacioliArray;
+import com.github.pgriffel.mvm_api.values.PacioliList;
+import com.github.pgriffel.mvm_api.values.PacioliMap;
+import com.github.pgriffel.mvm_api.values.PacioliSet;
+import com.github.pgriffel.mvm_api.values.PacioliString;
+import com.github.pgriffel.mvm_api.values.PacioliTuple;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.Primitive;
+import com.github.pgriffel.mvm_api.values.Reference;
+import com.github.pgriffel.mvm_api.values.TheVoid;
+import com.github.pgriffel.mvm_api.values.matrix.Key;
+import com.github.pgriffel.mvm_api.values.matrix.Matrix;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixShape;
 
 public class Primitives {
 
@@ -1509,6 +1510,7 @@ public class Primitives {
 
                                         var value = params.get(argumentIndex++);
 
+                                        // TODO: use value.format
                                         if (value instanceof Matrix mat) {
 
                                             Integer size;
@@ -1556,34 +1558,35 @@ public class Primitives {
                                                 nrDecimals = Matrix.nrDecimals;
                                             }
 
+                                            // todo: e or f for scientific or float notation. Was implemented for
+                                            // BigNum, but that was moved to a separate library.
                                             String chr = floatMatcher.group(4);
 
                                             var value = params.get(argumentIndex++);
 
                                             if (value instanceof Matrix mat) {
-
+                                                // TODO: use value.format
                                                 String val = nrDecimals == null ? mat.toText() : mat.toText(nrDecimals);
 
                                                 builder.append(size == null ? val : pad("", val, size, " "));
                                                 position += floatMatcher.end() - floatMatcher.start();
 
-                                            } else if (value instanceof PacioliBigNum num) {
+                                            } else {
 
-                                                String fmt = String.format("%%%s%s%s",
-                                                        size == null ? "" : size,
-                                                        nrDecimals == null ? "" : "." + nrDecimals.toString(),
-                                                        chr);
+                                                String val = value.format(
+                                                        chr.equals("e") ? Format.SCIENTIFIC : Format.FLOAT,
+                                                        nrDecimals,
+                                                        size);
 
-                                                String val = String.format(fmt, num.value);
+                                                if (val == null) {
+                                                    throw new MVMException(
+                                                            "argument %s to float directive at position %s is not a number",
+                                                            value.toText(),
+                                                            position);
+                                                }
 
                                                 builder.append(size == null ? val : pad("", val, size, " "));
                                                 position += floatMatcher.end() - floatMatcher.start();
-
-                                            } else {
-                                                throw new MVMException(
-                                                        "argument %s to float directive at position %s is not a number",
-                                                        value.toText(),
-                                                        position);
                                             }
 
                                         } else {
@@ -1737,90 +1740,6 @@ public class Primitives {
                 FileHandle handle = (FileHandle) params.get(0);
                 PacioliString text = (PacioliString) params.get(1);
                 handle.write(text);
-                return VOID;
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_make_bignum") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliString input = (PacioliString) params.get(0);
-                return new PacioliBigNum(input.value());
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_sqrt") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum input = (PacioliBigNum) params.get(0);
-                return input.sqrt(PacioliBigNum.precision);
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_add") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum x = (PacioliBigNum) params.get(0);
-                PacioliBigNum y = (PacioliBigNum) params.get(1);
-
-                return x.add(y);
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_subtract") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum x = (PacioliBigNum) params.get(0);
-                PacioliBigNum y = (PacioliBigNum) params.get(1);
-
-                return x.subtract(y);
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_multiply") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum x = (PacioliBigNum) params.get(0);
-                PacioliBigNum y = (PacioliBigNum) params.get(1);
-
-                return x.multiply(y);
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_divide") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum x = (PacioliBigNum) params.get(0);
-                PacioliBigNum y = (PacioliBigNum) params.get(1);
-
-                return x.divide(y, PacioliBigNum.precision);
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_power") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum x = (PacioliBigNum) params.get(0);
-                Matrix n = (Matrix) params.get(1);
-
-                int d = (int) n.SingletonNumber();
-
-                return x.power(d);
-            }
-        });
-
-        storePrimitive(store, new Primitive("bignum_bignum_compare") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                PacioliBigNum x = (PacioliBigNum) params.get(0);
-                PacioliBigNum y = (PacioliBigNum) params.get(1);
-                int val = x.value.compareTo(y.value);
-                return new Matrix(val);
-            }
-        });
-
-        storePrimitive(store, new Primitive("system__bignum_precision") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                return new Matrix(PacioliBigNum.precision);
-            }
-        });
-
-        storePrimitive(store, new Primitive("system__set_bignum_precision") {
-            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
-                Matrix n = (Matrix) params.get(0);
-                PacioliBigNum.precision = (int) n.SingletonNumber();
                 return VOID;
             }
         });

@@ -26,8 +26,9 @@ import java.io.PrintWriter;
 import java.util.List;
 import mvm.Environment;
 import mvm.values.Closure;
-import mvm.values.PacioliValue;
 import mvm.values.VarArgsClosure;
+
+import com.github.pgriffel.mvm_api.values.PacioliValue;
 
 public class Lambda implements Expression {
 

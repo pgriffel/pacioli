@@ -25,7 +25,7 @@ package pacioli.ast.definition;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
 import pacioli.ast.AbstractNode;
 import pacioli.ast.Visitor;
 import pacioli.ast.expression.ExpressionNode;

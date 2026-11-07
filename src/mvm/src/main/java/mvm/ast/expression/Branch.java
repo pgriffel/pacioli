@@ -24,9 +24,9 @@ package mvm.ast.expression;
 
 import java.io.PrintWriter;
 import mvm.Environment;
-import mvm.MVMException;
-import mvm.values.Boole;
-import mvm.values.PacioliValue;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.Boole;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
 
 public class Branch implements Expression {
 

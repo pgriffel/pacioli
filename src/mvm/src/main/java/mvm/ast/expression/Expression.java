@@ -23,9 +23,9 @@
 package mvm.ast.expression;
 
 import mvm.Environment;
-import mvm.MVMException;
-import mvm.Printable;
-import mvm.values.PacioliValue;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.Printable;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
 
 public interface Expression extends Printable {
 

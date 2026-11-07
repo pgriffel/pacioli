@@ -27,9 +27,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mvm.Environment;
-import mvm.MVMException;
-import mvm.values.Callable;
-import mvm.values.PacioliValue;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.Callable;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
 
 public class Application implements Expression {
 

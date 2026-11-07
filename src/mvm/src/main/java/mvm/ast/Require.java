@@ -20,37 +20,40 @@
  * SOFTWARE.
  */
 
-package mvm.values.matrix;
+package mvm.ast;
 
+import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
+import mvm.Environment;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.Printable;
 
-import mvm.Printable;
-import uom.Unit;
+/**
+ * Loads a library jar file.
+ * 
+ * No need to load libraries in general, because the compiler bundles the code.
+ * Library .jar files however still need to be loaded.
+ * 
+ * This is the reason why running the machine has a libs argument.
+ */
+public class Require implements Printable {
 
-public class UnitVector implements Printable {
+    private String library;
+    private String version;
 
-    public final String name;
-    public final IndexSet indexSet;
-    private final List<Unit<ScalarBase>> elements;
-
-    public UnitVector(IndexSet set, String name, ArrayList<Unit<ScalarBase>> units) {
-        this.indexSet = set;
-        this.name = name;
-        elements = units;
-    }
-
-    public int size() {
-        return elements.size();
-    }
-
-    public Unit<ScalarBase> get(int position) {
-        return elements.get(position);
+    public Require(String library, String version) {
+        this.library = library;
+        this.version = version;
     }
 
     @Override
     public void printText(PrintWriter out) {
-        out.print(name);
+        out.printf("REQUIRE %s %s;", this.library, this.version);
     }
+
+    public void eval(Environment store, List<File> libs) throws MVMException {
+        store.loadLibrary(this.library, this.version, libs);
+    }
+
 }

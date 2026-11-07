@@ -28,11 +28,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import mvm.Environment;
-import mvm.MVMException;
-import mvm.values.PacioliValue;
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.Key;
-import mvm.values.matrix.MatrixDimension;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.matrix.Key;
+import com.github.pgriffel.mvm_api.values.matrix.MatrixDimension;
 
 public class LitKey implements Expression {
 

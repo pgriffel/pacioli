@@ -26,12 +26,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import mvm.Machine;
-import mvm.Printable;
+import com.github.pgriffel.mvm_api.Printable;
 import mvm.ControlTransfer;
 import mvm.Environment;
-import mvm.MVMException;
-import mvm.values.Callable;
-import mvm.values.PacioliValue;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.Callable;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
 
 public class ApplicationDebug implements Expression {
 

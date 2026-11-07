@@ -26,14 +26,14 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import mvm.Printable;
+import com.github.pgriffel.mvm_api.Printable;
 
 public class Program implements Printable {
 
-    public List<String> requires = new ArrayList<String>();
-    public List<Instruction> instructions = new ArrayList<Instruction>();
+    public List<Require> requires = new ArrayList<>();
+    public List<Instruction> instructions = new ArrayList<>();
 
-    public void addRequire(String require) {
+    public void addRequire(Require require) {
         requires.add(require);
     }
 

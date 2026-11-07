@@ -25,21 +25,33 @@ package mvm;
 import java.io.File;
 import java.io.PrintStream;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ServiceLoader;
+
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.PrimitiveProvider;
+import com.github.pgriffel.mvm_api.values.Primitive;
 
 import mvm.ast.Instruction;
+import mvm.ast.Program;
+import mvm.ast.Require;
 import mvm.ast.expression.Expression;
-import mvm.values.PacioliValue;
-import mvm.values.matrix.IndexSet;
-import mvm.values.matrix.Matrix;
-import mvm.values.matrix.UnitVector;
-import mvm.values.matrix.MVMBase;
+import mvm.parser.Parser;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.matrix.IndexSet;
+import com.github.pgriffel.mvm_api.values.matrix.Matrix;
+import com.github.pgriffel.mvm_api.values.matrix.UnitVector;
+import com.github.pgriffel.mvm_api.values.matrix.MVMBase;
 
 import uom.Prefix;
 import uom.UnitSystem;
@@ -92,6 +104,39 @@ public class Machine {
 
     public void init() throws MVMException {
         Primitives.load(store);
+
+        // try {
+        // Path jar =
+        // Path.of("/home/paul/code/pacioli/src/bignum/target/bignum-0.0.1.jar");
+        // System.out.println("Probing " + (new URL[] { jar.toUri().toURL() }));
+
+        // URLClassLoader loader;
+
+        // loader = new URLClassLoader(
+        // new URL[] { jar.toUri().toURL() },
+        // PrimitiveProvider.class.getClassLoader());
+
+        // ServiceLoader<PrimitiveProvider> providers =
+        // ServiceLoader.load(PrimitiveProvider.class, loader);
+
+        // System.out.println("Found " + jar.toFile().isFile());
+        // System.out.println("Found " + jar.toFile().exists());
+
+        // for (PrimitiveProvider provider : providers) {
+        // List<Primitive> primitives = provider.primitives();
+        // for (Primitive primitive : primitives) {
+        // System.out.println("Loading " + primitive.name());
+        // }
+        // }
+
+        // } catch (MalformedURLException e) {
+        // System.out.println("Failed to load bignum");
+        // e.printStackTrace();
+        // } catch (Exception e) {
+        // System.out.println("Failed to load bignum");
+        // e.printStackTrace();
+        // }
+
     }
 
     /*
@@ -175,35 +220,50 @@ public class Machine {
     }
 
     public void run(File file, PrintStream out, List<File> libs) throws Exception {
-        //// for (String include : PacioliFile.defaultIncludes) {
-        /// runRec(PacioliFile.findFile(include + ".mvm", libs, file.getParentFile()),
-        //// out, libs);
-        //// }
-        runRec(file, out, libs, CHARSET);
-    }
 
-    public void runRec(File file, PrintStream out, List<File> libs, Charset charset) throws Exception {
+        // Load the file
+        Program code = Parser.parseFile(file, CHARSET);
 
-        // Check if the file was already loaded
-        if (!loadedFiles.contains(file)) {
-
-            // Make sure the file is not loaded more than once
-            loadedFiles.add(file);
-
-            // Load the file
-            mvm.ast.Program code = mvm.parser.Parser.parseFile(file, charset);
-
-            // Run the requires
-            // for (String require : code.requires) {
-            // runRec(PacioliFile.findFile(require + ".mvm", libs, file.getParentFile()),
-            // out, libs);
-            // }
-
-            // Run the file itself
-            // Pacioli.logln2("Running MVM file %s", file);
-            for (Instruction instruction : code.instructions) {
-                instruction.eval(this);
-            }
+        // Run the requires
+        for (Require require : code.requires) {
+            require.eval(this.store, libs);
         }
+
+        // Run the file itself
+        for (Instruction instruction : code.instructions) {
+            instruction.eval(this);
+        }
+
+        // //// for (String include : PacioliFile.defaultIncludes) {
+        // /// runRec(PacioliFile.findFile(include + ".mvm", libs,
+        // file.getParentFile()),
+        // //// out, libs);
+        // //// }
+        // runRec(file, out, libs, CHARSET);
     }
+
+    // public void runRec(File file, PrintStream out, List<File> libs, Charset
+    // charset) throws Exception {
+
+    // // Check if the file was already loaded
+    // if (!loadedFiles.contains(file)) {
+
+    // // Make sure the file is not loaded more than once
+    // loadedFiles.add(file);
+
+    // // Load the file
+    // Program code = Parser.parseFile(file, charset);
+
+    // // Run the requires
+    // for (Require require : code.requires) {
+    // require.eval(this.store, libs);
+    // }
+
+    // // Run the file itself
+    // // Pacioli.logln2("Running MVM file %s", file);
+    // for (Instruction instruction : code.instructions) {
+    // instruction.eval(this);
+    // }
+    // }
+    // }
 }

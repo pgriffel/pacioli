@@ -37,10 +37,10 @@ import mvm.ast.*;
 import mvm.ast.expression.*;
 import mvm.ast.shape.*;
 import mvm.ast.unit.*;
-import mvm.MVMException;
-import mvm.values.matrix.Matrix;
-import mvm.values.PacioliString;
-import mvm.values.Boole;
+import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.matrix.Matrix;
+import com.github.pgriffel.mvm_api.values.PacioliString;
+import com.github.pgriffel.mvm_api.values.Boole;
 import uom.Fraction;
 
 parser code {:
@@ -141,7 +141,7 @@ terminal String IDENT, STR, DECIMAL, NATURAL;
 
 
 non terminal Program                 program;
-non terminal List<Identifier>        requires;
+non terminal List<Require>           requires;
 non terminal List<Expression>        exprs, exprlist, args;
 non terminal List<Instruction>       commands;
 non terminal Instruction             command;
@@ -161,8 +161,8 @@ non terminal ShapeNode               shape;
 
 program ::=  
    requires:r commands:c                              {: Program prog = new Program(); 
-                                                         for(Identifier req: r) {
-                                                             prog.addRequire(req.name());
+                                                         for(Require req: r) {
+                                                             prog.addRequire(req);
                                                          };
                                                          for(Instruction inst: c) {
                                                              prog.addInstruction(inst);
@@ -171,8 +171,8 @@ program ::=
  ; 
 
 requires ::=  
-   requires:is REQUIRE path:p SEMICOLON               {: is.add(p); RESULT = is; :}
- | /* empty */                                        {: RESULT = new LinkedList<Identifier>(); :}
+   requires:rs REQUIRE path:p STR:v SEMICOLON         {: rs.add(new Require(p.name(), v)); RESULT = rs; :}
+ | /* empty */                                        {: RESULT = new LinkedList<Require>(); :}
  ;
 
 commands ::=  

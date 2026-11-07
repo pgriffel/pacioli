@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import mvm.Environment;
-import mvm.MVMException;
+import com.github.pgriffel.mvm_api.MVMException;
 import mvm.ast.shape.ShapeNode;
-import mvm.values.PacioliValue;
-import mvm.values.matrix.Matrix;
+import com.github.pgriffel.mvm_api.values.PacioliValue;
+import com.github.pgriffel.mvm_api.values.matrix.Matrix;
 
 public class LitMat implements Expression {
 
