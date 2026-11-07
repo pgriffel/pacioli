@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 import testing;
+import bignum;
 
 run_test_suites([pi_suite]);
 

@@ -21,7 +21,7 @@
 import testing;
 
 include array_tests;
-include bignum_tests;
+# include bignum_tests;
 include comprehension_tests;
 include index_tests;
 include funcall;
@@ -38,7 +38,7 @@ declare base_suites :: List(TestSuite);
 
 define base_suites = flatten([
     array_suites,
-    bignum_suites,
+    # bignum_suites,
     comprehension_suites,
     index_suites,
     funcall_suites,

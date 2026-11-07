@@ -1771,40 +1771,43 @@ export function _base_map_keys(map: RawMap): RawList {
   return map.keys();
 }
 
-export function _base_bignum_make_bignum(x: RawString): RawBigNum {
+export function _bignum_bignum_make_bignum(x: RawString): RawBigNum {
   return new PacioliBigNum(new BigNumber(x));
 }
 
-export function _base_bignum_bignum_add(x: RawBigNum, y: RawBigNum): RawBigNum {
+export function _bignum_bignum_bignum_add(
+  x: RawBigNum,
+  y: RawBigNum,
+): RawBigNum {
   return new PacioliBigNum(new BigNumber(x.value.plus(y.value)));
 }
 
-export function _base_bignum_bignum_subtract(
+export function _bignum_bignum_bignum_subtract(
   x: RawBigNum,
   y: RawBigNum,
 ): RawBigNum {
   return new PacioliBigNum(new BigNumber(x.value.minus(y.value)));
 }
 
-export function _base_bignum_bignum_multiply(
+export function _bignum_bignum_bignum_multiply(
   x: RawBigNum,
   y: RawBigNum,
 ): RawBigNum {
   return new PacioliBigNum(new BigNumber(x.value.multipliedBy(y.value)));
 }
 
-export function _base_bignum_bignum_divide(
+export function _bignum_bignum_bignum_divide(
   x: RawBigNum,
   y: RawBigNum,
 ): RawBigNum {
   return new PacioliBigNum(new BigNumber(x.value.dividedBy(y.value)));
 }
 
-export function _base_bignum_bignum_sqrt(x: RawBigNum): RawBigNum {
+export function _bignum_bignum_bignum_sqrt(x: RawBigNum): RawBigNum {
   return new PacioliBigNum(new BigNumber(x.value.sqrt()));
 }
 
-export function _base_bignum_bignum_power(
+export function _bignum_bignum_bignum_power(
   x: RawBigNum,
   p: RawMatrix,
 ): RawBigNum {
@@ -1814,7 +1817,7 @@ export function _base_bignum_bignum_power(
   );
 }
 
-export function _base_bignum_bignum_compare(
+export function _bignum_bignum_bignum_compare(
   x: RawBigNum,
   y: RawBigNum,
 ): RawMatrix {
@@ -1822,11 +1825,11 @@ export function _base_bignum_bignum_compare(
   return initialNumbers(1, 1, [[0, 0, comparison]]);
 }
 
-export function _base_system__bignum_precision(): RawMatrix {
+export function _bignum_bignum__bignum_precision(): RawMatrix {
   return initialNumbers(1, 1, [[0, 0, BIGNUM_PRECISION]]);
 }
 
-export function _base_system__set_bignum_precision(
+export function _bignum_bignum__set_bignum_precision(
   precision: RawMatrix,
 ): PacioliVoid {
   BIGNUM_PRECISION = getNumber(precision, 0, 0);

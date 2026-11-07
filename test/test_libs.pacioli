@@ -21,6 +21,7 @@
 import testing;
     
 include base/base_tests;
+include bignum/bignum_tests;
 include fourier_motzkin/fourier_motzkin_tests;
 include geometry/geometry_tests;
 #include geometric_algebra/geometric_algebra_tests;
@@ -37,6 +38,7 @@ define all_suites =
 
 define all_suite_collections = [
     base_suites,
+    bignum_suites,
     fourier_motzkin_suites,
     geometry_suites,
 #    geometric_algebra_suites,

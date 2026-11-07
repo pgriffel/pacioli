@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 import testing;
+import bignum;
 
 declare bignum_suites :: List(TestSuite);
 
