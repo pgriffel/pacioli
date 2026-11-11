@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { initialNumbers } from "./cache";
+import { dimlessScalar } from "./cache";
 import { RawMap } from "./raw-values/raw-value";
 import type { RawBigNum, RawList, RawString } from "./raw-values/raw-value";
 import type { PacioliVoid } from "./values/void";
@@ -100,11 +100,11 @@ export function _bignum_bignum_bignum_compare(
   y: RawBigNum,
 ): RawMatrix {
   const comparison = x.value.comparedTo(y.value) as number;
-  return initialNumbers(1, 1, [[0, 0, comparison]]);
+  return dimlessScalar(comparison);
 }
 
 export function _bignum_bignum__bignum_precision(): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, BIGNUM_PRECISION]]);
+  return dimlessScalar(BIGNUM_PRECISION);
 }
 
 export function _bignum_bignum__set_bignum_precision(

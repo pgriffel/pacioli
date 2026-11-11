@@ -57,7 +57,7 @@ define sort_list_by(xs, pred, acc) =
 define NR_NATS = 100;
 
 defindex Nats =
-    [pad_left(num2string(n, 0, |1|), 2, "0") | n <- naturals(NR_NATS)];
+    [pad_left(num2string(n, 0 * |decimals|, |1|), 2, "0") | n <- naturals(NR_NATS)];
 
 define randomNums(factor) =
     [x | i <- row_domain(|Nats!|),

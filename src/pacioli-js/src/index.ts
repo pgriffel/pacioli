@@ -42,6 +42,8 @@ export {
 
 export {
   initialNumbers,
+  initialNumbersFromType,
+  dimlessScalar,
   string,
   lookupItem,
   fetchIndex,
@@ -173,7 +175,7 @@ export {
   _base_array_make_array,
   _base_matrix_make_matrix,
   _base_list_map_list,
-  _base_list_mapnz,
+  _base_system__mapnz,
   _base_matrix_max,
   _base_matrix_mexpt,
   _base_matrix_min,

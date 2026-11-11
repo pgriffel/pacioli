@@ -31,6 +31,7 @@ import {
 } from "./raw-matrix";
 import { _base_system__adjoin_mut } from "../primitives";
 import { PacioliBigNum } from "../values/bignum";
+import { MatrixShape } from "../values/matrix-shape";
 
 /**
  * All possible raw Pacioli values. The unboxed values used by the primitive
@@ -151,6 +152,7 @@ export function tagMatrix(
   nrRows: number,
   nrColumns: number,
   storage: RawMatrixStorage,
+  shape: MatrixShape,
 ): RawMatrix {
   const matrix = numbers as RawMatrix;
 
@@ -158,6 +160,11 @@ export function tagMatrix(
   matrix.nrColumns = nrColumns;
   matrix.storage = storage;
   matrix.kind = "matrix";
+  matrix.shape = shape;
+
+  if (shape.nrRows() !== nrRows || shape.nrColumns() !== nrColumns) {
+    debugger;
+  }
 
   return matrix;
 }

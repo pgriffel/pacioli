@@ -22,8 +22,8 @@
 
 import { DimNum, SIUnit } from "uom-ts";
 import { TableBuilder } from "../table/table-builder";
-import { NR_DECIMALS } from "../primitives";
-import type { MatrixShape } from "../values/matrix-shape";
+import { NR_DECIMALS, ONE } from "../primitives";
+import { MatrixShape } from "../values/matrix-shape";
 import type {
   NumericFullMatrix,
   numericCCSMatrix,
@@ -51,7 +51,7 @@ export interface RawFullMatrix extends NumericFullMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
+  shape: MatrixShape; // see oneNumbersFromShape
   storage: "full";
 }
 
@@ -59,7 +59,7 @@ export interface RawDOKMatrix extends NumericDOKMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
+  shape: MatrixShape; // see oneNumbersFromShape
   storage: "DOK";
 }
 
@@ -67,7 +67,7 @@ export interface RawCOOMatrix extends NumericCOOMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
+  shape: MatrixShape; // see oneNumbersFromShape
   storage: "COO";
 }
 
@@ -75,12 +75,18 @@ export interface RawCCSMatrix extends numericCCSMatrix {
   kind: "matrix";
   nrRows: number;
   nrColumns: number;
-  shape?: MatrixShape; // see oneNumbersFromShape
+  shape: MatrixShape; // see oneNumbersFromShape
   storage: "CCS";
 }
 
 export function get(numbers: RawMatrix, i: number, j: number) {
-  return tagMatrix([[getNumber(numbers, i, j)]], 1, 1, "full");
+  return tagMatrix(
+    [[getNumber(numbers, i, j)]],
+    1,
+    1,
+    "full",
+    MatrixShape.scalar(ONE),
+  );
 }
 
 export function set(
@@ -184,6 +190,7 @@ export function getNumber(
 export function unaryNumbers(
   numbers: RawMatrix,
   fun: (val: number) => number,
+  shape: MatrixShape,
 ): RawMatrix {
   const coo = getCOONumbers(numbers);
   return tagMatrix(
@@ -191,6 +198,7 @@ export function unaryNumbers(
     numbers.nrRows,
     numbers.nrColumns,
     "COO",
+    shape,
   );
 }
 
@@ -198,6 +206,7 @@ export function elementWiseNumbers(
   xNumbers: RawMatrix,
   yNumbers: RawMatrix,
   fun: (x: number, y: number) => number,
+  shape: MatrixShape,
 ) {
   let px = 0;
   let py = 0;
@@ -270,6 +279,7 @@ export function elementWiseNumbers(
     xNumbers.nrRows,
     xNumbers.nrColumns,
     "COO",
+    shape,
   );
 }
 

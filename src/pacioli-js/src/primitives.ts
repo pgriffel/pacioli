@@ -22,7 +22,13 @@
 
 import numeric from "numeric";
 import { SIUnit } from "uom-ts";
-import { initialNumbers, oneNumbers, printValue, zeroNumbers } from "./cache";
+import {
+  dimlessScalar,
+  initialNumbers,
+  oneNumbers,
+  printValue,
+  zeroNumbers,
+} from "./cache";
 import type { NumericFullMatrix } from "./raw-values/numbers";
 import {
   getCCSNumbers,
@@ -71,6 +77,8 @@ import {
   unaryNumbers,
 } from "./raw-values/raw-matrix";
 import { PacioliError } from "./pacioli-error";
+import { MatrixShape, SIVector } from "./values/matrix-shape";
+import { MatrixDimension } from "./values/matrix-dimension";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -80,6 +88,8 @@ import { PacioliError } from "./pacioli-error";
 const FLAG_USE_CCS: boolean = false;
 
 export const ONE = SIUnit.ONE;
+
+const DIMLESS_SCALAR = MatrixShape.scalar(ONE);
 
 export const prefix = {
   yotta: { symbol: "Y", factor: Math.pow(10, 24) },
@@ -286,8 +296,8 @@ export function _base_matrix_is_zero(x: RawMatrix): RawBoole {
   return true;
 }
 
-export function _base_matrix_scalar_unit(_x: RawMatrix): RawMatrix {
-  return oneNumbers(1, 1);
+export function _base_matrix_scalar_unit(x: RawMatrix): RawMatrix {
+  return oneNumbers(1, 1, MatrixShape.scalar(x.shape.multiplier));
 }
 
 export function _base_matrix_magnitude(x: RawMatrix): RawMatrix {
@@ -299,7 +309,14 @@ export function _base_matrix_row(
   coord: RawCoordinates,
 ): RawMatrix {
   const row = coord.position;
-  const matrix = zeroNumbers(1, x.nrColumns);
+  const shape = new MatrixShape(
+    x.shape.multiplier,
+    MatrixDimension.empty(),
+    SIVector.ONE,
+    x.shape.columnDimension,
+    x.shape.columnUnit,
+  );
+  const matrix = zeroNumbers(1, x.nrColumns, shape);
   const numbers = getCOONumbers(x);
   const rows = numbers[0];
   const columns = numbers[1];
@@ -313,14 +330,19 @@ export function _base_matrix_row(
 }
 
 export function _base_matrix_row_unit(x: RawMatrix): RawMatrix {
-  return oneNumbers(x.nrRows, 1);
+  return oneNumbers(x.nrRows, 1, x.shape.row());
 }
 
 export function _base_matrix_row_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrRows;
   const domain = Array.from<RawCoordinates>({ length: n });
   for (let i = 0; i < n; i++) {
-    domain[i] = { kind: "coordinates", position: i, size: n };
+    domain[i] = {
+      kind: "coordinates",
+      position: i,
+      size: n,
+      coords: matrix.shape.rowCoordinates(i),
+    };
   }
   return tagList(domain);
 }
@@ -346,13 +368,18 @@ export function _base_matrix_column_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrColumns;
   const domain = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
-    domain[i] = { kind: "coordinates", position: i, size: n };
+    domain[i] = {
+      kind: "coordinates",
+      position: i,
+      size: n,
+      coords: matrix.shape.columnCoordinates(i),
+    };
   }
   return tagList(domain);
 }
 
 export function _base_matrix_column_unit(x: RawMatrix): RawMatrix {
-  return oneNumbers(x.nrColumns, 1);
+  return oneNumbers(x.nrColumns, 1, x.shape.column());
 }
 
 export function _base_matrix_get_num(
@@ -377,46 +404,73 @@ export function _base_matrix_make_matrix(tuples: RawList): RawMatrix {
     RawCoordinates,
     RawMatrix,
   ];
-  const numbers = zeroNumbers(first[0].size, first[1].size);
+  const d1 = new MatrixDimension(first[0].coords!.indexSets);
+  const d2 = new MatrixDimension(first[1].coords!.indexSets);
+  const shape = new MatrixShape(
+    first[2].shape.multiplier,
+    d1,
+    SIVector.ONE,
+    d2,
+    SIVector.ONE,
+  );
+
+  const numbers = zeroNumbers(first[0].size, first[1].size, shape);
   for (const tuple of tuples) {
     const tup = tuple as unknown as [RawCoordinates, RawCoordinates, RawMatrix];
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
+
   return numbers;
 }
 
 export function _base_matrix_signum(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.sign(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.sign(val);
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_support(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (_val: number) {
-    return 1;
-  });
+  return unaryNumbers(
+    x,
+    function (_val: number) {
+      return 1;
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_positive_support(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return 0 < val ? 1 : 0;
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return 0 < val ? 1 : 0;
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_negative_support(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return val < 0 ? 1 : 0;
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return val < 0 ? 1 : 0;
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_top(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   const n = getNumber(cnt, 0, 0);
 
   if (n === 0) {
-    return zeroNumbers(x.nrRows, x.nrColumns);
+    return zeroNumbers(x.nrRows, x.nrColumns, x.shape);
   }
 
-  const matrix = zeroNumbers(x.nrRows, x.nrColumns);
+  const matrix = zeroNumbers(x.nrRows, x.nrColumns, x.shape);
 
   const top = [];
   let count = 0;
@@ -454,10 +508,10 @@ export function _base_matrix_bottom(cnt: RawMatrix, x: RawMatrix): RawMatrix {
   const n = getNumber(cnt, 0, 0);
 
   if (n === 0) {
-    return zeroNumbers(x.nrRows, x.nrColumns);
+    return zeroNumbers(x.nrRows, x.nrColumns, x.shape);
   }
 
-  const matrix = zeroNumbers(x.nrRows, x.nrColumns);
+  const matrix = zeroNumbers(x.nrRows, x.nrColumns, x.shape);
 
   const bottom = [];
   let count = 0;
@@ -492,7 +546,7 @@ export function _base_matrix_bottom(cnt: RawMatrix, x: RawMatrix): RawMatrix {
 }
 
 export function _base_matrix_left_identity(x: RawMatrix): RawMatrix {
-  const numbers = zeroNumbers(x.nrRows, x.nrRows);
+  const numbers = zeroNumbers(x.nrRows, x.nrRows, x.shape.leftIdentity());
   for (let i = 0; i < x.nrRows; i++) {
     set(numbers, i, i, 1);
   }
@@ -500,7 +554,11 @@ export function _base_matrix_left_identity(x: RawMatrix): RawMatrix {
 }
 
 export function _base_matrix_right_identity(x: RawMatrix): RawMatrix {
-  const numbers = zeroNumbers(x.nrColumns, x.nrColumns);
+  const numbers = zeroNumbers(
+    x.nrColumns,
+    x.nrColumns,
+    x.shape.rightIdentity(),
+  );
   for (let i = 0; i < x.nrColumns; i++) {
     set(numbers, i, i, 1);
   }
@@ -508,13 +566,17 @@ export function _base_matrix_right_identity(x: RawMatrix): RawMatrix {
 }
 
 export function _base_matrix_reciprocal(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return val === 0 ? 0 : 1 / val;
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return val === 0 ? 0 : 1 / val;
+    },
+    x.shape.reciprocal(),
+  );
 }
 
 export function _base_matrix_transpose(x: RawMatrix): RawMatrix {
-  const result = zeroNumbers(x.nrColumns, x.nrRows);
+  const result = zeroNumbers(x.nrColumns, x.nrRows, x.shape.transpose());
   const numbers = getCOONumbers(x);
   const rows = numbers[0];
   const columns = numbers[1];
@@ -541,6 +603,7 @@ export function _base_matrix_mmult(x: RawMatrix, y: RawMatrix): RawMatrix {
     x.nrRows,
     y.nrColumns,
     "full",
+    x.shape.dot(y.shape),
   );
   // return tagNumbers(
   //   ccsDot(getCCSNumbers(x), getCCSNumbers(y)),
@@ -558,11 +621,17 @@ export function _base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
       x.nrRows,
       y.nrColumns,
       "CCS",
+      x.shape,
     );
   } else {
-    return elementWiseNumbers(x, y, function (a: number, b: number) {
-      return a * b;
-    });
+    return elementWiseNumbers(
+      x,
+      y,
+      function (a: number, b: number) {
+        return a * b;
+      },
+      x.shape.mult(y.shape),
+    );
   }
 }
 
@@ -590,29 +659,39 @@ export function _base_matrix_multiply(x: RawMatrix, y: RawMatrix): RawMatrix {
 // }
 
 export function _base_matrix_divide(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return elementWiseNumbers(x, y, function (a: number, b: number) {
-    return b === 0 ? 0 : a / b;
-  });
+  return elementWiseNumbers(
+    x,
+    y,
+    function (a: number, b: number) {
+      return b === 0 ? 0 : a / b;
+    },
+    x.shape.mult(y.shape.reciprocal()),
+  );
 }
 
 export function _base_matrix_gcd(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return elementWiseNumbers(x, y, function (a: number, b: number) {
-    if (a < 0) a = -a;
-    if (b < 0) b = -b;
-    if (b > a) {
-      const temp = a;
-      a = b;
-      b = temp;
-    }
-    if (a === 0) return b;
-    if (b === 0) return a;
-    while (true) {
-      a %= b;
+  return elementWiseNumbers(
+    x,
+    y,
+    function (a: number, b: number) {
+      if (a < 0) a = -a;
+      if (b < 0) b = -b;
+      if (b > a) {
+        const temp = a;
+        a = b;
+        b = temp;
+      }
       if (a === 0) return b;
-      b %= a;
       if (b === 0) return a;
-    }
-  });
+      while (true) {
+        a %= b;
+        if (a === 0) return b;
+        b %= a;
+        if (b === 0) return a;
+      }
+    },
+    x.shape,
+  );
 }
 
 export function _base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
@@ -623,11 +702,17 @@ export function _base_matrix_sum(x: RawMatrix, y: RawMatrix): RawMatrix {
       x.nrRows,
       y.nrColumns,
       "CCS",
+      x.shape,
     );
   } else {
-    return elementWiseNumbers(x, y, function (a: number, b: number) {
-      return a + b;
-    });
+    return elementWiseNumbers(
+      x,
+      y,
+      function (a: number, b: number) {
+        return a + b;
+      },
+      x.shape,
+    );
   }
 }
 
@@ -640,32 +725,50 @@ export function _base_matrix_minus(x: RawMatrix, y: RawMatrix): RawMatrix {
       x.nrRows,
       y.nrColumns,
       "CCS",
+      x.shape,
     );
   } else {
-    return elementWiseNumbers(x, y, function (a: number, b: number) {
-      return a - b;
-    });
+    return elementWiseNumbers(
+      x,
+      y,
+      function (a: number, b: number) {
+        return a - b;
+      },
+      x.shape,
+    );
   }
 }
 
 export function _base_matrix_negative(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return -val;
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return -val;
+    },
+    x.shape,
+  );
 }
 
 export function _base_matrix_scale(x: RawMatrix, y: RawMatrix): RawMatrix {
   const factor = getNumber(x, 0, 0);
-  return unaryNumbers(y, function (val: number): number {
-    return factor * val;
-  });
+  return unaryNumbers(
+    y,
+    function (val: number): number {
+      return factor * val;
+    },
+    y.shape.scale(x.shape),
+  );
 }
 
 export function _base_matrix_rscale(x: RawMatrix, y: RawMatrix): RawMatrix {
   const factor = getNumber(y, 0, 0);
-  return unaryNumbers(x, function (val: number): number {
-    return factor * val;
-  });
+  return unaryNumbers(
+    x,
+    function (val: number): number {
+      return factor * val;
+    },
+    x.shape.scale(y.shape),
+  );
 }
 
 export function _base_matrix_scale_down(x: RawMatrix, y: RawMatrix): RawMatrix {
@@ -678,42 +781,62 @@ export function _base_matrix_total(x: RawMatrix): RawMatrix {
   for (const value of values) {
     total += value;
   }
-  const result = zeroNumbers(1, 1);
+  const result = zeroNumbers(1, 1, MatrixShape.scalar(x.shape.multiplier));
   set(result, 0, 0, total);
   return result;
 }
 
 export function _base_matrix_mod(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return elementWiseNumbers(x, y, function (a: number, b: number) {
-    if (b === 0) {
-      return a;
-    } else {
-      const rem = a % b;
-      return rem < 0 ? rem + Math.abs(b) : rem;
-    }
-  });
+  return elementWiseNumbers(
+    x,
+    y,
+    function (a: number, b: number) {
+      if (b === 0) {
+        return a;
+      } else {
+        const rem = a % b;
+        return rem < 0 ? rem + Math.abs(b) : rem;
+      }
+    },
+    x.shape,
+  );
 }
 
 export function _base_matrix_abs_min(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return elementWiseNumbers(x, y, function (a: number, b: number) {
-    if (b === 0) {
-      return a;
-    } else {
-      return a - b * Math.round(a / b);
-    }
-  });
+  return elementWiseNumbers(
+    x,
+    y,
+    function (a: number, b: number) {
+      if (b === 0) {
+        return a;
+      } else {
+        return a - b * Math.round(a / b);
+      }
+    },
+    x.shape,
+  );
 }
 
 export function _base_matrix_rem(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return elementWiseNumbers(x, y, function (a: number, b: number) {
-    return b === 0 ? a : a % b;
-  });
+  return elementWiseNumbers(
+    x,
+    y,
+    function (a: number, b: number) {
+      return b === 0 ? a : a % b;
+    },
+    x.shape,
+  );
 }
 
 export function _base_matrix_div(x: RawMatrix, y: RawMatrix): RawMatrix {
-  return elementWiseNumbers(x, y, function (a: number, b: number) {
-    return b === 0 ? 0 : Math.trunc(a / b);
-  });
+  return elementWiseNumbers(
+    x,
+    y,
+    function (a: number, b: number) {
+      return b === 0 ? 0 : Math.trunc(a / b);
+    },
+    x.shape.mult(y.shape.reciprocal()),
+  );
 }
 
 export function _base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
@@ -722,6 +845,7 @@ export function _base_matrix_max(x: RawMatrix, y: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -731,6 +855,7 @@ export function _base_matrix_min(x: RawMatrix, y: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -740,6 +865,7 @@ export function _base_matrix_sin(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape.dimensionless(),
   );
 }
 
@@ -749,6 +875,7 @@ export function _base_matrix_cos(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape.dimensionless(),
   );
 }
 
@@ -758,6 +885,7 @@ export function _base_matrix_tan(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape.dimensionless(),
   );
 }
 
@@ -767,6 +895,7 @@ export function _base_system__asin(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -776,6 +905,7 @@ export function _base_system__acos(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -785,6 +915,7 @@ export function _base_system__atan(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -794,37 +925,58 @@ export function _base_system__atan2(x: RawMatrix, y: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape.dimensionless(),
   );
 }
 
 export function _base_matrix_floor(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.floor(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.floor(val);
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_ceiling(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.ceil(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.ceil(val);
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_truncate(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.trunc(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.trunc(val);
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_round(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.round(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.round(val);
+    },
+    x.shape.dimensionless(),
+  );
 }
 
 export function _base_matrix_abs(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.abs(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.abs(val);
+    },
+    x.shape,
+  );
 }
 
 export function _base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
@@ -835,7 +987,13 @@ export function _base_matrix_mexpt(x: RawMatrix, y: RawMatrix): RawMatrix {
     return x;
   } else if (n < 0) {
     return _base_matrix_mexpt(
-      tagMatrix(numeric.inv(getFullNumbers(x)), x.nrColumns, x.nrRows, "full"),
+      tagMatrix(
+        numeric.inv(getFullNumbers(x)),
+        x.nrColumns,
+        x.nrRows,
+        "full",
+        x.shape,
+      ),
       // _base_matrix_solve(x, _base_matrix_left_identity(x)),
       _base_matrix_negative(y),
     );
@@ -855,14 +1013,21 @@ export function _base_matrix_expt(x: RawMatrix, y: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
 export function _base_matrix_log(x: RawMatrix, y: RawMatrix): RawMatrix {
   const yLogged = numeric.log(getFullNumbers(y));
-  const yLog = initialNumbers(1, 1, [[0, 0, yLogged[0][0]]]);
+  const yLog = dimlessScalar(yLogged[0][0]);
   return _base_matrix_scale_down(
-    tagMatrix(numeric.log(getFullNumbers(x)), x.nrRows, x.nrColumns, "full"),
+    tagMatrix(
+      numeric.log(getFullNumbers(x)),
+      x.nrRows,
+      x.nrColumns,
+      "full",
+      x.shape,
+    ),
     yLog,
   );
 }
@@ -873,6 +1038,7 @@ export function _base_matrix_exp(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -882,6 +1048,7 @@ export function _base_matrix_ln(x: RawMatrix): RawMatrix {
     x.nrRows,
     x.nrColumns,
     "full",
+    x.shape,
   );
 }
 
@@ -930,15 +1097,23 @@ export function _base_matrix_greater_eq(x: RawMatrix, y: RawMatrix): RawBoole {
 }
 
 export function _base_matrix_sqrt(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.sqrt(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.sqrt(val);
+    },
+    x.shape.expt(1 / 2), // do we need fractions? See MVM.
+  );
 }
 
 export function _base_matrix_cbrt(x: RawMatrix): RawMatrix {
-  return unaryNumbers(x, function (val: number) {
-    return Math.cbrt(val);
-  });
+  return unaryNumbers(
+    x,
+    function (val: number) {
+      return Math.cbrt(val);
+    },
+    x.shape.expt(1 / 3), // do we need fractions? See MVM.
+  );
 }
 
 export function _base_matrix_qr_decomposition(A: RawMatrix): RawTuple {
@@ -949,8 +1124,8 @@ export function _base_matrix_qr_decomposition(A: RawMatrix): RawTuple {
   const m = A.nrRows;
   const n = A.nrColumns;
 
-  const Qmat = zeroNumbers(m, n);
-  const Rmat = zeroNumbers(n, n);
+  const Qmat = zeroNumbers(m, n, A.shape.leftIdentity());
+  const Rmat = zeroNumbers(n, n, A.shape);
 
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
@@ -977,9 +1152,9 @@ export function _base_matrix_plu_decomposition(x: RawMatrix): RawTuple {
   const m = x.nrRows;
   const n = x.nrColumns;
 
-  const Pmat = zeroNumbers(m, m);
-  const Lmat = zeroNumbers(m, n);
-  const Umat = zeroNumbers(n, n);
+  const Pmat = zeroNumbers(m, m, x.shape.leftIdentity());
+  const Lmat = zeroNumbers(m, n, x.shape.leftIdentity());
+  const Umat = zeroNumbers(n, n, x.shape);
 
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
@@ -1020,8 +1195,8 @@ export function _base_matrix_eigenvalue_decomposition(A: RawMatrix): RawTuple {
 
   const n = A.nrRows;
 
-  const Dmat = zeroNumbers(n, n);
-  const Vmat = zeroNumbers(n, n);
+  const Dmat = zeroNumbers(n, n, A.shape);
+  const Vmat = zeroNumbers(n, n, A.shape);
 
   for (let i = 0; i < n; i++) {
     for (let j = 0; j < n; j++) {
@@ -1055,10 +1230,20 @@ export function _base_matrix_eigenvalue_list(A: RawMatrix): RawList {
   const tuples = [];
 
   for (let j = 0; j < n; j++) {
-    const realEv = initialNumbers(1, 1, [[0, 0, d[j]]]);
-    const imagEv = initialNumbers(1, 1, [[0, 0, e[j]]]);
+    const realEv = initialNumbers(
+      1,
+      1,
+      [[0, 0, d[j]]],
+      MatrixShape.scalar(A.shape.multiplier),
+    );
+    const imagEv = initialNumbers(
+      1,
+      1,
+      [[0, 0, e[j]]],
+      MatrixShape.scalar(A.shape.multiplier),
+    );
 
-    const vec = zeroNumbers(n, 1);
+    const vec = zeroNumbers(n, 1, A.shape.row());
 
     for (let i = 0; i < n; i++) {
       set(vec, i, 0, V[i][j]);
@@ -1091,7 +1276,7 @@ export function _base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
     EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns),
   );
 
-  let inv = zeroNumbers(x.nrColumns, x.nrRows);
+  let inv = zeroNumbers(x.nrColumns, x.nrRows, x.shape.dim_inv());
   for (const elt of svd) {
     // This loop swaps storage 2 and 3
     const tup = elt;
@@ -1142,6 +1327,9 @@ export function _base_matrix_singular_value_list(A: RawMatrix): RawList {
   const m = needsTranspose ? A.nrColumns : A.nrRows;
   const n = needsTranspose ? A.nrRows : A.nrColumns;
 
+  const lShape = needsTranspose ? A.shape.column().reciprocal() : A.shape.row();
+  const rShape = needsTranspose ? A.shape.row() : A.shape.column().reciprocal();
+
   const full = getFullNumbers(needsTranspose ? _base_matrix_transpose(A) : A);
 
   if (FLAG_JAMA_SVD) {
@@ -1156,15 +1344,20 @@ export function _base_matrix_singular_value_list(A: RawMatrix): RawList {
     const tuples = [];
 
     for (let j = 0; j < r; j++) {
-      const sv = initialNumbers(1, 1, [[0, 0, s[j]]]);
+      const sv = initialNumbers(
+        1,
+        1,
+        [[0, 0, s[j]]],
+        MatrixShape.scalar(A.shape.multiplier),
+      );
 
-      const left = zeroNumbers(m, 1);
+      const left = zeroNumbers(m, 1, lShape);
 
       for (let i = 0; i < m; i++) {
         set(left, i, 0, U[i][j]);
       }
 
-      const right = zeroNumbers(n, 1);
+      const right = zeroNumbers(n, 1, rShape);
 
       for (let i = 0; i < n; i++) {
         set(right, i, 0, V[i][j]);
@@ -1184,15 +1377,20 @@ export function _base_matrix_singular_value_list(A: RawMatrix): RawList {
     const tuples = [];
 
     for (let j = 0; j < r; j++) {
-      const sv = initialNumbers(1, 1, [[0, 0, trip.S[j]]]);
+      const sv = initialNumbers(
+        1,
+        1,
+        [[0, 0, trip.S[j]]],
+        MatrixShape.scalar(A.shape.multiplier),
+      );
 
-      const left = zeroNumbers(m, 1);
+      const left = zeroNumbers(m, 1, lShape);
 
       for (let i = 0; i < m; i++) {
         set(left, i, 0, trip.U[i][j]);
       }
 
-      const right = zeroNumbers(n, 1);
+      const right = zeroNumbers(n, 1, rShape);
 
       for (let i = 0; i < n; i++) {
         set(right, i, 0, trip.V[i][j]);
@@ -1225,15 +1423,27 @@ export function _base_matrix_cholesky_decomposition(A: RawMatrix): RawMatrix {
 
   const L: number[][] = decomposition.getL();
 
-  return tagMatrix(L, m, n, "full");
+  return tagMatrix(
+    L,
+    m,
+    n,
+    "full",
+    new MatrixShape(
+      A.shape.multiplier.expt(1 / 2),
+      A.shape.rowDimension,
+      A.shape.rowUnit,
+      A.shape.columnDimension,
+      SIVector.ONE,
+    ),
+  );
 }
 
 export function _base_matrix_random(): RawMatrix {
-  return tagMatrix([[Math.random()]], 1, 1, "full");
+  return tagMatrix([[Math.random()]], 1, 1, "full", DIMLESS_SCALAR);
 }
 
 export function _base_matrix_ranking(x: RawMatrix): RawMatrix {
-  const result = zeroNumbers(x.nrRows, x.nrColumns);
+  const result = zeroNumbers(x.nrRows, x.nrColumns, x.shape.dimensionless());
   const numbers = getCOONumbers(x);
   const rows = numbers[0];
   const columns = numbers[1];
@@ -1254,8 +1464,8 @@ export function _base_matrix_ranking(x: RawMatrix): RawMatrix {
   return result;
 }
 
-export function _base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
-  const result = zeroNumbers(x.nrRows, x.nrColumns);
+export function _base_system__mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
+  const result = zeroNumbers(x.nrRows, x.nrColumns, x.shape);
   const numbers = getCOONumbers(x);
   const rows = numbers[0];
   const columns = numbers[1];
@@ -1268,7 +1478,10 @@ export function _base_list_mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
       row,
       columns[i],
       getNumber(
-        fun.call(fun, tagMatrix([[values[i]]], 1, 1, "full")) as RawMatrix,
+        fun.call(
+          fun,
+          tagMatrix([[values[i]]], 1, 1, "full", DIMLESS_SCALAR),
+        ) as RawMatrix,
         0,
         0,
       ),
@@ -1326,7 +1539,7 @@ export function _base_list_naturals(num: RawMatrix): RawList {
   const n = getNumber(num, 0, 0);
   const list = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
-    list[i] = initialNumbers(1, 1, [[0, 0, i]]);
+    list[i] = dimlessScalar(i);
   }
   return tagList(list);
 }
@@ -1344,7 +1557,7 @@ export function _base_list_loop_list(
 }
 
 export function _base_list_list_size(x: RawList): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, x.length]]);
+  return dimlessScalar(x.length);
 }
 
 export function _base_list_head(x: RawList): RawValue {
@@ -1390,7 +1603,7 @@ export function _base_set_empty_set(): RawSet {
 }
 
 export function _base_set_set_size(x: RawSet): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, x.size]]);
+  return dimlessScalar(x.size);
 }
 
 export function _base_set_loop_set(
@@ -1551,7 +1764,9 @@ export function _base_string_format(formatter: RawValue, ...args: RawValue[]) {
 
               if (mat.kind === "matrix") {
                 if (mat.nrRows === 1 && mat.nrColumns === 1) {
-                  const txt = getNumber(mat, 0, 0).toFixed(nrDecs);
+                  const value = getNumber(mat, 0, 0).toFixed(nrDecs);
+                  const unit = mat.shape.unitAt(0, 0).toText();
+                  const txt = unit === "1" ? value : value + " " + unit;
                   out += size === null ? txt : txt.padStart(size, " ");
                 } else {
                   // // FIXME: replace this quick and dirty solution with proper matrix formatting
@@ -1611,7 +1826,7 @@ let PRECISION = 14;
 // }
 
 export function _base_system__nr_decimals(): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, NR_DECIMALS]]);
+  return dimlessScalar(NR_DECIMALS);
 }
 
 export function _base_system__set_nr_decimals(num: RawMatrix): PacioliVoid {
@@ -1620,7 +1835,7 @@ export function _base_system__set_nr_decimals(num: RawMatrix): PacioliVoid {
 }
 
 export function _base_system__precision(): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, PRECISION]]);
+  return dimlessScalar(PRECISION);
 }
 
 export function _base_system__set_precision(num: RawMatrix): PacioliVoid {
@@ -1669,7 +1884,7 @@ export function _base_string_compare_string(
   x: RawString,
   y: RawString,
 ): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, x.localeCompare(y)]]);
+  return dimlessScalar(x.localeCompare(y));
 }
 
 export function _base_string_concatenate(
@@ -1699,7 +1914,7 @@ export function _base_string_char_at(
 }
 
 export function _base_string_string_length(x: RawString): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, x.length]]);
+  return dimlessScalar(x.length);
 }
 
 export function _base_string_pad(
@@ -1718,11 +1933,11 @@ export function _base_string_trim(x: RawString): RawString {
 }
 
 export function _base_string_parse_num(x: RawString): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, Number(x)]]);
+  return dimlessScalar(Number(x));
 }
 
 export function _base_system__system_time(): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, Date.now()]]);
+  return dimlessScalar(Date.now());
 }
 
 export function _base_array_make_array(n: RawMatrix): RawArray {
@@ -1743,7 +1958,7 @@ export function _base_array_array_put(
 }
 
 export function _base_array_array_size(arr: RawArray): RawMatrix {
-  return initialNumbers(1, 1, [[0, 0, arr.length]]);
+  return dimlessScalar(arr.length);
 }
 
 export function _base_map_empty_map(): RawMap {

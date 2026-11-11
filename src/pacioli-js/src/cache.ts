@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import type { DimNum, SIUnit } from "uom-ts";
+import { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { IndexSet } from "./values/index-set";
 import { set } from "./raw-values/raw-matrix";
@@ -39,6 +39,7 @@ import type { PacioliValue } from "./values/pacioli-value";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
 import type { RawMatrix } from "./raw-values/raw-matrix";
+import { MatrixShape } from "./values/matrix-shape";
 
 export const defaultContext = PacioliContext.empty();
 
@@ -77,13 +78,21 @@ export function createCoordinates(
 //     return result;
 // }
 
-export function zeroNumbers(m: number, n: number): RawMatrix {
-  return tagMatrix([], m, n, "DOK");
+export function zeroNumbers(
+  m: number,
+  n: number,
+  shape: MatrixShape,
+): RawMatrix {
+  return tagMatrix([], m, n, "DOK", shape);
 }
 
 // No longer needs to export this since oneNumbersFromShape is used.
-export function oneNumbers(m: number, n: number): RawMatrix {
-  const numbers = tagMatrix([], m, n, "DOK");
+export function oneNumbers(
+  m: number,
+  n: number,
+  shape: MatrixShape,
+): RawMatrix {
+  const numbers = tagMatrix([], m, n, "DOK", shape);
   for (let i = 0; i < m; i++) {
     for (let j = 0; j < n; j++) {
       set(numbers, i, j, 1);
@@ -106,7 +115,7 @@ export function oneNumbersFromShape(
   context: PacioliContext = defaultContext,
 ): RawMatrix {
   const shape = matrixShapeFromType(type, context);
-  const numbers = oneNumbers(shape.nrRows(), shape.nrColumns());
+  const numbers = oneNumbers(shape.nrRows(), shape.nrColumns(), shape);
   numbers.shape = shape;
   return numbers;
 }
@@ -125,13 +134,49 @@ export function initialNumbers(
   m: number,
   n: number,
   data: number[][],
+  shape: MatrixShape,
 ): RawMatrix {
+  if (shape === undefined) {
+    debugger;
+  }
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
-  const numbers = tagMatrix([], m, n, "DOK");
+  const numbers = tagMatrix(
+    [],
+    m,
+    n,
+    "DOK",
+    shape, //matrixShapeFromType(type, defaultContext), // How to get context?
+  );
   for (const datum of data) {
     set(numbers, datum[0], datum[1], datum[2]);
   }
+  return numbers;
+}
+
+export function initialNumbersFromType(
+  m: number,
+  n: number,
+  data: number[][],
+  type: MatrixType,
+  context: PacioliContext = defaultContext,
+): RawMatrix {
+  if (type === undefined) {
+    debugger;
+  }
+  const shape = matrixShapeFromType(type, context);
+  // Use an efficient representation. DOK!? And probably there is already
+  // some function to do this. See e.g. the make_matrix implementation.
+  const numbers = tagMatrix([], m, n, "DOK", shape);
+  for (const datum of data) {
+    set(numbers, datum[0], datum[1], datum[2]);
+  }
+  return numbers;
+}
+
+export function dimlessScalar(value: number): RawMatrix {
+  const numbers = tagMatrix([], 1, 1, "DOK", MatrixShape.scalar(SIUnit.ONE));
+  set(numbers, 0, 0, value);
   return numbers;
 }
 

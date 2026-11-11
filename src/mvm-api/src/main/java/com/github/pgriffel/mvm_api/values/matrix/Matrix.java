@@ -27,11 +27,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+
 import com.github.pgriffel.mvm_api.MVMException;
+import com.github.pgriffel.mvm_api.values.Callable;
 import com.github.pgriffel.mvm_api.values.PacioliList;
 import com.github.pgriffel.mvm_api.values.PacioliTuple;
 import com.github.pgriffel.mvm_api.values.PacioliValue;
@@ -820,7 +823,7 @@ public class Matrix implements PacioliValue {
     }
 
     public PacioliValue cbrt() throws MVMException {
-        Matrix matrix = new Matrix(shape.sqrt());
+        Matrix matrix = new Matrix(shape.raise(new Fraction(1, 3)));
         for (int i = 0; i < nrRows(); i++) {
             for (int j = 0; j < nrColumns(); j++) {
                 double num2 = numbers.getEntry(i, j);
@@ -1422,6 +1425,26 @@ public class Matrix implements PacioliValue {
             if (value != 0) {
                 int pos = matrix.rowDimension().ElementPos(keys.get(i).projectNames(cols));
                 matrix.numbers.setEntry(pos, 0, matrix.numbers.getEntry(pos, 0) + value);
+            }
+        }
+        return matrix;
+    }
+
+    public PacioliValue mapnz(Callable fun) throws MVMException {
+        Matrix matrix = new Matrix(shape);
+        Matrix arg = new Matrix(0);
+        List<PacioliValue> args = Arrays.asList(arg);
+
+        for (int i = 0; i < nrRows(); i++) {
+            for (int j = 0; j < nrColumns(); j++) {
+                var val = numbers.getEntry(i, j);
+                if (val == 0) {
+                    matrix.numbers.setEntry(i, j, val);
+                } else {
+                    arg.numbers.setEntry(0, 0, val);
+                    Matrix mapped = (Matrix) fun.apply(args);
+                    matrix.numbers.setEntry(i, j, mapped.numbers.getEntry(0, 0));
+                }
             }
         }
         return matrix;

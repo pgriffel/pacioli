@@ -514,6 +514,14 @@ public class Primitives {
             }
         });
 
+        storePrimitive(store, new Primitive("system__mapnz") {
+            public PacioliValue apply(List<PacioliValue> params) throws MVMException {
+                Callable fun = (Callable) params.get(0);
+                Matrix mat = (Matrix) params.get(1);
+                return mat.mapnz(fun);
+            }
+        });
+
         storePrimitive(store, new Primitive("matrix_gcd") {
             public PacioliValue apply(List<PacioliValue> params) throws MVMException {
                 Matrix x = (Matrix) params.get(0);

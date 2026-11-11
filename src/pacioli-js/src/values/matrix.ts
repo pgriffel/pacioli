@@ -84,7 +84,13 @@ export class PacioliMatrix {
     const unitShape = MatrixShape.scalar(unit);
     return new PacioliMatrix(
       this.shape.dimensionless().scale(unitShape),
-      convert_unit(this.numbers, this.shape, unit, context),
+      convert_unit(
+        this.numbers,
+        this.shape,
+        unit,
+        context,
+        this.shape.dimensionless().scale(unitShape),
+      ),
     );
   }
 
@@ -233,6 +239,7 @@ export function filter_matrix(
     m,
     n,
     "COO",
+    numbers.shape,
   );
 }
 
@@ -245,6 +252,7 @@ export function convert_unit(
   shape: MatrixShape,
   unit: SIUnit,
   context: Context,
+  huh: MatrixShape,
 ) {
   const m = numbers.nrRows;
   const n = numbers.nrColumns;
@@ -264,7 +272,7 @@ export function convert_unit(
     );
     convertedValues.push(values[i] * factor.toNumber());
   }
-  return tagMatrix([rows, columns, convertedValues], m, n, "COO");
+  return tagMatrix([rows, columns, convertedValues], m, n, "COO", huh);
 }
 
 /**
@@ -317,6 +325,7 @@ export function reorderMatrix(
     reorderedShape.nrRows(),
     reorderedShape.nrColumns(),
     "COO",
+    matrix.shape,
   );
 
   return new PacioliMatrix(reorderedShape, rawMatrix);

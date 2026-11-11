@@ -145,7 +145,7 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         if (value.equals("true") || value.equals("false")) {
             out.format("%s", value);
         } else {
-            out.format("Pacioli.initialNumbers(1, 1, [[0, 0, %s]])", value);
+            out.format("Pacioli.dimlessScalar(%s)", value);
         }
     }
 
@@ -253,9 +253,10 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
             builder.append("]");
             sep = ",";
         }
-        out.format("Pacioli.initialNumbers(%s, %s, [%s])",
+        out.format("Pacioli.initialNumbersFromType(%s, %s, [%s], %s)",
                 node.rowDim.size(), node.columnDim.size(),
-                builder.toString());
+                builder.toString(),
+                node.evalType().compileToJS());
     }
 
     @Override

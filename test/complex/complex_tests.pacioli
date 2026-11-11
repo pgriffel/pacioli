@@ -121,10 +121,10 @@ define rotation_test_suite(description, test_numbers) =
 # ------------------------------------------------------------------------------
 
 define complex_scalar_inverse_suite =
-    inverse_suite("inverse for dimensionless scalars", random_complex_1_by_1_matrix, 5*|decimals|);
+    inverse_suite("inverse for dimensionless complex scalars", random_complex_1_by_1_matrix, 5*|decimals|);
 
 define complex_matrix_inverse_suite =
-    inverse_suite("inverse for matrices", () -> random_complex_4_by_4_matrix(), 2*|decimals|);
+    inverse_suite("inverse for complex matrices", () -> random_complex_4_by_4_matrix(), 2*|decimals|);
 
 define random_complex_1_by_1_matrix() = make_matrix_complex(random_1_by_1_matrix(),
                                             random_1_by_1_matrix());
@@ -165,7 +165,7 @@ define inverse_suite(description, matrix_generator, precision) = test_suite(desc
 
 
 define complex_matrix_svd_suite =
-    complex_svd_suite("svd for matrices", () -> random_complex_4_by_3_matrix(), 13*|decimals|);
+    complex_svd_suite("svd for complex matrices", () -> random_complex_4_by_3_matrix(), 13*|decimals|);
 
 
 define complex_svd_suite(description, matrix_generator, precision) = test_suite(description, [

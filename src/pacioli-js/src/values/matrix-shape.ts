@@ -195,15 +195,15 @@ export class MatrixShape {
   //     return result;
   //   }
 
-  // Pacioli.Shape.prototype.expt = function (power) {
-  //     var result = new Pacioli.Shape();
-  //     result.multiplier = this.multiplier.expt(power)
-  //     result.rowSets = this.rowSets
-  //     result.columnSets = this.columnSets
-  //     result.rowUnit = this.rowUnit.expt(power)
-  //     result.columnUnit = this.columnUnit.expt(power)
-  //     return result;
-  //   }
+  public expt(num: number): MatrixShape {
+    return new MatrixShape(
+      this.multiplier.expt(num),
+      this.rowDimension,
+      this.rowUnit.expt(num),
+      this.columnDimension,
+      this.columnUnit.expt(num),
+    );
+  }
 
   // Pacioli.Shape.prototype.scale = function (factor) {
   //     var result = new Pacioli.Shape();
@@ -219,23 +219,23 @@ export class MatrixShape {
   //     return this.mult(other.reciprocal())
   //   }
 
-  // Pacioli.Shape.prototype.dim_inv = function () {
-  //     return this.transpose().reciprocal()
-  //   }
+  public dim_inv() {
+    return this.transpose().reciprocal();
+  }
 
-  // Pacioli.Shape.prototype.per = function (other) {
-  //     return this.dot(other.dim_inv())
-  //   }
+  public per(other: MatrixShape) {
+    return this.dot(other.dim_inv());
+  }
 
-  // Pacioli.Shape.prototype.leftIdentity = function () {
-  //     var row = this.row()
-  //     return row.per(row)
-  //   }
+  public leftIdentity() {
+    const row = this.row();
+    return row.per(row);
+  }
 
-  // Pacioli.Shape.prototype.rightIdentity = function () {
-  //     var column = this.column()
-  //     return column.per(column)
-  //   }
+  public rightIdentity() {
+    const column = this.column();
+    return column.per(column);
+  }
 
   public dimensionless() {
     return new MatrixShape(
@@ -253,19 +253,25 @@ export class MatrixShape {
   //     return result;
   //   }
 
-  // Pacioli.Shape.prototype.row = function () {
-  //     var result = new Pacioli.Shape();
-  //     result.rowSets = this.rowSets
-  //     result.rowUnit = this.rowUnit
-  //     return result;
-  //   }
+  public row() {
+    return new MatrixShape(
+      SIUnit.ONE,
+      this.rowDimension,
+      this.rowUnit,
+      MatrixDimension.empty(),
+      SIVector.ONE,
+    );
+  }
 
-  // Pacioli.Shape.prototype.column = function () {
-  //     var result = new Pacioli.Shape();
-  //     result.columnSets = this.columnSets
-  //     result.columnUnit = this.columnUnit
-  //     return result;
-  //   }
+  public column() {
+    return new MatrixShape(
+      SIUnit.ONE,
+      this.columnDimension,
+      this.columnUnit,
+      MatrixDimension.empty(),
+      SIVector.ONE,
+    );
+  }
 
   public nrRows() {
     let count = 1;

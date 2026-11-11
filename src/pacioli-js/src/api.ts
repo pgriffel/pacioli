@@ -147,9 +147,12 @@ export function num(
   unit: SIUnit = SIUnit.ONE,
 ): PacioliMatrix {
   const shape = MatrixShape.scalar(unit);
-  const numbers = initialNumbers(1, 1, [
-    [0, 0, typeof num === "string" ? Number.parseFloat(num) : num],
-  ]);
+  const numbers = initialNumbers(
+    1,
+    1,
+    [[0, 0, typeof num === "string" ? Number.parseFloat(num) : num]],
+    shape,
+  );
   return new PacioliMatrix(shape, numbers);
 }
 
