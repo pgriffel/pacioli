@@ -54,7 +54,8 @@ export
     precision,
     set_precision,
     row_coordinates,
-    column_coordinates;
+    column_coordinates,
+    mapnz;
 
 # ----------------------------------------------------------------------------
 # Precision
@@ -559,3 +560,26 @@ define coord_map(keys) =
     in
         (i) -> array_get(map, mod(i, n))
     end;
+
+# ----------------------------------------------------------------------------
+# The mapnz function
+# ----------------------------------------------------------------------------
+
+doc mapnz
+    "Maps only the non-zero matrix elements. Experiment for more efficient
+    handling of sparse matrices.";
+
+declare mapnz ::
+  for_index P, Q: for_unit a, b: ((a) -> b, a*P! per Q!) -> b*P! per Q!;
+
+define mapnz(fun, A) =
+  let
+    # Could also do this in the implementation. By doing it here, the
+    # implementations do not have to handle the unit. Function _mapnz 
+    # leaves the unit unchanged, so the implementations can just pass the 
+    # input shape as output shape.
+    u = scalar_unit(A),
+    o = scalar_unit(fun(u))
+  in
+    o '.*' _mapnz((x) -> fun(x*u)/o, A '/.' u)
+  end;

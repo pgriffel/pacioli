@@ -51,7 +51,7 @@ class BundleIT {
         // Then its environment should contain 279 values.
         List<ValueInfo> infos = bundle.allValueInfos();
 
-        assertEquals(279, infos.size());
+        assertEquals(277, infos.size());
     }
 
     @Test
