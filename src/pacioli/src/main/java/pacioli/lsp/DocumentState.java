@@ -320,20 +320,22 @@ public class DocumentState {
         return index;
     }
 
-    static private SemanticTokens buildSemanticTokens(Bundle bundle,
+    static private SemanticTokens buildSemanticTokens(
+            Bundle bundle,
             Map<Integer, List<IdentifierInfo>> identifierIndex) {
         List<IdentifierInfo> infos = new ArrayList<>();
+
         for (List<IdentifierInfo> records : identifierIndex.values()) {
             for (IdentifierInfo idInfo : records) {
                 infos.add(idInfo);
             }
         }
-        var comp = new Location.LocationComparator();
-        infos.sort((x, y) -> comp.compare(x.location(), y.location()));
-        // return infos;
+
+        infos.sort((x, y) -> x.location().compareTo(y.location()));
 
         int lastLine = 0;
         int lastColumn = 0;
+
         List<Integer> encodingQuintuples = new ArrayList<>();
 
         for (IdentifierInfo idInfo : infos) {

@@ -95,8 +95,8 @@ class CollectReferencesToolIT {
 
         // And the elements should have the correct locations
         assertRefEquals(refs.get(0).getAsJsonObject(), bomFile.getCanonicalPath(), 84, 10);
-        assertRefEquals(refs.get(1).getAsJsonObject(), bomFile.getCanonicalPath(), 109, 15);
-        assertRefEquals(refs.get(2).getAsJsonObject(), bomFile.getCanonicalPath(), 103, 12);
+        assertRefEquals(refs.get(1).getAsJsonObject(), bomFile.getCanonicalPath(), 103, 12);
+        assertRefEquals(refs.get(2).getAsJsonObject(), bomFile.getCanonicalPath(), 109, 15);
         assertRefEquals(refs.get(3).getAsJsonObject(), bomFile.getCanonicalPath(), 132, 56);
 
         // Teardown

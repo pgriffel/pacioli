@@ -23,6 +23,7 @@
 package pacioli.mcp.tools;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +54,7 @@ public class LocateReferencesTool {
             throw new MCPException("missing 'name' argument");
         }
 
+        // Location the file, load it into a Bundle and build a ReferencesTable
         String path = args.get("file").getAsString();
         String name = args.get("name").getAsString();
 
@@ -62,52 +64,58 @@ public class LocateReferencesTool {
 
         ReferencesTable refTable = bundle.buildReferencesTable();
 
-        List<ReferencesTable.Entry> valueRefs = refTable.getValueReferences(name);
+        // Collect the references into a JsonArray. Can be type or value references
         List<ReferencesTable.Entry> typeRefs = refTable.getTypeReferences(name);
+        List<ReferencesTable.Entry> valueRefs = refTable.getValueReferences(name);
 
-        if (valueRefs == null && typeRefs == null) {
+        if (typeRefs == null && valueRefs == null) {
             throw new MCPException(String.format("Name '%s' does not exist in file %s", name, file.module()));
         }
 
-        var arr = new com.google.gson.JsonArray();
-
-        if (valueRefs != null) {
-            for (ReferencesTable.Entry ref : valueRefs) {
-                Location loc = ref.location();
-
-                JsonObject s = new JsonObject();
-
-                s.addProperty("file", loc.fsFile().get().getCanonicalFile().toString());
-                s.addProperty("startLine", loc.fromLine);
-                s.addProperty("startColumn", loc.fromColumn);
-                s.addProperty("kind", "value");
-
-                arr.add(s);
-            }
-        }
+        var jsonArray = new com.google.gson.JsonArray();
 
         if (typeRefs != null) {
-            for (ReferencesTable.Entry ref : typeRefs) {
-                Location loc = ref.location();
-
-                JsonObject s = new JsonObject();
-
-                s.addProperty("file", loc.fsFile().get().getCanonicalFile().toString());
-                s.addProperty("startLine", loc.fromLine);
-                s.addProperty("startColumn", loc.fromColumn);
-                s.addProperty("kind", "type");
-
-                arr.add(s);
-            }
+            typeRefs.stream()
+                    .map(ref -> ref.location())
+                    .sorted()
+                    .map(loc -> refToJson(loc, "type"))
+                    .forEach(json -> jsonArray.add(json));
         }
 
-        var res = new com.google.gson.JsonObject();
+        if (valueRefs != null) {
+            valueRefs.stream()
+                    .map(ref -> ref.location())
+                    .sorted()
+                    .map(loc -> refToJson(loc, "value"))
+                    .forEach(json -> jsonArray.add(json));
+        }
 
-        res.add("references", arr);
+        var envelope = new com.google.gson.JsonObject();
+
+        envelope.add("references", jsonArray);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-        return gson.toJson(res);
+        return gson.toJson(envelope);
 
+    }
+
+    static JsonObject refToJson(Location loc, String kind) {
+        String fileName;
+
+        try {
+            fileName = loc.fsFile().get().getCanonicalFile().toString();
+        } catch (IOException e) {
+            fileName = "unknown";
+        }
+
+        JsonObject s = new JsonObject();
+
+        s.addProperty("file", fileName);
+        s.addProperty("startLine", loc.fromLine);
+        s.addProperty("startColumn", loc.fromColumn);
+        s.addProperty("kind", kind);
+
+        return s;
     }
 }
