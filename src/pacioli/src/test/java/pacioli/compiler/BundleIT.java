@@ -97,13 +97,13 @@ class BundleIT {
         assertTrue(allNamesCorrect);
 
         String usedNames = referencesTable.getValueReferences(name).stream()
-                .map(x -> {
-                    return x.location().fsFile().orElseThrow().getName() + ":" +
-                            x.location().fromLine;
-                })
+                .map(ReferencesTable.Entry::location)
+                .sorted()
+                .map(x -> x.fsFile().orElseThrow().getName() + ":" + x.asText())
                 .collect(Collectors.joining(","));
 
-        assertEquals("bom.pacioli:103,bom.pacioli:84,bom.pacioli:109,bom.pacioli:132",
+        assertEquals(
+                "bom.pacioli:l84c10-l84c13,bom.pacioli:l103c12-l103c15,bom.pacioli:l109c15-l109c18,bom.pacioli:l132c56-l132c59",
                 usedNames);
     }
 
@@ -127,15 +127,15 @@ class BundleIT {
         assertTrue(allNamesCorrect);
 
         String usedNames = referencesTable.getTypeReferences(name).stream()
-                .map(x -> {
-                    return x.location().fsFile().orElseThrow().getName() + ":" +
-                            x.location().fromLine;
-                })
+                .map(ReferencesTable.Entry::location)
+                .sorted()
+                .map(x -> x.fsFile().orElseThrow().getName() + ":" + x.asText())
                 .collect(Collectors.joining(","));
 
         assertEquals(
-                "bom.pacioli:118,bom.pacioli:118,bom.pacioli:100,bom.pacioli:100,bom.pacioli:71,bom.pacioli:71,bom.pacioli:84,bom.pacioli:84,bom.pacioli:112,bom.pacioli:77,bom.pacioli:106,bom.pacioli:106,bom.pacioli:48,bom.pacioli:37,bom.pacioli:59",
+                "bom.pacioli:l37c9-l37c16,bom.pacioli:l48c8-l48c15,bom.pacioli:l59c8-l59c15,bom.pacioli:l71c4-l71c11,bom.pacioli:l71c21-l71c28,bom.pacioli:l77c26-l77c33,bom.pacioli:l84c17-l84c24,bom.pacioli:l84c34-l84c41,bom.pacioli:l100c4-l100c11,bom.pacioli:l100c21-l100c28,bom.pacioli:l106c4-l106c11,bom.pacioli:l106c27-l106c34,bom.pacioli:l112c11-l112c18,bom.pacioli:l118c34-l118c52,bom.pacioli:l118c57-l118c64",
                 usedNames);
+
     }
 
     @Test
@@ -158,14 +158,13 @@ class BundleIT {
         assertTrue(allNamesCorrect);
 
         String usedNames = referencesTable.getTypeReferences(name).stream()
-                .map(x -> {
-                    return x.location().fsFile().orElseThrow().getName() + ":" +
-                            x.location().fromLine;
-                })
+                .map(ReferencesTable.Entry::location)
+                .sorted()
+                .map(x -> x.fsFile().orElseThrow().getName() + ":" + x.asText())
                 .collect(Collectors.joining(","));
 
         assertEquals(
-                "model.pacioli:174,model.pacioli:45,model.pacioli:107,model.pacioli:67,model.pacioli:123,model.pacioli:247,model.pacioli:247,model.pacioli:305,model.pacioli:115,model.pacioli:86,model.pacioli:45",
+                "model.pacioli:l45c22-l45c22,model.pacioli:l45c22-l45c27,model.pacioli:l67c17-l67c22,model.pacioli:l86c17-l86c22,model.pacioli:l107c17-l107c22,model.pacioli:l115c17-l115c22,model.pacioli:l123c17-l123c22,model.pacioli:l174c91-l174c96,model.pacioli:l247c17-l247c22,model.pacioli:l247c33-l247c38,model.pacioli:l305c17-l305c22",
                 usedNames);
     }
 }

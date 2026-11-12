@@ -33,7 +33,7 @@ import java.util.Optional;
  * start and end.
  *
  */
-public class Location {
+public class Location implements Comparable<Location> {
 
     private final PacioliFile file;
 
@@ -146,6 +146,10 @@ public class Location {
         this.fromColumn = fromColumn;
         this.toLine = toLine;
         this.toColumn = toColumn;
+    }
+
+    public String asText() {
+        return String.format("l%sc%s-l%sc%s", this.fromLine, this.fromColumn, this.toLine, this.toColumn);
     }
 
     public Location collapse() {
@@ -267,4 +271,14 @@ public class Location {
             return compareLines;
         }
     }
+
+    @Override
+    public int compareTo(Location other) {
+        int compareLines = this.fromLine.compareTo(other.fromLine);
+        if (compareLines == 0) {
+            return this.fromColumn.compareTo(other.fromColumn);
+        }
+        return compareLines;
+    }
+
 }

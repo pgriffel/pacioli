@@ -697,6 +697,18 @@ public class Program {
             }
         }
 
+        // Check the types of dynamic index set definitions. Do we want to do
+        // something with the Substitution that solveSubstitution returns?
+        for (TypeInfo info : prog.types().localInfos()) {
+            if (info instanceof IndexSetInfo i) {
+                IndexSetDefinition definition = i.definition().get();
+                if (definition.isDynamic()) {
+                    Typing typing = definition.body().inferTyping(prog);
+                    typing.solveSubstitution(false);
+                }
+            }
+        }
+
         int i = 0;
         for (Toplevel toplevel : prog.toplevels()) {
 
