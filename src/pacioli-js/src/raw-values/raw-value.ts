@@ -44,7 +44,7 @@ export type RawValue =
   | RawTuple
   | RawArray
   | RawRef
-  | RawCoordinates
+  | PacioliCoordinates
   | RawFunction
   | RawBoole
   | RawString
@@ -105,17 +105,6 @@ export type RawBigNum = PacioliBigNum;
  */
 export interface RawRef extends Array<RawValue> {
   kind: "ref";
-}
-
-/**
- * Type of an unboxed Pacioli coordinates object. Index sets elements are represented by
- * the position in the index set. The size is the size of the index set.
- */
-export interface RawCoordinates {
-  kind: "coordinates";
-  position: number;
-  size: number;
-  coords?: PacioliCoordinates; // TODO: check when it exists. $base_matrix_row_domain does not provide it!
 }
 
 /**

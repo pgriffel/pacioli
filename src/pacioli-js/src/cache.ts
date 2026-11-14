@@ -27,7 +27,7 @@ import { set } from "./raw-values/raw-matrix";
 import type { PacioliType, PacioliUnit } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
-import type { RawCoordinates, RawValue } from "./raw-values/raw-value";
+import type { RawValue } from "./raw-values/raw-value";
 import { stringifyRawValue, tagMatrix } from "./raw-values/raw-value";
 import {
   internUnit,
@@ -55,21 +55,16 @@ export function makeIndexSet(id: string, name: string, items: string[]) {
 export function createCoordinates(
   pairs: string[][],
   context: PacioliContext = defaultContext,
-): RawCoordinates {
+): PacioliCoordinates {
   const names = [];
   const indexSets = [];
+
   for (const [i, pair] of pairs.entries()) {
     names[i] = pair[0];
     indexSets[i] = fetchIndex(pair[1], context);
   }
-  const coords = new PacioliCoordinates(names, indexSets);
-  // added coords for b_Matrix_make_matrix
-  return {
-    kind: "coordinates",
-    position: coords.position(),
-    size: coords.size(),
-    coords: coords,
-  };
+
+  return new PacioliCoordinates(names, indexSets);
 }
 
 // Pacioli.scalarShape = function (unit) {

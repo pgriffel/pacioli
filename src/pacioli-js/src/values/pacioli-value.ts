@@ -31,7 +31,6 @@ import type { PacioliIndex } from "../types/matrix";
 import { IndexType, MatrixType } from "../types/matrix";
 import type {
   RawArray,
-  RawCoordinates,
   RawList,
   RawMap,
   RawTuple,
@@ -208,7 +207,7 @@ export function boxRawValue(
       );
     }
     case "index": {
-      const coord = value as RawCoordinates;
+      const coord = value as PacioliCoordinates;
       const dim = matrixDimensionFromIndex(type, context);
       return PacioliCoordinates.fromIndex(dim.indexSets, coord.position);
     }

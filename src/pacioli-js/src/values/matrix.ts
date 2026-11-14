@@ -24,13 +24,14 @@ import { DimNum } from "uom-ts";
 import type { Context, SIUnit } from "uom-ts";
 import { getCOONumbers, getFullNumbers } from "../raw-values/numbers";
 import { MatrixShape } from "./matrix-shape";
-import { tagMatrix, type RawCoordinates } from "../raw-values/raw-value";
+import { tagMatrix } from "../raw-values/raw-value";
 import type { RawMatrix } from "../raw-values/raw-matrix";
 import { getNumber } from "../raw-values/raw-matrix";
 import type { IndexSet } from "./index-set";
 import type { TableBuilderOptions } from "../table/table-builder";
 import { TableBuilder } from "../table/table-builder";
 import { TableColumn } from "../table/table-column";
+import { PacioliCoordinates } from "./coordinates";
 
 /**
  * A matrix combines a shape and numbers.
@@ -46,9 +47,13 @@ export class PacioliMatrix {
   readonly kind = "matrix";
 
   constructor(
-    public shape: MatrixShape,
+    _: MatrixShape,
     public numbers: RawMatrix,
   ) {}
+
+  public get shape(): MatrixShape {
+    return this.numbers.shape;
+  }
 
   /**
    * Filters the matrix entries. Only entries satisfying the predicate remain.
@@ -57,7 +62,11 @@ export class PacioliMatrix {
    * @returns A new matrix of the same shape
    */
   public filter(
-    predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean,
+    predicate: (
+      value: number,
+      i: PacioliCoordinates,
+      j: PacioliCoordinates,
+    ) => boolean,
   ) {
     return new PacioliMatrix(
       this.shape,
@@ -202,7 +211,11 @@ export function matrixKeyValueList(
  */
 export function filter_matrix(
   numbers: RawMatrix,
-  predicate: (value: number, i: RawCoordinates, j: RawCoordinates) => boolean,
+  predicate: (
+    value: number,
+    i: PacioliCoordinates,
+    j: PacioliCoordinates,
+  ) => boolean,
 ) {
   const m = numbers.nrRows;
   const n = numbers.nrColumns;
@@ -218,22 +231,16 @@ export function filter_matrix(
   const filteredValues = [];
 
   for (const [i, row] of rows.entries()) {
-    const rowCoords = {
-      kind: "coordinates" as const,
-      position: row,
-      size: m,
-    };
-    const columnCoords = {
-      kind: "coordinates" as const,
-      position: columns[i],
-      size: n,
-    };
+    const rowCoords = numbers.shape.rowCoordinates(row);
+    const columnCoords = numbers.shape.columnCoordinates(row);
+
     if (predicate(values[i], rowCoords, columnCoords)) {
       filteredRows.push(row);
       filteredColumns.push(columns[i]);
       filteredValues.push(values[i]);
     }
   }
+
   return tagMatrix(
     [filteredRows, filteredColumns, filteredValues],
     m,
@@ -313,8 +320,8 @@ export function reorderMatrix(
     const reorderedRowCoords = totalCoords.slice(0, rowOrder);
     const reorderedColumnCoords = totalCoords.slice(rowOrder);
 
-    reorderedRows.push(reorderedRowCoords.position());
-    reorderedColumns.push(reorderedColumnCoords.position());
+    reorderedRows.push(reorderedRowCoords.position);
+    reorderedColumns.push(reorderedColumnCoords.position);
     reorderedValues.push(values[i]);
   }
 

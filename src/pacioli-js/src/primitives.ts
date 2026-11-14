@@ -39,7 +39,6 @@ import { RawMap, tagSet } from "./raw-values/raw-value";
 import type {
   RawArray,
   RawBoole,
-  RawCoordinates,
   RawFunction,
   RawList,
   RawRef,
@@ -79,6 +78,7 @@ import {
 import { PacioliError } from "./pacioli-error";
 import { MatrixShape, SIVector } from "./values/matrix-shape";
 import { MatrixDimension } from "./values/matrix-dimension";
+import { PacioliCoordinates } from "./values/coordinates";
 
 // -----------------------------------------------------------------------------
 // 1. Primitive Units Unit Prefixes
@@ -306,7 +306,7 @@ export function _base_matrix_magnitude(x: RawMatrix): RawMatrix {
 
 export function _base_matrix_row(
   x: RawMatrix,
-  coord: RawCoordinates,
+  coord: PacioliCoordinates,
 ): RawMatrix {
   const row = coord.position;
   const shape = new MatrixShape(
@@ -335,28 +335,23 @@ export function _base_matrix_row_unit(x: RawMatrix): RawMatrix {
 
 export function _base_matrix_row_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrRows;
-  const domain = Array.from<RawCoordinates>({ length: n });
+  const domain = Array.from<PacioliCoordinates>({ length: n });
   for (let i = 0; i < n; i++) {
-    domain[i] = {
-      kind: "coordinates",
-      position: i,
-      size: n,
-      coords: matrix.shape.rowCoordinates(i),
-    };
+    domain[i] = matrix.shape.rowCoordinates(i);
   }
   return tagList(domain);
 }
 
 export function _base_matrix_index_less(
-  x: RawCoordinates,
-  y: RawCoordinates,
+  x: PacioliCoordinates,
+  y: PacioliCoordinates,
 ): RawBoole {
   return x.position < y.position;
 }
 
 export function _base_matrix_column(
   x: RawMatrix,
-  coord: RawCoordinates,
+  coord: PacioliCoordinates,
 ): RawMatrix {
   // todo: reconsider this and the _base_matrix_row implementation
   return _base_matrix_transpose(
@@ -368,12 +363,7 @@ export function _base_matrix_column_domain(matrix: RawMatrix): RawList {
   const n = matrix.nrColumns;
   const domain = Array.from<RawValue>({ length: n });
   for (let i = 0; i < n; i++) {
-    domain[i] = {
-      kind: "coordinates",
-      position: i,
-      size: n,
-      coords: matrix.shape.columnCoordinates(i),
-    };
+    domain[i] = matrix.shape.columnCoordinates(i);
   }
   return tagList(domain);
 }
@@ -384,28 +374,28 @@ export function _base_matrix_column_unit(x: RawMatrix): RawMatrix {
 
 export function _base_matrix_get_num(
   matrix: RawMatrix,
-  i: RawCoordinates,
-  j: RawCoordinates,
+  i: PacioliCoordinates,
+  j: PacioliCoordinates,
 ): RawMatrix {
   return get(matrix, i.position, j.position);
 }
 
 export function _base_matrix_get(
   matrix: RawMatrix,
-  i: RawCoordinates,
-  j: RawCoordinates,
+  i: PacioliCoordinates,
+  j: PacioliCoordinates,
 ): RawMatrix {
   return get(matrix, i.position, j.position);
 }
 
 export function _base_matrix_make_matrix(tuples: RawList): RawMatrix {
   const first = tuples[0] as unknown as [
-    RawCoordinates,
-    RawCoordinates,
+    PacioliCoordinates,
+    PacioliCoordinates,
     RawMatrix,
   ];
-  const d1 = new MatrixDimension(first[0].coords!.indexSets);
-  const d2 = new MatrixDimension(first[1].coords!.indexSets);
+  const d1 = new MatrixDimension(first[0].indexSets);
+  const d2 = new MatrixDimension(first[1].indexSets);
   const shape = new MatrixShape(
     first[2].shape.multiplier,
     d1,
@@ -416,7 +406,11 @@ export function _base_matrix_make_matrix(tuples: RawList): RawMatrix {
 
   const numbers = zeroNumbers(first[0].size, first[1].size, shape);
   for (const tuple of tuples) {
-    const tup = tuple as unknown as [RawCoordinates, RawCoordinates, RawMatrix];
+    const tup = tuple as unknown as [
+      PacioliCoordinates,
+      PacioliCoordinates,
+      RawMatrix,
+    ];
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
 

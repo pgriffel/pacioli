@@ -27,8 +27,15 @@ import { MatrixDimension } from "./matrix-dimension";
 import { SIVector } from "./matrix-shape";
 import { MatrixShape } from "./matrix-shape";
 
+/**
+ * Row or column coordinates for a matrix.
+ */
 export class PacioliCoordinates {
   readonly kind = "coordinates";
+
+  // Pre-computed
+  readonly position: number;
+  readonly size: number;
 
   public static fromIndex(indexSets: IndexSet[], n: number) {
     const names: string[] = [];
@@ -42,11 +49,23 @@ export class PacioliCoordinates {
   }
 
   constructor(
-    public names: string[],
-    public indexSets: IndexSet[],
-  ) {}
+    public readonly names: string[],
+    public readonly indexSets: IndexSet[],
+  ) {
+    this.position = this.computePosition();
+    this.size = this.computeSize();
+  }
 
-  public position() {
+  computeSize() {
+    let size = 1;
+    for (let i = 0; i < this.order(); i++) {
+      const set = this.indexSets[i];
+      size = size * set.items.length;
+    }
+    return size;
+  }
+
+  computePosition() {
     let position = 0;
     for (let i = 0; i < this.order(); i++) {
       const set = this.indexSets[i];
@@ -110,16 +129,6 @@ export class PacioliCoordinates {
     }
     return true;
   }
-
-  public size() {
-    let size = 1;
-    for (let i = 0; i < this.order(); i++) {
-      const set = this.indexSets[i];
-      size = size * set.items.length;
-    }
-    return size;
-  }
-
   public shape() {
     return new MatrixShape(
       SIUnit.ONE,
