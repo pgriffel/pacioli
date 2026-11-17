@@ -32,15 +32,17 @@ import type { PacioliLabel } from "./text";
 /**
  * Matches the Scene type from the graphics Pacioli library
  */
-export type PacioliScene = [
-  PacioliString,
-  PacioliArrow[],
-  PacioliMesh[],
-  PacioliPath[],
-  PacioliSpotLight[],
-  AmbientLight,
-  PacioliLabel[],
-];
+export type PacioliScene = {
+  items: [
+    PacioliString,
+    { items: PacioliArrow[] },
+    { items: PacioliMesh[] },
+    { items: PacioliPath[] },
+    { items: PacioliSpotLight[] },
+    AmbientLight,
+    { items: PacioliLabel[] },
+  ];
+};
 
 /**
  * Matches the Animation type from the graphics Pacioli library

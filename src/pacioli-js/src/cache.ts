@@ -27,13 +27,12 @@ import { set } from "./raw-values/raw-matrix";
 import type { PacioliType, PacioliUnit } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
 import type { MatrixType } from "./types/matrix";
-import type { RawValue } from "./raw-values/raw-value";
+import type { RawList, RawString, RawValue } from "./raw-values/raw-value";
 import { stringifyRawValue, tagMatrix } from "./raw-values/raw-value";
 import {
   internUnit,
   matrixShapeFromType,
-  rawValueFromValue,
-  typeFromValue,
+  unboxPacioliValue,
 } from "./values/pacioli-value";
 import type { PacioliValue } from "./values/pacioli-value";
 import { UnitVector } from "./values/unit-vector";
@@ -47,9 +46,13 @@ export const defaultContext = PacioliContext.empty();
 // 0. Functions used by generated code
 // -----------------------------------------------------------------------------
 
-export function makeIndexSet(id: string, name: string, items: string[]) {
+export function makeIndexSet(id: string, name: string, items: RawList) {
   // TODO: wat is de id?
-  return IndexSet.fromItems(id, name, items);
+  return IndexSet.fromItems(
+    id,
+    name,
+    items.items.map((o) => o as RawString),
+  );
 }
 
 export function createCoordinates(
@@ -106,7 +109,7 @@ export function oneNumbers(
  * @returns
  */
 export function oneNumbersFromShape(
-  type: MatrixType,
+  type: MatrixType, // TODO: change to MatrixShape!?
   context: PacioliContext = defaultContext,
 ): RawMatrix {
   const shape = matrixShapeFromType(type, context);
@@ -153,7 +156,7 @@ export function initialNumbersFromType(
   m: number,
   n: number,
   data: number[][],
-  type: MatrixType,
+  type: MatrixType, // TODO: change to MatrixShape!?
   context: PacioliContext = defaultContext,
 ): RawMatrix {
   if (type === undefined) {
@@ -370,8 +373,7 @@ export function storePacioliValue(
   name: string,
   value: PacioliValue,
 ) {
-  cache.set(module + "_" + name, rawValueFromValue(value));
-  cache.set("u_" + module + "_" + name, typeFromValue(value));
+  cache.set(module + "_" + name, unboxPacioliValue(value));
 }
 
 /**
@@ -415,29 +417,3 @@ function findFunction<T>(name: string): () => T {
     );
   }
 }
-
-// function loadDefFromValueNameSpace<T>(name: string): () => T {
-//   const nameSpace = globalThis.Pacioli;
-
-//   // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
-//   const val = nameSpace["v_" + name] as (() => T) | undefined;
-
-//   if (val === undefined) {
-//     throw new Error(`No definition found for Pacioli value '${name}'`);
-//   }
-
-//   return val;
-// }
-
-// function loadDefFromTypeNameSpace<T>(name: string): () => T {
-//   const nameSpace = globalThis.Pacioli;
-
-//   // @ts-expect-error The generated Pacioli code stores everything in the Pacioli namespace.
-//   const val = nameSpace["t_" + name] as (() => T) | undefined;
-
-//   if (val === undefined) {
-//     throw new Error(`No definition found for Pacioli type item '${name}'`);
-//   }
-
-//   return val;
-// }

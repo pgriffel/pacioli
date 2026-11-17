@@ -20,38 +20,27 @@
  * SOFTWARE.
  */
 
-import { typeFromValue, rawValueFromValue, boxRawValue } from "./pacioli-value";
-import type { FunctionType } from "../types/function";
-import type { PacioliValue } from "./pacioli-value";
-import type { PacioliContext } from "../context";
-import type { GenericType } from "../types/generic";
-import type { RawValue } from "../raw-values/raw-value";
+import { RawValue } from "../raw-values/raw-value";
+import {
+  boxRawValue,
+  unboxPacioliValue,
+  type PacioliValue,
+} from "./pacioli-value";
+import { PacioliTuple } from "./tuple";
 
 export class PacioliFunction {
   readonly kind = "function";
-  constructor(
-    public fun: (...args: RawValue[]) => RawValue,
-    public type: FunctionType,
-    private context: PacioliContext,
-  ) {}
 
-  apply(args: PacioliValue[]): PacioliValue {
-    const types = args.map((element) => typeFromValue(element));
+  constructor(public readonly fun: (...args: RawValue[]) => RawValue) {}
+
+  apply(args: PacioliTuple): PacioliValue {
     const values: RawValue[] = args.map((element) =>
-      rawValueFromValue(element),
+      unboxPacioliValue(element),
     );
-    const expectedNrArgs = (this.type.from as GenericType).items.length;
-    if (args.length === expectedNrArgs) {
-      const type = this.type.apply(types);
-      return boxRawValue(this.fun(...values), type, this.context);
-    } else {
-      throw new Error(
-        `Number of arguments do not match. Expected ${expectedNrArgs.toString()}, but got ${args.length.toString()}`,
-      );
-    }
+    return boxRawValue(this.fun(...values));
   }
 
   call(...args: PacioliValue[]): PacioliValue {
-    return this.apply(args);
+    return this.apply(new PacioliTuple(args));
   }
 }

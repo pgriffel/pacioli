@@ -97,16 +97,16 @@ export function linearChartData(
         );
       }
 
-      const left = data[0];
-      const right = data[1];
+      const left = data.get(0);
+      const right = data.get(1);
 
       if (left.kind === "matrix" && right.kind === "matrix") {
         return pairsFromMatrices(xConv(left), yConv(right));
       }
 
       if (left.kind === "list" && right.kind === "list") {
-        const leftEltKind = left[0].kind;
-        const rightEltKind = right[0].kind;
+        const leftEltKind = left.get(0).kind;
+        const rightEltKind = right.get(0).kind;
 
         if (leftEltKind !== "matrix") {
           throw new Error(
@@ -121,8 +121,8 @@ export function linearChartData(
         }
 
         return pairsFromLists(
-          (left as PacioliMatrix[]).map((element) => xConv(element)),
-          (right as PacioliMatrix[]).map((element) => yConv(element)),
+          (left.items as PacioliMatrix[]).map((element) => xConv(element)),
+          (right.items as PacioliMatrix[]).map((element) => yConv(element)),
         );
       }
 
@@ -135,20 +135,20 @@ export function linearChartData(
         return null;
       }
 
-      const firstElt = data[0];
+      const firstElt = data.get(0);
 
       if (firstElt.kind === "matrix") {
         return pairsFromListofScalars(
-          (data as PacioliMatrix[]).map((element) => yConv(element)),
+          (data.items as PacioliMatrix[]).map((element) => yConv(element)),
         );
       }
 
       if (firstElt.kind === "tuple") {
-        const tuples = data as PacioliTuple[];
+        const tuples = data.items as PacioliTuple[];
 
         return pairsFromLists(
-          tuples.map((x) => x[0]),
-          tuples.map((x) => x[1]),
+          tuples.map((x) => x.get(0)),
+          tuples.map((x) => x.get(1)),
         );
       }
 
@@ -225,7 +225,7 @@ export function bandChartData(
 
   switch (data.kind) {
     case "list": {
-      return bandChartDataFromList(data, includeZeros, convert);
+      return bandChartDataFromList(data.items, includeZeros, convert);
     }
     case "matrix": {
       return bandChartDataFromVector(convert(data), includeZeros);
@@ -429,7 +429,7 @@ export function bandChartDataFromList(
     };
   } else if (content.kind === "tuple") {
     for (const [i, item] of items.entries()) {
-      const tup = item as PacioliTuple;
+      const tup = (item as PacioliTuple).items;
 
       if (tup[1].kind !== "matrix") {
         throw new Error(
@@ -460,7 +460,7 @@ export function bandChartDataFromList(
 
     return {
       entries: values,
-      unit: conv(content[1] as PacioliMatrix).getUnit(0, 0),
+      unit: conv(content.get(1) as PacioliMatrix).getUnit(0, 0),
       max: max ?? 0,
       min: min ?? 0,
       label: "", // TODO? Is this used?

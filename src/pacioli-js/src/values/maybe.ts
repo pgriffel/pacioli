@@ -21,24 +21,9 @@
  */
 
 import type { PacioliValue } from "./pacioli-value";
-import type { PacioliType } from "../types/pacioli-type";
-import type { RawValue } from "../raw-values/raw-value";
 
 export class PacioliMaybe {
   readonly kind = "maybe";
 
-  constructor(
-    public type: PacioliType,
-    public value?: PacioliValue,
-  ) {}
-}
-
-export class RawMaybe {
-  readonly kind = "maybe";
-
-  constructor(public value?: RawValue) {}
-
-  // toString(): string {
-  //   return this.value === undefined ? "nothing" : this.value.toString();
-  // }
+  constructor(public value?: PacioliValue) {}
 }

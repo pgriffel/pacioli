@@ -72,92 +72,35 @@ public class JSTranspiler implements SymbolTableVisitor {
         }
 
         ValueDefinition definition = info.definition().get();
-        ExpressionNode transformedBody = definition.body;
-        // if (false && transformedBody instanceof LambdaNode) {
-        // LambdaNode code = (LambdaNode) transformedBody;
-        // out.newline();
-        // out.format("Pacioli.u_%s = function () {", info.globalName());
-        // out.newlineUp();
-        // out.format("var args = new Pacioli.GenericType('Tuple',
-        // Array.prototype.slice.call(arguments));");
-        // out.format("var type = %s;", info.localType().reduce(i ->
-        // true).compileToJS());
-        // out.format("return Pacioli.subs(type.to, Pacioli.matchTypes(type.from,
-        // args));");
-        // out.newlineDown();
-        // out.write("}");
-        // out.newline();
-        // out.format("Pacioli.b_%s = function (%s) {", info.globalName(),
-        // code.argsString("lcl_"));
-        // out.newlineUp();
-        // out.format("return ");
-        // code.expression.compileToJS(out, settings, true);
-        // out.format(";");
-        // out.newlineDown();
-        // out.format("}");
-        // out.newline();
-        // out.format("Pacioli.%s = function (%s) {", info.globalName(),
-        // code.argsString("lcl_"));
-        // out.newlineUp();
-        // out.format("return ");
-        // code.expression.compileToJS(out, settings, false);
-        // out.format(";");
-        // out.newlineDown();
-        // out.format("}");
-        // out.newline();
-        // } else
-        if (transformedBody instanceof LambdaNode) {
-            LambdaNode code = (LambdaNode) transformedBody;
-            out.newline();
 
-            out.format("\n"
-                    + "Pacioli.compute_u_%s = function () {\n"
-                    + "    return %s;\n"
-                    + "}\n",
-                    info.globalName(),
-                    info.publicType().reduce(i -> true).compileToJS());
+        out.newline();
 
-            // out.newline();
-            // out.format("Pacioli.b_%s = function (%s) {", info.globalName(),
-            // code.argsString());
-            // out.newlineUp();
-            // out.format("return ");
-            // code.expression.compileToJS(out, settings, true);
-            // out.format(";");
-            // out.newlineDown();
-            // out.format("}");
-            out.newline();
+        if (definition.body instanceof LambdaNode code) {
             out.format("Pacioli.%s = function (%s) {", info.globalName(), argsString(code, "lcl_"));
             out.newlineUp();
+            if (code.varArgs) {
+                out.write("const " + "lcl_" + code.arguments.get(0) + " = Pacioli.tagList(varargs);");
+            }
             out.format("return ");
             code.expression.lower().compileToJS(out, settings);
-            out.format(";");
-            out.newlineDown();
-            out.format("}");
-            out.newline();
         } else {
-            out.format("\n"
-                    + "Pacioli.compute_u_%s = function () {\n"
-                    + "    return %s;\n"
-                    + "}\n"
-                    + "Pacioli.compute_%s = function () {\n  return ",
-                    info.globalName(),
-                    info.localType().reduce(i -> true).compileToJS(),
-                    info.globalName());
-            transformedBody.lower().compileToJS(out, settings);
-            out.format(";\n}\n");
-            // out.format("Pacioli.compute_b_%s = function () {\n return ",
-            // info.globalName());
-            // transformedBody.compileToJS(out, settings, true);
-            // out.format(";\n}\n");
+            out.format("Pacioli.compute_%s = function () {", info.globalName());
+            out.newlineUp();
+            out.write("return ");
+            definition.body.lower().compileToJS(out, settings);
         }
+
+        out.format(";");
+        out.newlineDown();
+        out.format("}");
+        out.newline();
+
     }
 
     private static String argsString(LambdaNode node, String prefix) {
         if (node.varArgs) {
             if (node.arguments.size() == 1) {
-                // TODO: Wegwerken hier. Alleen JSTranspiler roept dit aan
-                return "..." + prefix + node.arguments.get(0);
+                return "...varargs";
             } else {
                 throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
             }
@@ -193,7 +136,8 @@ public class JSTranspiler implements SymbolTableVisitor {
             for (String item : definition.items()) {
                 quotedItems.add(String.format("\"%s\"", item));
             }
-            out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', [ %s ])}\n",
+            out.format(
+                    "\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', Pacioli.tagList([ %s ]))}\n",
                     info.globalName(),
                     info.globalName(),
                     definition.name(),

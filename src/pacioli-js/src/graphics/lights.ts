@@ -30,28 +30,32 @@ import * as THREE from "three";
 /**
  * Matches the SpotLight type from the graphics Pacioli library
  */
-export type PacioliSpotLight = [
-  PacioliMatrix, // position
-  PacioliMatrix, // target
-  PacioliString, // color
-  PacioliMatrix, // intensity
-];
+export type PacioliSpotLight = {
+  items: [
+    PacioliMatrix, // position
+    PacioliMatrix, // target
+    PacioliString, // color
+    PacioliMatrix, // intensity
+  ];
+};
 
 /**
  * Matches the ambient light part of the Scene type from the
  * graphics Pacioli library.
  */
-export type AmbientLight = [
-  PacioliString, // color
-  PacioliMatrix, // intensity
-];
+export type AmbientLight = {
+  items: [
+    PacioliString, // color
+    PacioliMatrix, // intensity
+  ];
+};
 
 export function addSpotLight(
   body: THREE.Object3D,
   spotlight: PacioliSpotLight,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
-  const [position, target, color, intensity] = spotlight;
+  const [position, target, color, intensity] = spotlight.items;
 
   const positionVector = vector2THREE(position, options);
   const targetVector = vector2THREE(target, options);

@@ -33,22 +33,22 @@ import * as THREE from "three";
 /**
  * Matches the Arrow type from the graphics Pacioli library
  */
-export type PacioliArrow = [
-  PacioliMatrix, // from
-  PacioliMatrix, // to
-  PacioliString, // name
-  PacioliString, // label
-  PacioliString, // color
-];
+export type PacioliArrow = {
+  items: [
+    PacioliMatrix, // from
+    PacioliMatrix, // to
+    PacioliString, // name
+    PacioliString, // label
+    PacioliString, // color
+  ];
+};
 
 export function arrowLabel(arrow: PacioliArrow): string {
-  const [_origin, _vector, _name, label, _color] = arrow;
-  return label.value;
+  return arrow.items[4].value;
 }
 
 export function arrowName(arrow: PacioliArrow): string {
-  const [_origin, _vector, name, _label, _color] = arrow;
-  return name.value;
+  return arrow.items[3].value;
 }
 
 export function addArrow(
@@ -84,7 +84,7 @@ export function updateArrow(
     labelScale: number;
   },
 ) {
-  const [from, to, name, label, color] = pacioliArrow;
+  const [from, to, name, label, color] = pacioliArrow.items;
 
   if (name.value !== "") {
     // Update the arrow helper
@@ -128,7 +128,7 @@ function createTHREEArrowHelper(
   arrow: PacioliArrow,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ): THREE.ArrowHelper {
-  const [origin, vector, name, _, color] = arrow;
+  const [origin, vector, name, _, color] = arrow.items;
 
   const vectorColor = color.value === "" ? "blue" : color.value;
   const from = vector2THREE(origin, options);
@@ -169,7 +169,7 @@ function createTHREELabel(
     scale: number;
   },
 ) {
-  const [origin, vector, name, label, _] = arrow;
+  const [origin, vector, name, label, _] = arrow.items;
 
   const labelObject = makeCanvasLabelObject(label.value, 0.7, options);
 

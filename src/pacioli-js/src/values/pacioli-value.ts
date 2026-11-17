@@ -22,55 +22,61 @@
 
 import type { SIUnit } from "uom-ts";
 import { UOM } from "uom-ts";
-import type {
-  PacioliType,
-  PacioliUnit,
-  PacioliVector,
-} from "../types/pacioli-type";
+import type { PacioliUnit, PacioliVector } from "../types/pacioli-type";
 import type { PacioliIndex } from "../types/matrix";
-import { IndexType, MatrixType } from "../types/matrix";
-import type {
-  RawArray,
-  RawList,
-  RawMap,
-  RawTuple,
-  RawValue,
-} from "../raw-values/raw-value";
+import { MatrixType } from "../types/matrix";
 import {
+  makeRawMaybe,
   NOTHING,
-  rawValueLabel,
+  tagArray,
   tagList,
+  tagSet,
   tagTuple,
+  type RawValue,
 } from "../raw-values/raw-value";
-import type { PacioliBoole } from "./boole";
-import { pacioliFalse, pacioliTrue } from "./boole";
+import { type CustomPacioliValue } from "./custom";
+import { PacioliBoole } from "./boole";
 import { PacioliFunction } from "./function";
-import { PacioliMatrix } from "./matrix";
 import { MatrixDimension } from "./matrix-dimension";
 import type { SIVector } from "./matrix-shape";
 import { MatrixShape } from "./matrix-shape";
 import { PacioliString } from "./string";
 import { VectorBase } from "./vector-base";
-import type { PacioliVoid } from "./void";
-import { VOID } from "./void";
-import { GenericType } from "../types/generic";
-import { SIBaseType, VectorBaseType } from "../types/bases";
-import { PacioliMaybe, RawMaybe } from "./maybe";
+import { VOID, type PacioliVoid } from "./void";
+import { PacioliMaybe } from "./maybe";
 import type { PacioliContext } from "../context";
 import { PacioliCoordinates } from "./coordinates";
 import { fetchIndex, fetchUnit, fetchUnitVector } from "../cache";
 import { PacioliTuple } from "./tuple";
 import { PacioliList } from "./list";
+import { PacioliSet } from "./set";
 import { PacioliArray } from "./array";
 import type { PacioliRef } from "./ref";
 import { PacioliMap } from "./map";
-import type { RawMatrix } from "../raw-values/raw-matrix";
+import { PacioliMatrix } from "./matrix";
+
+export type PacioliKind =
+  | "matrix"
+  | "list"
+  | "set"
+  | "tuple"
+  | "array"
+  | "ref"
+  | "coordinates"
+  | "map"
+  | "maybe"
+  | "void"
+  | "string"
+  | "boole"
+  | "function"
+  | "custom";
 
 export type PacioliValue =
   | PacioliMatrix
   | PacioliCoordinates
   | PacioliTuple
   | PacioliList
+  | PacioliSet
   | PacioliArray
   | PacioliRef
   | PacioliBoole
@@ -78,151 +84,144 @@ export type PacioliValue =
   | PacioliString
   | PacioliMap
   | PacioliVoid
-  | PacioliMaybe;
+  | PacioliMaybe
+  | CustomPacioliValue; // CustomPacioliValue
 
 export interface ToText {
   toText(): string;
 }
 
 /**
- * Casts assumes the value is a matrix. Type system should guarantee that.
+ * Wraps a RawValue in a PacioliValue.
  *
- * @param value
- * @param type
- * @param context
- * @returns
+ * Dual of unboxPacioliValue
+ *
+ * @param value A raw value
+ * @returns A boxed value
  */
-export function boxRawValue(
-  value: RawValue,
-  type: PacioliType,
-  context: PacioliContext,
-): PacioliValue {
-  switch (type.kind) {
-    case "generic": {
-      switch (type.name) {
-        case "Tuple": {
-          const values = value as RawTuple;
-          const tuple = new PacioliTuple();
-          for (const [i, entry] of values.entries()) {
-            tuple.push(boxRawValue(entry, type.items[i], context));
-          }
-          return tuple;
-        }
-        case "Boole": {
-          if (typeof value === "boolean") {
-            return value ? pacioliTrue : pacioliFalse;
-          } else {
-            throw new Error(
-              `Expected a boolean instead of ${typeof value} when boxing raw boolean value`,
-            );
-          }
-        }
-        case "String": {
-          if (typeof value === "string") {
-            return new PacioliString(value);
-          } else {
-            throw new Error(
-              `Expected a string instead of ${typeof value} when boxing raw string value`,
-            );
-          }
-        }
-        case "Void": {
-          return VOID;
-        }
-        case "Maybe": {
-          const val = (value as RawMaybe).value;
-          return new PacioliMaybe(
-            type,
-            val === undefined
-              ? undefined
-              : boxRawValue(val, type.items[0], context),
-          );
-        }
-        case "List": {
-          // TODO: This is called with value.kind undefined. Does generated code not tag lists?
-          // Or is it better to be permissive here?
-          // if (Array.isArray(value) && value.kind === "list") {
-          if (Array.isArray(value)) {
-            const values = value as RawList;
-            const list = new PacioliList(type);
-            for (const value_ of values) {
-              list.push(boxRawValue(value_, type.items[0], context));
-            }
-            return list;
-          } else {
-            throw new Error(
-              `Expected an array object instead of ${typeof value} when boxing raw list value`,
-            );
-          }
-        }
-        case "Array": {
-          if (Array.isArray(value)) {
-            const values = value as RawArray;
-            const array = new PacioliArray();
-            for (const value_ of values) {
-              array.push(boxRawValue(value_, type.items[0], context));
-            }
-            return array;
-          } else {
-            throw new Error(
-              `Expected an array object instead of ${typeof value} when boxing raw array value`,
-            );
-          }
-        }
-        case "Map": {
-          return new PacioliMap(
-            type.items[0],
-            type.items[1],
-            value as RawMap,
-            context,
-          );
-        }
-        default: {
-          throw new Error(
-            `Unxpected type '${type.name}' for value ${rawValueLabel(value)} `,
-          );
-        }
-      }
+export function boxRawValue(value: RawValue): PacioliValue {
+  if (typeof value === "string") {
+    return new PacioliString(value);
+  }
+
+  if (typeof value === "function") {
+    return new PacioliFunction(value);
+  }
+
+  if (typeof value === "boolean") {
+    return new PacioliBoole(value);
+  }
+  if (value === undefined) {
+    // dispatch was previously based on type:
+    // case "Void": {
+    //   return VOID;
+    // }
+    // This avoided the undefined. The compiler has to generate return VOID for all statements!?
+    return VOID;
+  }
+
+  switch (value.kind) {
+    case "tuple": {
+      return new PacioliTuple(value.items.map((entry) => boxRawValue(entry)));
     }
-    case "function": {
-      if (typeof value === "function") {
-        return new PacioliFunction(value, type, context);
-      } else {
-        throw new Error(
-          `Expected a function instead of ${typeof value} when boxing raw function value`,
-        );
-      }
+    case "list": {
+      return new PacioliList(value.items.map((entry) => boxRawValue(entry)));
+    }
+    case "set": {
+      return new PacioliSet(value.items.map((entry) => boxRawValue(entry)));
+    }
+    case "array": {
+      return new PacioliArray(value.items.map((entry) => boxRawValue(entry)));
+    }
+    case "void": {
+      return VOID;
+    }
+    case "maybe": {
+      const val = value.value;
+      return new PacioliMaybe(val === undefined ? undefined : boxRawValue(val));
+    }
+    case "map": {
+      return new PacioliMap(value);
     }
     case "matrix": {
-      return new PacioliMatrix(
-        matrixShapeFromType(type, context),
-        value as RawMatrix,
-      );
+      return new PacioliMatrix(value.shape, value);
     }
-    case "typevar": {
-      throw new Error(
-        `Unxpected typevar '${type.kind}' for type ${typeof value} with value ${
-          type.name
-        } `,
-      );
+    case "coordinates": {
+      return new PacioliCoordinates(value.names, value.indexSets);
     }
-    case "index": {
-      const coord = value as PacioliCoordinates;
-      const dim = matrixDimensionFromIndex(type, context);
-      return PacioliCoordinates.fromIndex(dim.indexSets, coord.position);
+    case "custom": {
+      return value;
     }
-    // // TODO: "coordinates"
-    // default: {
-    //   console.log("boxing", value);
-    //   throw new Error(
-    //     `Unxpected kind '${
-    //       type.kind
-    //     }' for type ${typeof value} with value ${value} `
-    //   );
-    // }
+    case "ref": {
+      throw new Error("ref is deprecated!?");
+    }
   }
 }
 
+/**
+ * Gets a RawValue from a PacioliValue.
+ *
+ * Dual of boxRawValue
+ *
+ * @param value a Pacioli value
+ * @returns a raw value
+ */
+export function unboxPacioliValue(value: PacioliValue): RawValue {
+  switch (value.kind) {
+    case "matrix": {
+      return value.numbers;
+    }
+    case "tuple": {
+      return tagTuple(value.map((element) => unboxPacioliValue(element)));
+    }
+    case "list": {
+      return tagList(value.map((element) => unboxPacioliValue(element)));
+    }
+    case "set": {
+      return tagSet(value.map((element) => unboxPacioliValue(element)));
+    }
+    case "array": {
+      return tagArray(value.map((element) => unboxPacioliValue(element)));
+    }
+    case "string": {
+      return value.value;
+    }
+    case "boole": {
+      return value.value;
+    }
+    case "function": {
+      return value.fun;
+    }
+    case "maybe": {
+      return value.value === undefined
+        ? NOTHING
+        : makeRawMaybe(unboxPacioliValue(value.value));
+    }
+    case "map": {
+      return value.rawMap;
+    }
+    case "void": {
+      return VOID;
+    }
+    case "ref": {
+      throw Error("ref is deprecated?!");
+    }
+    case "coordinates": {
+      return {
+        kind: "coordinates",
+        names: value.names,
+        indexSets: value.indexSets,
+        size: value.size,
+        position: value.position,
+      };
+    }
+    case "custom": {
+      return value;
+    }
+  }
+}
+
+// TODO: rewrite to shape. See use in cache.ts
 export function matrixShapeFromType(
   type: MatrixType,
   context: PacioliContext,
@@ -238,75 +237,6 @@ export function matrixShapeFromType(
   );
 }
 
-export function typeFromValue(value: PacioliValue): PacioliType {
-  switch (value.kind) {
-    case "matrix": {
-      return new MatrixType(
-        internUnitInv(value.shape.multiplier),
-        matrixDimensionFromIndexInv(value.shape.rowDimension),
-        internUnitVectorInv(value.shape.rowUnit),
-        matrixDimensionFromIndexInv(value.shape.columnDimension),
-        internUnitVectorInv(value.shape.columnUnit),
-      );
-    }
-    case "list": {
-      // TODO: fix any
-      return value.type;
-    }
-    case "tuple": {
-      const valueList = value as unknown as PacioliValue[];
-      return new GenericType(
-        "Tuple",
-        valueList.map((element) => typeFromValue(element)),
-      );
-    }
-    case "string": {
-      return new GenericType("String", []);
-    }
-    case "function": {
-      return value.type;
-    }
-    case "boole": {
-      return new GenericType("Boole", []);
-    }
-    default: {
-      throw new Error(`Unexpected value kind ${value.kind}`);
-    }
-  }
-}
-
-export function rawValueFromValue(value: PacioliValue): RawValue {
-  switch (value.kind) {
-    case "matrix": {
-      return value.numbers;
-    }
-    case "tuple": {
-      return tagTuple(value.map((element) => rawValueFromValue(element)));
-    }
-    case "list": {
-      return tagList(value.map((element) => rawValueFromValue(element)));
-    }
-    case "string": {
-      return value.value;
-    }
-    case "boole": {
-      return value.value;
-    }
-    case "function": {
-      return value.fun;
-    }
-    case "maybe": {
-      return value.value === undefined
-        ? NOTHING
-        : new RawMaybe(rawValueFromValue(value.value));
-    }
-    // TODO:  "coordinates" | "array" | "ref" | "map" | "void"
-    default: {
-      throw new Error(`unexpected value kind ${value.kind}`);
-    }
-  }
-}
-
 function matrixDimensionFromIndex(
   index: PacioliIndex,
   context: PacioliContext,
@@ -318,14 +248,6 @@ function matrixDimensionFromIndex(
   } else {
     throw new Error("index kind " + index.kind + " unexpected");
   }
-}
-
-function matrixDimensionFromIndexInv(dimension: MatrixDimension): PacioliIndex {
-  return new IndexType(
-    dimension.indexSets.map((set) => {
-      return set.id;
-    }),
-  );
 }
 
 /**
@@ -342,18 +264,6 @@ export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
       return fetchUnit(base.prefix, base.base, context);
     }
   });
-}
-
-/**
- * Transforms an SI unit into a type unit. Inverse of internUnit.
- *
- * @param unit
- * @returns
- */
-function internUnitInv(unit: SIUnit): PacioliUnit {
-  return unit.map((base) =>
-    UOM.fromBase(new SIBaseType(base.prefix.name, base.base)),
-  );
 }
 
 /**
@@ -381,16 +291,4 @@ function internUnitVector(
   });
 
   return siUnit;
-}
-
-/**
- * Transforms an SI vector into a vector type. Inverse of internUnitVector.
- *
- * @param unit
- * @returns
- */
-function internUnitVectorInv(unit: SIVector): PacioliVector {
-  return unit.map((base) => {
-    return UOM.fromBase(new VectorBaseType(base.baseName, base.position));
-  });
 }

@@ -147,21 +147,23 @@ export function optionsFromScript<Options>(
           `found a ${item.kind} in the options instead of a tuple. Chart options must be pairs (tuple) of strings.`,
         );
       }
-      if (item[0].kind !== "string") {
+      const tuple = item.items;
+
+      if (tuple[0].kind !== "string") {
         throw new Error(
-          `chart option key must be a string, got a ${item[0].kind}`,
+          `chart option key must be a string, got a ${tuple[0].kind}`,
         );
       }
-      if (item[1].kind !== "string") {
+      if (tuple[1].kind !== "string") {
         throw new Error(
-          `chart option value for ${item[0].value} must be a string, got a ${item[1].kind}`,
+          `chart option value for ${tuple[0].value} must be a string, got a ${tuple[1].kind}`,
         );
       }
-      if (table.has(item[0].value)) {
-        console.warn(`Duplicate chart attribute ${item[0].value}`);
+      if (table.has(tuple[0].value)) {
+        console.warn(`Duplicate chart attribute ${tuple[0].value}`);
       }
-      const key = item[0].value;
-      const value = item[1].value;
+      const key = tuple[0].value;
+      const value = tuple[1].value;
       table.set(key, value);
     }
 

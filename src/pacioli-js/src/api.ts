@@ -31,19 +31,17 @@ import { PacioliFunction } from "./values/function";
 import type { PacioliIndex } from "./types/matrix";
 import { MatrixType } from "./types/matrix";
 import type { PacioliValue } from "./values/pacioli-value";
-import { boxRawValue, typeFromValue } from "./values/pacioli-value";
+import { boxRawValue } from "./values/pacioli-value";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import {
   defaultContext,
   fetchUnit,
   initialNumbers,
-  lookupType,
   lookupValue,
 } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
-import { GenericType } from "./types/generic";
 import type BigNumber from "bignumber.js";
 
 // -----------------------------------------------------------------------------
@@ -64,27 +62,13 @@ export function createMatrixType(
 // Upgrade
 // -----------------------------------------------------------------------------
 
-export function value(
-  module: string,
-  name: string,
-  context: PacioliContext = defaultContext,
-): PacioliValue {
-  // Global name used by compiler
-  const id = module + "_" + name;
-
-  return boxRawValue(lookupValue(id), lookupType(id), context);
+export function value(module: string, name: string): PacioliValue {
+  return boxRawValue(lookupValue(module + "_" + name));
 }
 
 // Just a synonym for value
-export function fun(
-  module: string,
-  name: string,
-  context: PacioliContext = defaultContext,
-): PacioliFunction {
-  // Global name used by compiler
-  const id = module + "_" + name;
-
-  const box = boxRawValue(lookupValue(id), lookupType(id), context);
+export function fun(module: string, name: string): PacioliFunction {
+  const box = boxRawValue(lookupValue(module + "_" + name));
 
   if (box instanceof PacioliFunction) {
     return box;
@@ -113,7 +97,6 @@ export function unit(name: string): SIUnit {
   const base = parts.length === 2 ? parts[1] : name;
 
   return fetchUnit(prefix, base);
-  // return si.getUnit(name2 ? name1 + ":" + name2 : name1);
 }
 
 // Used in generated code
@@ -187,55 +170,14 @@ export function parseDimNum(
   );
 }
 
-// Pacioli.tuple = function (array) {
-//     var uTuple = array.map(function (elt) {return elt.type})
-//     var vTuple = array.map(function (elt) {return elt.value})
-//     vTuple.kind = 'tuple'
-//     return new Pacioli.Box(new Pacioli.Type('tuple', uTuple), vTuple)
-// }
-
 export function tuple(array: PacioliValue[]): PacioliValue {
-  return new PacioliTuple(...array);
+  return new PacioliTuple(array);
 }
-
-let varCounter = 0;
 
 export function list(array: PacioliValue[]): PacioliValue {
   if (array.length === 0) {
     throw new Error("Cannot make empty list (yet)");
   }
-  const vList = array.map(function (elt) {
-    return elt; //.value;
-  });
 
-  // Does this work? Untested!
-  if (vList.length === 0) {
-    return new PacioliList(
-      new GenericType("List", [
-        typeFromVarName(`_xyzzy${(varCounter++).toString()}_`),
-      ]),
-    );
-  }
-
-  return new PacioliList(
-    new GenericType("List", [typeFromValue(array[0])]),
-    ...vList,
-  );
-
-  // throw new Error("Is Pacioli.list(...) used?");
-
-  // // var uList = array[0].type
-  // var vList = array.map(function (elt) {return elt.value})
-  // tagKind(vList, 'list')
-
-  // // This is no longer working since Box is removed.
-  // //return new Box(new GenericType('List', [uList]), vList)
-
-  // // Copied this from boxRawValue below as tmp hack. TODO: fix this.
-  // const values = (value as unknown as Array<RawValue>) // Cast!!!
-  // var array = []
-  // for (var i = 0; i < values.length; i++) {
-  //     //array.push(boxRawValue(values[i], type.items[0]));
-  // }
-  // return tagKind(array, 'list') // Cast!!!
+  return new PacioliList(array);
 }

@@ -313,7 +313,9 @@ function columnsFromValue(value: PacioliValue): ColumnData[] {
 /**
  * Helper for columnsFromValue. Converts a single column spec.
  */
-function columnData(value: PacioliTuple): ColumnData {
+function columnData(columns: PacioliTuple): ColumnData {
+  const value = columns.items;
+
   if (value.length < 2 || value.length > 5) {
     throw pacioliTableError(
       `Invalid column. Expected a (string, value, ...) tuple, got ${value.length.toString()} tuple elements instead of 2 to 5.`,

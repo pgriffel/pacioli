@@ -273,8 +273,8 @@ function decodeWordCloudData(record: PacioliValue): [string, number][] {
 function decodeWordCloudTuple(record: PacioliValue): [string, number] {
   switch (record.kind) {
     case "tuple": {
-      const word = record[0] as PacioliString; // TODO: add error handling instead of casting
-      const count = record[1] as PacioliMatrix;
+      const word = record.get(0) as PacioliString; // TODO: add error handling instead of casting
+      const count = record.get(1) as PacioliMatrix;
       return [word.value, count.getNum(0, 0)];
     }
     default: {

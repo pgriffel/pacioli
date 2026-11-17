@@ -20,17 +20,13 @@
  * SOFTWARE.
  */
 
+import { PacioliIterable } from "./iterable";
 import type { PacioliValue } from "./pacioli-value";
-import type { PacioliType } from "../types/pacioli-type";
 
-export class PacioliList extends Array<PacioliValue> {
+export class PacioliList extends PacioliIterable {
   readonly kind = "list";
 
-  constructor(
-    public type: PacioliType,
-    ...elements: PacioliValue[]
-  ) {
+  constructor(public readonly items: PacioliValue[]) {
     super();
-    this.push(...elements);
   }
 }

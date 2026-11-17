@@ -71,6 +71,12 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         this.settings = settings;
     }
 
+    private static int counter = 0;
+
+    private static String freshName(String prefix) {
+        return prefix + counter++;
+    }
+
     // Visitors
 
     @Override
@@ -213,9 +219,11 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
     @Override
     public void visit(LambdaNode node) {
         List<String> quoted = new ArrayList<String>();
+        String varArgsVar = "";
         if (node.varArgs) {
             if (node.arguments.size() == 1) {
-                quoted.add("...lcl_" + node.arguments.get(0) + "");
+                varArgsVar = freshName("va");
+                quoted.add("..." + varArgsVar);
             } else {
                 throw new PacioliException(node.location(), "Varargs lambda must have 1 argument");
             }
@@ -227,7 +235,11 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         String args = String.join(", ", quoted);
         out.write("function (");
         out.write(args);
-        out.write(") { return ");
+        out.write(") { ");
+        if (node.varArgs) {
+            out.write("const " + "lcl_" + node.arguments.get(0) + " = Pacioli.tagList(" + varArgsVar + ");");
+        }
+        out.write(" return ");
         node.expression.accept(this);
         out.write(";");
         out.write("}");
@@ -295,7 +307,7 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
 
     @Override
     public void visit(ReturnVoidNode node) {
-        out.write("return;");
+        out.write("return VOID;");
     }
 
     @Override
@@ -377,7 +389,7 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         out.write(String.join(",", names));
         out.write("] = ");
         node.tuple.accept(this);
-        out.write(";");
+        out.write(".items;");
         out.newline();
     }
 
@@ -402,7 +414,7 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         out.write("lcl_" + node.var.name());
         out.write(" of ");
         node.items.accept(this);
-        out.write(") {");
+        out.write(".items) {");
         out.newlineUp();
         node.body.accept(this);
         out.newlineDown();
@@ -415,17 +427,26 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
     public void visit(ForTupleNode node) {
 
         final List<String> names = new ArrayList<String>();
+
         for (IdentifierNode id : node.vars) {
             names.add("lcl_" + id.name());
         }
 
+        String var = freshName("tv");
+
         out.mark();
-        out.write("for(const [");
-        out.write(String.join(",", names));
-        out.write("] of ");
+        out.write("for(const ");
+        out.write(var);
+        out.write(" of (");
         node.items.accept(this);
-        out.write(") {");
+        out.write(".items)) {");
         out.newlineUp();
+        out.write("const [");
+        out.write(String.join(",", names));
+        out.write("] =");
+        out.write(var);
+        out.write(".items;");
+        out.newline();
         node.body.accept(this);
         out.newlineDown();
         out.write("}");

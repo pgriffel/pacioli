@@ -29,10 +29,20 @@ import * as THREE from "three";
 /**
  * Matches the Path type from the graphics Pacioli library
  */
-export type PacioliPath = [
-  PacioliMatrix[], // path points
-  PacioliString, // color
-];
+export type PacioliPath = {
+  items: [
+    { items: PacioliMatrix[] }, // path points
+    PacioliString, // color
+  ];
+};
+
+function pathPositions(path: PacioliPath): PacioliMatrix[] {
+  return path.items[0].items;
+}
+
+function pathColor(path: PacioliPath): string {
+  return path.items[1].value;
+}
 
 export function addPath(
   body: THREE.Object3D,
@@ -52,13 +62,15 @@ function createTHREEPath(
 ) {
   const geometry = new THREE.BufferGeometry();
   const material = new THREE.LineBasicMaterial({
-    color: path[1].value === "" ? "#222222" : path[1].value,
+    color: pathColor(path) === "" ? "#222222" : pathColor(path),
     transparent: true,
     opacity: 1.0,
   });
 
   geometry.setFromPoints(
-    path[0].map((point: PacioliMatrix) => vector2THREE(point, options)),
+    pathPositions(path).map((point: PacioliMatrix) =>
+      vector2THREE(point, options),
+    ),
   );
 
   const lineObject = new THREE.Line(geometry, material);

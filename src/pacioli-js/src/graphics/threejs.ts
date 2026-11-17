@@ -25,7 +25,6 @@ import { conversionFactor } from "../api";
 import type { PacioliMatrix } from "../values/matrix";
 import { getNumber } from "../raw-values/raw-matrix";
 import * as THREE from "three";
-import type { PacioliTuple } from "../values/tuple";
 
 export function createGridHelper(
   size: number,
@@ -52,12 +51,15 @@ export function moveObject(
   object.position.set(jsVector.x, jsVector.y, jsVector.z);
 }
 
-export function rotateObject(object: THREE.Object3D, rotations: PacioliTuple) {
-  const [x, y, z] = rotations;
+// Matches the Pacioli rutnime value for rotations.
+export type Rotation = { items: [PacioliMatrix, PacioliMatrix, PacioliMatrix] };
 
-  object.rotation.x = getNumber((x as PacioliMatrix).numbers, 0, 0);
-  object.rotation.y = getNumber((z as PacioliMatrix).numbers, 0, 0);
-  object.rotation.z = getNumber((y as PacioliMatrix).numbers, 0, 0);
+export function rotateObject(object: THREE.Object3D, rotations: Rotation) {
+  const [x, y, z] = rotations.items;
+
+  object.rotation.x = getNumber(x.numbers, 0, 0);
+  object.rotation.y = getNumber(z.numbers, 0, 0);
+  object.rotation.z = getNumber(y.numbers, 0, 0);
 }
 
 /**

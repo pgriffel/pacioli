@@ -20,14 +20,12 @@
  * SOFTWARE.
  */
 
-export type PacioliBoole = typeof pacioliTrue | typeof pacioliFalse;
+export class PacioliBoole {
+  readonly kind = "boole";
 
-export const pacioliTrue = {
-  kind: "boole" as const,
-  value: true,
-};
+  constructor(public readonly value: boolean) {}
+}
 
-export const pacioliFalse = {
-  kind: "boole" as const,
-  value: false,
-};
+export const pacioliTrue = new PacioliBoole(true);
+
+export const pacioliFalse = new PacioliBoole(false);

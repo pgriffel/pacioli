@@ -116,7 +116,7 @@ export function evaluateWebComponentDefinition(
       .map((p) => p.pacioliValue);
 
     // Call the function with the parameters
-    return pacioliValue.apply(params);
+    return pacioliValue.call(...params);
   } else {
     // Not a function, just return the value.
     return pacioliValue;

@@ -27,8 +27,7 @@ import type { PacioliMatrix } from "../values/matrix";
 import type { PacioliMaybe } from "../values/maybe";
 import { getNumber } from "../raw-values/raw-matrix";
 import type { PacioliString } from "../values/string";
-import type { PacioliTuple } from "../values/tuple";
-import { moveObject, rotateObject, vector2THREE } from "./threejs";
+import { moveObject, rotateObject, Rotation, vector2THREE } from "./threejs";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 
 /**
@@ -37,17 +36,39 @@ import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHel
 const FLAG_EXPERIMENT_THREEJS_VERTEX_NORMAL_HELPER: boolean = false;
 
 /**
+ * Matches the Vertex type from the graphics Pacioli library
+ */
+type Vertex = { items: [PacioliMatrix, PacioliString] };
+
+/**
+ * Matches the Face type from the graphics Pacioli library
+ */
+type Face = { items: [PacioliMatrix, PacioliMatrix, PacioliMatrix] };
+
+/**
  * Matches the Mesh type from the graphics Pacioli library
  */
-export type PacioliMesh = [
-  [PacioliMatrix, PacioliString][], // vertices
-  [PacioliMatrix, PacioliMatrix, PacioliMatrix][], // faces
-  PacioliMaybe, // position
-  PacioliTuple, // rotations
-  PacioliString, // name
-  PacioliBoole, // wireframe
-  PacioliString, // material
-];
+export type PacioliMesh = {
+  items: [
+    { items: Vertex[] }, // vertices
+    { items: Face[] }, // faces
+    PacioliMaybe, // position
+    Rotation, // rotation
+    PacioliString, // name
+    PacioliBoole, // wireframe
+    PacioliString, // material
+  ];
+};
+
+function meshVertices(mesh: PacioliMesh): [PacioliMatrix, PacioliString][] {
+  return mesh.items[0].items.map((tup) => tup.items);
+}
+
+function meshFaces(
+  mesh: PacioliMesh,
+): [PacioliMatrix, PacioliMatrix, PacioliMatrix][] {
+  return mesh.items[1].items.map((tup) => tup.items);
+}
 
 export function addMesh(
   body: THREE.Object3D,
@@ -69,7 +90,7 @@ export function updateMesh(
   mesh: PacioliMesh,
   units: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ) {
-  const [_vertices, _faces, position, rotations, name] = mesh;
+  const [_vertices, _faces, position, rotations, name] = mesh.items;
 
   if (name.value !== "") {
     const object = body.getObjectByName(name.value);
@@ -100,7 +121,8 @@ function createTHREEMesh(
   mesh: PacioliMesh,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
 ): THREE.Mesh<THREE.BufferGeometry, THREE.Material> {
-  const [vs, fs, pos, rotations, name, hasWireframe, materialOption] = mesh;
+  const [_vs, _fs, pos, rotations, name, hasWireframe, materialOption] =
+    mesh.items;
 
   const material = materialOption.value.toLowerCase();
 
@@ -138,7 +160,7 @@ function createTHREEMesh(
 
   // Create a mesh object with the material and add it to the body
   const meshObject = mesh2THREE(
-    [vs, fs],
+    mesh,
     mat,
     options,
     hasWireframe.value,
@@ -169,15 +191,13 @@ function createTHREEMesh(
 }
 
 function mesh2THREE(
-  mesh: [
-    [PacioliMatrix, PacioliString][],
-    [PacioliMatrix, PacioliMatrix, PacioliMatrix][],
-  ],
+  mesh: PacioliMesh,
   material: THREE.Material,
   options: { unitX: SIUnit; unitY: SIUnit; unitZ: SIUnit; scale: number },
   wireframe: boolean,
 ) {
-  const [vertices, faces] = mesh;
+  const vertices = meshVertices(mesh);
+  const faces = meshFaces(mesh);
 
   let geometry = new THREE.BufferGeometry();
 

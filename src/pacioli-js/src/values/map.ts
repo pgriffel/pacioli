@@ -20,37 +20,25 @@
  * SOFTWARE.
  */
 
-import type { PacioliContext } from "../context";
 import { DOM } from "../dom/dom";
 import type { RawMap } from "../raw-values/raw-value";
-import type { PacioliType } from "../types/pacioli-type";
 import { boxRawValue } from "./pacioli-value";
 
 export class PacioliMap {
   readonly kind = "map";
 
   // The context is necessary because boxRawValue is delayed.
-  constructor(
-    public srcType: PacioliType,
-    public dstType: PacioliType,
-    public rawMap: RawMap,
-    private context: PacioliContext,
-  ) {}
+  constructor(public rawMap: RawMap) {}
 
   /**
    * Currently the only use for PacioliMap
    */
   dom(): HTMLElement {
-    return mapAsDOM(this, this.srcType, this.dstType, this.context);
+    return mapAsDOM(this);
   }
 }
 
-function mapAsDOM(
-  map: PacioliMap,
-  srcType: PacioliType,
-  dstType: PacioliType,
-  context: PacioliContext,
-): HTMLElement {
+function mapAsDOM(map: PacioliMap): HTMLElement {
   const keyMap = map.rawMap.keyMap;
   const valueMap = map.rawMap.valueMap;
 
@@ -63,9 +51,9 @@ function mapAsDOM(
     if (k !== undefined && v !== undefined) {
       const item = document.createElement("li");
 
-      item.appendChild(DOM(boxRawValue(k, srcType, context)));
+      item.appendChild(DOM(boxRawValue(k)));
       item.appendChild(document.createTextNode("→"));
-      item.appendChild(DOM(boxRawValue(v, dstType, context)));
+      item.appendChild(DOM(boxRawValue(v)));
 
       element.appendChild(item);
     }

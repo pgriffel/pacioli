@@ -114,25 +114,26 @@ export class ThreeJsEnvironment {
    * @param scene The scene to load
    */
   loadScene(scene: PacioliScene) {
-    const [_, arrows, meshes, paths, lights, ambientLight, labels] = scene;
+    const [_, arrows, meshes, paths, lights, ambientLight, labels] =
+      scene.items;
 
-    for (const mesh of meshes) {
+    for (const mesh of meshes.items) {
       addMesh(this.body, mesh, this.options);
     }
 
-    for (const arrow of arrows) {
+    for (const arrow of arrows.items) {
       addArrow(this.body, arrow, this.options);
     }
 
-    for (const path of paths) {
+    for (const path of paths.items) {
       addPath(this.body, path, this.options);
     }
 
-    for (const light of lights) {
+    for (const light of lights.items) {
       addSpotLight(this.body, light, this.options);
     }
 
-    for (const label of labels) {
+    for (const label of labels.items) {
       addLabel(this.body, label, this.options);
     }
     this.updateLabelOrientations();
@@ -140,8 +141,9 @@ export class ThreeJsEnvironment {
     // Don't overrule light that is set via options. This allows
     // the web components to change the ambient light.
     this.setAmbientLight(
-      this.options.ambientColor ?? ambientLight[0].value,
-      this.options.ambientIntensity ?? getNumber(ambientLight[1].numbers, 0, 0),
+      this.options.ambientColor ?? ambientLight.items[0].value,
+      this.options.ambientIntensity ??
+        getNumber(ambientLight.items[1].numbers, 0, 0),
     );
   }
 
@@ -151,13 +153,13 @@ export class ThreeJsEnvironment {
    * @param scene - The PacioliScene to update
    */
   updateScene(scene: PacioliScene) {
-    const [, arrows, meshes] = scene;
+    const [, arrows, meshes] = scene.items;
 
-    for (const arrow of arrows) {
+    for (const arrow of arrows.items) {
       updateArrow(this.body, arrow, this.options);
     }
 
-    for (const mesh of meshes) {
+    for (const mesh of meshes.items) {
       updateMesh(this.body, mesh, this.options);
     }
   }

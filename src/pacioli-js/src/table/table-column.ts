@@ -211,7 +211,7 @@ function tableColumnFromList(
     for (let i = 0; i < nrRows; i++) {
       index.push([i.toString()]);
 
-      const mat = matrix[i] as PacioliMatrix;
+      const mat = matrix.get(i) as PacioliMatrix;
       const num = mat.number();
 
       const dimNum = DimNum.fromNumber(num, SIUnit.ONE);

@@ -170,7 +170,7 @@ export class Space {
    * @returns The scene's description
    */
   getDescription(): string | undefined {
-    return this.initialScene ? this.initialScene[0].value : undefined;
+    return this.initialScene ? this.initialScene.items[0].value : undefined;
   }
 
   /**

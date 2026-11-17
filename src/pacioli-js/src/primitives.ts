@@ -35,12 +35,13 @@ import {
   getCOONumbers,
   getFullNumbers,
 } from "./raw-values/numbers";
-import { RawMap, tagSet } from "./raw-values/raw-value";
+import { makeRawMaybe, RawMap, tagSet } from "./raw-values/raw-value";
 import type {
   RawArray,
   RawBoole,
   RawFunction,
   RawList,
+  RawMaybe,
   RawRef,
   RawSet,
   RawString,
@@ -60,7 +61,6 @@ import {
 import type { PacioliVoid } from "./values/void";
 import { VOID } from "./values/void";
 import { PacioliMatrix } from "./values/matrix";
-import { RawMaybe } from "./values/maybe";
 import { SingularValueDecomposition } from "./linear-algebra/singular-value-decomposition";
 import { CholeskyDecomposition } from "./linear-algebra/cholesky-decomposition";
 import { QRDecomposition } from "./linear-algebra/qr-decomposition";
@@ -71,6 +71,7 @@ import {
   elementWiseNumbers,
   findNonZero,
   get,
+  getNum,
   getNumber,
   set,
   unaryNumbers,
@@ -130,7 +131,7 @@ export const _base_base_tuple = function (...args: RawValue[]): RawTuple {
 };
 
 export const _base_base_apply = function (fun: RawFunction, arg: RawTuple) {
-  return fun.apply(fun, arg);
+  return fun.apply(fun, arg.items);
 };
 
 export function _base_base_identity(x: RawMatrix): RawMatrix {
@@ -138,6 +139,7 @@ export function _base_base_identity(x: RawMatrix): RawMatrix {
 }
 
 export function _base_base__new_ref(value: RawValue): RawRef {
+  debugger;
   return tagRef([value]);
 }
 
@@ -151,11 +153,12 @@ export function _base_base__ref_set(ref: RawRef, value: RawValue): RawRef {
 }
 
 export function _base_base__ref_get(ref: RawRef): RawValue {
+  debugger;
   return ref[0];
 }
 
 export function _base_base_just(value: RawValue): RawValue {
-  return new RawMaybe(value);
+  return makeRawMaybe(value);
 }
 
 export function _base_base_error(value: RawString): unknown {
@@ -238,9 +241,9 @@ export function _base_base_equal(x: RawValue, y: RawValue): RawBoole {
   } else if (x.kind === "custom" && y.kind === "custom") {
     return x.compare(y) === 0;
   } else if (x.kind === "set" && y.kind === "set") {
-    for (const itemX of x) {
+    for (const itemX of x.items) {
       let inY = false;
-      for (const itemY of y) {
+      for (const itemY of y.items) {
         if (_base_base_equal(itemX, itemY)) {
           inY = true;
         }
@@ -249,9 +252,9 @@ export function _base_base_equal(x: RawValue, y: RawValue): RawBoole {
         return false;
       }
     }
-    for (const itemY of y) {
+    for (const itemY of y.items) {
       let inX = false;
-      for (const itemX of x) {
+      for (const itemX of x.items) {
         if (_base_base_equal(itemX, itemY)) {
           inX = true;
         }
@@ -261,19 +264,20 @@ export function _base_base_equal(x: RawValue, y: RawValue): RawBoole {
       }
     }
     return true;
-  } else if (Array.isArray(x) && Array.isArray(y)) {
-    const n = x.length;
-    if (y.length !== n) {
+  } else if (
+    (x.kind === "list" && y.kind === "list") ||
+    (x.kind === "tuple" && y.kind === "tuple") ||
+    (x.kind === "array" && y.kind === "array")
+  ) {
+    const xValues = x.items;
+    const yValues = y.items;
+
+    const n = xValues.length;
+    if (yValues.length !== n) {
       return false;
     }
     for (let i = 0; i < n; i++) {
-      if (
-        // TODO: remove casts. Split this if case into tuple, list, etc., instead of instanceof Array!?
-        !_base_base_equal(
-          x[i] as unknown as RawValue,
-          y[i] as unknown as RawValue,
-        )
-      ) {
+      if (!_base_base_equal(xValues[i], yValues[i])) {
         return false;
       }
     }
@@ -301,7 +305,8 @@ export function _base_matrix_scalar_unit(x: RawMatrix): RawMatrix {
 }
 
 export function _base_matrix_magnitude(x: RawMatrix): RawMatrix {
-  return x;
+  const coo = getCOONumbers(x);
+  return tagMatrix(coo, x.nrRows, x.nrColumns, "COO", x.shape.dimensionless());
 }
 
 export function _base_matrix_row(
@@ -377,7 +382,7 @@ export function _base_matrix_get_num(
   i: PacioliCoordinates,
   j: PacioliCoordinates,
 ): RawMatrix {
-  return get(matrix, i.position, j.position);
+  return getNum(matrix, i.position, j.position);
 }
 
 export function _base_matrix_get(
@@ -388,12 +393,11 @@ export function _base_matrix_get(
   return get(matrix, i.position, j.position);
 }
 
-export function _base_matrix_make_matrix(tuples: RawList): RawMatrix {
-  const first = tuples[0] as unknown as [
-    PacioliCoordinates,
-    PacioliCoordinates,
-    RawMatrix,
-  ];
+export function _base_matrix_make_matrix(tuples: {
+  items: { items: [PacioliCoordinates, PacioliCoordinates, RawMatrix] }[];
+}): RawMatrix {
+  const first = tuples.items[0].items;
+
   const d1 = new MatrixDimension(first[0].indexSets);
   const d2 = new MatrixDimension(first[1].indexSets);
   const shape = new MatrixShape(
@@ -405,12 +409,8 @@ export function _base_matrix_make_matrix(tuples: RawList): RawMatrix {
   );
 
   const numbers = zeroNumbers(first[0].size, first[1].size, shape);
-  for (const tuple of tuples) {
-    const tup = tuple as unknown as [
-      PacioliCoordinates,
-      PacioliCoordinates,
-      RawMatrix,
-    ];
+  for (const tuple of tuples.items) {
+    const tup = tuple.items;
     set(numbers, tup[0].position, tup[1].position, getNumber(tup[2], 0, 0));
   }
 
@@ -1258,23 +1258,21 @@ export function _base_matrix_solve(x: RawMatrix, y: RawMatrix): RawMatrix {
 
   const EPS = 1.0 * Math.pow(2, -52);
 
-  const svd = _base_matrix_singular_value_list(x) as unknown as [
-    RawMatrix,
-    RawMatrix,
-    RawMatrix,
-  ][];
+  const svd = _base_matrix_singular_value_list(x).items as RawTuple[];
 
   // Copied from SingularValueDecomposition.cs
   const treshold = Math.max(
     EPS,
-    EPS * getNumber(svd[0][0], 0, 0) * Math.max(x.nrRows, x.nrColumns),
+    EPS *
+      getNumber(svd[0].items[0] as RawMatrix, 0, 0) *
+      Math.max(x.nrRows, x.nrColumns),
   );
 
   let inv = zeroNumbers(x.nrColumns, x.nrRows, x.shape.dim_inv());
   for (const elt of svd) {
     // This loop swaps storage 2 and 3
     const tup = elt;
-    const [a, v, w] = tup as unknown as [RawMatrix, RawMatrix, RawMatrix];
+    const [a, v, w] = tup.items as [RawMatrix, RawMatrix, RawMatrix];
     const r = _base_matrix_reciprocal(a);
     if (Math.abs(getNumber(a, 0, 0)) > treshold) {
       // if (getNumber(r, 0, 0) > treshold) {
@@ -1485,38 +1483,36 @@ export function _base_system__mapnz(fun: RawFunction, x: RawMatrix): RawMatrix {
 }
 
 export function _base_list_zip(x: RawList, y: RawList): RawList {
-  const list = Array.from<RawValue>({ length: Math.min(x.length, y.length) });
+  const list = Array.from<RawValue>({
+    length: Math.min(x.items.length, y.items.length),
+  });
   for (let i = 0; i < list.length; i++) {
-    list[i] = tagTuple([x[i], y[i]]);
+    list[i] = tagTuple([x.items[i], y.items[i]]);
   }
   return tagList(list);
 }
 
-export function _base_list_map_list(fun: RawFunction, items: RawList): RawList {
-  const list = tagList(Array.from({ length: items.length }));
-  for (const [i, item] of items.entries()) {
-    list[i] = fun(item);
-  }
-  return tagList(list);
+export function _base_list_map_list(fun: RawFunction, list: RawList): RawList {
+  return tagList(list.items.map((item) => fun(item)));
 }
 
 export function _base_system__add_mut(list: RawList, item: RawValue): RawList {
-  list.push(item);
+  list.items.push(item);
   return list;
 }
 
 export function _base_list_append(x: RawList, y: RawList): RawList {
-  return tagList([...x, ...y]);
+  return tagList([...x.items, ...y.items]);
 }
 
 export function _base_list_reverse(x: RawList): RawList {
-  return tagList([...x].reverse());
+  return tagList(x.items.reverse());
 }
 
 export function _base_list_tail(x: RawList): RawList {
-  const array = Array.from<RawValue>({ length: x.length - 1 });
+  const array = Array.from<RawValue>({ length: x.items.length - 1 });
   for (let i = 0; i < array.length; i++) {
-    array[i] = x[i + 1];
+    array[i] = x.items[i + 1];
   }
   return tagList(array);
 }
@@ -1526,7 +1522,7 @@ export function _base_list_singleton_list(x: RawValue): RawList {
 }
 
 export function _base_list_nth(x: RawMatrix, y: RawList): RawValue {
-  return y[getNumber(x, 0, 0)];
+  return y.items[getNumber(x, 0, 0)];
 }
 
 export function _base_list_naturals(num: RawMatrix): RawList {
@@ -1544,37 +1540,38 @@ export function _base_list_loop_list(
   list: RawList,
 ): RawValue {
   let accu: RawValue = init;
-  for (const element of list) {
+  for (const element of list.items) {
     accu = fun.apply(fun, [accu, element]);
   }
   return accu;
 }
 
 export function _base_list_list_size(x: RawList): RawMatrix {
-  return dimlessScalar(x.length);
+  return dimlessScalar(x.items.length);
 }
 
 export function _base_list_head(x: RawList): RawValue {
-  return x[0];
+  return x.items[0];
 }
 
 export function _base_list_fold_list(
   fun: RawFunction,
   list: RawList,
 ): RawValue {
-  if (list.length === 0) {
+  const items = list.items;
+  if (items.length === 0) {
     throw new Error("Cannot fold an empty list");
   }
-  let accu = list[0];
-  for (let i = 1; i < list.length; i++) {
-    accu = fun.apply(fun, [accu, list[i]]);
+  let accu = items[0];
+  for (let i = 1; i < items.length; i++) {
+    accu = fun.apply(fun, [accu, items[i]]);
   }
   return accu;
 }
 
 export function _base_list_sort_list(list: RawList, fun: RawFunction): RawList {
   return tagList(
-    [...list].sort(function (a: RawValue, b: RawValue) {
+    list.items.sort(function (a: RawValue, b: RawValue) {
       return getNumber(fun.apply(fun, [a, b]) as RawMatrix, 0, 0);
     }),
   );
@@ -1585,7 +1582,7 @@ export function _base_list_cons(item: RawValue, list: RawList): RawList {
 }
 
 export function _base_list_contains(list: RawList, item: RawValue): RawBoole {
-  return list.some((val) => _base_base_equal(val, item));
+  return list.items.some((val) => _base_base_equal(val, item));
 }
 
 export function _base_list_empty_list(): RawList {
@@ -1597,7 +1594,7 @@ export function _base_set_empty_set(): RawSet {
 }
 
 export function _base_set_set_size(x: RawSet): RawMatrix {
-  return dimlessScalar(x.size);
+  return dimlessScalar(x.items.length);
 }
 
 export function _base_set_loop_set(
@@ -1606,19 +1603,19 @@ export function _base_set_loop_set(
   set: RawSet,
 ): RawValue {
   let accu: RawValue = init;
-  for (const element of set) {
+  for (const element of set.items) {
     accu = fun.apply(fun, [accu, element]);
   }
   return accu;
 }
 
 export function _base_system__adjoin_mut(set: RawSet, item: RawValue): RawSet {
-  for (const x of set) {
+  for (const x of set.items) {
     if (_base_base_equal(x, item)) {
       return set;
     }
   }
-  set.add(item);
+  set.items.push(item);
   return set;
 }
 
@@ -1799,15 +1796,6 @@ export function _base_string_format(formatter: RawValue, ...args: RawValue[]) {
   }
 
   return out;
-
-  // Quick and dirty format implementation. Does not handle escaped percentages. So
-  // format("\%s %s", "foo") gives "\foo %s" instead of "%s foo"
-  // TODO: better runtime error handling instead of casts
-  let output = formatter as unknown as RawString;
-  for (const arg of args) {
-    output = output.replace(/%s/, arg as unknown as RawString);
-  }
-  return output;
 }
 
 export let NR_DECIMALS = 2;
@@ -1889,7 +1877,7 @@ export function _base_string_concatenate(
 }
 
 export function _base_string_split_string(x: RawString, y: RawString): RawList {
-  return tagList(x.split(y) as unknown as RawValue[]);
+  return tagList(x.split(y));
 }
 
 export function _base_string_char_at(
@@ -1939,7 +1927,7 @@ export function _base_array_make_array(n: RawMatrix): RawArray {
 }
 
 export function _base_array_array_get(arr: RawArray, pos: RawMatrix): RawValue {
-  return arr[getNumber(pos, 0, 0)];
+  return arr.items[getNumber(pos, 0, 0)];
 }
 
 export function _base_array_array_put(
@@ -1947,12 +1935,12 @@ export function _base_array_array_put(
   pos: RawMatrix,
   val: RawValue,
 ): PacioliVoid {
-  arr[getNumber(pos, 0, 0)] = val;
+  arr.items[getNumber(pos, 0, 0)] = val;
   return VOID;
 }
 
 export function _base_array_array_size(arr: RawArray): RawMatrix {
-  return dimlessScalar(arr.length);
+  return dimlessScalar(arr.items.length);
 }
 
 export function _base_map_empty_map(): RawMap {

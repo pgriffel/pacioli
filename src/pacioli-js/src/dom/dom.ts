@@ -65,13 +65,16 @@ export function DOM(
       return document.createTextNode(x.shortText());
     }
     case "list": {
-      return arrayElementsToDOM("ol", x, options);
+      return arrayElementsToDOM("ol", x.items, options);
+    }
+    case "set": {
+      return arrayElementsToDOM("ol", x.items, options);
     }
     case "tuple": {
-      return arrayElementsToDOM("ul", x, options);
+      return arrayElementsToDOM("ul", x.items, options);
     }
     case "array": {
-      return arrayElementsToDOM("ul", x, options);
+      return arrayElementsToDOM("ul", x.items, options);
     }
     case "maybe": {
       return x.value === undefined
@@ -92,6 +95,9 @@ export function DOM(
     }
     case "void": {
       return document.createTextNode("|void|");
+    }
+    case "custom": {
+      return document.createTextNode("TODO: dom for CustomPacioliValue");
     }
   }
 }

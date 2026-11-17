@@ -23,5 +23,5 @@
 export class PacioliString {
   readonly kind = "string";
 
-  constructor(public value: string) {}
+  constructor(public readonly value: string) {}
 }

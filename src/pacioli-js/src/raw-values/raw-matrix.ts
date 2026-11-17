@@ -79,13 +79,23 @@ export interface RawCCSMatrix extends numericCCSMatrix {
   storage: "CCS";
 }
 
-export function get(numbers: RawMatrix, i: number, j: number) {
+export function getNum(numbers: RawMatrix, i: number, j: number) {
   return tagMatrix(
     [[getNumber(numbers, i, j)]],
     1,
     1,
     "full",
     MatrixShape.scalar(ONE),
+  );
+}
+
+export function get(numbers: RawMatrix, i: number, j: number) {
+  return tagMatrix(
+    [[getNumber(numbers, i, j)]],
+    1,
+    1,
+    "full",
+    MatrixShape.scalar(numbers.shape.multiplier),
   );
 }
 

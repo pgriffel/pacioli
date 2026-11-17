@@ -30,13 +30,15 @@ import type * as THREE from "three";
 /**
  * Matches the Label type from the graphics Pacioli library.
  */
-export type PacioliLabel = [
-  PacioliString, // characters
-  PacioliMatrix, // position
-  PacioliString, // color
-  PacioliString, // font
-  PacioliMatrix, // scale
-];
+export type PacioliLabel = {
+  items: [
+    PacioliString, // characters
+    PacioliMatrix, // position
+    PacioliString, // color
+    PacioliString, // font
+    PacioliMatrix, // scale
+  ];
+};
 
 export function addLabel(
   body: THREE.Object3D,
@@ -52,7 +54,7 @@ export function addLabel(
     scale: number;
   },
 ) {
-  const [characters, position, color, font, scale] = pacioliLabel;
+  const [characters, position, color, font, scale] = pacioliLabel.items;
 
   const factor = getNumber(scale.numbers, 0, 0);
 
