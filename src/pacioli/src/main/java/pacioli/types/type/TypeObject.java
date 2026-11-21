@@ -282,20 +282,22 @@ public interface TypeObject extends Printable {
     }
 
     public default String compileToJS() {
-        StringWriter outputStream = new StringWriter();
-        this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream))));
-        return outputStream.toString();
+        throw new RuntimeException("obsolete");
+        // StringWriter outputStream = new StringWriter();
+        // this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream))));
+        // return outputStream.toString();
     };
 
     public default String compileToMVM(CompilationSettings settings) {
-        // Currently only the matrix type is compiled. This is just enough
-        // to get shapes in the MVM.
-        if (!(this instanceof MatrixType))
-            throw new UnsupportedOperationException("yo");
-        StringWriter outputStream = new StringWriter();
-        this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
-                settings));
-        return outputStream.toString();
+        throw new RuntimeException("obsolete");
+        // // Currently only the matrix type is compiled. This is just enough
+        // // to get shapes in the MVM.
+        // if (!(this instanceof MatrixType))
+        // throw new UnsupportedOperationException("yo");
+        // StringWriter outputStream = new StringWriter();
+        // this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
+        // settings));
+        // return outputStream.toString();
     }
 
     public default String printAsLean(Target target) {

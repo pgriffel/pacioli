@@ -90,17 +90,23 @@ public interface MatrixBase extends Base {
     }
 
     private static <B extends MatrixBase> String compileUnitToJSHelper(Unit<B> unit, boolean forType) {
-        String product = "";
+        String product = "[";
+
         int n = 0;
         for (B base : unit.bases()) {
-            String baseText = base.asJS(forType) + ".expt(" + unit.power(base) + ")";
-            product = n == 0 ? baseText : baseText + ".mult(" + product + ")";
+            String baseText = "[" + base.asJS(true) + "," + unit.power(base) + "]";
+            product += n == 0 ? baseText : "," + baseText;
             n++;
         }
-        if (n == 0) {
-            return "Pacioli.ONE";
-        } else {
-            return product;
-        }
+
+        product += "]";
+
+        return product;
+
+        // if (n == 0) {
+        // return "Pacioli.ONE";
+        // } else {
+        // return product;
+        // }
     }
 }

@@ -24,27 +24,88 @@ import { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { IndexSet } from "./values/index-set";
 import { set } from "./raw-values/raw-matrix";
-import type { PacioliType, PacioliUnit } from "./types/pacioli-type";
+import type { PacioliType } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
-import type { MatrixType } from "./types/matrix";
 import type { RawList, RawString, RawValue } from "./raw-values/raw-value";
 import { stringifyRawValue, tagMatrix } from "./raw-values/raw-value";
-import {
-  internUnit,
-  matrixShapeFromType,
-  unboxPacioliValue,
-} from "./values/pacioli-value";
+import { matrixShapeFromType, unboxPacioliValue } from "./values/pacioli-value";
 import type { PacioliValue } from "./values/pacioli-value";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
 import type { RawMatrix } from "./raw-values/raw-matrix";
 import { MatrixShape } from "./values/matrix-shape";
+import { createMatrixType } from "./api";
 
 export const defaultContext = PacioliContext.empty();
 
 // -----------------------------------------------------------------------------
 // 0. Functions used by generated code
+//
+// Inspection
+//
+// General:
+// - tagList                                          _list
+// - tagSet                                           _set
+//
+// JSTranspiler:
+// - IndexSet             makeIndexSet                _index
+// - ScalarBase           DimNum.fromNumber (and {})  _sbase
+// - VectorBase           vectorBase                  _uvec
+//
+// JSGenerator:
+// - ConstNode            dimlessScalar               _const
+// - ConversionNode       conversionNumbers           _conv
+// - IdentifierNode       fetchValue                  _get
+// - KeyNode              createCoordinates           _coords
+// - MatrixLiteralNode    initialNumbersFromType      _mat
+// - MatrixTypeNode       oneNumbersFromShape         _unitmat
+// - ProjectionNode       projectNumbers              _proj
+//
+// conversionNumbers is NOT USED!, uses initialNumbersFromType instead. We can
+//  now fix this!? Conversion is currently only compile time!?
+//
+// conventions for generated code:
+// - fetch functions in generated code get values via cache based on id. If not in cache it computes. Functions for accessing the context.
+// - intern functions are for constructing interned values from strings, booleans, etc. in compute functions
+// - parse functions parse strings
+// the rest is for use from user code (html, etc.)
+//
 // -----------------------------------------------------------------------------
+
+export function _mat(
+  values: [number, number, number][],
+  multiplier: [string, number][],
+  rowSets: string[],
+  rowUnit: [string, number, number][],
+  columnSets: string[],
+  columnUnit: [string, number, number][],
+): RawMatrix {
+  const shape = createMatrixType(
+    multiplier,
+    rowSets,
+    rowUnit,
+    columnSets,
+    columnUnit,
+  );
+  return initialNumbersFromType(
+    shape.nrRows(),
+    shape.nrColumns(),
+    values,
+    shape,
+  );
+}
+
+export function _unitmat(
+  multiplier: [string, number][],
+  rowSets: string[],
+  rowUnit: [string, number, number][],
+  columnSets: string[],
+  columnUnit: [string, number, number][],
+): RawMatrix {
+  return oneNumbersFromShape(
+    createMatrixType(multiplier, rowSets, rowUnit, columnSets, columnUnit),
+  );
+}
 
 export function makeIndexSet(id: string, name: string, items: RawList) {
   // TODO: wat is de id?
@@ -109,7 +170,7 @@ export function oneNumbers(
  * @returns
  */
 export function oneNumbersFromShape(
-  type: MatrixType, // TODO: change to MatrixShape!?
+  type: MatrixShape, // TODO: change to MatrixShape!?
   context: PacioliContext = defaultContext,
 ): RawMatrix {
   const shape = matrixShapeFromType(type, context);
@@ -156,7 +217,7 @@ export function initialNumbersFromType(
   m: number,
   n: number,
   data: number[][],
-  type: MatrixType, // TODO: change to MatrixShape!?
+  type: MatrixShape, // TODO: change to MatrixShape!?
   context: PacioliContext = defaultContext,
 ): RawMatrix {
   if (type === undefined) {
@@ -259,6 +320,11 @@ export function fetchUnit(
   base: string,
   context: PacioliContext = defaultContext,
 ): SIUnit {
+  if (base === undefined) {
+    console.log("oeps");
+  }
+  // const yo = base;
+  // console.log(yo);
   const unit = context.lookupUnit(prefix, base);
   if (unit === undefined) {
     const parts = base.split(":");
@@ -279,23 +345,19 @@ export function fetchUnit(
 }
 
 export function fetchUnitVector(
-  id: string,
-  indexSet: IndexSet,
+  vectorId: string,
+  _indexId: string,
   context: PacioliContext = defaultContext,
 ): UnitVector {
-  const vec = context.findUnitVector(id);
+  const candidate = context.findUnitVector(vectorId);
 
-  if (vec === undefined) {
-    const unitObject = findFunction<{ units: object }>(id)().units;
-    const unitMap = new Map<string, SIUnit>();
-    for (const [key, value] of Object.entries(unitObject)) {
-      unitMap.set(key, internUnit(value as PacioliUnit, context));
-    }
-    const computed = UnitVector.fromMap(id, indexSet, unitMap);
-    context.addUnitVector(computed);
-    return computed;
+  if (candidate === undefined) {
+    const UnitVector = findFunction<UnitVector>(vectorId)();
+
+    context.addUnitVector(UnitVector);
+    return UnitVector;
   } else {
-    return vec;
+    return candidate;
   }
 }
 

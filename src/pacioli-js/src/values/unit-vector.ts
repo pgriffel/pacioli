@@ -26,8 +26,8 @@ import type { ToText } from "./pacioli-value";
 
 export class UnitVector implements ToText {
   constructor(
-    public name: string,
-    public indexSet: IndexSet,
+    public name: string, // id noemen!?
+    public indexSet: IndexSet, // idem
     public elements: SIUnit[],
   ) {}
 

@@ -77,7 +77,7 @@ public final class VectorBaseInfo extends UnitInfo {
 
     @Override
     public String globalName() {
-        return String.format("vbase_%s", name().replace("!", "_"));
+        return String.format("vbase_%s_%s", this.generalInfo().module(), name().replace("!", "_"));
     }
 
     @Override

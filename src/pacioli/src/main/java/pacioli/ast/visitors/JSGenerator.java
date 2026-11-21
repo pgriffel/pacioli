@@ -157,8 +157,13 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
+        // TODO: reconnect the runtime function to compute conversion. Currently
+        // they are computed compile time, but now shape is available at runtime.
         // TODO: should this type be reduced?
-        out.format("Pacioli.conversionNumbers(%s)", node.typeNode.evalType().compileToJS());
+
+        // out.format("Pacioli.conversionNumbers(%s)",
+        // node.typeNode.evalType().compileToJS());
+        throw new RuntimeException("not used");
     }
 
     @Override
@@ -265,24 +270,21 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
             builder.append("]");
             sep = ",";
         }
-        out.format("Pacioli.initialNumbersFromType(%s, %s, [%s], %s)",
-                node.rowDim.size(), node.columnDim.size(),
+
+        out.format("Pacioli._mat([%s], %s)",
                 builder.toString(),
-                node.evalType().compileToJS());
+                node.evalType().asJSShapeParameters(settings));
     }
 
     @Override
     public void visit(MatrixTypeNode node) {
 
-        MatrixType type;
-        try {
-            // TODO: should this type be reduced?
-            type = node.evalType();
-        } catch (PacioliException e) {
-            throw new RuntimeException(e);
-        }
+        // TODO: should this type be reduced?
+        MatrixType type = node.evalType();
 
-        out.print("Pacioli.oneNumbersFromShape(" + type.compileToJS() + ")");
+        out.print("Pacioli._unitmat(");
+        out.print(type.asJSShapeParameters(settings));
+        out.print(")");
     }
 
     @Override
@@ -291,7 +293,9 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         out.write("Pacioli.projectNumbers(");
         node.body.accept(this);
         out.write(", ");
-        out.format("%s.param", node.type.compileToJS());
+        // FIXME. The .param part is a leftover. Was already broken when
+        // asJSShapeParameters was introduced
+        out.format("%s.param", node.type.asJSShapeParameters(settings));
         out.write(", ");
         out.format("[%s]", node.numString());
         out.write(")");

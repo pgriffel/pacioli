@@ -38,6 +38,7 @@ export {
   tuple,
   parseDimNum,
   parseUnit,
+  _uvec,
 } from "./api";
 
 export {
@@ -53,6 +54,8 @@ export {
   fetchValue,
   storePacioliValue,
   createCoordinates,
+  _mat,
+  _unitmat,
 } from "./cache";
 
 export { findNonZero } from "./raw-values/raw-matrix";

@@ -47,7 +47,8 @@ public class JSGenerator implements TypeVisitor {
     Printer out;
 
     public JSGenerator(Printer out) {
-        this.out = out;
+        throw new RuntimeException("obso");
+        // this.out = out;
     }
 
     @Override
@@ -66,7 +67,7 @@ public class JSGenerator implements TypeVisitor {
 
     @Override
     public void visit(IndexList type) {
-        out.write("new Pacioli.IndexType([");
+        out.write("[");
         String pre = "";
         for (int i = 0; i < type.indexSets().size(); i++) {
             out.write(pre);
@@ -79,7 +80,7 @@ public class JSGenerator implements TypeVisitor {
             out.write("'");
             pre = ", ";
         }
-        out.write("])");
+        out.write("]");
     }
 
     @Override
@@ -104,7 +105,7 @@ public class JSGenerator implements TypeVisitor {
         if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
             out.write(MatrixBase.compileUnitToJSType(type.rowUnit()));
         } else {
-            out.write("Pacioli.ONE");
+            out.write("[]");
         }
         out.write(", ");
 
@@ -116,7 +117,7 @@ public class JSGenerator implements TypeVisitor {
         if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
             out.write(MatrixBase.compileUnitToJSType(type.columnUnit()));
         } else {
-            out.write("Pacioli.ONE");
+            out.write("[]");
         }
 
         out.write(")");

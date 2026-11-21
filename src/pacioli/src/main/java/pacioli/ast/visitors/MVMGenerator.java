@@ -214,9 +214,11 @@ public class MVMGenerator extends DefaultVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        out.write("matrix_constructor(\"conversion\", ");
-        out.print(node.typeNode.evalType().compileToMVM(settings));
-        out.write(")");
+        if (node.typeNode.evalType() instanceof MatrixType matrixType) {
+            out.write("matrix_constructor(\"conversion\", ");
+            out.print(matrixType.asMVMShape(settings));
+            out.write(")");
+        }
     }
 
     @Override
@@ -294,18 +296,22 @@ public class MVMGenerator extends DefaultVisitor implements CodeGenerator {
     @Override
     public void visit(MatrixLiteralNode node) {
 
-        // Write the opening of the literal
-        out.write("literal_matrix(");
-        out.print(node.typeNode.evalType().compileToMVM(settings));
-        out.write(", ");
+        if (node.typeNode.evalType() instanceof MatrixType type) {
+            // Write the opening of the literal
+            out.write("literal_matrix(");
 
-        // Write the elements.
-        for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
-            out.format(" %s %s \"%s\",", decl.row, decl.column, decl.valueDecl.value);
+            out.print(type.asMVMShape(settings));
+
+            out.write(", ");
+
+            // Write the elements.
+            for (MatrixLiteralNode.PositionedValueDecl decl : node.positionedValueDecls()) {
+                out.format(" %s %s \"%s\",", decl.row, decl.column, decl.valueDecl.value);
+            }
+
+            // Write the closing of the literal
+            out.format(")");
         }
-
-        // Write the closing of the literal
-        out.format(")");
     }
 
     @Override
@@ -313,7 +319,8 @@ public class MVMGenerator extends DefaultVisitor implements CodeGenerator {
         try {
             MatrixType type = node.evalType();
             out.write("matrix_constructor(\"ones\", ");
-            out.print(type.compileToMVM(settings));
+            // out.print(type.compileToMVM(settings));
+            out.print(type.asMVMShape(settings));
             out.write(")");
         } catch (PacioliException e) {
             throw new RuntimeException(e);

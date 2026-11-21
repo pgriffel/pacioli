@@ -565,7 +565,7 @@ public class LeanGenerator extends PrintVisitor implements CodeGenerator {
 
     @Override
     public void visit(ConversionNode node) {
-        out.format("-- TODO: conversion %s", node.typeNode.evalType().compileToJS());
+        out.format("-- TODO: conversion %s", "node.typeNode.evalType().printAsLean()");
     }
 
     @Override

@@ -22,8 +22,11 @@
 
 package pacioli.types.type.matrix;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
@@ -397,4 +400,93 @@ public class MatrixType implements TypeObject {
         }
     }
 
+    public String asMVMShape(CompilationSettings settings) {
+
+        MatrixType type = this;
+
+        StringWriter buffer = new StringWriter();
+        PrintWriter out = new PrintWriter(buffer);
+
+        // UNITTODO
+
+        String factorString = MatrixBase.compileUnitToMVM(type.factor(), settings);
+        String left = type.asMVMDimensionUnitPair(type.rowDimension(), type.rowUnit(), settings);
+        String right = type.asMVMDimensionUnitPair(type.columnDimension(), type.columnUnit(), settings);
+
+        boolean hasFactor = !factorString.isEmpty();
+        boolean hasLeft = !left.isEmpty();
+        boolean hasRight = !right.isEmpty();
+
+        if (hasFactor && hasLeft && hasRight) {
+            out.format("shape_binop(\"multiply\", %s, shape_binop(\"per\", %s, %s))", factorString, left, right);
+        } else if (hasFactor && hasLeft) {
+            out.format("shape_binop(\"multiply\", %s, %s)", factorString, left);
+        } else if (hasFactor && hasRight) {
+            out.format("shape_binop(\"multiply\", %s, %s)", factorString, right);
+        } else if (hasFactor) {
+            out.format("%s", factorString);
+        } else if (hasLeft && hasRight) {
+            out.format("shape_binop(\"per\", %s, %s)", left, right);
+        } else if (hasLeft) {
+            out.format("%s", left);
+        } else if (hasRight) {
+            out.format("shape_binop(\"per\", scalar_shape(unit(\"\")), %s)", right);
+        } else {
+            out.write("scalar_shape(unit(\"\"))");
+        }
+
+        return buffer.toString();
+    }
+
+    public String asJSShapeParameters(CompilationSettings settings) {
+
+        MatrixType type = this;
+
+        StringWriter buffer = new StringWriter();
+        PrintWriter out = new PrintWriter(buffer);
+
+        // out.write("Pacioli.createMatrixType(");
+
+        // Scalar factor
+        out.write(MatrixBase.compileUnitToJSType(type.factor()));
+        out.write(", ");
+
+        // Row dimension
+        out.write("[");
+        out.write(jsIndexShapeNames(type.rowDimension().indexList()));
+        out.write("]");
+        out.write(", ");
+
+        // Row unit
+        if (type.rowDimension().isVar() || type.rowDimension().width() > 0) {
+            out.write(MatrixBase.compileUnitToJSType(type.rowUnit()));
+        } else {
+            out.write("[]");
+        }
+        out.write(", ");
+
+        // Column dimension
+        out.write("[");
+        out.write(jsIndexShapeNames(type.columnDimension().indexList()));
+        out.write("]");
+        out.write(", ");
+
+        // Column unit
+        if (type.columnDimension().isVar() || type.columnDimension().width() > 0) {
+            out.write(MatrixBase.compileUnitToJSType(type.columnUnit()));
+        } else {
+            out.write("[]");
+        }
+
+        // out.write(")");
+
+        return buffer.toString();
+    }
+
+    static String jsIndexShapeNames(IndexList type) {
+        return type.indexSets().stream()
+                .map(indexSet -> "'index_" + indexSet.home() + "_" + indexSet.name() + "'")
+                .collect(Collectors.joining(","));
+
+    }
 }

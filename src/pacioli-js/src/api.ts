@@ -24,38 +24,102 @@ import type { DimNum } from "uom-ts";
 import { SIUnit } from "uom-ts";
 import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
-import { MatrixShape } from "./values/matrix-shape";
-import type { PacioliUnit, PacioliVector } from "./types/pacioli-type";
+import { MatrixShape, SIVector } from "./values/matrix-shape";
+import type { PacioliUnit } from "./types/pacioli-type";
 import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
-import type { PacioliIndex } from "./types/matrix";
-import { MatrixType } from "./types/matrix";
 import type { PacioliValue } from "./values/pacioli-value";
 import { boxRawValue } from "./values/pacioli-value";
 import { SIBaseType, VectorBaseType } from "./types/bases";
 import { TypeVar, UnitVar } from "./types/variables";
 import {
   defaultContext,
+  fetchIndex,
   fetchUnit,
+  fetchUnitVector,
   initialNumbers,
   lookupValue,
 } from "./cache";
 import { PacioliTuple } from "./values/tuple";
 import { PacioliList } from "./values/list";
 import type BigNumber from "bignumber.js";
+import { MatrixDimension } from "./values/matrix-dimension";
+import { VectorBase } from "./values/vector-base";
+import { UnitVector } from "./values/unit-vector";
 
 // -----------------------------------------------------------------------------
 // New
 // -----------------------------------------------------------------------------
 
 export function createMatrixType(
-  multiplier: PacioliUnit,
-  rowSets: PacioliIndex,
-  rowUnit: PacioliVector,
-  columnSets: PacioliIndex,
-  columnUnit: PacioliVector,
-): MatrixType {
-  return new MatrixType(multiplier, rowSets, rowUnit, columnSets, columnUnit);
+  multiplier: [string, number][],
+  rowSets: string[],
+  rowUnit: [string, number, number][],
+  columnSets: string[],
+  columnUnit: [string, number, number][],
+): MatrixShape {
+  // fetches doen om te interen!
+  const rowDim = new MatrixDimension(
+    rowSets.map((name) => fetchIndex(name, defaultContext)),
+  );
+  const columnDim = new MatrixDimension(
+    columnSets.map((name) => fetchIndex(name, defaultContext)),
+  );
+  return new MatrixShape(
+    parseSIUnit(multiplier),
+    rowDim,
+    parseVectorShapeUnit(rowDim, rowUnit),
+    columnDim,
+    parseVectorShapeUnit(columnDim, columnUnit),
+  );
+}
+
+function parseSIUnit(parts: [string, number][]): SIUnit {
+  let uni = SIUnit.ONE;
+  for (const [base, power] of parts) {
+    uni = uni.mult(unit(base).expt(power));
+  }
+  return uni;
+}
+
+function parseVectorShapeUnit(
+  dimension: MatrixDimension,
+  parts: [string, number, number][],
+): SIVector {
+  let unit = SIVector.ONE;
+
+  for (const [id, position, power] of parts) {
+    const unitVector = fetchUnitVector(
+      id,
+      dimension.indexSets[position].id,
+      defaultContext,
+    );
+    unit = unit.mult(
+      UOM.fromBase(new VectorBase(unitVector, position, id)).expt(power),
+    );
+  }
+  return unit;
+}
+
+/**
+ * Called in generated code to construct a unit vector.
+ *
+ * @param spec A representation of the unit vector in strings and numbers
+ */
+export function _uvec(
+  vectorId: string,
+  indexId: string,
+  spec: [string, [string, number][]][],
+): UnitVector {
+  const indexSet = fetchIndex(indexId, defaultContext);
+
+  const unitMap = new Map<string, SIUnit>();
+
+  for (const [key, unitSpec] of spec) {
+    unitMap.set(key, parseSIUnit(unitSpec));
+  }
+
+  return UnitVector.fromMap(vectorId, indexSet, unitMap);
 }
 
 // -----------------------------------------------------------------------------

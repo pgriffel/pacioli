@@ -194,14 +194,14 @@ public class JSTranspiler implements SymbolTableVisitor {
         for (UnitDecl entry : info.items()) {
             DimensionedNumber<ScalarBase> number = entry.value.evalUnit();
             // todo: take number.factor() into account!?
-            unitTexts.add("'" + entry.key.name() + "': " + MatrixBase.compileUnitToJS(number.unit()));
+            unitTexts.add("['" + entry.key.name() + "', " + MatrixBase.compileUnitToJS(number.unit()) + "]");
         }
 
-        String globalName = // info.globalName();//setInfo.globalName();
-                String.format("vbase_%s_%s", setInfo.generalInfo().module(), info.name().replace("!", "_"));
+        String vectorId = info.globalName();
         String args = String.join(", ", unitTexts);
 
-        out.format("Pacioli.compute_%s = function () { return {units: { %s }}};\n", globalName, args);
+        out.format("Pacioli.compute_%s = function() { return Pacioli._uvec('%s','%s',[%s]); };\n",
+                vectorId, vectorId, setInfo.globalName(), args);
     }
 
     @Override
