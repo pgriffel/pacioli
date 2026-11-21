@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import pacioli.compiler.CompilationSettings;
 import pacioli.compiler.PacioliException;
 import pacioli.compiler.Printable;
 import pacioli.compiler.Printer;
@@ -41,12 +40,9 @@ import pacioli.types.Substitution;
 import pacioli.types.TypeVisitor;
 import pacioli.types.UnitUnification;
 import pacioli.types.type.matrix.MatrixBase;
-import pacioli.types.type.matrix.MatrixType;
 import pacioli.types.type.matrix.VectorUnitVar;
 import pacioli.types.visitors.VectorVarNames;
-import pacioli.types.visitors.JSGenerator;
 import pacioli.types.visitors.LeanPrinter;
-import pacioli.types.visitors.MVMGenerator;
 import pacioli.types.visitors.MatrixNormalizeVisitor;
 import pacioli.types.visitors.PrettyPrinter;
 import pacioli.types.visitors.ReduceTypes;
@@ -279,25 +275,6 @@ public interface TypeObject extends Printable {
         }
         return map.compose(map2);
 
-    }
-
-    public default String compileToJS() {
-        throw new RuntimeException("obsolete");
-        // StringWriter outputStream = new StringWriter();
-        // this.accept(new JSGenerator(new Printer(new PrintWriter(outputStream))));
-        // return outputStream.toString();
-    };
-
-    public default String compileToMVM(CompilationSettings settings) {
-        throw new RuntimeException("obsolete");
-        // // Currently only the matrix type is compiled. This is just enough
-        // // to get shapes in the MVM.
-        // if (!(this instanceof MatrixType))
-        // throw new UnsupportedOperationException("yo");
-        // StringWriter outputStream = new StringWriter();
-        // this.accept(new MVMGenerator(new Printer(new PrintWriter(outputStream)),
-        // settings));
-        // return outputStream.toString();
     }
 
     public default String printAsLean(Target target) {

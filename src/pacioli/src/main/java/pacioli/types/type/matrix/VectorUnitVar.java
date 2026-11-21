@@ -163,17 +163,17 @@ public final class VectorUnitVar implements VectorBase, UnitVar, TypeObject {
 
     @Override
     public String asJS(boolean forType) {
-        return "Pacioli.unitFromVarName('_" + this.pretty() + "_')";
+        throw new RuntimeException("Cannot compile vector unit var to js");
     }
 
     @Override
     public String asMVMUnit(CompilationSettings settings) {
-        return TypeObject.super.compileToMVM(settings);
+        throw new RuntimeException("Cannot compile vector unit var to mvm unit");
     }
 
     @Override
     public String asMVMShape(CompilationSettings settings) {
-        return TypeObject.super.compileToMVM(settings);
+        throw new RuntimeException("Cannot compile vector unit var to mvm shape");
     }
 
     @Override

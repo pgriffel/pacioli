@@ -158,17 +158,17 @@ public final class ScalarUnitVar implements ScalarBase, UnitVar, TypeObject {
 
     @Override
     public String asJS(boolean forType) {
-        return "Pacioli.unitFromVarName('_" + this.pretty() + "_')";
+        throw new RuntimeException("Cannot compile scalar unit var to js");
     }
 
     @Override
     public String asMVMUnit(CompilationSettings settings) {
-        return TypeObject.super.compileToMVM(settings);
+        throw new RuntimeException("Cannot compile scalar unit var to mvm unit");
     }
 
     @Override
     public String asMVMShape(CompilationSettings settings) {
-        return TypeObject.super.compileToMVM(settings);
+        throw new RuntimeException("Cannot compile scalar unit var to mvm shape");
     }
 
     @Override
