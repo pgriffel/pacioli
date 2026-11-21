@@ -24,11 +24,10 @@ import { DimNum, SIUnit } from "uom-ts";
 import { PacioliCoordinates } from "./values/coordinates";
 import { IndexSet } from "./values/index-set";
 import { set } from "./raw-values/raw-matrix";
-import type { PacioliType } from "./types/pacioli-type";
 import { PacioliContext } from "./context";
 import type { RawList, RawString, RawValue } from "./raw-values/raw-value";
 import { stringifyRawValue, tagMatrix } from "./raw-values/raw-value";
-import { matrixShapeFromType, unboxPacioliValue } from "./values/pacioli-value";
+import { unboxPacioliValue } from "./values/pacioli-value";
 import type { PacioliValue } from "./values/pacioli-value";
 import { UnitVector } from "./values/unit-vector";
 import { PacioliString } from "./values/string";
@@ -170,10 +169,9 @@ export function oneNumbers(
  * @returns
  */
 export function oneNumbersFromShape(
-  type: MatrixShape, // TODO: change to MatrixShape!?
-  context: PacioliContext = defaultContext,
+  shape: MatrixShape, // TODO: change to MatrixShape!?
+  _context: PacioliContext = defaultContext,
 ): RawMatrix {
-  const shape = matrixShapeFromType(type, context);
   const numbers = oneNumbers(shape.nrRows(), shape.nrColumns(), shape);
   numbers.shape = shape;
   return numbers;
@@ -217,13 +215,9 @@ export function initialNumbersFromType(
   m: number,
   n: number,
   data: number[][],
-  type: MatrixShape, // TODO: change to MatrixShape!?
-  context: PacioliContext = defaultContext,
+  shape: MatrixShape,
+  _context: PacioliContext = defaultContext,
 ): RawMatrix {
-  if (type === undefined) {
-    debugger;
-  }
-  const shape = matrixShapeFromType(type, context);
   // Use an efficient representation. DOK!? And probably there is already
   // some function to do this. See e.g. the make_matrix implementation.
   const numbers = tagMatrix([], m, n, "DOK", shape);
@@ -292,7 +286,7 @@ export function string(value: string): PacioliString {
 // 1. The Store
 // -----------------------------------------------------------------------------
 
-const cache: Map<string, PacioliType | RawValue> = new Map();
+const cache: Map<string, RawValue> = new Map();
 
 // const valueStore: Map<string, RawValue> = new Map();
 // const typeStore: Map<string, PacioliType> = new Map();
@@ -384,13 +378,10 @@ export function lookupItem<T>(
 ): T {
   if (cache.get(full) === undefined) {
     // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
-    const asValue = window["Pacioli"][full] as
-      | PacioliType
-      | RawValue
-      | undefined;
+    const asValue = window["Pacioli"][full] as RawValue | undefined;
 
     if (asValue === undefined) {
-      cache.set(full, findFunction<T>(full)() as PacioliType | RawValue);
+      cache.set(full, findFunction<T>(full)() as RawValue);
     } else {
       cache.set(full, asValue);
     }
@@ -412,22 +403,6 @@ export function lookupValue(full: string): RawValue {
   }
 
   return cache.get(full) as RawValue;
-}
-
-export function lookupType(id: string): PacioliType {
-  const full = "u_" + id;
-  if (cache.get(full) === undefined) {
-    // @ts-expect-error The compiled code uses Pacioli as namespace. It must exist
-    const asValue = window["Pacioli"][full] as PacioliType | undefined;
-
-    if (asValue === undefined) {
-      cache.set(full, findFunction<PacioliType>(full)());
-    } else {
-      cache.set(full, asValue);
-    }
-  }
-
-  return cache.get(full) as PacioliType;
 }
 
 export function storePacioliValue(

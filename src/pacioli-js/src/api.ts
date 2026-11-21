@@ -25,13 +25,10 @@ import { SIUnit } from "uom-ts";
 import { UOM, parseDimNum as uomParseDimNum } from "uom-ts";
 import { PacioliMatrix } from "./values/matrix";
 import { MatrixShape, SIVector } from "./values/matrix-shape";
-import type { PacioliUnit } from "./types/pacioli-type";
 import type { PacioliContext } from "./context";
 import { PacioliFunction } from "./values/function";
 import type { PacioliValue } from "./values/pacioli-value";
 import { boxRawValue } from "./values/pacioli-value";
-import { SIBaseType, VectorBaseType } from "./types/bases";
-import { TypeVar, UnitVar } from "./types/variables";
 import {
   defaultContext,
   fetchIndex,
@@ -58,7 +55,6 @@ export function createMatrixType(
   columnSets: string[],
   columnUnit: [string, number, number][],
 ): MatrixShape {
-  // fetches doen om te interen!
   const rowDim = new MatrixDimension(
     rowSets.map((name) => fetchIndex(name, defaultContext)),
   );
@@ -161,32 +157,6 @@ export function unit(name: string): SIUnit {
   const base = parts.length === 2 ? parts[1] : name;
 
   return fetchUnit(prefix, base);
-}
-
-// Used in generated code
-export function unitType(name1: string, name2?: string): UOM<SIBaseType> {
-  return UOM.fromBase(
-    name2 === undefined
-      ? new SIBaseType("", name1)
-      : new SIBaseType(name1, name2),
-  );
-}
-
-// Used only by VectorBase. In asJs method.
-export function unitVectorType(
-  id: string,
-  position: number,
-): UOM<VectorBaseType> {
-  return UOM.fromBase(new VectorBaseType(id, position));
-}
-
-// Used only by ScalarUnitVar. In asJs method.
-export function unitFromVarName(id: string): PacioliUnit {
-  return UOM.fromBase(new UnitVar(id));
-}
-
-export function typeFromVarName(varName: string): TypeVar {
-  return new TypeVar("_" + varName + "_");
 }
 
 export function num(

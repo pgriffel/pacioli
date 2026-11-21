@@ -24,16 +24,12 @@ export { DimNum, si } from "uom-ts";
 
 export {
   unit,
-  unitType,
-  unitVectorType,
   value,
   fun,
   num,
   createMatrixType,
   convertUnit,
   conversionFactor,
-  unitFromVarName,
-  typeFromVarName,
   list,
   tuple,
   parseDimNum,
@@ -66,11 +62,7 @@ export { PacioliContext } from "./context";
 
 export { DOM, DOMTable } from "./dom/dom";
 
-export {
-  internUnit,
-  matrixShapeFromType,
-  PacioliValue,
-} from "./values/pacioli-value";
+export { PacioliValue } from "./values/pacioli-value";
 
 export { IndexSet } from "./values/index-set";
 
@@ -91,18 +83,6 @@ export { RawValue, tagList, tagSet } from "./raw-values/raw-value";
 
 export { MatrixShape as Shape } from "./values/matrix-shape";
 
-export { MatrixType, IndexType } from "./types/matrix";
-
-export { PacioliType, PacioliUnit, PacioliVector } from "./types/pacioli-type";
-
-export { SIBaseType, VectorBaseType } from "./types/bases";
-
-export { FunctionType } from "./types/function";
-
-export { GenericType } from "./types/generic";
-
-export { matchTypes, subs } from "./type-solver";
-
 export { BarChart, BarChartOptions } from "./charts/d3-bar-chart";
 
 export { LineChart, LineChartOptions } from "./charts/d3-line-chart";
@@ -115,7 +95,7 @@ export { Histogram, HistogramOptions } from "./charts/d3-histogram";
 
 export { WordCloud, WordCloudOptions } from "./charts/d3-wordcloud";
 
-export { PacioliBase } from "./types/bases";
+// export { PacioliBase } from "./types/bases";
 
 export {
   _base_system__acos,

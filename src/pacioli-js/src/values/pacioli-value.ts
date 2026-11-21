@@ -20,8 +20,6 @@
  * SOFTWARE.
  */
 
-import type { SIUnit } from "uom-ts";
-import type { PacioliUnit } from "../types/pacioli-type";
 import {
   makeRawMaybe,
   NOTHING,
@@ -34,13 +32,10 @@ import {
 import { type CustomPacioliValue } from "./custom";
 import { PacioliBoole } from "./boole";
 import { PacioliFunction } from "./function";
-import { MatrixShape } from "./matrix-shape";
 import { PacioliString } from "./string";
 import { VOID, type PacioliVoid } from "./void";
 import { PacioliMaybe } from "./maybe";
-import type { PacioliContext } from "../context";
 import { PacioliCoordinates } from "./coordinates";
-import { fetchUnit } from "../cache";
 import { PacioliTuple } from "./tuple";
 import { PacioliList } from "./list";
 import { PacioliSet } from "./set";
@@ -214,75 +209,3 @@ export function unboxPacioliValue(value: PacioliValue): RawValue {
     }
   }
 }
-
-// TODO: rewrite to shape. See use in cache.ts
-export function matrixShapeFromType(
-  type: MatrixShape,
-  _context: PacioliContext,
-): MatrixShape {
-  // const rowDim = matrixDimensionFromIndex(type.rowIndex, context);
-  // const columnDim = matrixDimensionFromIndex(type.columnIndex, context);
-  return new MatrixShape(
-    type.multiplier, //internUnit(type.multiplier, context),
-    type.rowDimension,
-    type.rowUnit, //internUnitVector(rowDim, type.rowUnit, context),
-    type.columnDimension,
-    type.columnUnit, //internUnitVector(columnDim, type.columnUnit, context),
-  );
-}
-
-// function matrixDimensionFromIndex(
-//   index: PacioliIndex,
-//   context: PacioliContext,
-// ): MatrixDimension {
-//   if (index.kind === "index") {
-//     return new MatrixDimension(
-//       index.sets.map((name) => fetchIndex(name, context)),
-//     );
-//   } else {
-//     throw new Error("index kind " + index.kind + " unexpected");
-//   }
-// }
-
-/**
- * Transforms a type unit into an SI unit. See internUnitInv.
- *
- * @param unit
- * @returns
- */
-export function internUnit(unit: PacioliUnit, context: PacioliContext): SIUnit {
-  return unit.map((base) => {
-    if (base.isVar) {
-      throw new Error("cannot have variable");
-    } else {
-      return fetchUnit(base.prefix, base.base, context);
-    }
-  });
-}
-
-// /**
-//  * Transforms a vector type into an SI vector. See internUnitVectorInv.
-//  *
-//  * @param unit
-//  * @returns
-//  */
-// function internUnitVector(
-//   dimension: MatrixDimension,
-//   unit: PacioliVector,
-//   context: PacioliContext,
-// ): SIVector {
-//   const siUnit: SIVector = unit.map((base) => {
-//     if (base.isVar) {
-//       throw new Error("cannot intern a unit containing a unit variable");
-//     } else {
-//       const unitVector = fetchUnitVector(
-//         base.name,
-//         dimension.indexSets[base.position],
-//         context,
-//       );
-//       return UOM.fromBase(new VectorBase(unitVector, base.position, base.name));
-//     }
-//   });
-
-//   return siUnit;
-// }
