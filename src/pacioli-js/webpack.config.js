@@ -1,23 +1,40 @@
-const path = require("path");
+const path = require("node:path");
+const pkg = require("./package.json");
 
-module.exports = (env) => {
+module.exports = (_env, argv) => {
+  const mode = argv.mode ?? "production";
+
   return {
+    mode,
+    target: ["web", "es2020"],
     entry: "./src/index.ts",
-    mode: env.mode ?? "production",
+    devtool: mode === "development" ? "source-map" : false,
+
     output: {
-      path: path.resolve(__dirname, "dist"),
-      filename: "pacioli-0.6.0.bundle.js",
-      library: "Pacioli",
+      path: path.resolve(__dirname, "dist/browser"),
+      filename: `pacioli-${pkg.version}.bundle.js`,
+      library: { name: "Pacioli", type: "umd" },
+      globalObject: "globalThis",
     },
+
     resolve: {
-      extensions: [".tsx", ".ts", ".js"],
+      extensions: [".ts", ".tsx", ".js"],
     },
+
     module: {
-      rules: [{ test: /\.ts$/, use: "ts-loader", exclude: /node_modules/ }],
+      rules: [
+        {
+          test: /\.tsx?$/,
+          exclude: /node_modules/,
+          use: "ts-loader",
+        },
+      ],
     },
+
     performance: {
-      maxEntrypointSize: 1000000,
-      maxAssetSize: 1000000,
+      hints: "warning",
     },
+
+    optimization: { minimize: mode === "production" }
   };
 };
