@@ -27,32 +27,26 @@ export {
   value,
   fun,
   num,
-  createMatrixType,
   convertUnit,
   conversionFactor,
   list,
   tuple,
   parseDimNum,
   parseUnit,
-  _uvec,
+  string,
 } from "./api";
 
+export { fetchIndex, fetchValue, storePacioliValue } from "./cache";
+
 export {
-  initialNumbers,
-  initialNumbersFromType,
-  dimlessScalar,
-  string,
-  lookupItem,
-  fetchIndex,
-  makeIndexSet,
-  oneNumbers,
-  oneNumbersFromShape,
-  fetchValue,
-  storePacioliValue,
-  createCoordinates,
   _mat,
   _unitmat,
-} from "./cache";
+  _uvec,
+  _coords,
+  _index,
+  _dimnum,
+  _const,
+} from "./internals";
 
 export { findNonZero } from "./raw-values/raw-matrix";
 

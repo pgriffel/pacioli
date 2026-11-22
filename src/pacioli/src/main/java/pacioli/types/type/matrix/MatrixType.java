@@ -445,8 +445,6 @@ public class MatrixType implements TypeObject {
         StringWriter buffer = new StringWriter();
         PrintWriter out = new PrintWriter(buffer);
 
-        // out.write("Pacioli.createMatrixType(");
-
         // Scalar factor
         out.write(MatrixBase.compileUnitToJSType(type.factor()));
         out.write(", ");
@@ -477,8 +475,6 @@ public class MatrixType implements TypeObject {
         } else {
             out.write("[]");
         }
-
-        // out.write(")");
 
         return buffer.toString();
     }

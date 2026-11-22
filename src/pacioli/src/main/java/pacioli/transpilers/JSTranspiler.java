@@ -123,26 +123,32 @@ public class JSTranspiler implements SymbolTableVisitor {
 
         IndexSetDefinition definition = info.definition().get();
 
-        if (definition.isDynamic()) {
-            out.format("\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', ",
-                    info.globalName(),
-                    info.globalName(),
-                    definition.name());
-            definition.body().lower().compileToJS(out, settings);
-            out.format(")}\n");
-        } else {
+        String id = info.globalName();
+        String name = definition.name();
 
+        out.newline();
+        out.format("Pacioli.compute_%s = function () {", id);
+        out.newlineUp();
+
+        out.format("return Pacioli._index('%s', '%s', ", id, name);
+
+        if (definition.isDynamic()) {
+            definition.body().lower().compileToJS(out, settings);
+        } else {
             List<String> quotedItems = new ArrayList<String>();
+
             for (String item : definition.items()) {
                 quotedItems.add(String.format("\"%s\"", item));
             }
-            out.format(
-                    "\nPacioli.compute_%s = function () {return Pacioli.makeIndexSet('%s', '%s', Pacioli.tagList([ %s ]))}\n",
-                    info.globalName(),
-                    info.globalName(),
-                    definition.name(),
-                    String.join(",", quotedItems));
+
+            out.format("Pacioli.tagList([ %s ])", String.join(",", quotedItems));
         }
+
+        out.format(")");
+
+        out.newlineDown();
+        out.write("}");
+        out.newline();
 
     }
 
@@ -158,25 +164,31 @@ public class JSTranspiler implements SymbolTableVisitor {
             Pacioli.log("Compiling unit %s", info.globalName());
         }
 
-        Optional<UnitDefinition> optionalDefinition = info.definition();
+        UnitDefinition definition = info.definition()
+                .orElseThrow(() -> new RuntimeException("ScalarUnitInfo misses definition"));
 
-        if (optionalDefinition.isPresent()) {
-            Optional<UnitNode> optionalBody = optionalDefinition.get().body;
-            if (optionalBody.isPresent()) {
-                UnitNode body = optionalBody.get();
-                DimensionedNumber<ScalarBase> number = body.evalUnit();
-                out.format("Pacioli.compute_%s = function () {\n", info.globalName());
-                out.format("    return {definition: Pacioli.DimNum.fromNumber(%s, %s), symbol: \"%s\"}\n",
-                        number.factor(), MatrixBase.compileUnitToJS(number.unit()),
-                        JSGenerator.escapeString(info.symbol()));
-                out.format("}\n");
-            } else {
-                out.format("Pacioli.compute_%s = function () { return {symbol: \"%s\"}};\n",
-                        info.globalName(), JSGenerator.escapeString(info.symbol()));
-            }
+        String symbol = JSGenerator.escapeString(info.symbol());
+
+        out.format("Pacioli.compute_%s = function () {", info.globalName());
+        out.newlineUp();
+
+        if (definition.body.isPresent()) {
+            UnitNode body = definition.body.get();
+
+            DimensionedNumber<ScalarBase> number = body.evalUnit();
+
+            out.format("return {definition: Pacioli._dimnum(%s, %s), symbol: \"%s\"}\n",
+                    number.factor(),
+                    MatrixBase.compileUnitToJS(number.unit()),
+                    symbol);
+
         } else {
-            throw new RuntimeException("ScalarUnitInfo misses definition");
+            out.format("return {symbol: \"%s\"}", symbol);
         }
+
+        out.newlineDown();
+        out.print("}");
+        out.newline();
     }
 
     @Override

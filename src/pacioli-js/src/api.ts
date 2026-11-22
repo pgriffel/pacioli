@@ -34,7 +34,6 @@ import {
   fetchIndex,
   fetchUnit,
   fetchUnitVector,
-  initialNumbers,
   lookupValue,
 } from "./cache";
 import { PacioliTuple } from "./values/tuple";
@@ -42,13 +41,14 @@ import { PacioliList } from "./values/list";
 import type BigNumber from "bignumber.js";
 import { MatrixDimension } from "./values/matrix-dimension";
 import { VectorBase } from "./values/vector-base";
-import { UnitVector } from "./values/unit-vector";
+import { PacioliString } from "./values/string";
+import { initialNumbers } from "./internals";
 
 // -----------------------------------------------------------------------------
 // New
 // -----------------------------------------------------------------------------
 
-export function createMatrixType(
+export function createMatrixShape(
   multiplier: [string, number][],
   rowSets: string[],
   rowUnit: [string, number, number][],
@@ -70,7 +70,7 @@ export function createMatrixType(
   );
 }
 
-function parseSIUnit(parts: [string, number][]): SIUnit {
+export function parseSIUnit(parts: [string, number][]): SIUnit {
   let uni = SIUnit.ONE;
   for (const [base, power] of parts) {
     uni = uni.mult(unit(base).expt(power));
@@ -95,27 +95,6 @@ function parseVectorShapeUnit(
     );
   }
   return unit;
-}
-
-/**
- * Called in generated code to construct a unit vector.
- *
- * @param spec A representation of the unit vector in strings and numbers
- */
-export function _uvec(
-  vectorId: string,
-  indexId: string,
-  spec: [string, [string, number][]][],
-): UnitVector {
-  const indexSet = fetchIndex(indexId, defaultContext);
-
-  const unitMap = new Map<string, SIUnit>();
-
-  for (const [key, unitSpec] of spec) {
-    unitMap.set(key, parseSIUnit(unitSpec));
-  }
-
-  return UnitVector.fromMap(vectorId, indexSet, unitMap);
 }
 
 // -----------------------------------------------------------------------------
@@ -214,4 +193,8 @@ export function list(array: PacioliValue[]): PacioliValue {
   }
 
   return new PacioliList(array);
+}
+
+export function string(value: string): PacioliString {
+  return new PacioliString(value);
 }

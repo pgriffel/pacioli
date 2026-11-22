@@ -28,7 +28,7 @@ import {
   oneNumbers,
   printValue,
   zeroNumbers,
-} from "./cache";
+} from "./internals";
 import type { NumericFullMatrix } from "./raw-values/numbers";
 import {
   getCCSNumbers,

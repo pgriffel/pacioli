@@ -151,7 +151,7 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
         if (value.equals("true") || value.equals("false")) {
             out.format("%s", value);
         } else {
-            out.format("Pacioli.dimlessScalar(%s)", value);
+            out.format("Pacioli._const(%s)", value);
         }
     }
 
@@ -203,7 +203,15 @@ public class JSGenerator extends DefaultVisitor implements CodeGenerator {
     public void visit(KeyNode node) {
         StringBuilder builder = new StringBuilder();
 
-        builder.append("Pacioli.createCoordinates([");
+        builder.append("Pacioli._coords(");
+
+        builder.append(node.position());
+
+        builder.append(",");
+
+        builder.append(node.size());
+
+        builder.append(",[");
 
         for (int i = 0; i < node.keys.size(); i++) {
             if (0 < i) {

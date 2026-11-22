@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-import { dimlessScalar } from "./cache";
+import { dimlessScalar } from "./internals";
 import { RawMap } from "./raw-values/raw-value";
 import type { RawBigNum, RawList, RawString } from "./raw-values/raw-value";
 import type { PacioliVoid } from "./values/void";

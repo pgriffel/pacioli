@@ -23,13 +23,12 @@
 import type { SIUnit } from "uom-ts";
 import type { PacioliString } from "../../values/string";
 import type { PacioliMatrix } from "../../values/matrix";
-import { num, parseDimNum, value } from "../../api";
+import { num, parseDimNum, value, string } from "../../api";
 import { PacioliFunction } from "../../values/function";
 import type { PacioliValue } from "../../values/pacioli-value";
 import type { PacioliWebComponent } from "../pacioli-web-component";
 import type { PacioliBoole } from "../../values/boole";
 import { pacioliFalse, pacioliTrue } from "../../values/boole";
-import { string } from "../../cache";
 import { PacioliError } from "../../pacioli-error";
 
 /**
